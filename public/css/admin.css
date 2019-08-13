@@ -1,0 +1,109 @@
+html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
+.w3-sidebar {
+    z-index: 3;
+    width: 250px;
+    top: 43px;
+    bottom: 0;
+    height: inherit;
+}
+
+.center-stage {
+    min-height: 89vh;
+}
+
+textarea {
+    min-height:14em;
+}
+
+.w3-button,.w3-btn,.w3-hover-black {
+    transition:.4s;
+}
+
+.w3-button.w3-small.primary:hover,.w3-button.w3-medium.primary:hover {
+    background-color:#4ba787!important;
+    color:#fff!important;
+}
+
+.primary,.primary th {
+    color:#fff;
+    background-color:#51bf99;
+    border:1px #488a74 solid!important;
+}
+
+.secondary th {
+    color:#fff;
+    background-color:#4ba787;
+    border:1px #488a74 solid!important;
+}
+
+.w3-table {
+    border:1px #488a74 solid!important;
+    border-color:#488a74!important;
+}
+
+.w3-table td {
+    border:1px #ddd solid!important;
+}
+
+.edit-block-content {
+    height:50vh;
+    overflow:auto;
+}
+
+.edit-block-content > div {
+    padding:.6em;
+}
+
+.w3-modal textarea {
+    min-height:12vh;
+    resize:none;
+}
+
+.modal-btns {
+    margin-top:0;
+}
+
+.w3-modal header h4 {
+    top:2px;
+    position:relative;
+}
+
+.w3-select {
+    height: 2.7em !important;
+}
+
+.pagination {
+    display:inline-block;
+}
+
+.pagination a {
+    color:#000;
+    float:left;
+    text-decoration:none;
+    border:1px solid #ddd;
+    padding:8px 16px;
+}
+
+.pagination a.active {
+    background-color:#aaa;
+    color:#FFF;
+    border:1px solid #aaa;
+}
+
+.pagination a:hover:not(.active) {
+    background-color:#ddd;
+}
+
+.pagination a:first-child {
+    border-top-left-radius:5px;
+    border-bottom-left-radius:5px;
+}
+
+.pagination a:last-child {
+    border-top-right-radius:5px;
+    border-bottom-right-radius:5px;
+}
+
+.w3-button {
+    text-transform:uppercase;
+}
