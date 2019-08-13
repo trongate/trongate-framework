@@ -124,6 +124,17 @@ class Trongate_tokens extends Trongate {
 
     function _fetch_authorization_rules($endpoint, $module_endpoints) {
 
+        if (gettype($module_endpoints) !== 'array') {
+            $module_endpoints_json = json_decode($module_endpoints);
+            $module_endpoints = (array) $module_endpoints_json;
+
+            if (isset($module_endpoints[$endpoint])) {
+                $target = $module_endpoints[$endpoint];
+                $module_endpoints[$endpoint] = (array) $target;
+            }
+            
+        }
+
         if (isset($module_endpoints[$endpoint]["authorization"])) {
             $authorization_rules = $module_endpoints[$endpoint]["authorization"];
             return $authorization_rules;
