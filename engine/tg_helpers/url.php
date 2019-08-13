@@ -95,39 +95,48 @@ function api_auth() {
             //extract the rules for the current path
             $target_method = $segments[1];
             $api_rules_content = file_get_contents($filepath);
-            $target_str1 = '"url_segments": "'.$current_module.'/'.$target_method.'"';
-            $target_str2 = '"request_type": "'.$_SERVER['REQUEST_METHOD'].'",';
-            $target_str3 = '"authorization":';
+            $api_rules_obj = json_decode($api_rules_content);
+            $api_rules_array = (array) $api_rules_obj;
 
-            $api_rules = explode(': {', $api_rules_content);
-            foreach ($api_rules as $key => $value) {
+            foreach ($api_rules_array as $key => $value) {
 
-                if ((is_numeric(strpos($value, $target_str1))) && ((is_numeric(strpos($value, $target_str2)))) && ((is_numeric(strpos($value, $target_str3))))) {
-                    //attempt to extract authorization rules for this endpoint
-                    $previous_key = $key-1;
-                    $previous_rule_block = $api_rules[$previous_key];
-                    $bits = explode(',', $previous_rule_block);
-                    $num_bits = count($bits);
-                    $endpoint_name = $bits[$num_bits-1];
-                    $endpoint_name = str_replace('{', '', $endpoint_name);
-                    $endpoint_name = ltrim(trim(str_replace('"', '', $endpoint_name)));
-                    
-                    $token_validation_data['endpoint'] = $endpoint_name;
-                    $token_validation_data['module_name'] = $current_module;
-                    $token_validation_data['module_endpoints'] = $api_rules_content;
-                    $api_class_location = APPPATH.'engine/Api.php';
+                $pass_count = 0;
 
-                    if (file_exists($api_class_location)) {
-                        include_once $api_class_location;
-                        $api_helper = new Api;
-                        $api_helper->_validate_token($token_validation_data);
-                        $validation_complete = true;
+                if (isset($value->url_segments)) {
+
+                    if ($value->url_segments == $current_module.'/'.$target_method) {
+                        $pass_count++;
                     }
 
-                } 
+                    if ($value->request_type == $_SERVER['REQUEST_METHOD']) {
+                        $pass_count++;
+                    }
+
+                    if (isset($value->authorization)) {
+                        $pass_count++;
+                    }
+
+                    if ($pass_count == 3) {
+
+                        $token_validation_data['endpoint'] = $key;
+                        $token_validation_data['module_name'] = $current_module;
+                        $token_validation_data['module_endpoints'] = $api_rules_content;
+
+                        $api_class_location = APPPATH.'engine/Api.php';
+
+                        if (file_exists($api_class_location)) {
+                            include_once $api_class_location;
+                            $api_helper = new Api;
+                            $api_helper->_validate_token($token_validation_data);
+                            $validation_complete = true;
+                        }
+
+                    }
+
+                }
 
             }
-
+            
         }
 
     }
