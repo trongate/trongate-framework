@@ -43,7 +43,6 @@ function fetch_comments() {
         var commentsTbl = '<table class="w3-table w3-striped" id="comments-tbl">';
 
         for (var i = comments.length - 1; i >= 0; i--) {
-            console.log(comments[i]);
 
             commentsTbl = commentsTbl.concat('<tr><td><p class="w3-small">' + comments[i]['date_created'] + 
                 '</p><p>' + comments[i]['comment'] + '</p></td></tr>');

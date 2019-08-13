@@ -85,7 +85,7 @@ function api_auth() {
     $validation_complete = false;
     $target_url = str_replace(BASE_URL, '', current_url());
     $segments = explode('/', $target_url);
-    
+
     if ((isset($segments[0])) && (isset($segments[1]))) {
         $current_module = $segments[0];
         $filepath = APPPATH.'modules/'.$current_module.'/assets/api.json';
@@ -98,27 +98,43 @@ function api_auth() {
             $api_rules_obj = json_decode($api_rules_content);
             $api_rules_array = (array) $api_rules_obj;
 
-            foreach ($api_rules_array as $key => $value) {
+            $current_uri_path = str_replace(BASE_URL, '', current_url());
+            $current_uri_bits = explode('/', $current_uri_path);
 
-                $pass_count = 0;
+            foreach ($api_rules_array as $rule_name => $api_rule_value) {
 
-                if (isset($value->url_segments)) {
+                $segments_match = true;
 
-                    if ($value->url_segments == $current_module.'/'.$target_method) {
-                        $pass_count++;
+                if (isset($api_rule_value->url_segments)) {
+
+                    //ignore placeholders for decent comparison
+                    $target_url_segments = $api_rule_value->url_segments;
+                    $bits = explode('/', $target_url_segments);
+                    $required_bits = [];
+
+                    foreach ($bits as $key => $value) {
+
+                        if (!is_numeric(strpos($value, '{'))) {
+                            $required_segments[$key] = $value;
+                        }
+
                     }
 
-                    if ($value->request_type == $_SERVER['REQUEST_METHOD']) {
-                        $pass_count++;
+                    foreach ($current_uri_bits as $key => $value) {
+                     
+                        if (isset($required_segments[$key])) {
+
+                            if ($value !== $required_segments[$key]) {
+                                $segments_match = false;
+                            }
+
+                        }
+
                     }
 
-                    if (isset($value->authorization)) {
-                        $pass_count++;
-                    }
+                    if ($segments_match == true) {
 
-                    if ($pass_count == 3) {
-
-                        $token_validation_data['endpoint'] = $key;
+                        $token_validation_data['endpoint'] = $rule_name;
                         $token_validation_data['module_name'] = $current_module;
                         $token_validation_data['module_endpoints'] = $api_rules_content;
 
@@ -131,6 +147,10 @@ function api_auth() {
                             $validation_complete = true;
                         }
 
+                    }
+
+                    if (isset($required_segments)) {
+                        unset($required_segments);
                     }
 
                 }
