@@ -37,6 +37,24 @@ class Trongate_tokens extends Trongate {
         echo 'cleaned';
     }
 
+    function _fetch_token($user_id) {
+
+        $this->_delete_old_tokens();
+        $result = $this->model->get_one_where('user_id', $user_id, 'trongate_tokens');
+
+        if ($result == false) {
+            //generate new token
+            $token_data['user_id'] = $user_id;
+            $token = $this->trongate_tokens->_generate_token($token_data);
+        } else {
+            $user_id = $result->user_id;
+            $token = $result->token;
+        }
+
+        return $token;
+
+    }
+
     function _generate_token($data=NULL) {
 
         /*
@@ -49,8 +67,6 @@ class Trongate_tokens extends Trongate {
          * 
          * How you choose to use this class is entirely up to you.
          */
-
-        $this->_delete_old_tokens($data['user_id']);
 
         //generate 32 digit random string
         $random_string = $this->_generate_rand_str();

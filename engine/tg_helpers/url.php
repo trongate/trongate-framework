@@ -94,21 +94,20 @@ function api_auth() {
             
             //extract the rules for the current path
             $target_method = $segments[1];
-            $api_rules_content = file_get_contents($filepath);
-            $api_rules_obj = json_decode($api_rules_content);
-            $api_rules_array = (array) $api_rules_obj;
+            $settings = file_get_contents($filepath);
+            $endpoints = json_decode($settings, true); 
 
             $current_uri_path = str_replace(BASE_URL, '', current_url());
             $current_uri_bits = explode('/', $current_uri_path);
 
-            foreach ($api_rules_array as $rule_name => $api_rule_value) {
+            foreach ($endpoints as $rule_name => $api_rule_value) {
 
                 $segments_match = true;
 
-                if (isset($api_rule_value->url_segments)) {
+                if (isset($api_rule_value['url_segments'])) {
 
                     //ignore placeholders for decent comparison
-                    $target_url_segments = $api_rule_value->url_segments;
+                    $target_url_segments = $api_rule_value['url_segments'];
                     $bits = explode('/', $target_url_segments);
                     $required_bits = [];
 
@@ -121,7 +120,7 @@ function api_auth() {
                     }
 
                     foreach ($current_uri_bits as $key => $value) {
-                     
+                   
                         if (isset($required_segments[$key])) {
 
                             if ($value !== $required_segments[$key]) {
@@ -136,7 +135,7 @@ function api_auth() {
 
                         $token_validation_data['endpoint'] = $rule_name;
                         $token_validation_data['module_name'] = $current_module;
-                        $token_validation_data['module_endpoints'] = $api_rules_content;
+                        $token_validation_data['module_endpoints'] = $endpoints;
 
                         $api_class_location = APPPATH.'engine/Api.php';
 

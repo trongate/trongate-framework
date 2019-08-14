@@ -453,6 +453,10 @@ class Api extends Trongate {
 
         $token_data['user_id'] = $this->security->_get_user_id();
         $token_data['code'] = 'aaa';
+        
+        $sql = 'delete from trongate_tokens where user_id = :user_id and code = :code';
+        $this->model->query_bind($sql, $token_data);
+
         $token_data['expiry_date'] = time() + 7200; //two hours
         $data['golden_token'] = $this->trongate_tokens->_generate_token($token_data);
         
@@ -497,90 +501,6 @@ class Api extends Trongate {
 
         return $type;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function get() {
         $module_name = $this->url->segment(3);
@@ -1057,7 +977,6 @@ class Api extends Trongate {
 
     }
 
-
     function batch() {
 
         $module_name = $this->url->segment(3);
@@ -1183,7 +1102,6 @@ class Api extends Trongate {
         http_response_code($code);
         echo $output['body'];
     }
-
 
     function delete() {
 
@@ -1337,31 +1255,5 @@ class Api extends Trongate {
         http_response_code($code);
         echo $output['body'];
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

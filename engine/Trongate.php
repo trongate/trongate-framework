@@ -5,7 +5,6 @@ class Trongate {
     protected $module_name;
     protected $parent_module = '';
     protected $child_module = '';
-    public $vibe = 'cool';
 
     public function __construct($module_name=NULL) {
     
