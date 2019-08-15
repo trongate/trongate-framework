@@ -233,9 +233,37 @@ class Trongate_tokens extends Trongate {
     }
 
     function _test_for_user_id($id_rules, $user_id) {
+
         if (in_array($user_id, $id_rules)) {
             return true;
         } else {
+
+            //test for posted ID
+            foreach ($id_rules as $param) {
+                if (!is_numeric($param)) {
+
+                    //fetch params from URL
+                    $bits = explode('?', current_url());
+
+                    if (count($bits)>1) {
+                        $params = [];
+                        parse_str($bits[1], $params);
+                    } elseif (!isset($params)) {
+                        $post = file_get_contents('php://input');
+                        $params = json_decode($post, true);
+                    }
+
+                    if (isset($params[$param])) {
+                        
+                        if ($params[$param] == $user_id) {
+                            return true;
+                        }
+
+                    }
+
+                }
+            }
+
             return false;
         }
     }

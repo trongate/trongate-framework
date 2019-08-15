@@ -459,11 +459,43 @@ class Api extends Trongate {
 
         $token_data['expiry_date'] = time() + 7200; //two hours
         $data['golden_token'] = $this->trongate_tokens->_generate_token($token_data);
-        
         $data['endpoints'] = $this->_fetch_endpoints($target_module);
         $data['endpoint_settings_location'] = '/modules/'.$target_module.'/assets/api.json';
+        $columns = $this->_get_all_columns($target_module);
 
+        //build columns as json_str
+        $json_starter_str = '{';
+        $count = 1;
+        foreach ($columns as $column) {
+            $count++;
+            if ($column !== 'id') {
+
+                if ($count == 3) {
+                    $column_length = strlen($column);
+                    $cursor_reset_position = $column_length + 10;
+                }
+
+                $json_starter_str.= '"'.$column.'":""';
+
+                if ($count <= count($columns)) {
+                    $json_starter_str.= ',';
+                } else {
+                    $json_starter_str.= '}';
+                }
+
+            }
+        }
+
+        $new_line = '\n';
+        $indent = '    ';
+        $json_starter_str = str_replace('{', '{'.$new_line.$indent, $json_starter_str);
+        $json_starter_str = str_replace(',', ','.$new_line.$indent, $json_starter_str);
+        $json_starter_str = trim(str_replace('}', $new_line.'}'.$new_line.$indent, $json_starter_str));
+
+        $data['cursor_reset_position'] = $cursor_reset_position;
+        $data['json_starter_str'] = $json_starter_str;
         $view_file = $file_path = APPPATH.'engine/views/api_explorer.php';
+
         extract($data);
         require_once $view_file;
     }
