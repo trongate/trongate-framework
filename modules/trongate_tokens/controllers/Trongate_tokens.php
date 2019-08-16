@@ -45,7 +45,7 @@ class Trongate_tokens extends Trongate {
         if ($result == false) {
             //generate new token
             $token_data['user_id'] = $user_id;
-            $token = $this->trongate_tokens->_generate_token($token_data);
+            $token = $this->_generate_token($token_data);
         } else {
             $user_id = $result->user_id;
             $token = $result->token;

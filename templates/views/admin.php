@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <link rel="stylesheet" href="<?= BASE_URL ?>css/admin.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>admin_files/w3css/css/admin.css">
     <?= $additional_includes_top ?>
 </head>
 <body>
