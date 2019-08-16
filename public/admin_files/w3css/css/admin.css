@@ -107,3 +107,44 @@ textarea {
 .w3-button {
     text-transform:uppercase;
 }
+
+.w3-modal {
+    padding-top: 7em;
+}
+
+.w3-modal .w3-card-4 {
+    width: 30%;
+}
+
+.edit-block {
+    margin-top: 1em;
+}
+
+.results-list {
+    border: 1px #CCC solid;
+}
+
+.results-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 0.6em;
+    border-bottom: 1px #CCC solid;
+}
+
+.results-row div {
+    width: 50%;
+}
+
+.results-row div:nth-child(odd) {
+    text-align: left;
+    padding-left: 4em;
+}
+
+.results-row:nth-child(even) {
+    background: #F1F1F1;
+}
+
+.results-row:last-child {
+    border-bottom: 0px;
+}
