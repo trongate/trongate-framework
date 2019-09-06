@@ -148,3 +148,8 @@ textarea {
 .results-row:last-child {
     border-bottom: 0px;
 }
+
+button {
+    color: black;
+    background-color: white;
+}
