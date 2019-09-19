@@ -73,7 +73,7 @@ function anchor($target_url, $text, $attributes=NULL, $additional_code=NULL) {
 function url_title($string) {
     $string = trim($string);
     $string = preg_replace('/\s+/', ' ', $string);
-    $string = preg_replace("/[^A-Za-z0-9 ]/", '', $string);
+    $string = preg_replace("/[^A-Za-z0-9 _]/", '', $string);
     $string = rawurlencode(utf8_encode($string));
     $string = preg_replace('/-+/', '-', $string);
     $string = str_replace("%20", '-', $string);
