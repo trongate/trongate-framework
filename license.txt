@@ -29,6 +29,6 @@
  *
  * @author  David Connelly (https://speedcodingacademy.com)
  * @copyright   Copyright (c) 2019, Redhorn Development.
- * @license http://opensource.org/licenses/MIT  MIT License
- * @link    https://trongate.io
+ * @license http://opensource.org/licenses/MIT  MIT License.
+ * @link    https://trongate.io.
  */
