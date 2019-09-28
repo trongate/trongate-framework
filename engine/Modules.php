@@ -1,7 +1,7 @@
 <?php
 class Modules {
 
-    public static function run($moduleControllerAction, $data=NULL) {
+    public static function run($moduleControllerAction, $first_value=NULL, $second_value=NULL, $third_value=NULL) {
         $debris = explode('/', $moduleControllerAction);
         $target_module = $debris[0];
         $target_controller = ucfirst($target_module);
@@ -28,7 +28,7 @@ class Modules {
 
         require_once $controller_path;
         $controller = new $target_controller($target_module);
-        return $controller->$target_method($data);
+        return $controller->$target_method($first_value, $second_value, $third_value);
     }
 
 }
