@@ -183,7 +183,8 @@ class Api extends Trongate {
         $this->module('trongate_tokens');
 
         extract($token_validation_data);
-        $authorization_rules = $this->trongate_tokens->_fetch_authorization_rules($endpoint, $module_endpoints);
+        $endpoint_auth_rules = $this->trongate_tokens->_fetch_endpoint_auth_rules($endpoint, $module_endpoints);
+        $authorization_rules = $endpoint_auth_rules['authorization_rules'];
 
         if (!isset($_SERVER['HTTP_TRONGATETOKEN'])) {
 
@@ -202,10 +203,47 @@ class Api extends Trongate {
 
             if ($valid == false) {
                 $this->_not_allowed_msg();
+            } elseif(gettype($valid) == 'string') {
+                $this->_attempt_wildcard_auth($valid, $token, $endpoint_auth_rules['url_segments']);
             }
+
         }
 
         return $token;
+    }
+
+    function _attempt_wildcard_auth($user_id, $token, $url_segments) {
+
+        $target_str = '{$id}';
+        $pos = strpos($url_segments, $target_str);
+
+        if (is_numeric($pos)) {
+
+            //attempt wildcard authorization
+            $valid = true; 
+            settype($user_id, "integer");
+            $url_segments = str_replace('{$id}', $user_id, $url_segments);
+            $bits = explode('/', $url_segments);
+            foreach ($bits as $key => $required_value) {
+                $target_segment = $key+1;
+                $url_value = $this->url->segment($target_segment);
+
+                if ($required_value !== $url_value) {
+                    $valid = false;
+                }
+
+            }
+
+        } else {
+            $valid = false;
+        }
+
+        if ($valid == false) {
+            $this->_not_allowed_msg();
+        } else {
+            return $token;
+        }
+
     }
 
     function _add_params_to_query($module_name, $sql, $params) {

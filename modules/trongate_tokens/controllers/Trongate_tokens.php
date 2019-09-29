@@ -138,7 +138,7 @@ class Trongate_tokens extends Trongate {
 
     }
 
-    function _fetch_authorization_rules($endpoint, $module_endpoints) {
+    function _fetch_endpoint_auth_rules($endpoint, $module_endpoints) {
 
         if (gettype($module_endpoints) !== 'array') {
             $module_endpoints_json = json_decode($module_endpoints);
@@ -151,9 +151,11 @@ class Trongate_tokens extends Trongate {
             
         }
 
+        $data['url_segments'] = $module_endpoints[$endpoint]["url_segments"];
+
         if (isset($module_endpoints[$endpoint]["authorization"])) {
-            $authorization_rules = $module_endpoints[$endpoint]["authorization"];
-            return $authorization_rules;
+            $data['authorization_rules'] = $module_endpoints[$endpoint]["authorization"];
+            return $data;
         } else {
             return false; //no authorization rules could be found
         }
@@ -214,7 +216,7 @@ class Trongate_tokens extends Trongate {
 
         }
 
-        return false; //token has failed all of the tests
+        return $user_id; //token has failed all of the tests
 
     }
 
