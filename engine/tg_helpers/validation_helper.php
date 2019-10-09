@@ -406,7 +406,20 @@ class validation_helper {
             $target_method = str_replace('callback_', '', $test_to_run);
 
             if (class_exists($target_module)) {  
-                $outcome = $target_module::$target_method($posted_value);
+                
+                //thank you Jason Wood for this contribution!
+                $static_check = new ReflectionMethod($target_module,$target_method); 
+                if($static_check->isStatic())
+                {
+                    // STATIC METHOD
+                    $outcome = $target_module::$target_method($posted_value);
+                }
+                else
+                {
+                    // INSTANTIATED
+                    $callback = new $target_module;
+                    $outcome = $callback->$target_method($posted_value);
+                }
 
                 if (gettype($outcome) == 'string') {
                     $outcome = str_replace('{label}', $label, $outcome);
