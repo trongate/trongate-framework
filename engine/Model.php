@@ -9,7 +9,7 @@ class Model {
     private $dbh;
     private $stmt;
     private $error;
-    private $debug = false;
+    private $debug = true;
     private $query_caveat = 'The query shown above is how the query would look <i>before</i> binding.';
 
     public function __construct() {
@@ -154,9 +154,13 @@ class Model {
         $data[$column] = $value;
         $sql = "SELECT * FROM $target_tbl where $column $operator :$column order by $order_by";
 
-        if ((isset($limit, $offset))) {
-            $data['limit'] = $limit;
-            $data['offset'] = $offset;
+        if ((isset($limit))) {
+
+            if (!isset($offset)) {
+                $offset = 0;
+            }
+
+            $sql = $this->add_limit_offset($sql, $limit, $offset);
         }
 
         if ($this->debug == true) {

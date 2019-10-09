@@ -407,7 +407,6 @@ class validation_helper {
 
             if (class_exists($target_module)) {  
                 
-                //thank you Jason Wood for this contribution!
                 $static_check = new ReflectionMethod($target_module,$target_method); 
                 if($static_check->isStatic())
                 {
