@@ -169,8 +169,9 @@ function radio($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_
 }
 
 function checked($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_code=NULL) {
-    $html = $this->radio($name, $value, $checked, $attributes, $additional_code);
+    $html = radio($name, $value, $checked, $attributes, $additional_code);
     $html = str_replace(' type="radio" ', ' type="checkbox" ', $html);
+    return $html;
 }
 
 function form_dropdown($name, $options, $selected_key=NULL, $attributes=NULL, $additional_code=NULL) {
