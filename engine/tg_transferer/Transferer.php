@@ -22,8 +22,9 @@ class Transferer
         }
         
         if ((isset($data->targetFile)) && ($data->action == 'deleteFile')) {
+
             $result = $this->delete_file($data->targetFile);
-            
+
             if ($result == '') {
                 echo 'Finished.';
             }
@@ -82,8 +83,11 @@ class Transferer
     }
 
     private function delete_file($filepath) {
-        if (file_exists($filepath)) {
+        if ((file_exists($filepath)) && (is_writable($filepath))) {
             unlink($filepath);
+        } else {
+            http_response_code(403);
+            echo $filepath; die();
         }
     }
 
