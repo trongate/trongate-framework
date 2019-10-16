@@ -289,4 +289,29 @@ class Trongate_tokens extends Trongate {
         $this->model->query_bind($sql, $data);        
     }
 
+    function _get_user_level($token) {
+
+        $sql = '
+                SELECT
+                    trongate_user_levels.level_title
+                FROM
+                    trongate_tokens
+                JOIN trongate_users ON trongate_tokens.user_id = trongate_users.id
+                JOIN trongate_user_levels ON trongate_users.user_level_id = trongate_user_levels.id 
+                WHERE
+                    trongate_tokens.token = :token 
+        ';
+
+        $data['token'] = $token;
+        $result = $this->model->query_bind($sql, $data, 'object');
+
+        if (count($result)>0) {
+            $user_level = $result[0]->level_title;
+        } else {
+            $user_level = '';
+        }
+
+        return $user_level;
+    }
+
 }

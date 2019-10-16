@@ -16,7 +16,7 @@ class Model {
 
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
         $options = array(
-            PDO::ATTR_PERSISTENT => true,
+            PDO::ATTR_EMULATE_PREPARES => false,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         );
 
