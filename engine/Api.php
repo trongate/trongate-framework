@@ -484,6 +484,13 @@ class Api extends Trongate {
     }
 
     function explorer() {
+
+        if (ENV !== 'dev') {
+            http_response_code(403);
+            echo "API Explorer disabled since not in 'dev' mode.";
+            die();
+        }
+
         $this->module('security');
         $target_module = $this->url->segment(3);
         $this->_make_sure_table_exists($target_module);
