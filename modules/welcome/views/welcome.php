@@ -29,7 +29,8 @@
             text-transform: uppercase;
         }
 
-        a:link { color: white; }
+        a { color: white; }
+
     </style>
 </body>
 </html>
