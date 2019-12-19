@@ -74,7 +74,7 @@ class Comments extends Trongate {
         } else {
 
             $this->module('security');
-            $data['code'] = $this->security->_generate_random_string(6);
+            $data['code'] = make_rand_str(6);
             $information = json_decode($token_obj->information);
             $data['user_id'] = $token_obj->user_id;
 
