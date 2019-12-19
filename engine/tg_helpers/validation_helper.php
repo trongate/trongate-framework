@@ -450,15 +450,13 @@ function validation_errors($opening_html=NULL, $closing_html=NULL) {
     if (isset($_SESSION['form_submission_errors'])) {
         $form_submission_errors = $_SESSION['form_submission_errors'];
 
+        if (!isset($opening_html)) {
+            $opening_html = '<p style="color: red;">';
+            $closing_html = '</p>';
+        }
+
         foreach($form_submission_errors as $form_submission_error) {
-
-            if (!isset($opening_html)) {
-                $opening_html = '<p style="color: red;">';
-                $closing_html = '</p>';
-            }
-
             echo $opening_html.$form_submission_error.$closing_html;
-            
         }
 
         unset($_SESSION['form_submission_errors']);
