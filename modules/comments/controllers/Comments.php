@@ -1,11 +1,9 @@
 <?php
 class Comments extends Trongate {
 
-    function pre_insert($input) {
+    function _pre_insert($input) {
         //establish user_id, date_created and code before doing an insert
-        $this->module('security');
         $this->module('trongate_tokens');
-
         $token = $input['token'];
         $user = $this->trongate_tokens->_fetch_token_obj($token);
 
@@ -16,7 +14,7 @@ class Comments extends Trongate {
         return $input;
     }
 
-    function prep_comments($output) {
+    function _prep_comments($output) {
         //return comments with nicely formatted date
         $body = $output['body'];
 

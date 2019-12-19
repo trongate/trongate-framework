@@ -9,7 +9,7 @@
             "admin"
          ]
       },
-      "afterHook":"prep_comments"
+      "afterHook":"_prep_comments"
    },
    "Find One":{  
       "url_segments":"api/get/comments/{id}",
@@ -54,7 +54,7 @@
             "admin"
          ]
       },
-      "beforeHook":"pre_insert"
+      "beforeHook":"_pre_insert"
    },
    "Insert Batch":{  
       "url_segments":"api/batch/comments",
