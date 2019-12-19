@@ -58,7 +58,7 @@ INSERT INTO `trongate_user_levels` (`id`, `level_title`) VALUES
 (1, 'admin');
 
 
-CREATE TABLE `trongate_administrators` (
+CREATE TABLE IF NOT EXISTS `trongate_administrators` (
   `id` int(11) NOT NULL,
   `username` varchar(65) NOT NULL,
   `password` varchar(60) NOT NULL,
