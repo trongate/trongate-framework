@@ -39,16 +39,8 @@ class Comments extends Trongate {
     }
 
     function _display_comments_block($token) {
-        $this->module('security');
         $target_table = $this->url->segment(1);
         $update_id = $this->url->segment(3);
-
-        //fetch all of the comments for this page
-        // $sql = 'select * from comments where target_table = :target_table and update_id = :update_id order by date_created';
-        // $data['target_table'] = $target_table;
-        // $data['update_id'] = $update_id;
-        // $data['comments'] = $this->model->query_bind($sql, $data, 'object');
-
         $data['target_table'] = $target_table;
         $data['update_id'] = $update_id;
         $data['token'] = $token;
