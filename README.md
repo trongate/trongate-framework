@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `comments` (
   `update_id` int(11) NOT NULL,
   `code` varchar(6) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `trongate_tokens` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -36,14 +36,14 @@ CREATE TABLE IF NOT EXISTS `trongate_tokens` (
   `expiry_date` int(11) NOT NULL,
   `code` varchar(3) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2240 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `trongate_users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(32) DEFAULT NULL,
   `user_level_id` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 INSERT INTO `trongate_users` (`id`, `code`, `user_level_id`) VALUES
 (1, 'UVsY8ASG5evncc4U6trru2XH5Tbq7MU5', 1);
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `trongate_user_levels` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `level_title` varchar(125) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 INSERT INTO `trongate_user_levels` (`id`, `level_title`) VALUES
 (1, 'admin');
@@ -74,7 +74,7 @@ ALTER TABLE `trongate_administrators`
 
 
 ALTER TABLE `trongate_administrators`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 COMMIT;
 
 COMMIT;
