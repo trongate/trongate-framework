@@ -30,7 +30,7 @@ http_response_code(404);
             text-transform: uppercase;
         }
 
-        a:link { color: white; }
+        a { color: white; }
     </style>
 </body>
 </html>
