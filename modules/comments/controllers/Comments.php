@@ -73,7 +73,6 @@ class Comments extends Trongate {
             die(); //invalid token
         } else {
 
-            $this->module('security');
             $data['code'] = make_rand_str(6);
             $information = json_decode($token_obj->information);
             $data['user_id'] = $token_obj->user_id;
