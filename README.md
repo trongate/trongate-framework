@@ -17,17 +17,6 @@ START
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
 START TRANSACTION;
-SET time_zone = "+00:00";
-
---
--- Database: `a3`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `comments`
---
 
 CREATE TABLE IF NOT EXISTS `comments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -40,12 +29,6 @@ CREATE TABLE IF NOT EXISTS `comments` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `trongate_tokens`
---
-
 CREATE TABLE IF NOT EXISTS `trongate_tokens` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `token` varchar(125) NOT NULL,
@@ -55,12 +38,6 @@ CREATE TABLE IF NOT EXISTS `trongate_tokens` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2240 DEFAULT CHARSET=utf8;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `trongate_users`
---
-
 CREATE TABLE IF NOT EXISTS `trongate_users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(32) DEFAULT NULL,
@@ -68,18 +45,8 @@ CREATE TABLE IF NOT EXISTS `trongate_users` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
---
--- Dumping data for table `trongate_users`
---
-
 INSERT INTO `trongate_users` (`id`, `code`, `user_level_id`) VALUES
 (1, 'UVsY8ASG5evncc4U6trru2XH5Tbq7MU5', 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `trongate_user_levels`
---
 
 CREATE TABLE IF NOT EXISTS `trongate_user_levels` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -87,12 +54,29 @@ CREATE TABLE IF NOT EXISTS `trongate_user_levels` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
---
--- Dumping data for table `trongate_user_levels`
---
-
 INSERT INTO `trongate_user_levels` (`id`, `level_title`) VALUES
 (1, 'admin');
+
+
+CREATE TABLE `trongate_administrators` (
+  `id` int(11) NOT NULL,
+  `username` varchar(65) NOT NULL,
+  `password` varchar(60) NOT NULL,
+  `trongate_user_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO `trongate_administrators` (`id`, `username`, `password`, `trongate_user_id`) VALUES
+(11, 'admin', '$2y$11$SoHZDvbfLSRHAi3WiKIBiu.tAoi/GCBBO4HRxVX1I3qQkq3wCWfXi', 1);
+
+
+ALTER TABLE `trongate_administrators`
+  ADD PRIMARY KEY (`id`);
+
+
+ALTER TABLE `trongate_administrators`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+COMMIT;
+
 COMMIT;
 
 
