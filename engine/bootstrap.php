@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once '../config/autoload.php';
 require_once '../config/config.php';
 require_once '../config/custom_routing.php';
 require_once '../config/database.php';
@@ -32,3 +31,6 @@ function load($template_file, $data=NULL) {
         die('<br><b>ERROR:</b> View file does not exist at: '.$file_path);
     }
 }
+
+$trongate_helpers = ['form_helper', 'flashdata_helper', 'url', 'validation_helper'];
+define('TRONGATE_HELPERS', $trongate_helpers);

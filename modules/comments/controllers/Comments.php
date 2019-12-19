@@ -11,7 +11,7 @@ class Comments extends Trongate {
 
         $input['params']['user_id'] = $user->user_id;
         $input['params']['date_created'] = time();
-        $input['params']['code'] = $this->security->_generate_random_string(6);
+        $input['params']['code'] = make_rand_str(6);
 
         return $input;
     }

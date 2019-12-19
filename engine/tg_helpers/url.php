@@ -166,3 +166,16 @@ function api_auth() {
     }
 
 }
+
+function make_rand_str($strlen, $uppercase=false) {
+    $characters = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+    $random_string = '';
+    for ($i = 0; $i < $strlen; $i++) {
+        $random_string .= $characters[mt_rand(0, strlen($characters) - 1)];
+    }
+
+    if ($uppercase == true) {
+        $random_string = strtoupper($random_string);
+    }
+    return $random_string;
+}
