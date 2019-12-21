@@ -175,7 +175,7 @@ class Trongate {
             $value = $_POST[$field_name];
 
             if (isset($clean_up)) {
-                $value = trim(filter_var($value, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH));
+                $value = ltrim(trim(strip_tags($value, FILTER_SANITIZE_STRING)));
             }
 
         }
@@ -301,7 +301,7 @@ class Trongate {
         $file_extension = '.'.$bits[count($bits)-1];
 
         $new_file_name = str_replace($file_extension, '', $new_file_name);
-        $new_file_name = trim(filter_var($new_file_name, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH));
+        $new_file_name = ltrim(trim(filter_var($new_file_name, FILTER_SANITIZE_STRING)));
         $new_file_name.= $file_extension;
 
         //make sure the destination folder exists
