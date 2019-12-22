@@ -61,7 +61,8 @@ class Trongate_tokens extends Trongate {
          * $data array may contain:
          *                         user_id ~ int(11) : required
          *                         expiry_date ~ int(10) : optional 
-         *                         code ~ varchar(4) : optional                                     
+         *                         set_cookie ~ bool(true) : optional 
+         *                         code ~ varchar(4) : optional 
          *
          * 'expiry_date' (if submitted) should be a unix timestamp, set to some future date.
          * 
@@ -77,7 +78,17 @@ class Trongate_tokens extends Trongate {
         }
         
         $data['token'] = $random_string;
-        $this->model->insert($data, 'trongate_tokens');
+        $params = $data;
+
+        if (isset($params['set_cookie'])) {
+            unset($params['set_cookie']);
+        }
+
+        $this->model->insert($params, 'trongate_tokens');
+
+        if (isset($data['set_cookie'])) {
+            setcookie('trongatetoken', $random_string, $data['expiry_date'], '/');
+        }
 
         return $random_string;
     }
@@ -163,6 +174,7 @@ class Trongate_tokens extends Trongate {
     }
 
     function _is_token_valid($token_validation_data) {
+        //this method gets used by the API manager - do not mess with this!
         extract($token_validation_data);
 
         if ($authorization_rules == false) {
@@ -270,6 +282,31 @@ class Trongate_tokens extends Trongate {
         }
     }
 
+    function _destroy() {
+
+        if (isset($_SESSION['trongatetoken'])) {
+            $tokens_to_delete[] = $_SESSION['trongatetoken'];
+            $_SESSION['trongatetoken'] = 'x'; //fallback
+            unset($_SESSION['trongatetoken']);
+        }
+
+        if (isset($_COOKIE['trongatetoken'])) {
+            //destroy the cookie
+            $tokens_to_delete[] = $_SESSION['trongatetoken'];
+            $past_date = time()-86400;
+            setcookie('trongatetoken', 'x', $past_date, '/');
+        }
+
+        if (isset($tokens_to_delete)) {
+            foreach ($tokens_to_delete as $token) {
+                $params['token'] = $token;
+                $sql = 'delete from trongate_tokens where token = :token';
+                $this->model->query_bind($sql, $params);
+            }
+        }
+
+    }
+
     function _delete_old_tokens($user_id=NULL) {
 
         $sql = 'delete from trongate_tokens where expiry_date < :nowtime';
@@ -312,6 +349,152 @@ class Trongate_tokens extends Trongate {
         }
 
         return $user_level;
+    }
+
+    function _attempt_get_valid_token($user_levels=NULL) {
+
+        if (isset($_COOKIE['trongatetoken'])) {
+            $user_tokens[] = $_COOKIE['trongatetoken'];
+        }
+
+        if (isset($_SESSION['trongatetoken'])) {
+            $user_tokens[] = $_SESSION['trongatetoken'];
+        }
+
+        if (!isset($user_tokens)) {
+            return false;
+        } else {
+
+            if (!isset($user_levels)) {
+                $user_levels_type = '';
+            } else {
+                $user_levels_type = gettype($user_levels);
+            }
+
+            switch ($user_levels_type) {
+                case 'integer':
+                    //allow access for ONE user level type
+                    $token = $this->_execute_sql_single($user_tokens, $user_levels);
+                    break;
+                case 'array':
+                    //allow access for MORE THAN ONE user level type
+                    $token = $this->_execute_sql_multi($user_tokens, $user_levels);
+                    break;
+                default:
+                    //allow access for AND user level type
+                    $token = $this->_execute_sql_default($user_tokens);
+                    break;
+            }
+
+            return $token;
+
+        }
+
+    }
+
+    function _execute_sql_single($user_tokens, $user_levels) {
+        //allow access for ONE user level type
+        $where_condition = ' WHERE trongate_tokens.token = :token ';
+        $params['user_level_id'] = $user_levels; //int
+        $params['nowtime'] = time();
+
+        foreach ($user_tokens as $token) {
+            $params['token'] = $token;
+            $sql = 'SELECT 
+                            trongate_tokens.token 
+                    FROM 
+                            trongate_tokens 
+                    INNER JOIN
+                            trongate_users 
+                    ON  
+                            trongate_tokens.user_id = trongate_users.id
+                    '.$where_condition.' 
+                    AND 
+                            trongate_users.user_level_id = :user_level_id';
+            $sql.= ' AND expiry_date > :nowtime ';
+            $rows = $this->model->query_bind($sql, $params, 'object');
+
+                if (count($rows)>0) {
+                    $token = $rows[0]->token;
+                    return $token;
+                }
+
+        }
+
+        return false;
+    }
+
+    function _execute_sql_multi($user_tokens, $user_levels) {
+        //allow access for MORE THAN ONE user level type
+        $where_condition = ' WHERE trongate_tokens.token = :token ';
+        $params['nowtime'] = time();
+
+        $and_condition = ' AND (';
+        $count = 0;
+        foreach ($user_levels as $user_level) { 
+            $count++;
+
+            $this_property = 'user_level_'.$count;
+            $params[$this_property] = $user_level;
+
+            if ($count>1) {
+                $and_condition.= ' OR';
+            }
+
+            $and_condition.= ' trongate_users.user_level_id = :'.$this_property;
+        }
+        $and_condition.= ')';
+        $and_condition = ltrim(trim($and_condition));
+
+
+        foreach ($user_tokens as $token) {
+            $params['token'] = $token;
+            $sql = 'SELECT 
+                            trongate_tokens.token 
+                    FROM 
+                            trongate_tokens 
+                    INNER JOIN
+                            trongate_users 
+                    ON  
+                            trongate_tokens.user_id = trongate_users.id
+                    '.$where_condition.' 
+                    '.$and_condition;  
+            $sql.= ' AND expiry_date > :nowtime ';
+            $rows = $this->model->query_bind($sql, $params, 'object');
+
+                if (count($rows)>0) {
+                    $token = $rows[0]->token;
+                    return $token;
+                }
+
+        }
+
+        return false;
+    }
+
+    function _execute_sql_default($user_tokens) {
+        //allow access for ANY user level type
+        $where_condition = ' WHERE trongate_tokens.token = :token ';
+        $params['nowtime'] = time();
+
+        foreach ($user_tokens as $token) {
+            $params['token'] = $token;
+            $sql = 'SELECT 
+                            trongate_tokens.token 
+                    FROM 
+                            trongate_tokens 
+                    '.$where_condition;  
+            $sql.= ' AND expiry_date > :nowtime ';
+            $rows = $this->model->query_bind($sql, $params, 'object');
+
+                if (count($rows)>0) {
+                    $token = $rows[0]->token;
+                    return $token;
+                }
+
+        }
+
+        return false;
     }
 
 }
