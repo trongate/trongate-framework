@@ -353,6 +353,8 @@ class Trongate_tokens extends Trongate {
 
     function _attempt_get_valid_token($user_levels=NULL) {
 
+        //$user_levels can be; NULL, int or array (of ints)
+
         if (isset($_COOKIE['trongatetoken'])) {
             $user_tokens[] = $_COOKIE['trongatetoken'];
         }

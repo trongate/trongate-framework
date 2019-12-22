@@ -23,23 +23,6 @@ class Trongate_administrators extends Trongate {
         $this->view('trongate_administrators_template', $data);        
     }
 
-    function logout() {
-
-        $this->module('security');
-        $trongate_user_id = $this->security->_get_user_id();
-        $this->_delete_tokens_for_user($trongate_user_id);
-
-        $_SESSION['trongatetoken'] = '';
-
-        if (isset($_COOKIE['trongatetoken'])) {
-            //destroy the cookie
-            $past_date = time()-86400;
-            setcookie('trongatetoken', 'x', $past_date, '/');
-        }
-        
-        redirect('trongate_administrators/login');
-    }
-
     function submit_login() {
 
         $submit = $this->input('submit');
@@ -99,85 +82,48 @@ class Trongate_administrators extends Trongate {
     function _make_sure_allowed() {
 
         //let's assume that only users with a valid token 
-        //who are admin (user_level = 1) can view
-
-        //attempt to get a valid token from the user
-        if (isset($_COOKIE['trongatetoken'])) {
-            $user_tokens[] = $_COOKIE['trongatetoken'];
-        }
-
-        if (isset($_SESSION['trongatetoken'])) {
-            $user_tokens[] = $_SESSION['trongatetoken'];
-        }
-
-        if (!isset($user_tokens)) {
-            redirect('trongate_administrators/login');
-        }
-
-        $token = $this->_got_valid_token($user_tokens);
+        //who are user_level_id = 1 can view
+        $this->module('trongate_tokens');
+        $token = $this->trongate_tokens->_attempt_get_valid_token(1);
 
         if ($token == false) {
-            redirect('trongate_administrators/login');
+
+            if (ENV == 'dev') {
+                //automatically give token to user when in dev mode
+
+                //generate trongatetoken for 1st trongate_administrator record on tbl
+                $sql = 'select * from trongate_administrators order by id limit 0,1';
+                $rows = $this->model->query($sql, 'object');
+
+                if ($rows == false) {
+                    redirect(BASE_URL.'trongate_administrators/missing_tbl_msg');
+                } else {
+                    $token_params['user_id'] = $rows[0]->trongate_user_id;
+
+                    //start off by clearing all tokens for this user
+                    $this->_delete_tokens_for_user($token_params['user_id']);
+
+                    //now generate the new token
+                    $token_params['expiry_date'] = 86400+time();
+                    $this->module('trongate_tokens');
+                    $_SESSION['trongatetoken'] = $this->trongate_tokens->_generate_token($token_params);
+                    return $_SESSION['trongatetoken'];
+                }
+
+            } else {
+                redirect('trongate_administrators/login');
+            }
+
         } else {
             return $token;
         }
 
     }
 
-    function _got_valid_token($user_tokens) {
-
-        foreach ($user_tokens as $token) {
-            
-            $params['token'] = $token;
-            $sql = '
-                    SELECT 
-                        trongate_tokens.id 
-                    FROM 
-                        trongate_tokens 
-                    JOIN 
-                        trongate_users 
-                    ON 
-                        trongate_tokens.user_id = trongate_users.id 
-                    WHERE 
-                        trongate_tokens.token = :token 
-                    AND 
-                        trongate_users.user_level_id = 1
-
-            ';
-
-            $result = $this->model->query_bind($sql, $params, 'object');
-            if ($result == true) {
-                return $token; //success
-            }
-
-        }
-
-        if (ENV == 'dev') {
-            //automatically give token to user when in dev mode
-
-            //generate trongatetoken for 1st trongate_administrator record on tbl
-            $sql = 'select * from trongate_administrators order by id limit 0,1';
-            $rows = $this->model->query($sql, 'object');
-
-            if ($rows == false) {
-                redirect(BASE_URL.'trongate_administrators/missing_tbl_msg');
-            } else {
-                $token_params['user_id'] = $rows[0]->trongate_user_id;
-
-                //start off by clearing all tokens for this user
-                $this->_delete_tokens_for_user($token_params['user_id']);
-
-                //now generate the new token
-                $token_params['expiry_date'] = 86400+time();
-                $this->module('trongate_tokens');
-                $_SESSION['trongatetoken'] = $this->trongate_tokens->_generate_token($token_params);
-                return $_SESSION['trongatetoken'];
-            }
-
-        }
-
-        return false;
-
+    function logout() {
+        $this->module('trongate_tokens');
+        $this->trongate_tokens->_destroy();
+        redirect('trongate_administrators/login');
     }
 
     function _pre_insert_actions($input) {
