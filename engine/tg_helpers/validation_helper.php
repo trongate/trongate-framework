@@ -331,6 +331,27 @@ class validation_helper {
         }
 
     }
+    
+     private function is_unique($key, $label, $posted_value, $inner_value) {
+        
+        $path_to_model = '../engine/Model.php';
+
+        require_once($path_to_model);
+
+        $model = new Model;
+
+        if ($inner_value == '') {
+            //user did not pass a table name
+            $result = $model->get_one_where($key, $posted_value);
+        } else {
+            //user has passed a table name
+            $result = $model->get_one_where($key, $posted_value, $inner_value);
+        }
+
+        if ($result == true) {
+            $this->form_submission_errors[] = 'The '.$key.' has already exist';
+        }
+    }
 
     private function run_special_test($key, $label, $posted_value, $test_to_run) {
 
@@ -367,6 +388,9 @@ class validation_helper {
                     break;
                 case 'exact_length':
                     $this->exact_length($key, $label, $posted_value, $inner_value);
+                    break;
+                case 'unique':
+                    $this->is_unique($key, $label, $posted_value, $inner_value);
                     break;
             }
 
