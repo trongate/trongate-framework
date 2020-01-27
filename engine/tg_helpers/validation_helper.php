@@ -473,7 +473,7 @@ function validation_errors($optional_label_name=NULL, $opening_html=NULL, $closi
 
     //determine when to unset form_submission_errors from $_SESSION variable
     $pageWasRefreshed = isset($_SERVER['HTTP_CACHE_CONTROL']) && $_SERVER['HTTP_CACHE_CONTROL'] === 'max-age=0';
-        var_dump($pageWasRefreshed);
+    
         if ($pageWasRefreshed == false) {
             unset($_SESSION['form_submission_errors']);
         }
