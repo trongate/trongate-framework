@@ -86,7 +86,7 @@ class validation_helper {
         $posted_value = trim($posted_value);
 
         if ($posted_value == '') {
-            $this->form_submission_errors[] = 'The '.$label.' field is required.';  
+            $this->form_submission_errors[$label] = 'The '.$label.' field is required.';  
         }
 
     }
@@ -94,7 +94,7 @@ class validation_helper {
     private function check_for_numeric($label, $posted_value) {
         
         if ((!is_numeric($posted_value)) && ($posted_value !== '')) {
-            $this->form_submission_errors[] = 'The '.$label.' field must be numeric.';
+            $this->form_submission_errors[$label] = 'The '.$label.' field must be numeric.';
         }
 
     }
@@ -106,7 +106,7 @@ class validation_helper {
             $result = ctype_digit(strval($posted_value));
 
             if ($result == false) {
-                $this->form_submission_errors[] = 'The '.$label.' field must be an integer.';
+                $this->form_submission_errors[$label] = 'The '.$label.' field must be an integer.';
             }
 
         }
@@ -118,7 +118,7 @@ class validation_helper {
         if ($posted_value !== '') {
 
             if ((float) $posted_value == floor($posted_value)) {
-                $this->form_submission_errors[] = 'The '.$label.' field must contain a number with a decimal.';
+                $this->form_submission_errors[$label] = 'The '.$label.' field must contain a number with a decimal.';
             }
 
         }
@@ -135,7 +135,7 @@ class validation_helper {
 
             } catch (Exception $e) {
 
-                $this->form_submission_errors[] = 'The '.$label.' field must contain a valid datepicker value of the format mm-dd-yyyy.';
+                $this->form_submission_errors[$label] = 'The '.$label.' field must contain a valid datepicker value of the format mm-dd-yyyy.';
             }
 
         }
@@ -158,7 +158,7 @@ class validation_helper {
                 return true;
 
             } catch (Exception $e) {
-                $this->form_submission_errors[] = 'The '.$label.' field must contain a valid datepicker value of the format dd-mm-yyyy.';
+                $this->form_submission_errors[$label] = 'The '.$label.' field must contain a valid datepicker value of the format dd-mm-yyyy.';
             }
 
         }
@@ -176,7 +176,7 @@ class validation_helper {
 
             } catch (Exception $e) {
 
-                $this->form_submission_errors[] = 'The '.$label.' field must contain a valid datetime picker value.';
+                $this->form_submission_errors[$label] = 'The '.$label.' field must contain a valid datetime picker value.';
             }
 
         }
@@ -200,7 +200,7 @@ class validation_helper {
 
             } catch (Exception $e) {
 
-                $this->form_submission_errors[] = 'The '.$label.' field must contain a valid datetime picker value.';
+                $this->form_submission_errors[$label] = 'The '.$label.' field must contain a valid datetime picker value.';
             }
 
         }
@@ -233,7 +233,7 @@ class validation_helper {
             }
 
             if ($got_error == true) {
-                $this->form_submission_errors[] = 'The '.$label.' field must contain a valid time value.';
+                $this->form_submission_errors[$label] = 'The '.$label.' field must contain a valid time value.';
             }
 
         }
@@ -256,7 +256,7 @@ class validation_helper {
         }
         
         if ($got_error == true) {
-           $this->form_submission_errors[] = 'The '.$label.' field does not match the '.$target_field.' field.'; 
+           $this->form_submission_errors[$label] = 'The '.$label.' field does not match the '.$target_field.' field.'; 
         }
 
     }
@@ -272,7 +272,7 @@ class validation_helper {
         }
 
         if ($got_error == true) {
-           $this->form_submission_errors[] = 'The '.$label.' field must not match the '.$target_field.' field.'; 
+           $this->form_submission_errors[$label] = 'The '.$label.' field must not match the '.$target_field.' field.'; 
         }
 
     }
@@ -280,7 +280,7 @@ class validation_helper {
     private function min_length($key, $label, $posted_value, $inner_value) {
 
         if((strlen($_POST[$key])<$inner_value) && ($posted_value !== '')) {
-            $this->form_submission_errors[] = 'The '.$label.' field must greater than '.$inner_value.' characters in length.';
+            $this->form_submission_errors[$label] = 'The '.$label.' field must greater than '.$inner_value.' characters in length.';
         }
 
     }
@@ -288,7 +288,7 @@ class validation_helper {
     private function max_length($key, $label, $posted_value, $inner_value) {
 
         if((strlen($_POST[$key])>$inner_value) && ($posted_value !== '')) {
-            $this->form_submission_errors[] = 'The '.$label.' field must be less than '.$inner_value.' characters in length.';
+            $this->form_submission_errors[$label] = 'The '.$label.' field must be less than '.$inner_value.' characters in length.';
         }
 
     }
@@ -296,7 +296,7 @@ class validation_helper {
     private function greater_than($key, $label, $posted_value, $inner_value) {
 
         if (((is_numeric($_POST[$key])) && ($_POST[$key]<=$inner_value)) && ($posted_value !== '')) {
-            $this->form_submission_errors[] = 'The '.$label.' field must greater than '.$inner_value;
+            $this->form_submission_errors[$label] = 'The '.$label.' field must greater than '.$inner_value;
         }
 
     }
@@ -304,7 +304,7 @@ class validation_helper {
     private function less_than($key, $label, $posted_value, $inner_value) {
 
         if (((is_numeric($_POST[$key])) && ($_POST[$key]>=$inner_value)) && ($posted_value !== '')) {
-            $this->form_submission_errors[] = 'The '.$label.' field must less than '.$inner_value;
+            $this->form_submission_errors[$label] = 'The '.$label.' field must less than '.$inner_value;
         }
         
     }
@@ -312,7 +312,7 @@ class validation_helper {
     private function valid_email($label, $posted_value) {
 
         if ((!filter_var($posted_value, FILTER_VALIDATE_EMAIL)) && ($posted_value !== '')) {
-            $this->form_submission_errors[] = 'The '.$label.' field must contain a valid email address.';
+            $this->form_submission_errors[$label] = 'The '.$label.' field must contain a valid email address.';
         }
 
     }
@@ -327,7 +327,7 @@ class validation_helper {
                 $error_msg = str_replace('characters in length.', 'character in length.', $error_msg);
             }
 
-            $this->form_submission_errors[] = $error_msg;
+            $this->form_submission_errors[$label] = $error_msg;
         }
 
     }
@@ -349,7 +349,7 @@ class validation_helper {
         }
 
         if ($result == true) {
-            $this->form_submission_errors[] = 'The '.$key.' has already exist';
+            $this->form_submission_errors[$label] = 'The '.$key.' has already exist';
         }
     }
 
@@ -446,7 +446,7 @@ class validation_helper {
 
                 if (gettype($outcome) == 'string') {
                     $outcome = str_replace('{label}', $label, $outcome);
-                    $this->form_submission_errors[] = $outcome;
+                    $this->form_submission_errors[$label] = $outcome;
                 }
 
             }
@@ -500,3 +500,4 @@ function validation_errors($optional_label_name=NULL, $opening_html=NULL, $closi
         }
     }  
 }
+
