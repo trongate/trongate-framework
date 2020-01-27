@@ -469,7 +469,14 @@ class validation_helper {
 
 }
 
-function validation_errors($opening_html=NULL, $closing_html=NULL) {
+function validation_errors($optional_label_name=NULL, $opening_html=NULL, $closing_html=NULL) {
+
+    //determine when to unset form_submission_errors from $_SESSION variable
+    $pageWasRefreshed = isset($_SERVER['HTTP_CACHE_CONTROL']) && $_SERVER['HTTP_CACHE_CONTROL'] === 'max-age=0';
+        var_dump($pageWasRefreshed);
+        if ($pageWasRefreshed == false) {
+            unset($_SESSION['form_submission_errors']);
+        }
 
     if (isset($_SESSION['form_submission_errors'])) {
         $form_submission_errors = $_SESSION['form_submission_errors'];
@@ -479,12 +486,17 @@ function validation_errors($opening_html=NULL, $closing_html=NULL) {
             $closing_html = '</p>';
         }
 
-        foreach($form_submission_errors as $form_submission_error) {
-            echo $opening_html.$form_submission_error.$closing_html;
+        if (isset($optional_label_name)) {
+
+            foreach ($form_submission_errors as $key => $form_submission_error) {
+                if ($key == $optional_label_name) {
+                    echo $opening_html.$form_submission_error.$closing_html;
+                }
+            }
+        } else {
+            foreach($form_submission_errors as $form_submission_error) {
+                echo $opening_html.$form_submission_error.$closing_html;
+            }
         }
-
-        unset($_SESSION['form_submission_errors']);
-
-    }
-
+    }  
 }
