@@ -292,7 +292,7 @@ class Trongate_tokens extends Trongate {
 
         if (isset($_COOKIE['trongatetoken'])) {
             //destroy the cookie
-            $tokens_to_delete[] = $_SESSION['trongatetoken'];
+            $tokens_to_delete[] = $_COOKIE['trongatetoken'];
             $past_date = time()-86400;
             setcookie('trongatetoken', 'x', $past_date, '/');
         }
