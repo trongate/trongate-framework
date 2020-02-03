@@ -54,7 +54,7 @@ class Api extends Trongate {
     function _get_all_tables() {
         $tables = [];
         $sql = 'show tables';
-        $column_name = 'Tables_in_'.DB_NAME;
+        $column_name = 'Tables_in_'.DATABASE;
         $rows = $this->model->query($sql, 'array');
         foreach ($rows as $row) {
             $tables[] = $row[$column_name];
