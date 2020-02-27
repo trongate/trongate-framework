@@ -25,6 +25,8 @@
             <a href="#" class="w3-bar-item w3-button w3-hide-small w3-hover-white">Contact</a>
             <a href="#" class="w3-bar-item w3-button w3-hide-small w3-hide-medium w3-hover-white">Clients</a>
             <a href="#" class="w3-bar-item w3-button w3-hide-small w3-hide-medium w3-hover-white">Partners</a>
+            <a href="<?= BASE_URL ?>trongate_administrators/manage" class="w3-bar-item w3-button w3-hide-small w3-hide-medium w3-hover-white w3-right">
+                <i class="fa fa-gears"></i> Admin Users</a>
         </div>
     </div>
 
