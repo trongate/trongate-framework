@@ -230,13 +230,22 @@ class Model {
         }
     }
 
-    public function count_where($column, $value, $operator='=', $order_by='id', $target_tbl=NULL, $limit=NULL, $offset=NULL) {
-        $query = $this->get_where_custom($column, $value, $operator, $order_by, $target_tbl, $limit, $offset);
-        $num_rows = count($query);
-        return $num_rows;
+    public function get_many_where($column, $value, $target_tbl=NULL) {
+
+        if (!isset($target_tbl)) {
+            $target_tbl = $this->get_table_from_url();
+        }
+
+        $data[$column] = $value;
+        $sql = 'select * from '.$target_tbl.' where '.$column.' = :'.$column;
+
+        $query = $this->query_bind($sql, $data, 'object');
+
+        return $query;
     }
 
     public function count($target_tbl=NULL) {
+        //return number of rows on a table
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -244,6 +253,37 @@ class Model {
 
         $sql = "SELECT COUNT(id) as total FROM $target_tbl";
         $data = [];
+
+        if ($this->debug == true) {
+            $query_to_execute = $this->show_query($sql, $data);
+        }
+
+        $result = $this->prepare_and_execute($sql, $data);
+
+        if ($result == true) {
+            $obj = $this->stmt->fetch(PDO::FETCH_OBJ);
+            return $obj->total;            
+        }
+
+    }
+
+    public function count_where($column, $value, $operator='=', $order_by='id', $target_tbl=NULL, $limit=NULL, $offset=NULL) {
+        //return number of rows on table (with query customisation)
+
+        $query = $this->get_where_custom($column, $value, $operator, $order_by, $target_tbl, $limit, $offset);
+        $num_rows = count($query);
+        return $num_rows;
+    }
+
+    public function count_rows($column, $value, $target_tbl=NULL) {
+        //simplified version of count_where (accepts one condition)
+
+        if (!isset($target_tbl)) {
+            $target_tbl = $this->get_table_from_url();
+        }
+
+        $data[$column] = $value;
+        $sql = 'SELECT COUNT(id) as total from '.$target_tbl.' where '.$column.' = :'.$column;
 
         if ($this->debug == true) {
             $query_to_execute = $this->show_query($sql, $data);
