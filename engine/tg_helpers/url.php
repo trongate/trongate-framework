@@ -179,15 +179,3 @@ function make_rand_str($strlen, $uppercase=false) {
     }
     return $random_string;
 }
-
-function get_from_array($key, $array, $default) {
-
-    if (array_key_exists($key, $array)) {
-        $value = $array[$key];
-    } else {
-        $value = $default;
-    }
-
-    return $value;
-
-}
