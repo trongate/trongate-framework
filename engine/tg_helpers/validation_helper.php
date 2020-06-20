@@ -405,6 +405,11 @@ class validation_helper {
             $target_module = ucfirst($this->url_segment(1));
             $target_method = str_replace('callback_', '', $test_to_run);
 
+            if (!class_exists($target_module)) {
+                $modules_bits = explode('-', $target_module);
+                $target_module = ucfirst(end($modules_bits));
+            }
+
             if (class_exists($target_module)) {  
                 
                 $static_check = new ReflectionMethod($target_module,$target_method); 
