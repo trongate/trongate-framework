@@ -2,6 +2,7 @@
 class validation_helper {
 
     public $form_submission_errors = [];
+    public $posted_fields = [];
 
     public function set_rules($key, $label, $rules) {
 
@@ -15,6 +16,8 @@ class validation_helper {
         }
 
         foreach ($tests_to_run as $test_to_run) {
+
+            $this->posted_fields[$key] = $label;
 
             switch ($test_to_run) {
                 case 'required':
@@ -256,6 +259,11 @@ class validation_helper {
         }
         
         if ($got_error == true) {
+
+            if (isset($this->posted_fields[$target_field])) {
+                $target_field = $this->posted_fields[$target_field];
+            }
+
            $this->form_submission_errors[] = 'The '.$label.' field does not match the '.$target_field.' field.'; 
         }
 
@@ -269,6 +277,10 @@ class validation_helper {
 
         if (($posted_value == $target_value)) {
             $got_error = true;
+        }
+
+        if (isset($this->posted_fields[$target_field])) {
+            $target_field = $this->posted_fields[$target_field];
         }
 
         if ($got_error == true) {
