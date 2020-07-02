@@ -102,17 +102,9 @@ class Pagination {
             $limit = $data['limit'];
         }
 
-$segments = get_segments(true);
-$segments = $segments['segments'];
-// foreach ($segments as $key => $value) {
-//     echo "key of $key is $value<br>";
-// }
-// die();
-unset($segments[4]);
-
-
-
-// var_dump($segments); die();
+        $segments = get_segments(true);
+        $segments = $segments['segments'];
+        unset($segments[4]);
 
         $current_page = self::get_page_num($page_num_segment, $segments);
         $num_pages = (int) ceil($total_rows / $limit);
