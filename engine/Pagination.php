@@ -118,11 +118,21 @@ unset($segments[4]);
         $num_pages = (int) ceil($total_rows / $limit);
 
         if ($num_pages<2) {
-            return '';
-        }
 
-        if (!isset($template)) {
-            $template = 'default';
+            $showing_statement = '';
+
+            if (isset($data['include_showing_statement'])) {
+                //has a search been submitted?
+                $additional_url_string = str_replace(BASE_URL, '', current_url());
+                $additional_segments = explode('/', $additional_url_string);
+
+                if (isset($additional_segments[3])) {
+                    $showing_statement = '<p>Your search produced the following result(s):</p>';
+                }
+            }
+
+            return $showing_statement;
+
         }
 
         $target_settings_method = 'get_settings_'.$template;
@@ -200,6 +210,16 @@ unset($segments[4]);
     static public function draw_pagination($pagination_data) {
         
         extract($pagination_data);
+
+        $trailing_url_str = '';
+        $segments_str = str_replace(BASE_URL, '', current_url());
+        $url_segments = explode('/', $segments_str);
+        if ($url_segments>$page_num_segment) {
+            for ($i=$page_num_segment; $i < count($url_segments); $i++) { 
+                $trailing_url_str.='/'.$url_segments[$i];
+            }
+        }
+        $pagination_data['trailing_url_str'] = $trailing_url_str; 
     
         if (isset($showing_statement)) {
             echo '<p>'.$showing_statement.'</p>';
@@ -267,19 +287,19 @@ unset($segments[4]);
 
         switch ($value) {
             case 'first_link':
-                $html = '<a href="'.$root.'">'.$settings['first_link'].'</a>';
+                $html = '<a href="'.$root.$trailing_url_str.'">'.$settings['first_link'].'</a>';
                 break;
             case 'last_link':
-                $html = '<a href="'.$root.$num_pages.'">'.$settings['last_link'].'</a>';
+                $html = '<a href="'.$root.$num_pages.$trailing_url_str.'">'.$settings['last_link'].'</a>';
                 break;
             case 'prev_link':
-                $html = '<a href="'.$root.$prev.'">'.$settings['prev_link'].'</a>';
+                $html = '<a href="'.$root.$prev.$trailing_url_str.'">'.$settings['prev_link'].'</a>';
                 break;
             case 'next_link':
-                $html = '<a href="'.$root.$next.'">'.$settings['next_link'].'</a>';
+                $html = '<a href="'.$root.$next.$trailing_url_str.'">'.$settings['next_link'].'</a>';
                 break;
             default:
-                $html = '<a href="'.$root.$value.'">'.$value.'</a>';
+                $html = '<a href="'.$root.$value.$trailing_url_str.'">'.$value.'</a>';
                 break;
         }
 
