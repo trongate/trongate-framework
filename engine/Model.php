@@ -37,7 +37,7 @@ class Model {
 
            Then, add the below 5 lines
         */
-        if (MYSQLDEBUG !== ''){ 
+        if (MYSQLDEBUG !== ''|| MYSQLDEBUG !== 'true'){ 
             define('MODELDEBUG', 'false'); 
         }else{
             define('MODELDEBUG', 'true');
