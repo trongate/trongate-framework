@@ -2,6 +2,7 @@
 //The main config file
 define('BASE_URL', '');
 define('ENV', 'dev');
+define('MODELDEBUG', 'false');
 define('DEFAULT_MODULE', 'welcome');
 define('DEFAULT_CONTROLLER', 'Welcome');
 define('DEFAULT_METHOD', 'index');

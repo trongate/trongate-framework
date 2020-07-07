@@ -9,7 +9,7 @@ class Model {
     private $dbh;
     private $stmt;
     private $error;
-    private $debug = false;
+    private $debug = MODELDEBUG;
     private $query_caveat = 'The query shown above is how the query would look <i>before</i> binding.';
 
     public function __construct() {
@@ -25,6 +25,22 @@ class Model {
         } catch(PDOException $e){
             $this->error = $e->getMessage();
             echo $this->error; die();
+        }
+
+        /*
+           Make debuging mysql accesible from the config file:
+           Replace 'private $debug = false;' with 'private $debug = MODELDEBUG;' (line 12) 
+
+           In /config/config.php add:
+           define('MODELDEBUG', 'true');
+           If the above line is not found, the debug setting will default to false
+
+           Then, add the below 5 lines
+        */
+        if (MYSQLDEBUG !== ''){ 
+            define('MODELDEBUG', 'false'); 
+        }else{
+            define('MODELDEBUG', 'true');
         }
 
     }
