@@ -3,12 +3,13 @@ class Template {
 
     static public function get_view_module() {
         //attempt to get view_module from URL
-        $url = rtrim($_SERVER['REQUEST_URI'], '/');
-        $url = filter_var($url, FILTER_SANITIZE_URL);
-        $url = explode('/', $url);
 
-        if (isset($url[2])) {
-            $view_module = $url[2];
+        $url = str_replace(BASE_URL, '', current_url());
+        $url = filter_var($url, FILTER_SANITIZE_URL);
+        $url_bits = explode('/', $url);
+
+        if (isset($url_bits[0])) {
+            $view_module = $url_bits[0];
         } else {
             $view_module = DEFAULT_MODULE;
         }
