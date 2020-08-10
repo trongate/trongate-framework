@@ -41,7 +41,7 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
             $image_height = $dimension_data[1];
 
             if ((!is_numeric($image_height)) || ($image_height>$file_check_value)) {
-                $result = 'The file exceeds the maximum allowed height ('.$file_check_value.' pixels)';
+                $result = 'The file exceeds the maximum allowed height ('.$file_check_value.' pixels).';
                 $this->form_submission_errors[] = $result;
             }
 
@@ -55,12 +55,54 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
             $image_width = $dimension_data[0];
 
             if ((!is_numeric($image_width)) || ($image_width>$file_check_value)) {
-                $result = 'The file exceeds the maximum allowed width ('.$file_check_value.' pixels)';
+                $result = 'The file exceeds the maximum allowed width ('.$file_check_value.' pixels).';
                 $this->form_submission_errors[] = $result;
             }
             
             break;
-                
+        case 'min_height': 
+            
+            if (!isset($dimension_data)) {
+                $dimension_data = getimagesize($temp_file_name);
+            }
+
+            $image_height = $dimension_data[1];
+
+            if ((!is_numeric($image_height)) || ($image_height<$file_check_value)) {
+                $result = 'The image height falls below the minimum allowed height ('.$file_check_value.' pixels).';
+                $this->form_submission_errors[] = $result;
+            }
+
+            break;
+        case 'min_width':
+
+            if (!isset($dimension_data)) {
+                $dimension_data = getimagesize($temp_file_name);
+            }
+
+            $image_width = $dimension_data[0];
+
+            if ((!is_numeric($image_width)) || ($image_width<$file_check_value)) {
+                $result = 'The image width falls below the minimum allowed width ('.$file_check_value.' pixels).';
+                $this->form_submission_errors[] = $result;
+            }
+            
+            break;
+        case 'square':
+
+            if (!isset($dimension_data)) {
+                $dimension_data = getimagesize($temp_file_name);
+            }
+
+            $image_width = $dimension_data[0];
+            $image_height = $dimension_data[1];
+
+            if ($image_width !== $image_height) {
+                $result = 'The image width does not match the image height.';
+                $this->form_submission_errors[] = $result;            
+            }
+ 
+            break;
         default:
             die('ERROR: Invalid validation rule.');  
             break;

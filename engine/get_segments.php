@@ -36,13 +36,15 @@ function get_segments($ignore_custom_routes=NULL) {
 
 function attempt_add_custom_routes($target_url) {
     //takes a nice URL and returns the assumed_url
-    foreach (CUSTOM_ROUTES as $key => $value) {
-        $pos = strpos($target_url, $key);
 
-        if (is_numeric($pos)) {
+    $target_segment = str_replace(BASE_URL, '', $target_url);
+
+
+    foreach (CUSTOM_ROUTES as $key => $value) {
+
+        if ($key == $target_segment) {
             $target_url = str_replace($key, $value, $target_url);
         }
-
     }
 
     return $target_url;
