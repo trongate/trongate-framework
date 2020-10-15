@@ -72,6 +72,7 @@ class Image
                 imagegif($this->image, $filename);
                 break;
             case IMAGETYPE_PNG:
+                imagesavealpha($this->image, true);
                 imagepng($this->image, $filename);
                 break;
         }
