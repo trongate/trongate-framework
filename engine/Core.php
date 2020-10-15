@@ -44,8 +44,16 @@ class Core {
 
             if (is_numeric($pos)) {
                 $target_module = str_replace(MODULE_ASSETS_TRIGGER, '', $url_segment_value);
-                $file_name = $url_segments[count($url_segments)-1];                
-                $target_dir = $url_segments[count($url_segments)-2];
+                $file_name = $url_segments[count($url_segments)-1];
+
+                $target_dir = '';
+                for ($i=$url_segment_key+1; $i < count($url_segments)-1; $i++) {
+                    $target_dir.= $url_segments[$i];
+                    if ($i<count($url_segments)-2) {
+                        $target_dir.= '/';
+                    }
+                }
+
                 $asset_path = '../modules/'.strtolower($target_module).'/assets/'.$target_dir.'/'.$file_name;   
                 $abs_file_path = str_replace('../', BASE_URL, $asset_path);
             
