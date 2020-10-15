@@ -127,7 +127,7 @@ class Pagination {
 
         }
 
-        $target_settings_method = 'get_settings_'.$template;
+        $target_settings_method = 'get_settings_'.$pagination_template;
         $settings = self::$target_settings_method();
         $pagination_data['settings'] = $settings;
 
