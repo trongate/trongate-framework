@@ -1249,8 +1249,6 @@ class Api extends Trongate {
         $input['token'] = $this->_validate_token($token_validation_data);
         $output['token'] = $input['token'];
         
-        $fourth_bit = $this->url->segment(4);
-
         //get posted params (PHP doesn't differentiate btn GET and DELETE)
         $post = file_get_contents('php://input');
         $decoded = json_decode($post, true);
