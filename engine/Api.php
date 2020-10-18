@@ -1247,15 +1247,8 @@ class Api extends Trongate {
         $token_validation_data['module_name'] = $module_name;
         $token_validation_data['module_endpoints'] = $module_endpoints;
         $input['token'] = $this->_validate_token($token_validation_data);
-
         $output['token'] = $input['token'];
-
-        $token_validation_data['endpoint'] = $endpoint_name;
-        $token_validation_data['module_name'] = $module_name;
-        $token_validation_data['module_endpoints'] = $module_endpoints;
-        $input['token'] = $this->_validate_token($token_validation_data);
-        $output['token'] = $input['token'];
-
+        
         $fourth_bit = $this->url->segment(4);
 
         //get posted params (PHP doesn't differentiate btn GET and DELETE)
