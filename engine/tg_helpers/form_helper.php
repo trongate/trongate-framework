@@ -1,7 +1,4 @@
 <?php
-class form_helper {
-}
-
 function form_open($location, $attributes=NULL, $additional_code=NULL) {
     $extra = '';
     if (isset($attributes)) {
@@ -140,7 +137,7 @@ function form_button($name, $value=NULL, $attributes=NULL, $additional_code=NULL
     return $html;
 }
 
-function radio($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_radio($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_code=NULL) {
 
     $extra = '';
 
@@ -168,7 +165,7 @@ function radio($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_
     return $html;
 }
 
-function checked($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_checkbox($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_code=NULL) {
     $html = radio($name, $value, $checked, $attributes, $additional_code);
     $html = str_replace(' type="radio" ', ' type="checkbox" ', $html);
     return $html;

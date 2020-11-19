@@ -17,7 +17,6 @@ class Trongate {
         //load the helper classes
         foreach (TRONGATE_HELPERS as $trongate_helper) {
             require_once 'tg_helpers/'.$trongate_helper.'.php';
-            // $this->$trongate_helper = new $trongate_helper;
         }
 
         $this->url = new Url;

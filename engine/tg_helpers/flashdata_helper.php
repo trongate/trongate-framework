@@ -1,7 +1,4 @@
 <?php
-class flashdata_helper {
-}
-
 function set_flashdata($msg) {
     $_SESSION['flashdata'] = $msg;
 }
