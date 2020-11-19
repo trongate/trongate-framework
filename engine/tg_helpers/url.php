@@ -1,5 +1,5 @@
 <?php
-class url {
+class Url {
 
     public function segment($num) {
 

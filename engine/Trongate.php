@@ -2,6 +2,9 @@
 class Trongate {
 
     protected $modules;
+    protected $model;
+    protected $validation_helper;
+    protected $url;
     protected $module_name;
     protected $parent_module = '';
     protected $child_module = '';
@@ -14,8 +17,11 @@ class Trongate {
         //load the helper classes
         foreach (TRONGATE_HELPERS as $trongate_helper) {
             require_once 'tg_helpers/'.$trongate_helper.'.php';
-            $this->$trongate_helper = new $trongate_helper;
+            // $this->$trongate_helper = new $trongate_helper;
         }
+
+        $this->url = new Url;
+        $this->validation_helper = new Validation_helper;
 
         //load the model class
         require_once 'Model.php';
