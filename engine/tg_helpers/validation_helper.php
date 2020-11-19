@@ -1,5 +1,5 @@
 <?php
-class validation_helper {
+class Validation_helper {
 
     public $form_submission_errors = [];
     public $posted_fields = [];

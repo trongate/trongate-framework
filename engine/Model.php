@@ -323,8 +323,8 @@ class Model {
 
     //get result set as array of objects
     public function resultSet() {
-      $this->execute();
-      return $this->stmt->fetchAll(PDO::FETCH_OBJ);
+    //   $this->execute();
+    //   return $this->stmt->fetchAll(PDO::FETCH_OBJ);
     }
 
     public function show_query($query, $data, $caveat=NULL) {
