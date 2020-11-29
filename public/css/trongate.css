@@ -1,0 +1,154 @@
+body {
+    font-family: Tahoma, Geneva, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #555;
+    font-size: 1rem;
+}
+
+form {
+    width: 100%;
+}
+
+h1 {
+    font-size: 4em;
+    font-family: "Arial Black", Gadget, sans-serif;
+    margin-bottom: 0.2em;
+}
+
+h2 {
+    font-size: 2em;
+    font-family: "Arial Black", Gadget, sans-serif;
+}
+
+p {
+    line-height: 1.5em;
+}
+
+a {
+    color: SteelBlue;
+}
+
+a:hover {
+    color: #36658c;
+}
+
+input[type="text"], input[type="email"], input[type="password"], select {
+    padding: 0.6em 0.6em;
+    font-size: 1em;
+    width: 100%;
+    border: 1px #333 solid;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus, textarea:focus, input[type="email"]:focus, input[type="password"]:focus, select:focus {
+    border: 1px SteelBlue solid;
+    outline: 0;
+}
+
+input[type="text"], input[type="email"], input[type="password"], button, textarea, select {
+    border-radius: 6px;
+}
+
+textarea {
+    padding: 0.6em 0.6em;
+    font-size: 1.231em;
+    width: 100%;
+    height: 100%; 
+    box-sizing: border-box;
+    border: 1px #333 solid; 
+    line-height: 1.6em;       
+}
+
+label {
+    margin: 1.4em 0 0.4em 0;
+    clear: both;
+    display: block;
+}
+
+button {
+    background-color: SteelBlue;
+    border: 1px SteelBlue solid;
+    margin: 1em 0.1em 0 0;
+    padding: 0.6em 1.2em;
+    color: #fff;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: 0.6s;
+}
+
+button:hover {
+    background-color: #36658c;
+    border: 1px #36658c solid;
+}
+
+.alt {
+    background-color: transparent;
+    border: 1px SteelBlue solid;
+    color: #333;        
+}
+
+.alt:hover {
+    background-color: transparent;
+    border: 1px #36658c solid;
+    color: SteelBlue;
+}
+
+ul {
+    margin: 2em 0;
+    list-style-type: circle;
+}
+
+li {
+    line-height: 1.8em;
+}
+
+input[type="checkbox"] {
+  top: 0.3em;
+  position: relative;
+  width: 1.4em; height: 1.4em;
+}
+
+input[type="radio"] {
+    margin: 1.6em 0 2em 1em;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th {
+    background-color: SteelBlue;
+    color: #fff;
+}
+
+th, td {
+    border: 1px #36658c solid;
+    padding: 0.7em;
+}
+
+td:hover {
+    cursor: pointer;
+}
+
+tr:hover, tr:nth-child(odd):hover {
+    background-color: #fdfdea;
+}
+
+tr:nth-child(odd) {
+    background-color: #f3f3f3;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #555;
+    margin: 2em 0;
+}
+
+@media screen and (max-width: 550px) {
+  button {
+    width: 100%;
+  }
+}

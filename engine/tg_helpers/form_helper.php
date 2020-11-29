@@ -166,7 +166,7 @@ function form_radio($name, $value=NULL, $checked=NULL, $attributes=NULL, $additi
 }
 
 function form_checkbox($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_code=NULL) {
-    $html = radio($name, $value, $checked, $attributes, $additional_code);
+    $html = form_radio($name, $value, $checked, $attributes, $additional_code);
     $html = str_replace(' type="radio" ', ' type="checkbox" ', $html);
     return $html;
 }
