@@ -205,11 +205,11 @@ class Core {
         }
 
         $this->draw_error_page();
-        die(); //end of the line (all possible scenarios tried)
     }
 
     private function draw_error_page() {
         load('error_404');
+        die(); //end of the line (all possible scenarios tried)
     }
 
 }

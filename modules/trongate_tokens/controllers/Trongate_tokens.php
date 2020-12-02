@@ -28,15 +28,6 @@ class Trongate_tokens extends Trongate {
         return $token;
     }
 
-    function clean() {
-        $sql = 'delete from trongate_tokens';
-        $this->model->query($sql);
-
-        $sql = 'delete from query_mem';
-        $this->model->query($sql);
-        echo 'cleaned';
-    }
-
     function _fetch_token($user_id) {
 
         $this->_delete_old_tokens();
