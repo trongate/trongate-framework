@@ -46,7 +46,7 @@ class Trongate_tokens extends Trongate {
 
     }
 
-    function _generate_token($data=NULL) {
+    function _generate_token($data) {
 
         /*
          * $data array may contain:
