@@ -55,7 +55,6 @@ class Core {
                 }
 
                 $asset_path = '../modules/'.strtolower($target_module).'/assets/'.$target_dir.'/'.$file_name;   
-                $abs_file_path = str_replace('../', BASE_URL, $asset_path);
             
                 if (file_exists($asset_path)) {
                     $content_type = mime_content_type($asset_path);
