@@ -128,16 +128,14 @@ function clearContent(){document.getElementById("params").value="",setTimeout(fu
                             <input onclick="displayHeaders()" type="checkbox" id="display-headers-checkbox" value="1">
                             <span class="label-body">Display Response Header Values</span>
                         </label>
-
                         <p id="header-info"></p>
                         <p class="go-right">
-                            <input onclick="viewSettings()" class="button-default white-btn go-right" style="float:right; position: relative;" type="button" value="View Settings">
-                            <input onclick="copyText()" class="button-default white-btn go-right" style="float:right; position: relative;" type="button" value="Copy Response BODY">
+                            <input onclick="copyText()" class="button-default white-btn go-right" type="button" value="Copy Response BODY">
+                            <input onclick="viewSettings()" class="button-default white-btn go-right" type="button" value="View Settings">
                         </p>
                     </div>
                 </div>
             </form>
-
             <p style="font-size: 0.9em;"><b>URL Segments:</b> /<span id="endpointUrl"></span>
                 <br>
                 <b>Required HTTP Request Type: </b> <span id="requestType"></span>
