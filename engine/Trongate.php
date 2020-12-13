@@ -24,7 +24,7 @@ class Trongate {
 
         //load the model class
         require_once 'Model.php';
-        $this->model = new Model;
+        $this->model = new Model($module_name);
 
     }
 

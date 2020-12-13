@@ -11,8 +11,9 @@ class Model {
     private $error;
     private $debug = false;
     private $query_caveat = 'The query shown above is how the query would look <i>before</i> binding.';
+    private $current_module;
 
-    public function __construct() {
+    public function __construct($current_module = NULL) {
 
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
         $options = array(
@@ -68,17 +69,7 @@ class Model {
     }
 
     private function get_table_from_url() {
-        $segments = SEGMENTS;
-
-        if (isset($segments[1])) {
-            $target_tbl = $segments[1];
-        } else {
-            $target_tbl = '';
-        }
-
-        $target_tbl = $this->correct_tablename($target_tbl);
-
-        return $target_tbl;
+        return $this->current_module;
     }
 
     private function correct_tablename($target_tbl) {
