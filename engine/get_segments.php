@@ -1,9 +1,11 @@
 <?php
-function get_segments($ignore_custom_routes=NULL,$route_bypass=NULL) {
+function get_segments($ignore_custom_routes=NULL) {
 
     $num_segments_to_ditch = get_num_segments_to_ditch();
 
     $assumed_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
+
+    // should maybe check if controller/method exists before to remove unessessary overhead.
 
     if (!isset($ignore_custom_routes)) {
         $assumed_url = attempt_add_custom_routes($assumed_url);
@@ -47,50 +49,44 @@ function get_num_segments_to_ditch(){
 }
 
 function attempt_add_custom_routes($target_url) {
-    //takes a nice URL and returns the assumed_url
-    //echo $target_url; die;
-    
-    // check to see if the route allows values to be passed.
-    // if it does then check if the request url has additional segments, if so append to the target_url
-
+    //takes a nice URL and returns the assumed_url 
+     
     $target_segment = str_replace(BASE_URL, '', $target_url);
-    //echo $target_segment; die;
+
+     if (strpos($target_segment, '/') !== false) {
+            $segments = explode('/',$target_segment);        
+            $target_segment = $segments[0];        
+        }       
 
     foreach (CUSTOM_ROUTES as $key => $value) {  
 
-        // check for a wildcard, set value & strip target_segment
-        if (strpos($value, '*') !== false) {
-           $value_wild = str_replace('*','', $value);
-           $segments = explode('/',$target_segment); 
-           $first_segment = $segments[0];
-        }      
-
         // check for segment match / match with wild card    
-        if ($key == $target_segment || isset($value_wild)) {    
+        if ($key == $target_segment) {  
+            
+            // check for a wildcard, set value
+            if (strpos($value, '*') !== false) {
+               $value_wild = str_replace('*','', $value);                   
+            }  
 
-            if(isset($value_wild)){ 
-
-                $num_segments_to_ditch = get_num_segments_to_ditch();                
-                $additional_segments = get_remaining_segments($target_segment,$num_segments_to_ditch);
-                                             
+                if(isset($value_wild)){ 
+                $num_segments_to_ditch = get_num_segments_to_ditch();
+                $additional_segments = get_remaining_segments($target_segment,$num_segments_to_ditch); 
                 // prepare segments as string and append
                 $segment_string = "";
                 foreach($additional_segments as $segment){
                     $segment_string .= "/".$segment;
                 }
-
+                
                 $segment_string = rtrim($segment_string, '/');               
-                $target_url = str_replace($key, $value_wild, $target_url);
-                $target_url = $target_url.'/'.$segment_string;
-                $target_url = rtrim($target_url, '/');
+                $target_url = str_replace($key, $value_wild, $target_url);               
                 unset($value_wild);                      
                 
             } else {
                 $target_url = str_replace($key, $value, $target_url);
             }
         }   
-    }    
-   
+    }       
+    
     return $target_url;
 }
 
@@ -104,9 +100,7 @@ function attempt_return_nice_url($target_url) {
         if (is_numeric($pos)) {
             $target_url = str_replace($value, $key, $target_url);
         }
-
     }
-
 
     return $target_url;
 }
