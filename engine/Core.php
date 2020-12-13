@@ -55,6 +55,7 @@ class Core {
                 }
 
                 $asset_path = '../modules/'.strtolower($target_module).'/assets/'.$target_dir.'/'.$file_name;   
+                $abs_file_path = str_replace('../', BASE_URL, $asset_path);
             
                 if (file_exists($asset_path)) {
                     $content_type = mime_content_type($asset_path);
@@ -142,7 +143,7 @@ class Core {
 
     private function serve_controller() {
 
-        $segments = SEGMENTS;        
+        $segments = SEGMENTS;
 
         if (isset($segments[1])) {
             $this->current_module = strtolower($segments[1]);
@@ -158,7 +159,9 @@ class Core {
             }
         } 
 
-        $this->set_current_values($segments);
+        if (isset($segments[3])) {
+            $this->current_value = $segments[3];
+        }
 
         $controller_path = '../modules/'.$this->current_module.'/controllers/'.$this->current_controller.'.php';
 
@@ -179,39 +182,11 @@ class Core {
         if (method_exists($this->current_controller, $this->current_method)) {
             $target_method = $this->current_method;
             $this->current_controller = new $this->current_controller($this->current_module);
-            $this->current_controller->$target_method($this->get_current_value());
+            $this->current_controller->$target_method($this->current_value);
         } else {
             $this->draw_error_page();
         }
     }
-
-    private function set_current_values($segments = false){
-        // any value with key above 2 add to values array
-        if($segments !== false){
-            $this->current_values = false;
-            $keys = array_keys($segments);
-            foreach ($keys as $key){
-                if($key > 2){
-                   $this->current_values[] = $segments[$key]; 
-                }
-            }                       
-        }        
-    }
-
-    private function get_current_value(){
-        if($this->current_values == false){
-            return null;
-        } else {
-            // create values 
-            $current_value = null;
-            foreach ($this->current_values as $value){
-                $current_value .= $value.',';
-            }
-            // remove trailing comma & return
-            return rtrim($current_value, ','); 
-        }              
-    }
-    
 
     private function attempt_init_child_controller($controller_path) {
         $bits = explode('-', $this->current_controller);
@@ -231,11 +206,11 @@ class Core {
         }
 
         $this->draw_error_page();
+        die(); //end of the line (all possible scenarios tried)
     }
 
     private function draw_error_page() {
         load('error_404');
-        die(); //end of the line (all possible scenarios tried)
     }
 
 }

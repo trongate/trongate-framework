@@ -5,10 +5,8 @@ function get_segments($ignore_custom_routes=NULL) {
 
     $assumed_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
 
-    // should maybe check if controller/method exists before to remove unessessary overhead.
-
     if (!isset($ignore_custom_routes)) {
-        $assumed_url = attempt_add_custom_routes($assumed_url);
+        $assumed_url = attempt_add_custom_routes($assumed_url);        
     }
 
     $data['assumed_url'] = $assumed_url;
@@ -50,41 +48,31 @@ function get_num_segments_to_ditch(){
 
 function attempt_add_custom_routes($target_url) {
     //takes a nice URL and returns the assumed_url 
-     
+   
     $target_segment = str_replace(BASE_URL, '', $target_url);
 
-     if (strpos($target_segment, '/') !== false) {
-            $segments = explode('/',$target_segment);        
-            $target_segment = $segments[0];        
-        }       
+    // see if additional segments are present and strip it back
+    if (strpos($target_segment, '/') !== false) {
+        $segments = explode('/',$target_segment);             
+        $stripped_segment = $segments[0];       
+    } else {
+        $stripped_segment = false;
+    }    
 
     foreach (CUSTOM_ROUTES as $key => $value) {  
-
-        // check for segment match / match with wild card    
-        if ($key == $target_segment) {  
-            
-            // check for a wildcard, set value
-            if (strpos($value, '*') !== false) {
-               $value_wild = str_replace('*','', $value);                   
-            }  
-
-                if(isset($value_wild)){ 
-                $num_segments_to_ditch = get_num_segments_to_ditch();
-                $additional_segments = get_remaining_segments($target_segment,$num_segments_to_ditch); 
-                // prepare segments as string and append
-                $segment_string = "";
-                foreach($additional_segments as $segment){
-                    $segment_string .= "/".$segment;
-                }
-                
-                $segment_string = rtrim($segment_string, '/');               
-                $target_url = str_replace($key, $value_wild, $target_url);               
-                unset($value_wild);                      
-                
-            } else {
-                $target_url = str_replace($key, $value, $target_url);
+        // check if wildcard is defined and value matches the first segment. 
+        if (strpos($value, '*') !== false){ 
+            if($key == $stripped_segment){
+                $stripped_value = str_replace('*','', $value);
+                $target_url = str_replace($key, $stripped_value, $target_url); 
             }
-        }   
+            if($key == $target_segment){
+                $stripped_value = str_replace('*','', $value);
+                $target_url = str_replace($key, $stripped_value, $target_url); 
+            }         
+        } elseif ($key == $target_segment) {           
+            $target_url = str_replace($key, $value, $target_url);
+        }          
     }       
     
     return $target_url;
