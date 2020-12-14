@@ -65,6 +65,10 @@ class Core {
                         if (is_numeric($pos2)) {
                             $content_type = 'text/css';
                         }
+                        $pos2 = strpos($file_name, '.js');
+                        if (is_numeric($pos2)) {
+                            $content_type = 'text/javascript';
+                        }
                         
                     }
 
@@ -109,6 +113,9 @@ class Core {
                         $pos2 = strpos($file_name, '.css');
                         if (is_numeric($pos2)) {
                             $content_type = 'text/css';
+                        }
+                        if (is_numeric($pos2)) {
+                            $content_type = 'text/javascript';
                         }
                         
                     }
