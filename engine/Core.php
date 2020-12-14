@@ -65,11 +65,19 @@ class Core {
                         if (is_numeric($pos2)) {
                             $content_type = 'text/css';
                         }
+                        
                         $pos2 = strpos($file_name, '.js');
                         if (is_numeric($pos2)) {
                             $content_type = 'text/javascript';
                         }
                         
+                    }
+                    
+                    if ($content_type == 'text/html') {
+                        $pos2 = strpos($file_name, '.js');
+                        if (is_numeric($pos2)) {
+                            $content_type = 'text/javascript';
+                        }
                     }
 
                     header('Content-type: '.$content_type);
@@ -109,15 +117,21 @@ class Core {
                     $content_type = mime_content_type($asset_path);
 
                     if ($content_type == 'text/plain') {
-
                         $pos2 = strpos($file_name, '.css');
                         if (is_numeric($pos2)) {
                             $content_type = 'text/css';
                         }
+                         $pos2 = strpos($file_name, '.js');
                         if (is_numeric($pos2)) {
                             $content_type = 'text/javascript';
                         }
-                        
+                    }
+                    
+                    if ($content_type == 'text/html') {
+                        $pos2 = strpos($file_name, '.js');
+                        if (is_numeric($pos2)) {
+                            $content_type = 'text/javascript';
+                        }
                     }
 
                     header('Content-type: '.$content_type);
