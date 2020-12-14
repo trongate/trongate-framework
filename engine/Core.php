@@ -55,7 +55,6 @@ class Core {
                 }
 
                 $asset_path = '../modules/'.strtolower($target_module).'/assets/'.$target_dir.'/'.$file_name;   
-                $abs_file_path = str_replace('../', BASE_URL, $asset_path);
             
                 if (file_exists($asset_path)) {
                     $content_type = mime_content_type($asset_path);
@@ -206,11 +205,11 @@ class Core {
         }
 
         $this->draw_error_page();
-        die(); //end of the line (all possible scenarios tried)
     }
 
     private function draw_error_page() {
         load('error_404');
+        die(); //end of the line (all possible scenarios tried)
     }
 
 }
