@@ -15,6 +15,8 @@ class Model {
 
     public function __construct($current_module = NULL) {
 
+        $this->current_module = $current_module;
+
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
         $options = array(
             PDO::ATTR_PERSISTENT => true,
