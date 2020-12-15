@@ -109,7 +109,7 @@ class Core {
 
                     $content_type = mime_content_type($asset_path);
 
-                    if ($content_type == 'text/plain'|| $content_type == 'text/html')) {
+                    if ($content_type == 'text/plain'|| $content_type == 'text/html') {
                         $pos2 = strpos($file_name, '.css');
                         if (is_numeric($pos2)) {
                             $content_type = 'text/css';
