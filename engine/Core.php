@@ -59,7 +59,7 @@ class Core {
                 if (file_exists($asset_path)) {
                     $content_type = mime_content_type($asset_path);
 
-                    if ($content_type == 'text/plain') {
+                    if ($content_type == 'text/plain' || $content_type == 'text/html') {
 
                         $pos2 = strpos($file_name, '.css');
                         if (is_numeric($pos2)) {
@@ -71,13 +71,6 @@ class Core {
                             $content_type = 'text/javascript';
                         }
                         
-                    }
-                    
-                    if ($content_type == 'text/html') {
-                        $pos2 = strpos($file_name, '.js');
-                        if (is_numeric($pos2)) {
-                            $content_type = 'text/javascript';
-                        }
                     }
 
                     header('Content-type: '.$content_type);
