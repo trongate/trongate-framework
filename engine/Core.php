@@ -19,7 +19,7 @@ class Core {
             if (strpos($vendor_file_path, '.css')) {
                 $content_type = 'text/css';
             } else {
-                $content_type == 'text/plain';
+                $content_type = 'text/plain';
             }
 
             header('Content-type: '.$content_type);
