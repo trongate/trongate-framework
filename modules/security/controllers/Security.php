@@ -22,17 +22,17 @@ class Security extends Trongate {
         //attempt fetch trongate_user_id (this gets called by the API explorer)
         $trongate_user_id = 0;
 
-        if (isset($_COOKIE['trongatetoken'])) {
-            $trongate_user_id = $this->_is_token_valid($_COOKIE['trongatetoken'], true);
+        if (isset($_COOKIE[TRONGATE_COOKIE_NAME])) {
+            $trongate_user_id = $this->_is_token_valid($_COOKIE[TRONGATE_COOKIE_NAME], true);
 
             if ($trongate_user_id == 0) {
                 //user has an invalid cookie - destroy it
-                setcookie('trongatetoken', '', time() - 3600);
+                setcookie(TRONGATE_COOKIE_NAME, '', time() - 3600);
             }
         }
 
-        if ((isset($_SESSION['trongatetoken'])) && ($trongate_user_id == 0)) {
-            $trongate_user_id = $this->_is_token_valid($_SESSION['trongatetoken'], true);
+        if ((isset($_SESSION[TRONGATE_COOKIE_NAME])) && ($trongate_user_id == 0)) {
+            $trongate_user_id = $this->_is_token_valid($_SESSION[TRONGATE_COOKIE_NAME], true);
         }
 
         return $trongate_user_id;
@@ -63,5 +63,14 @@ class Security extends Trongate {
 
         }
     }
+
+    function _redirect_https(){
+        if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") {
+            $location = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+            header('HTTP/1.1 301 Moved Permanently');
+            header('Location: ' . $location);
+            exit;
+        } 
+    }    
 
 }

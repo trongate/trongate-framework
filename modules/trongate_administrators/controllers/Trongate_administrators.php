@@ -57,11 +57,11 @@ class Trongate_administrators extends Trongate {
                         //set a cookie and remember for 30 days
                         $token_data['expiry_date'] = time() + (86400*30);
                         $token = $this->trongate_tokens->_generate_token($token_data);
-                        setcookie('trongatetoken', $token, $token_data['expiry_date'], '/');
+                        setcookie(TRONGATE_COOKIE_NAME, $token, $token_data['expiry_date'], '/');
 
                     } else {
                         //user did not select 'remember me' checkbox
-                        $_SESSION['trongatetoken'] = $this->trongate_tokens->_generate_token($token_data);
+                        $_SESSION[TRONGATE_COOKIE_NAME] = $this->trongate_tokens->_generate_token($token_data);
                     }
 
                     redirect('trongate_administrators/manage');
@@ -106,8 +106,8 @@ class Trongate_administrators extends Trongate {
                     //now generate the new token
                     $token_params['expiry_date'] = 86400+time();
                     $this->module('trongate_tokens');
-                    $_SESSION['trongatetoken'] = $this->trongate_tokens->_generate_token($token_params);
-                    return $_SESSION['trongatetoken'];
+                    $_SESSION[TRONGATE_COOKIE_NAME] = $this->trongate_tokens->_generate_token($token_params);
+                    return $_SESSION[TRONGATE_COOKIE_NAME];
                 }
 
             } else {

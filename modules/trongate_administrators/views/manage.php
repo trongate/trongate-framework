@@ -141,7 +141,7 @@
         const http = new XMLHttpRequest()
         http.open('DELETE', apiUrl)
         http.setRequestHeader('Content-type', 'application/json')
-        http.setRequestHeader("trongateToken", token)
+        http.setRequestHeader('<?= TRONGATE_TOKEN_NAME ?>', token)
         http.send()
         http.onload = function() {
 
@@ -172,7 +172,7 @@
         const http = new XMLHttpRequest()
         http.open('GET', apiUrl)
         http.setRequestHeader('Content-type', 'application/json')
-        http.setRequestHeader("trongateToken", token)
+        http.setRequestHeader('<?= TRONGATE_TOKEN_NAME ?>', token)
         http.send()
         http.onload = function() {
 
@@ -228,7 +228,7 @@
         const http = new XMLHttpRequest()
         http.open('POST', apiUrl)
         http.setRequestHeader('Content-type', 'application/json')
-        http.setRequestHeader("trongateToken", token)
+        http.setRequestHeader('<?= TRONGATE_TOKEN_NAME ?>', token)
         http.send(JSON.stringify(params))
         http.onload = function() {
 
@@ -282,7 +282,7 @@
         const http = new XMLHttpRequest()
         http.open('PUT', apiUrl)
         http.setRequestHeader('Content-type', 'application/json')
-        http.setRequestHeader("trongateToken", token)
+        http.setRequestHeader('<?= TRONGATE_TOKEN_NAME ?>', token)
         http.send(JSON.stringify(params))
         http.onload = function() {
 

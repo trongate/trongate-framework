@@ -9,3 +9,5 @@ define('DEFAULT_METHOD', 'index');
 define('APPPATH', dirname(dirname(__FILE__)).'/');
 define('REQUEST_TYPE', $_SERVER['REQUEST_METHOD']);
 define('MODULE_ASSETS_TRIGGER', '_module');
+define('TRONGATE_TOKEN_NAME', 'trongateToken');
+define('TRONGATE_COOKIE_NAME', 'trongatetoken');

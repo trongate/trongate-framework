@@ -78,7 +78,7 @@ class Trongate_tokens extends Trongate {
         $this->model->insert($params, 'trongate_tokens');
 
         if (isset($data['set_cookie'])) {
-            setcookie('trongatetoken', $random_string, $data['expiry_date'], '/');
+            setcookie(TRONGATE_COOKIE_NAME, $random_string, $data['expiry_date'], '/');
         }
 
         return $random_string;
@@ -275,17 +275,17 @@ class Trongate_tokens extends Trongate {
 
     function _destroy() {
 
-        if (isset($_SESSION['trongatetoken'])) {
-            $tokens_to_delete[] = $_SESSION['trongatetoken'];
-            $_SESSION['trongatetoken'] = 'x'; //fallback
-            unset($_SESSION['trongatetoken']);
+        if (isset($_SESSION[TRONGATE_COOKIE_NAME])) {
+            $tokens_to_delete[] = $_SESSION[TRONGATE_COOKIE_NAME];
+            $_SESSION[TRONGATE_COOKIE_NAME] = 'x'; //fallback
+            unset($_SESSION[TRONGATE_COOKIE_NAME]);
         }
 
-        if (isset($_COOKIE['trongatetoken'])) {
+        if (isset($_COOKIE[TRONGATE_COOKIE_NAME])) {
             //destroy the cookie
-            $tokens_to_delete[] = $_COOKIE['trongatetoken'];
+            $tokens_to_delete[] = $_COOKIE[TRONGATE_COOKIE_NAME];
             $past_date = time()-86400;
-            setcookie('trongatetoken', 'x', $past_date, '/');
+            setcookie(TRONGATE_COOKIE_NAME, 'x', $past_date, '/');
         }
 
         if (isset($tokens_to_delete)) {
@@ -346,12 +346,12 @@ class Trongate_tokens extends Trongate {
 
         //$user_levels can be; NULL, int or array (of ints)
 
-        if (isset($_COOKIE['trongatetoken'])) {
-            $user_tokens[] = $_COOKIE['trongatetoken'];
+        if (isset($_COOKIE[TRONGATE_COOKIE_NAME])) {
+            $user_tokens[] = $_COOKIE[TRONGATE_COOKIE_NAME];
         }
 
-        if (isset($_SESSION['trongatetoken'])) {
-            $user_tokens[] = $_SESSION['trongatetoken'];
+        if (isset($_SESSION[TRONGATE_COOKIE_NAME])) {
+            $user_tokens[] = $_SESSION[TRONGATE_COOKIE_NAME];
         }
 
         if (!isset($user_tokens)) {
