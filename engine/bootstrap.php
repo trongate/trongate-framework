@@ -6,6 +6,10 @@ require_once '../config/database.php';
 require_once '../config/site_owner.php';
 require_once 'get_segments.php';
 
+if(ENV !== 'dev') {
+    error_reporting(0);
+}
+
 spl_autoload_register(function($class_name) {
 
     if (strpos($class_name, '_helper')) {
