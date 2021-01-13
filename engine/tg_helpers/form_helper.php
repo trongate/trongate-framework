@@ -218,3 +218,18 @@ function form_file_select($name, $attributes=NULL, $additional_code=NULL) {
     $html = str_replace(' type="text" ', ' type="file" ', $html);
     return $html;
 }
+
+function input($field_name, $clean_up=NULL) {
+    if (!isset($_POST[$field_name])) {
+        $value = '';
+    } else {
+        $value = $_POST[$field_name];
+
+        if (isset($clean_up)) {
+            $value = ltrim(trim(strip_tags($value)));
+        }
+
+    }
+
+    return $value;
+}

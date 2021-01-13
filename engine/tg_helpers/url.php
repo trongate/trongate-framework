@@ -1,18 +1,12 @@
 <?php
-class Url {
-
-    public function segment($num) {
-
-        $segments = SEGMENTS;
-        if (isset($segments[$num])) {
-            $value = $segments[$num];
-        } else {
-            $value = '';
-        }
-
-        return $value;
+function segment($num) {
+    $segments = SEGMENTS;
+    if (isset($segments[$num])) {
+        $value = $segments[$num];
+    } else {
+        $value = '';
     }
-
+    return $value;
 }
 
 function previous_url() {

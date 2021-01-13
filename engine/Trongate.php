@@ -19,7 +19,6 @@ class Trongate {
             require_once 'tg_helpers/'.$trongate_helper.'.php';
         }
 
-        $this->url = new Url;
         $this->validation_helper = new Validation_helper;
 
         //load the model class
@@ -171,21 +170,6 @@ class Trongate {
             // No view exists
             throw new exception('view '.$view_path.' does not exist');
         }
-    }
-
-    public function input($field_name, $clean_up=NULL) {
-        if (!isset($_POST[$field_name])) {
-            $value = '';
-        } else {
-            $value = $_POST[$field_name];
-
-            if (isset($clean_up)) {
-                $value = ltrim(trim(strip_tags($value, FILTER_SANITIZE_STRING)));
-            }
-
-        }
-
-        return $value;
     }
 
     public function upload_picture($data) {
