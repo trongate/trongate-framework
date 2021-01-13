@@ -3,7 +3,8 @@ class Books extends Trongate {
 
     function test() {
         $name = segment(3);
-        echo $name;
+        $rows = $this->model->get('id');
+        var_dump($rows);
     }
 
     function goodbye($output) {
