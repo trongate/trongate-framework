@@ -125,12 +125,12 @@ class Trongate {
                 if ($return_as_str == true) {
                     // Return output as string
                     ob_start();
-                    require_once $view_path;
+                    require $view_path;
                     $output = ob_get_clean();
                     return $output;
                 } else {
                     // Require view file
-                    require_once $view_path;
+                    require $view_path;
                 }
                 
             } else {
@@ -143,12 +143,12 @@ class Trongate {
                     if ($return_as_str == true) {
                         // Return output as string
                         ob_start();
-                        require_once $view_path;
+                        require $view_path;
                         $output = ob_get_clean();
                         return $output;
                     } else {
                         // Require view file
-                        require_once $view_path;
+                        require $view_path;
                     }
 
                 } else {
