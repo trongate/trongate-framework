@@ -11,7 +11,7 @@ class Books extends Trongate {
     }
 
     function submit() {
-        $username = input('username');
+        $username = input('username', true);
         $username = str_replace(' ', '[SPACE]', $username);
         echo $username;
     }

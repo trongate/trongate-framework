@@ -226,7 +226,7 @@ function input($field_name, $clean_up=NULL) {
         $value = $_POST[$field_name];
 
         if (isset($clean_up)) {
-            $value = ltrim(trim(strip_tags($value)));
+            $value = trim(strip_tags($value));
         }
 
     }
