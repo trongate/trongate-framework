@@ -6,6 +6,11 @@ class Books extends Trongate {
         echo $name;
     }
 
+    function goodbye($output) {
+        echo 'goodbye from books';
+        return $output;
+    }
+
     function create() {
         $this->view('create');
     }

@@ -1,0 +1,117 @@
+{
+  "Custom": {
+    "url_segments": "books-api/hello",
+    "request_type": "GET",
+    "description": "Fetch rows from table",
+    "enableParams": true,
+    "authorization":{  
+        "roles": [
+            "admin"
+        ]
+    },
+    "afterHook":"books/goodbye"
+  },
+  "Get": {
+    "url_segments": "books-api/hello",
+    "request_type": "GET",
+    "description": "Fetch rows from table",
+    "enableParams": true,
+    "authorization":{  
+        "roles": [
+            "admin"
+        ]
+    },
+    "afterHook":"goodbye"
+  },
+  "Get By Post": {
+    "url_segments": "api/get/books",
+    "request_type": "POST",
+    "description": "Fetch rows from table using POST request.",
+    "enableParams": true,
+    "authorization":{  
+        "roles": [
+            "admin"
+        ]
+    }
+  },
+  "Find One": {
+    "url_segments": "api/get/books/{id}",
+    "request_type": "GET",
+    "description": "Fetch one row",
+    "required_fields": [
+      {
+        "name": "id",
+        "label": "ID"
+      }
+    ]
+  },
+  "Exists": {
+    "url_segments": "api/exists/books/{id}",
+    "request_type": "GET",
+    "description": "Check if instance exists",
+    "required_fields": [
+      {
+        "name": "id",
+        "label": "ID"
+      }
+    ]
+  },
+  "Count": {
+    "url_segments": "api/count/books",
+    "request_type": "GET",
+    "description": "Count number of records",
+    "enableParams": true
+  },
+  "Count By Post": {
+    "url_segments": "api/count/books",
+    "request_type": "POST",
+    "description": "Count number of records using POST request",
+    "enableParams": true,
+    "authorization":{  
+        "roles": [
+            "admin"
+        ]
+    }
+  },
+  "Create": {
+    "url_segments": "api/create/books",
+    "request_type": "POST",
+    "description": "Insert database record",
+    "enableParams": true
+  },
+  "Insert Batch": {
+    "url_segments": "api/batch/books",
+    "request_type": "POST",
+    "description": "Insert multiple records",
+    "enableParams": true
+  },
+  "Update": {
+    "url_segments": "api/update/books/{id}",
+    "request_type": "PUT",
+    "description": "Update a database record",
+    "enableParams": true,
+    "required_fields": [
+      {
+        "name": "id",
+        "label": "ID"
+      }
+    ]
+  },
+  "Destroy": {
+    "url_segments": "api/destroy/books",
+    "request_type": "DELETE",
+    "description": "Delete row or rows",
+    "enableParams": true
+  },
+  "Delete One": {
+    "url_segments": "api/delete/books/{id}",
+    "request_type": "DELETE",
+    "description": "Delete one row",
+    "required_fields": [
+      {
+        "name": "id",
+        "label": "ID"
+      }
+    ]
+  }
+}

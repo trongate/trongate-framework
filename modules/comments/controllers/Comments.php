@@ -37,8 +37,8 @@ class Comments extends Trongate {
     }
 
     function _display_comments_block($token) {
-        $target_table = $this->url->segment(1);
-        $update_id = $this->url->segment(3);
+        $target_table = segment(1);
+        $update_id = segment(3);
         $data['target_table'] = $target_table;
         $data['update_id'] = $update_id;
         $data['token'] = $token;

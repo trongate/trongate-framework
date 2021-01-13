@@ -226,7 +226,7 @@ class Api extends Trongate {
             $bits = explode('/', $url_segments);
             foreach ($bits as $key => $required_value) {
                 $target_segment = $key+1;
-                $url_value = $this->url->segment($target_segment);
+                $url_value = segment($target_segment);
 
                 if ($required_value !== $url_value) {
                     $valid = false;
@@ -341,7 +341,7 @@ class Api extends Trongate {
 
     function _get_params_from_url($params_segment) {
         //params segment is where params might be passed
-        $params_str = $this->url->segment($params_segment);
+        $params_str = segment($params_segment);
         $first_char = substr($params_str, 0, 1);
         if ($first_char == '?') {
             $params_str = substr($params_str, 1);
@@ -492,7 +492,7 @@ class Api extends Trongate {
         }
 
         $this->module('security');
-        $target_module = $this->url->segment(3);
+        $target_module = segment(3);
         $this->_make_sure_table_exists($target_module);
         $this->module('trongate_tokens');
 
@@ -580,7 +580,7 @@ class Api extends Trongate {
     }
 
     function get() {
-        $module_name = $this->url->segment(3);
+        $module_name = segment(3);
         $this->_make_sure_table_exists($module_name);
         $module_endpoints = $this->_fetch_endpoints($module_name);
 
@@ -628,7 +628,7 @@ class Api extends Trongate {
 
     function _process_get_with_get($module_name, $module_endpoints) {
 
-        $update_id = $this->url->segment(4);
+        $update_id = segment(4);
         if (is_numeric($update_id)) {
             $this->_find_one($module_name, $module_endpoints, $update_id);
             return;
@@ -781,7 +781,7 @@ class Api extends Trongate {
 
     function exists() {
 
-        $module_name = $this->url->segment(3);
+        $module_name = segment(3);
         $this->_make_sure_table_exists($module_name);
         $module_endpoints = $this->_fetch_endpoints($module_name);
 
@@ -793,7 +793,7 @@ class Api extends Trongate {
 
         $output['token'] = $input['token'];
 
-        $update_id = $this->url->segment(4);
+        $update_id = segment(4);
 
         if (!is_numeric($update_id)) {
             http_response_code(422);
@@ -835,7 +835,7 @@ class Api extends Trongate {
     }
 
     function count() {
-        $module_name = $this->url->segment(3);
+        $module_name = segment(3);
         $this->_make_sure_table_exists($module_name);
         $module_endpoints = $this->_fetch_endpoints($module_name);
 
@@ -849,7 +849,7 @@ class Api extends Trongate {
 
     function _process_count_with_get($module_name, $module_endpoints) {
 
-        $update_id = $this->url->segment(4);
+        $update_id = segment(4);
         if (is_numeric($update_id)) {
             $this->_find_one($module_name, $module_endpoints, $update_id);
             return;
@@ -1002,7 +1002,7 @@ class Api extends Trongate {
 
     function create() {
 
-        $module_name = $this->url->segment(3);
+        $module_name = segment(3);
         $this->_make_sure_table_exists($module_name);
         $module_endpoints = $this->_fetch_endpoints($module_name);
 
@@ -1056,7 +1056,7 @@ class Api extends Trongate {
 
     function batch() {
 
-        $module_name = $this->url->segment(3);
+        $module_name = segment(3);
         $this->_make_sure_table_exists($module_name);
         $module_endpoints = $this->_fetch_endpoints($module_name);
 
@@ -1111,7 +1111,7 @@ class Api extends Trongate {
 
     function update() {
 
-        $module_name = $this->url->segment(3);
+        $module_name = segment(3);
         $this->_make_sure_table_exists($module_name);
         $module_endpoints = $this->_fetch_endpoints($module_name);
 
@@ -1123,7 +1123,7 @@ class Api extends Trongate {
 
         $output['token'] = $input['token'];
 
-        $update_id = $this->url->segment(4);
+        $update_id = segment(4);
 
         if (!is_numeric($update_id)) {
             http_response_code(400);
@@ -1182,7 +1182,7 @@ class Api extends Trongate {
 
     function delete() {
 
-        $module_name = $this->url->segment(3);
+        $module_name = segment(3);
         $this->_make_sure_table_exists($module_name);
         $module_endpoints = $this->_fetch_endpoints($module_name);
 
@@ -1194,7 +1194,7 @@ class Api extends Trongate {
 
         $output['token'] = $input['token'];
 
-        $id = $this->url->segment(4);
+        $id = segment(4);
 
         //attempt invoke 'before' hook
         $data['id'] = $id;
@@ -1238,7 +1238,7 @@ class Api extends Trongate {
 
     function destroy() {
 
-        $module_name = $this->url->segment(3);
+        $module_name = segment(3);
         $this->_make_sure_table_exists($module_name);
         $module_endpoints = $this->_fetch_endpoints($module_name);
 
