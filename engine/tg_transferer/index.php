@@ -262,7 +262,7 @@ $info.= '</ul>';
                 } else {
 
                     if (http.responseText == 'Finished.') {
-                        document.getElementById("headline").innerHTML = 'Finished ' + status;
+                        document.getElementById("headline").innerHTML = 'Finished';
                         document.getElementById("info").innerHTML = '<p>The SQL file was successfully processed.</p><?= $finished_content ?>';
                     } else {
 
