@@ -717,6 +717,10 @@ class Api extends Trongate {
         $post = file_get_contents('php://input');
         $decoded = json_decode($post, true);
 
+        if (!isset($decoded)) {
+            $decoded = [];
+        }
+
         if (count($decoded)>0) {
             $params = $this->_get_params_from_post($decoded);
         } else {
