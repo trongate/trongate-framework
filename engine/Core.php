@@ -73,6 +73,10 @@ class Core {
                         
                     }
 
+                    if ($content_type == 'image/svg') {
+                        $content_type.= '+xml';
+                    }
+
                     header('Content-type: '.$content_type);
                     $contents = file_get_contents($asset_path);
                     echo $contents;
