@@ -1,3 +1,13 @@
+:root {
+  --primary: #4682b4;
+  --primary-dark: #38678f;
+  --primary-darker: #294d6b;
+  --primary-color: #fff;
+  --secondary: #ff0000;
+  --border: #c5c5c5;
+  --alt: #fff;
+}
+
 body {
     font-family: Tahoma, Geneva, sans-serif;
     margin: 0;
@@ -11,14 +21,13 @@ form {
 }
 
 h1 {
+    margin-top: 0;
     font-size: 4em;
-    font-family: "Arial Black", Gadget, sans-serif;
     margin-bottom: 0.2em;
 }
 
 h2 {
     font-size: 2em;
-    font-family: "Arial Black", Gadget, sans-serif;
 }
 
 p {
@@ -26,27 +35,27 @@ p {
 }
 
 a {
-    color: SteelBlue;
+    color: var(--primary);
 }
 
 a:hover {
-    color: #36658c;
+    color: var(--primary-dark);
 }
 
 input[type="text"], input[type="email"], input[type="password"], select {
     padding: 0.6em 0.6em;
     font-size: 1em;
     width: 100%;
-    border: 1px #333 solid;
+    border: 1px solid var(--border);
     box-sizing: border-box;
 }
 
 input[type="text"]:focus, textarea:focus, input[type="email"]:focus, input[type="password"]:focus, select:focus {
-    border: 1px SteelBlue solid;
+    border: 1px solid var(--primary);
     outline: 0;
 }
 
-input[type="text"], input[type="email"], input[type="password"], button, textarea, select {
+input[type="text"], input[type="email"], input[type="password"], button, textarea, select, .button {
     border-radius: 6px;
 }
 
@@ -56,7 +65,7 @@ textarea {
     width: 100%;
     height: 100%; 
     box-sizing: border-box;
-    border: 1px #333 solid; 
+    border: 1px solid var(--border); 
     line-height: 1.6em;       
 }
 
@@ -66,32 +75,45 @@ label {
     display: block;
 }
 
-button {
-    background-color: SteelBlue;
-    border: 1px SteelBlue solid;
-    margin: 1em 0.1em 0 0;
-    padding: 0.6em 1.2em;
-    color: #fff;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: 0.6s;
+label span {
+    color: green;
 }
 
-button:hover {
-    background-color: #36658c;
-    border: 1px #36658c solid;
+.button {
+    text-align: center;
+    width: auto !important;
+    display: inline-block;
+}
+
+button, .button {
+    background-color: var(--primary);
+    border: 1px solid var(--primary-dark);
+    margin: 1em 0.1em 0 0;
+    padding: 0.6em 1.2em;
+    color: var(--primary-color);
+    font-size: 0.9em;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: Arial;
+    line-height: normal;
+}
+
+button:hover, .button:hover {
+    background-color: var(--primary-dark);
+    border: 1px solid var(--primary-darker);
+    color: var(--primary-color);
 }
 
 .alt {
     background-color: transparent;
-    border: 1px SteelBlue solid;
+    border: 1px solid var(--primary);
     color: #333;        
 }
 
 .alt:hover {
     background-color: transparent;
-    border: 1px #36658c solid;
-    color: SteelBlue;
+    border: 1px solid var(--primary);
+    color: var(--primary);
 }
 
 ul {
@@ -119,12 +141,12 @@ table {
 }
 
 th {
-    background-color: SteelBlue;
-    color: #fff;
+    background-color: var(--primary);
+    color: var(--primary-color);
 }
 
 th, td {
-    border: 1px #36658c solid;
+    border: 1px var(--primary-darker) solid;
     padding: 0.7em;
 }
 
@@ -143,12 +165,184 @@ tr:nth-child(odd) {
 hr {
     border: 0;
     height: 1px;
-    background: #555;
+    background: var(--border);
     margin: 2em 0;
 }
 
-@media screen and (max-width: 550px) {
-  button {
+.float-right {
+    float: right;
+    position: relative;
+}
+
+.float-left {
+    float: left;
+    position: relative;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.container {
+    width: 90%;
+    max-width: 940px;
+    margin: 0 auto;
+    background-color: var(--primary-color);
+    padding: 1em;
+}
+
+.pagination {
+    display: inline-block;
+    margin: 0 0 12px 0;
+}
+
+.pagination:nth-of-type(2) {
+    margin-top: 1em;
+}
+
+.pagination a {
+    color: black;
+    float: left;
+    padding: 8px 16px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+}
+
+.pagination a.active {
+    background-color: var(--primary);
+    color: white;
+    border: 1px solid var(--primary);
+}
+
+.pagination a:hover:not(.active) {background-color: #ddd;}
+
+.pagination a:first-child {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.pagination a:last-child {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.card-heading {
+    font-size: 1.2em;
+    background-color: var(--primary);
+    color: var(--primary-color);
+    padding: 12px;
+    border: 1px solid var(--primary-darker);
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.card {
+    box-shadow: 0 4px 10px 0 rgba(0,0,0,0.2),0 4px 20px 0 rgba(0,0,0,0.19);
+    margin-bottom: 1em;
+}
+
+#overlay {
+    background-color: black;
     width: 100%;
+    height: 100%;
+    position: fixed;
+    z-index: -2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    opacity: 0.7;
+}
+
+#modal-container {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: fixed;
+    z-index: -3;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.modal {
+    width: 90%;
+    max-width: 570px;
+    z-index: -4;
+    background-color: white;
+    opacity: 0;
+    position: relative;
+    margin-top: -160px;
+    transition: 0.3s;
+}
+
+.modal-body h5 {
+    margin: 0 auto;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.modal p {
+    text-align: center;
+}
+
+#delete-modal p:nth-child(1) {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.modal p:nth-child(3) {
+    margin: 0;
+}
+
+.modal-heading {
+    font-size: 1.2em;
+    background-color: var(--primary);
+    padding: 12px;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-darker);
+    text-transform: uppercase;
+}
+
+.modal-danger {
+    background-color: red !important;
+    border: 1px #990000 solid;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal textarea {
+    font: inherit;
+    font-size: 15px;
+    margin: 0;
+    overflow: auto;
+    padding: 8px;
+    display: block;
+    border: 1px solid #ccc!important;
+    color: #000!important;
+    background-color: #fdf5e6!important;
+    min-height: 7em;
+    resize: none;
+    line-height: 1.5em;
+}
+
+@media screen and (max-width: 550px) {
+  button, .button {
+    width: 100%;
+    display: block;
   }
 }

@@ -3,11 +3,11 @@
  *
  * An open source PHP framework for web developers who like to break the rules
  *
- * Version: 1.3.3021
+ * Version: 1.3.3024
  *
  * This product is released under the MIT License (MIT)
  *
- * Copyright (c) 2019, Redhorn Development
+ * Copyright (c) 2019, David Connelly
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @author  David Connelly (https://speedcodingacademy.com)
- * @copyright   Copyright (c) 2019, Redhorn Development.
- * @license http://opensource.org/licenses/MIT  MIT License
- * @link    https://trongate.io
+ * @author  David Connelly (david.webguy@gmail.com)
+ * @copyright   Copyright (c) 2019, David Connelly.
+ * @license http://opensource.org/licenses/MIT  MIT License.
+ * @link    https://trongate.io.
  */

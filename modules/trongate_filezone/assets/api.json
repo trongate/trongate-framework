@@ -1,0 +1,51 @@
+{
+  "Upload": {
+    "url_segments": "trongate_filezone/upload/{target_module}/{update_id}",
+    "request_type": "POST",
+    "description": "The endpoint for gallery uploads.",
+    "enableParams": false,
+    "required_fields": [
+      {
+        "name": "update_id",
+        "label": "Update ID"
+      },
+      {
+        "name": "target_module",
+        "label": "Target Module"
+      }
+    ],
+    "authorization":{  
+        "roles": [
+            "admin"
+        ]
+    }
+  },
+  "Remove": {
+    "url_segments": "trongate_filezone/upload/{target_module}/{update_id}",
+    "request_type": "DELETE",
+    "description": "Removes then fetches remaining pictures.",
+    "enableParams": false,
+    "required_fields": [
+      {
+        "name": "update_id",
+        "label": "Update ID"
+      },
+      {
+        "name": "target_module",
+        "label": "Target Module"
+      }
+    ],
+    "authorization":"*"
+  },
+  "Ditch": {
+    "url_segments": "trongate_filezone/ditch",
+    "request_type": "POST",
+    "description": "Removes item (from uploader page).",
+    "enableParams": false,
+    "authorization":{  
+        "roles": [
+            "admin"
+        ]
+    }
+  }
+}

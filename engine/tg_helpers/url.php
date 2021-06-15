@@ -1,18 +1,12 @@
 <?php
-class Url {
-
-    public function segment($num) {
-
-        $segments = SEGMENTS;
-        if (isset($segments[$num])) {
-            $value = $segments[$num];
-        } else {
-            $value = '';
-        }
-
-        return $value;
+function segment($num) {
+    $segments = SEGMENTS;
+    if (isset($segments[$num])) {
+        $value = $segments[$num];
+    } else {
+        $value = '';
     }
-
+    return $value;
 }
 
 function previous_url() {
@@ -87,7 +81,8 @@ function api_auth() {
     $segments = explode('/', $target_url);
 
     if ((isset($segments[0])) && (isset($segments[1]))) {
-        $current_module = $segments[0];
+        $current_module_bits = explode('-', $segments[0]);
+        $current_module = $current_module_bits[0];
         $filepath = APPPATH.'modules/'.$current_module.'/assets/api.json';
 
         if (file_exists($filepath)) {

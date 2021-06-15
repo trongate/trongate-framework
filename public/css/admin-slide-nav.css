@@ -1,0 +1,40 @@
+#open-btn {
+  font-size: 3rem;
+  right: 18px;
+  position: absolute;
+  top: 27px;
+}
+#slide-nav {
+  width: 0;
+  opacity: 0;
+  height: 100%;
+  top: 0;
+  left: 0;
+  position: fixed;
+  transition: 0.1s;
+  z-index: -1;
+}
+#slide-nav ul {
+  list-style-type: none;
+  padding: 12px;
+}
+#slide-nav li {
+  margin-bottom: 7px;
+}
+#slide-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.2em;
+}
+#slide-nav a:hover {
+  text-decoration: underline;
+}
+#close-btn {
+  color: #fff;
+  font-size: 2.4rem;
+  margin-left: 7px;
+}
+#open-btn,
+#close-btn {
+  cursor: pointer;
+}

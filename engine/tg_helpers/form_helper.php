@@ -1,6 +1,14 @@
 <?php
 function form_open($location, $attributes=NULL, $additional_code=NULL) {
     $extra = '';
+
+    if (isset($attributes['method'])) {
+        $method = $attributes['method'];
+        unset($attributes['method']);
+    } else {
+        $method = 'post';
+    }
+
     if (isset($attributes)) {
         foreach ($attributes as $key => $value) {
             $extra.= ' '.$key.'="'.$value.'"';
@@ -15,7 +23,7 @@ function form_open($location, $attributes=NULL, $additional_code=NULL) {
         $extra.= ' '.$additional_code;
     }
 
-    $html = '<form action="'.$location.'" method="post"'.$extra.'>';
+    $html = '<form action="'.$location.'" method="'.$method.'"'.$extra.'>';
     return $html;
 }
 
@@ -63,6 +71,10 @@ function form_input($name, $value=NULL, $attributes=NULL, $additional_code=NULL)
     $extra = '';
     if (!isset($value)) {
         $value = '';
+    }
+
+    if ((defined('AUTOCOMPLETE')) && (!isset($attributes['autocomplete']))) {
+        $attributes['autocomplete'] = AUTOCOMPLETE;
     }
 
     if (isset($attributes)) {
@@ -185,19 +197,11 @@ function form_dropdown($name, $options, $selected_key=NULL, $attributes=NULL, $a
     $html = '<select name="'.$name.'"'.$extra.'>
 ';
 
-    if (!isset($selected_key)) {
-        $selected_key = '';
-        $selected_value = 'Select...';
-    }
-
     if (isset($options[$selected_key])) {
         $selected_value = $options[$selected_key];
-    } else {
-        $selected_value = '-';
-    }
-
-    $html.= '<option value="'.$selected_key.'" selected>'.$selected_value.'</option>
+        $html.= '<option value="'.$selected_key.'" selected>'.$selected_value.'</option>
 ';
+    }
 
     if (isset($options[$selected_key])) {
         unset($options[$selected_key]);
@@ -217,4 +221,19 @@ function form_file_select($name, $attributes=NULL, $additional_code=NULL) {
     $html = form_input($name, $value, $attributes, $additional_code);
     $html = str_replace(' type="text" ', ' type="file" ', $html);
     return $html;
+}
+
+function post($field_name, $clean_up=NULL) {
+    if (!isset($_POST[$field_name])) {
+        $value = '';
+    } else {
+        $value = $_POST[$field_name];
+
+        if (isset($clean_up)) {
+            $value = trim(strip_tags($value));
+        }
+
+    }
+
+    return $value;
 }

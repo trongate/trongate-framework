@@ -4,6 +4,7 @@ require_once '../config/config.php';
 require_once '../config/custom_routing.php';
 require_once '../config/database.php';
 require_once '../config/site_owner.php';
+require_once '../config/themes.php';
 require_once 'get_segments.php';
 
 spl_autoload_register(function($class_name) {
@@ -17,7 +18,14 @@ spl_autoload_register(function($class_name) {
 
 function load($template_file, $data=NULL) {
     //load template view file
-    $file_path = APPPATH.'templates/views/'.$template_file.'.php';
+    if (isset(THEMES[$template_file])) {
+        $theme_dir = THEMES[$template_file]['dir'];
+        $template = THEMES[$template_file]['template'];
+        $file_path = APPPATH.'public/themes/'.$theme_dir.'/'.$template;
+        define('THEME_DIR', BASE_URL.'themes/'.$theme_dir.'/');
+    } else {
+        $file_path = APPPATH.'templates/views/'.$template_file.'.php';
+    }
 
     if (file_exists($file_path)) {
 
@@ -32,5 +40,5 @@ function load($template_file, $data=NULL) {
     }
 }
 
-$trongate_helpers = ['form_helper', 'flashdata_helper', 'url', 'validation_helper'];
-define('TRONGATE_HELPERS', $trongate_helpers);
+$tg_helpers = ['form_helper', 'flashdata_helper', 'url', 'validation_helper'];
+define('TRONGATE_HELPERS', $tg_helpers);

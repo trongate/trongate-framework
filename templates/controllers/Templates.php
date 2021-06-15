@@ -1,6 +1,10 @@
 <?php
 class Templates extends Trongate {
 
+    function error_404($data) {
+        load('error_404', $data);
+    }
+
     function admin($data) {
 
         if (isset($data['additional_includes_top'])) {
@@ -28,10 +32,6 @@ class Templates extends Trongate {
        $code = '<script src="'.$file.'"></script>';
        $code = str_replace('""></script>', '"></script>', $code);
        return $code;
-    }
-
-    function error_404($data) {
-        load('error_404', $data);
     }
 
     function _build_additional_includes($files) {

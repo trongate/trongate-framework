@@ -1,25 +1,46 @@
-<div class="row">
-    <div class="eight columns offset-by-two">
-        <h1>Admin Panel Login</h1>
-        <?= validation_errors('<div class="validation-error">', '</div>') ?>
-        <form action="<?= $form_location ?>" method="post">
-            <label>Username</label>
-            <input name="username" class="u-full-width" type="text" placeholder="Enter your username here">
-           
-            <label>Password</label>
-            <input name="password" class="u-full-width" type="password" placeholder="Enter your password here">
-
-            <label>
-                <input type="checkbox" name="remember" value="1">
-                <span class="label-body">Remember me</span>
-            </label>
-            <input class="button-primary" type="submit" name="submit" value="Submit">
-        </form>
-    </div>
-</div>
-
+<h1 style="margin-top: 60px;">Login</h1>
+<?php
+echo validation_errors('<div class="error">', "</div>");
+$attr['placeholder'] = 'Enter your username here';
+$attr['autocomplete'] = 'off';
+$btn_attr['class'] = 'alt';
+echo form_open($form_location);
+echo form_label('username');
+echo form_input('username', $username, $attr);
+echo form_label('password');
+$attr['placeholder'] = str_replace('username', 'password',  $attr['placeholder']);
+echo form_password('password', '', $attr);
+echo form_label(form_checkbox('remember', 1).' remember me');
+echo form_submit('submit', 'Submit');
+echo form_submit('submit', 'Cancel', $btn_attr);
+?>
+<?php 
+echo form_close();
+?>
 <style>
-.container {
-    margin-top: 20vh;
-}
+	body {
+		display: flex;
+		align-items: flex-start;
+		justify-content:center;
+		text-align: center;
+
+	}
+
+	label {
+		text-align: left;
+	}
+
+	body > div.container > form {
+		width: 100%;
+		max-width: 460px;
+		margin: 0 auto;
+	}
+
+	body > div.container > form > button {
+		width: 100%;
+	}
+
+	.go-left {
+		text-align: left;
+	}
 </style>

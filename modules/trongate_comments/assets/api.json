@@ -1,0 +1,26 @@
+{
+  "Get By Post": {
+    "url_segments": "api/get/trongate_comments",
+    "request_type": "POST",
+    "description": "Fetch rows from table using POST request.",
+    "enableParams": true,
+    "authorization":{  
+        "roles": [
+            "admin"
+        ]
+    },
+    "afterHook":"_prep_comments"
+  },
+   "Create":{
+      "url_segments":"api/create/trongate_comments",
+      "request_type":"POST",
+      "description":"Insert database record",
+      "enableParams":true,
+      "authorization":{
+         "roles":[
+            "admin"
+         ]
+      },
+      "beforeHook":"_pre_insert"
+   }
+}

@@ -136,7 +136,6 @@ function check_file_size($file_size, $file_check_value) {
     return $result;
 }
 
-
 function get_target_file() {
     $userfile = array_keys($_FILES)[0];
     return $userfile;

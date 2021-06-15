@@ -95,8 +95,8 @@ class Trongate_tokens extends Trongate {
     }
 
     function regenerate() {
-        $old_token = $this->url->segment(3);
-        $expiry_date = $this->url->segment(4);
+        $old_token = segment(3);
+        $expiry_date = segment(4);
 
         if (!is_numeric($expiry_date)) {
             die();

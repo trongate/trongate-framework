@@ -1,0 +1,764 @@
+@import url("admin-slide-nav.css");
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: #000;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    text-transform: uppercase;
+}
+
+header ul {
+    display: flex;
+    flex-direction: row;
+    list-style-type: none;
+    padding: 0 12px;
+}
+
+header li {
+    margin-right: 22px;
+    padding: 7px 0;
+}
+
+header a {
+    color: #fff;
+    text-decoration: none;
+}
+
+header a:hover {
+    text-decoration: underline;
+    color: #fff;
+}
+
+nav ul {
+    margin: 0;
+}
+
+#hamburger {
+  color: #fff;
+  margin: 0.6em;
+  font-size: 1.3em;
+  cursor: pointer;
+}
+
+header > div {
+    margin-right: 12px;
+}
+
+header .fa {
+    margin: 0 12px;
+    font-size: 1.3em;
+}
+
+.wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+}
+
+.wrapper > div:nth-child(2) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#sidebar, main, footer > div  {
+    padding: 12px;
+}
+
+#left-nav ul {
+    list-style-type: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: stretch;
+    padding-left: 19px;
+}
+
+#left-nav li {
+    width: 100%;
+}
+
+#left-nav li a {
+    color: #555;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+#left-nav li a:hover {
+    text-decoration: underline;
+}
+
+.hide-sm {
+    display: none;
+}
+
+main {
+    padding-right: 1em;
+}
+
+footer {
+    background-color: black;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+footer > div:nth-child(1) {
+    background-color: #5b5b5b;
+    min-height: 80px;
+}
+
+.alt {
+    background-color: transparent !important;
+    border: 1px solid var(--border);
+    color: #333;        
+}
+
+.alt:hover {
+    border: 1px solid #777;
+    color: var(--primary-darker);
+}
+
+.danger {
+    background-color: #ee0000;
+    border: 1px solid #dd0000;
+}
+
+.danger:hover {
+    background-color: #cc0000;
+    border: 1px solid #cc0000;
+}
+
+button, .button {
+    background-color: var(--primary);
+    border: 1px solid var(--primary-darker);
+    border-radius: 0;
+    text-transform: uppercase;
+}
+
+button:hover, .button:hover {
+    background-color: var(--primary-darker);
+    border: 1px solid var(--primary-darker);
+}
+
+button .fa, .button .fa {
+    margin-right: 7px;
+}
+
+input[type="text"], input[type="email"], input[type="password"], button, textarea, select {
+    border-radius: 0;
+}
+
+textarea {
+    min-height: 140px;
+}
+
+th {
+    background-color: var(--primary);
+    border: 1px solid var(--primary-darker);
+    text-align: left;
+    font-weight: normal;
+    font-size: 0.8em;
+    color: #fff;
+}
+
+#results-tbl > thead > tr:nth-child(1) > th {
+    padding: 0.4em;
+}
+
+#results-tbl > thead > tr:nth-child(1) > th > div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#results-tbl form {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+#results-tbl > thead > tr:nth-child(1) > th > div > div:nth-child(1) > form > button.alt {
+    margin: 0 4px;
+    background-color: #eee !important;
+    border: 1px solid var(--primary-darker);
+    text-transform: none;
+}
+
+#results-tbl > thead > tr:last-child > th:last-child {
+    width: 20px;
+}
+
+#results-tbl > tbody > tr > td:nth-child(2) > a {
+    margin: 4px;
+}
+
+#results-tbl > thead input[type="text"] {
+    border: 1px solid var(--primary-darker);
+}
+
+#results-tbl > thead > tr:nth-child(1) > th > div > div:nth-child(2) > select {
+    border: 1px solid var(--primary-darker);
+    width: 5em;
+}
+
+thead tr:nth-child(2) th {
+    font-size: 1em;
+}
+
+td {
+    border: 1px #36658c solid;
+    padding: 0.7em;
+}
+
+td:last-child {
+    font-size: 0.8em;
+    padding: 0;
+    vertical-align: middle;
+    text-align: center;
+}
+
+td:last-child button, td:last-child .button {
+    margin: 0;
+}
+
+.smaller {
+    font-size: 0.6em;
+}
+
+#comments-block {
+    padding: 0;
+    margin: 0;
+}
+
+#comments-block p {
+    margin:1em;
+    text-align: left;
+}
+
+#comments-block p:nth-child(1) {
+    font-size: 12px;
+}
+
+#comments-block p:nth-child(2) {
+    font-size: 15px;
+}
+
+.two-col {
+    display: grid;
+    grid-gap: 1em;
+    grid-template-columns: 1fr 1fr;
+}
+
+.three-col {
+    display: grid;
+    grid-gap: 1em;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.card.record-details > div.card-body > div {
+    padding: 0.6em;
+    border-bottom: 1px dotted var(--border);
+}
+
+.card.record-details > div.card-body > div:nth-last-child(1) {
+    border: 0;
+}
+
+.card.record-details > div.card-body > div > span:nth-child(odd) {
+    text-align: left;
+    font-weight: bold;
+}
+
+.card.record-details > div.card-body > div > span:nth-child(even) {
+    float: right;
+}
+
+.card-create-relation p {
+    text-align: center;
+    margin: 0 auto;
+}
+
+.card-create-relation button {
+    margin: 0 auto 1em auto;
+}
+
+.datepicker-calendar, .datetime-picker-calendar {
+    min-width: 282px;
+    border: 1px var(--primary-darker) solid;
+    letter-spacing: 1px;
+    position: absolute;
+    background-color: var(--primary-color);
+}
+
+.datepicker-head {
+    background-color: var(--primary);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.datepicker-head > div:nth-child(odd) {
+    cursor: pointer;
+}
+
+.datepicker-head, 
+.timepicker-popup th, 
+.timepicker-popup td, 
+.inner-timepicker th, 
+.inner-timepicker td {
+    padding: 6px;
+}
+
+.datepicker-head > div:nth-child(2), 
+.timepicker-popup th, 
+.timepicker-popup td, 
+.inner-timepicker th,
+.inner-timepicker td
+{
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+}
+
+.datepicker-calendar td, .datetime-picker-calendar td {
+    font-size: 16px !important;
+}
+
+.datepicker-calendar .popup-arrow, .datetime-picker-calendar .popup-arrow {
+    background-color: var(--primary-color);
+    height: 24px;
+    width: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+}
+
+.datepicker-calendar .flip-arrow, .datetime-picker-calendar .flip-arrow {
+    transform: rotate(180deg);
+    top: 1px;
+    left: 0px;
+    position: relative;
+}
+
+.datepicker-calendar table, .datetime-picker-calendar table {
+    width: 100%;
+    border-collapse: separate;
+}
+
+.datepicker-calendar th, .datetime-picker-calendar th {
+    color: #333;
+    font-weight: bold;
+    background-color: #fff;
+    border: none;
+}
+
+.datepicker-calendar th, 
+.timepicker-popup td, 
+.datetime-picker-calendar th, 
+.inner-timepicker td
+{
+    color: #333;
+    font-size: 16px;
+}
+
+.datepicker-calendar tr:hover, 
+.datepicker-calendar tr:nth-child(odd):hover, 
+.datepicker-calendar tr:nth-child(odd),
+.datetime-picker-calendar tr:hover, 
+.datetime-picker-calendar tr:nth-child(odd):hover, 
+.datetime-picker-calendar tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+.datepicker-calendar th, 
+.datepicker-calendar td,
+.datetime-picker-calendar th, 
+.datetime-picker-calendar td {
+    padding: 0.3em 0;
+    text-align: center;
+}
+
+.datepicker-calendar td, .datetime-picker-calendar td {
+    background-color: #4682b424;
+    border: 1px #829eb59e solid;
+}
+
+.datepicker-calendar td:hover:not(.empty-day):not(.unavailable-day):not(.current-day),
+.datetime-picker-calendar td:hover:not(.empty-day):not(.unavailable-day):not(.current-day) {
+    background-color: #cfdfec;
+}
+
+.datepicker-calendar .empty-day,
+.datetime-picker-calendar .empty-day {
+    background-color: #fff;
+    border: 1px #fff solid;
+}
+
+.datepicker-calendar .unavailable-day,
+.datetime-picker-calendar .unavailable-day {
+    background-color: #fff;
+    color: silver;
+    cursor: default !important;
+}
+
+.datepicker-calendar .unavailabe-day, .datepicker-calendar .empty-day,
+.datetime-picker-calendar .unavailabe-day, .datetime-picker-calendar .empty-day {
+    cursor: default !important;
+}
+
+.datepicker-calendar .current-day,
+.datetime-picker-calendar .current-day {
+    background-color: var(--primary);
+    color: var(--primary-color);
+}
+
+.datepicker-calendar .current-day:hover, 
+.datetime-picker-calendar .current-day:hover {
+    background-color: var(--primary-darker);
+}
+
+.datepicker-calendar td:hover, 
+.datetime-picker-calendar td:hover {
+    cursor: pointer;
+}
+
+.timepicker-popup td, .inner-timepicker td {
+    text-align: left;
+    padding: 6px;
+}
+
+.inner-timepicker td:hover {
+    background-color: #fff !important;
+}
+
+.timepicker-popup td:nth-child(1), .inner-timepicker td:nth-child(1) {
+    border-right: 0;
+}
+
+.timepicker-popup td:nth-child(2), .inner-timepicker td:nth-child(2) {;
+    border-left: 0;
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+}
+
+input[type=range]:focus {
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8.4px;
+  cursor: pointer;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  background: var(--primary);
+  border-radius: 1.3px;
+  border: 0.2px solid #010101;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 18px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -4px;
+}
+
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: var(--primary-dark);
+}
+
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 8.4px;
+  cursor: pointer;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  background: var(--primary);
+  border-radius: 1.3px;
+  border: 0.2px solid #010101;
+}
+
+input[type=range]::-moz-range-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 18px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+input[type=range]::-ms-track {
+  width: 100%;
+  height: 8.4px;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  border-width: 16px 0;
+  color: transparent;
+}
+
+input[type=range]::-ms-fill-lower {
+  background: #2a6495;
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+}
+
+input[type=range]::-ms-fill-upper {
+  background: #3071a9;
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+}
+
+input[type=range]::-ms-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 18px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+input[type=range]:focus::-ms-fill-lower {
+  background: #3071a9;
+}
+
+input[type=range]:focus::-ms-fill-upper {
+  background: #649ac6;
+}
+
+.timepicker-popup,
+.inner-timepicker td {
+    background-color: #fff;
+}
+
+.timepicker-popup {
+    position: absolute;
+    z-index: 99;
+    width: 250px;
+}
+
+.timepicker-btns button {
+    margin: 0;
+    background-color: #fff;
+    color: #333;
+}
+
+.timepicker-btns button:hover {
+    background-color: var(--primary);
+    color: var(--primary-color);
+}
+
+.inner-timepicker button {
+    margin: 0;
+}
+
+.selected-day-cell {
+    background-color: #ee5116 !important;
+    color: #fff;
+}
+
+#gallery-pics {
+    margin-top: 33px;
+    display: grid;
+    grid-gap: 1em;
+}
+
+#gallery-pics div {
+    text-align: center;
+}
+
+#gallery-pics div img {
+    max-width: 100%;
+    max-height: auto;
+    padding: 0.1em;
+    cursor: pointer;
+}
+
+#preview-pic {
+    text-align: center;
+}
+
+#preview-pic img {
+    max-width: 100%;
+    max-height: 450px;
+}
+
+.picture-gallery-card {
+    text-align:center;
+}
+
+.bg-marker {
+  background-color: silver;
+}
+
+.picture-preview img {
+    margin-top: 1.4em;
+    max-width: 450px;
+    height: auto;
+}
+
+@media (min-width: 1px) {
+    .bg-marker {
+        background-color: red;
+    }
+
+    #sidebar {
+        display: none;
+    }
+
+    h1 {
+        font-size: 2.4em;
+    }
+
+    h2 {
+        font-size: 1.7em;
+    }
+
+    #gallery-pics {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+}
+
+@media (max-width: 560px) {
+    main > p {
+        display: flex;
+        margin: 4px 0;
+    }
+
+    #create-btn {
+        text-align: center;
+        background-color: #fff;
+        color: #555;
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+
+    thead>tr:nth-child(1) > th form input {
+        flex: 6;
+    }
+
+    thead>tr:nth-child(1) > th form button  {
+        flex: 1;
+        margin-right: 0 !important;
+    }
+
+    thead>tr:nth-child(1) > th > div {
+        flex-direction: column-reverse !important;
+    }
+
+    thead>tr:nth-child(1) > th > div > div:nth-child(2) {
+        text-align: right;
+    }
+
+    thead>tr:nth-child(1) > th > div > div {
+        margin: 3px 0;
+    }
+
+    .two-col, .three-col {
+        grid-template-columns: 1fr;
+    }
+
+    #preview-pic-modal > div.modal-body > p:nth-child(2),
+    #comment-modal > div.modal-body > p:nth-child(2),
+    #delete-modal > div.modal-body > form > p:nth-child(3) {
+        display: flex;
+        flex-direction: column-reverse;
+    }
+}
+
+@media (min-width: 560px) {
+    .bg-marker {
+        background-color: orange;
+    }
+
+    #gallery-pics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .go-right {
+        float: right;
+        position: relative;
+        display: block;
+    }
+
+}
+
+@media (min-width: 840px) {
+    .bg-marker {
+        background-color: yellow;
+    }
+
+    .hide-lg {
+      display: none;
+    }
+
+    h1 .hide-sm {
+        display: inline-block;
+    }
+
+    .hide-sm {
+      display: block;
+    }
+
+    #sidebar {
+        display: block;
+        background-color: #eee;
+        min-width: 250px;
+    }
+
+    h1 {
+        font-size: 4em;
+    }
+
+    h2 {
+        font-size: 2em;
+    }
+
+    #gallery-pics {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 561px) and (max-width: 1230px) {
+    .three-col {
+        display: grid;
+        grid-gap: 1em;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1120px) {
+    .bg-marker {
+        background-color: green;
+    }
+
+    #gallery-pics {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

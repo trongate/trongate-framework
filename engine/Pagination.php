@@ -119,7 +119,14 @@ class Pagination {
                 $additional_segments = explode('/', $additional_url_string);
 
                 if (isset($additional_segments[3])) {
-                    $showing_statement = '<p>Your search produced the following result(s):</p>';
+                    if ($total_rows == 0) {
+                        $showing_statement = '<p>Your search produced no results.</p>';
+                        $attr = array('class' => 'button alt');
+                        $showing_statement.= anchor(previous_url(), 'Go Back', $attr);
+                    } else {
+                        $showing_statement = '<p>Your search produced the following result(s):</p>';
+                    }
+                    
                 }
             }
 
