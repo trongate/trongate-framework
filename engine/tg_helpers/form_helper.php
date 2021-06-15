@@ -223,7 +223,11 @@ function form_file_select($name, $attributes=NULL, $additional_code=NULL) {
     return $html;
 }
 
+<<<<<<< HEAD
 function post($field_name, $clean_up=NULL) {
+=======
+function input($field_name, $clean_up=NULL) {
+>>>>>>> 83c72b472e98e44f2274d084f5e5919e6b4656b2
     if (!isset($_POST[$field_name])) {
         $value = '';
     } else {
@@ -236,4 +240,8 @@ function post($field_name, $clean_up=NULL) {
     }
 
     return $value;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 83c72b472e98e44f2274d084f5e5919e6b4656b2

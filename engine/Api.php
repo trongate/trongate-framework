@@ -491,7 +491,11 @@ class Api extends Trongate {
             die();
         }
 
+<<<<<<< HEAD
         $this->module('trongate_security');
+=======
+        $this->module('security');
+>>>>>>> 83c72b472e98e44f2274d084f5e5919e6b4656b2
         $target_module = segment(3);
         $this->_make_sure_table_exists($target_module);
         $this->module('trongate_tokens');
