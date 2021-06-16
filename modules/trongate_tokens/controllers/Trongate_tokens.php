@@ -18,7 +18,7 @@ class Trongate_tokens extends Trongate {
             $this->_not_allowed_msg();
         } else {
             $token = $_SERVER['HTTP_TRONGATETOKEN'];
-            $this->_is_token_valid($token);
+            $valid = $this->_is_token_valid($token);
 
             if ($valid == false) {
                 $this->_not_allowed_msg();
@@ -26,6 +26,11 @@ class Trongate_tokens extends Trongate {
         }
 
         return $token;
+    }
+
+    function _not_allowed_msg() {
+        http_response_code(401);
+        echo "Invalid token."; die();
     }
 
     function _fetch_token($user_id) {
