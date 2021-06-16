@@ -179,7 +179,7 @@
     border-right: 0;
 }
 
-.timepicker-popup td:nth-child(2), .inner-timepicker td:nth-child(2) {;
+.timepicker-popup td:nth-child(2), .inner-timepicker td:nth-child(2) {
     border-left: 0;
 }
 
