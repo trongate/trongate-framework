@@ -160,13 +160,17 @@ class Model {
             $sql = $this->add_limit_offset($sql, $limit, $offset);
         }
 
-        $operator = strtoupper($operator);
-        if (($operator == 'LIKE') || ($operator == 'NOT LIKE')) {
-            $value = '%'.$value.'%';
-            $data[$column] = $value;
-        }
+        if ($this->debug == true) {
 
-        $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+            $operator = strtoupper($operator);
+            if (($operator == 'LIKE') || ($operator == 'NOT LIKE')) {
+                $value = '%'.$value.'%';
+                $data[$column] = $value;
+            }
+
+            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+
+        }
 
         $result = $this->prepare_and_execute($sql, $data);
 
