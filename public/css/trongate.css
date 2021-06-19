@@ -126,6 +126,7 @@ li {
 }
 
 input[type="checkbox"] {
+  margin: 1.4em;
   top: 0.3em;
   position: relative;
   width: 1.4em; height: 1.4em;
