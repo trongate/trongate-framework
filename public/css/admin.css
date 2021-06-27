@@ -294,6 +294,7 @@ td:last-child button, td:last-child .button {
 }
 
 .datepicker-calendar, .datetime-picker-calendar {
+    z-index: 99;
     min-width: 282px;
     border: 1px var(--primary-darker) solid;
     letter-spacing: 1px;
