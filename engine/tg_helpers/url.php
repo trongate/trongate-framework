@@ -174,3 +174,11 @@ function make_rand_str($strlen, $uppercase=false) {
     }
     return $random_string;
 }
+
+function json($data, $kill_script=null) {
+    echo '<pre>'.json_encode($data, JSON_PRETTY_PRINT).'</pre>';
+
+    if (isset($kill_script)) {
+        die();
+    }
+}
