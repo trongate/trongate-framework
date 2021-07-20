@@ -15,10 +15,6 @@ class Model {
 
     public function __construct($current_module = NULL) {
 
-        if (defined('DEBUG')) {
-            $this->debug = DEBUG;
-        }
-
         $this->current_module = $current_module;
 
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
