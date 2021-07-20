@@ -2,6 +2,7 @@
 class Model {
 
     private $host = HOST;
+    private $port = '';
     private $user = USER;
     private $pass = PASSWORD;
     private $dbname = DATABASE;
@@ -15,9 +16,10 @@ class Model {
 
     public function __construct($current_module = NULL) {
 
+        $this->port = (defined('PORT') ? PORT : '3306');
         $this->current_module = $current_module;
 
-        $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
+        $dsn = 'mysql:host=' . $this->host . ';port=' . $this->port . ';dbname=' . $this->dbname;
         $options = array(
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
