@@ -473,10 +473,14 @@ margin: 1em 0;
 
         $this->prepare_and_execute($sql, $data);
 
+        if (!isset($return_type)) {
+            $return_type = 'object';
+        }
+
         if ($return_type == 'object') {
             $query = $this->stmt->fetchAll(PDO::FETCH_OBJ);
             return $query;
-        } elseif ($return_type == 'array') {
+        } else {
             $query = $this->stmt->fetchAll(PDO::FETCH_ASSOC);
             return $query;
         }
