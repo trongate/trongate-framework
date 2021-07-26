@@ -44,6 +44,31 @@ function attempt_add_custom_routes($target_url) {
 
         if ($key == $target_segment) {
             $target_url = str_replace($key, $value, $target_url);
+        }else if(strpos(explode('/',$key)[0], explode('/',$target_segment)[0]) > -1){
+            $target_segment_pieces = explode('/',$target_segment);
+            $custom_route_key = explode('/',$key);
+            if(count($target_segment_pieces) == count($custom_route_key)){
+                $url_probability = true;
+                $new_custom_url = BASE_URL.$value;
+                $correction_counter = 0;
+                foreach ($target_segment_pieces as $segment_piece_key => $segment_piece_value) {                    
+                    if( $segment_piece_value == $custom_route_key[$segment_piece_key]){
+                        continue;
+                    }else if($custom_route_key[$segment_piece_key] == '(:any)'){
+                        $correction_counter++;
+                        $new_custom_url = str_replace('$'.$correction_counter, $segment_piece_value, $new_custom_url);
+                    }else if($custom_route_key[$segment_piece_key] == '(:num)' && is_numeric($segment_piece_value)){
+                        $correction_counter++;
+                        $new_custom_url = str_replace('$'.$correction_counter, $segment_piece_value, $new_custom_url);
+                    }else{
+                        $url_probability = false;
+                        break;
+                    }
+                }
+                if($url_probability == true){
+                    $target_url = $new_custom_url;
+                }
+            }
         }
     }
 
