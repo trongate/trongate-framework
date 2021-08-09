@@ -236,6 +236,7 @@ class Trongate_administrators extends Trongate {
     }
 
     function _log_user_in($username) {
+        $this->module('trongate_tokens');
         $user_obj = $this->model->get_one_where('username', $username);
         $trongate_user_id = $user_obj->trongate_user_id;
         $token_data['user_id'] = $trongate_user_id;
@@ -248,7 +249,6 @@ class Trongate_administrators extends Trongate {
             setcookie('trongatetoken', $token, $token_data['expiry_date'], '/');            
         } else {
             //user did not select 'remember me' checkbox
-            $this->module('trongate_tokens');
             $_SESSION['trongatetoken'] = $this->trongate_tokens->_generate_token($token_data);            
         }
 
