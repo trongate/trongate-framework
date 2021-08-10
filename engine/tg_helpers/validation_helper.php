@@ -291,19 +291,19 @@ class Validation_helper {
 
     private function min_length($key, $label, $posted_value, $inner_value) {
 
-        if((strlen($_POST[$key])<$inner_value) && ($posted_value !== '')) {
-            $this->form_submission_errors[] = 'The '.$label.' field must greater than '.$inner_value.' characters in length.';
+        if ((strlen($_POST[$key]) < $inner_value) && ($posted_value !== '')) {
+            $this->form_submission_errors[] = 'The ' . $label . ' field must be at least ' . $inner_value . ' characters in length.';
         }
-
     }
+
 
     private function max_length($key, $label, $posted_value, $inner_value) {
 
-        if((strlen($_POST[$key])>$inner_value) && ($posted_value !== '')) {
-            $this->form_submission_errors[] = 'The '.$label.' field must be less than '.$inner_value.' characters in length.';
+        if ((strlen($_POST[$key]) > $inner_value) && ($posted_value !== '')) {
+            $this->form_submission_errors[] = 'The ' . $label . ' field must be no more than  ' . $inner_value . ' characters in length.';
         }
-
     }
+
 
     private function greater_than($key, $label, $posted_value, $inner_value) {
 
