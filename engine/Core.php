@@ -60,6 +60,12 @@ class Core {
                         $content_type.= '+xml';
                     }
 
+                    //make sure not a PHP file or api.json
+                    if((is_numeric(strpos($content_type, 'php'))) || ($file_name == 'api.json')) {
+                        http_response_code(422);
+                        die();
+                    }
+                    
                     header('Content-type: '.$content_type);
                     $contents = file_get_contents($asset_path);
                     echo $contents;
