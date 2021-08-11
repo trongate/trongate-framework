@@ -5,4 +5,9 @@ class Welcome extends Trongate {
         $this->view('welcome');
     }
 
+    function greeting() {
+        $data['name'] = 'David Connelly';
+        $this->view('greeting', $data);
+    }
+
 }
