@@ -19,8 +19,6 @@ class Trongate_tokens extends Trongate {
              $posted data may contain:
                                        user_id ~ int(11) : required
                                        expiry_date ~ int(10) : optional 
-                                       set_cookie ~ bool(true) : optional 
-                                       code ~ varchar(4) : optional 
         */
 
         if ($_SERVER["REQUEST_METHOD"] !== 'POST') {
@@ -103,108 +101,182 @@ class Trongate_tokens extends Trongate {
 
     function auth() {
 
-    	if (!isset($_SERVER['HTTP_TRONGATETOKEN'])) {
-    		http_response_code(422);
-    		echo 'no token'; die();
-    	} else {
-    		$token = $_SERVER['HTTP_TRONGATETOKEN'];
-    		$result = $this->model->get_one_where('token', $token, 'trongate_tokens');
+        if (!isset($_SERVER['HTTP_TRONGATETOKEN'])) {
+            http_response_code(422);
+            echo 'no token'; die();
+        } else {
+            $token = $_SERVER['HTTP_TRONGATETOKEN'];
+            $result = $this->model->get_one_where('token', $token, 'trongate_tokens');
 
-    		if ($result == false) {
-    			http_response_code(401);
-    			echo 'false';
-    		} else {
-    			http_response_code(200);
-    			echo $token;
-    		}
+            if ($result == false) {
+                http_response_code(401);
+                echo 'false';
+            } else {
+                http_response_code(200);
+                echo $token;
+            }
 
-    	}
+        }
 
     }
 
     function id() {
 
-    	//get the trongate_user_id
+        //fetch the trongate_user_id via HTTP POST request
 
-    	if (!isset($_SERVER['HTTP_TRONGATETOKEN'])) {
-    		http_response_code(422);
-    		echo 'no token'; die();
-    	} else {
-    		$token = $_SERVER['HTTP_TRONGATETOKEN'];
-    		$result = $this->model->get_one_where('token', $token, 'trongate_tokens');
+        if (!isset($_SERVER['HTTP_TRONGATETOKEN'])) {
+            http_response_code(422);
+            echo 'no token'; die();
+        } else {
+            $token = $_SERVER['HTTP_TRONGATETOKEN'];
+            $result = $this->model->get_one_where('token', $token, 'trongate_tokens');
 
-    		if ($result == false) {
-    			http_response_code(401);
-    			echo 'false';
-    			die();
-    		} else {
-    			http_response_code(200);
-    			echo $result->user_id;
-    			die();
-    		}
+            if ($result == false) {
+                http_response_code(401);
+                echo 'false';
+                die();
+            } else {
+                http_response_code(200);
+                echo $result->user_id;
+                die();
+            }
 
-    	}
+        }
 
     }
 
     function user() {
 
-    	//get the trongate user object 
+        //fetch the trongate user object via HTTP POST request 
 
-    	if (!isset($_SERVER['HTTP_TRONGATETOKEN'])) {
-    		http_response_code(422);
-    		echo 'No token!';
-    		die();
-    	} else {
-    		$params['token'] = $_SERVER['HTTP_TRONGATETOKEN'];
-    		$sql = 'SELECT
-					    trongate_users.code as trongate_user_code,
-					    trongate_users.user_level_id,
-					    trongate_user_levels.level_title as user_level,
-					    trongate_tokens.token,
-					    trongate_tokens.user_id as trongate_user_id,
-					    trongate_tokens.expiry_date 
-					FROM
-					    trongate_tokens
-					INNER JOIN
-					    trongate_users
-					ON
-					    trongate_tokens.user_id = trongate_users.id
-					INNER JOIN
-					    trongate_user_levels
-					ON
-					    trongate_users.user_level_id = trongate_user_levels.id 
-					WHERE trongate_tokens.token = :token';
+        if (!isset($_SERVER['HTTP_TRONGATETOKEN'])) {
+            http_response_code(422);
+            echo 'No token!';
+            die();
+        } else {
+            $params['token'] = $_SERVER['HTTP_TRONGATETOKEN'];
+            $sql = 'SELECT
+                        trongate_users.code as trongate_user_code,
+                        trongate_users.user_level_id,
+                        trongate_user_levels.level_title as user_level,
+                        trongate_tokens.token,
+                        trongate_tokens.user_id as trongate_user_id,
+                        trongate_tokens.expiry_date 
+                    FROM
+                        trongate_tokens
+                    INNER JOIN
+                        trongate_users
+                    ON
+                        trongate_tokens.user_id = trongate_users.id
+                    INNER JOIN
+                        trongate_user_levels
+                    ON
+                        trongate_users.user_level_id = trongate_user_levels.id 
+                    WHERE trongate_tokens.token = :token';
 
-			$rows = $this->model->query_bind($sql, $params, 'object');
-			if (isset($rows[0])) {
-				http_response_code(200);
-				echo json_encode($rows[0]);
-				die();
-			} else {
-				http_response_code(400);
-				echo 'Unable to match token with user.';
-				die();
-			}
+            $rows = $this->model->query_bind($sql, $params, 'object');
+            if (isset($rows[0])) {
+                http_response_code(200);
+                echo json_encode($rows[0]);
+                die();
+            } else {
+                http_response_code(400);
+                echo 'Unable to match token with user.';
+                die();
+            }
 
-    	}
+        }
 
+    }
+
+    function _get_user_id() {
+        //attemps to fetch Trongate user ID from sessions or cookie
+        $params['cookie_token'] = (isset($_COOKIE['trongatetoken']) ? $_COOKIE['trongatetoken'] : '');
+        $params['session_token'] = (isset($_SESSION['trongatetoken']) ? $_SESSION['trongatetoken'] : '');
+
+        if ((strlen($params['cookie_token'] !== 32)) && (strlen($params['session_token'] !== 32))) {
+            return false;
+        } else {
+            $sql = 'select user_id from trongate_tokens where token=:cookie_token or token=:session_token';
+            $rows = $this->model->query_bind($sql, $params, 'object');
+            $trongate_user_id = (isset($rows[0]) ? $rows[0]->user_id : false);
+            return $trongate_user_id;
+        }
+    }
+
+    function _get_user_obj() {
+        //attemps to fetch Trongate user object from sessions or cookie
+        $params['cookie_token'] = (isset($_COOKIE['trongatetoken']) ? $_COOKIE['trongatetoken'] : '');
+        $params['session_token'] = (isset($_SESSION['trongatetoken']) ? $_SESSION['trongatetoken'] : '');
+        if ((strlen($params['cookie_token'] !== 32)) && (strlen($params['session_token'] !== 32))) {
+            return false;
+        } else {
+            $sql = 'SELECT
+                        trongate_users.code as trongate_user_code,
+                        trongate_users.user_level_id,
+                        trongate_user_levels.level_title as user_level,
+                        trongate_tokens.token,
+                        trongate_tokens.user_id as trongate_user_id,
+                        trongate_tokens.expiry_date 
+                    FROM
+                        trongate_tokens
+                    INNER JOIN
+                        trongate_users
+                    ON
+                        trongate_tokens.user_id = trongate_users.id
+                    INNER JOIN
+                        trongate_user_levels
+                    ON
+                        trongate_users.user_level_id = trongate_user_levels.id 
+                    WHERE 
+                        trongate_tokens.token = :cookie_token 
+                    OR 
+                        trongate_tokens.token =:session_token';
+            $rows = $this->model->query_bind($sql, $params, 'object');
+            $trongate_user_obj = (isset($rows[0]) ? $rows[0] : false);
+            return $trongate_user_obj;
+        }
+    }
+
+    function _get_user_level($token) {
+
+        $sql = '
+                SELECT
+                    trongate_user_levels.level_title
+                FROM
+                    trongate_tokens
+                JOIN trongate_users ON trongate_tokens.user_id = trongate_users.id
+                JOIN trongate_user_levels ON trongate_users.user_level_id = trongate_user_levels.id 
+                WHERE
+                    trongate_tokens.token = :token 
+        ';
+
+        $data['token'] = $token;
+        $result = $this->model->query_bind($sql, $data, 'object');
+
+        if (count($result)>0) {
+            $user_level = $result[0]->level_title;
+        } else {
+            $user_level = '';
+        }
+
+        return $user_level;
     }
 
     function destroy() {
 
-    	if (!isset($_SERVER['HTTP_TRONGATETOKEN'])) {
-    		http_response_code(422);
-    		echo 'No token found in here!';
-    		die();
-    	} else {
-    		$params['token'] = $_SERVER['HTTP_TRONGATETOKEN'];
+        if (!isset($_SERVER['HTTP_TRONGATETOKEN'])) {
+            http_response_code(422);
+            echo 'No token found in here!';
+            die();
+        } else {
+            $params['token'] = $_SERVER['HTTP_TRONGATETOKEN'];
             $sql = 'delete from trongate_tokens where token = :token';
             $this->model->query_bind($sql, $params);
-			http_response_code(200);    	
-			echo 'Token deleted.';
-			die();
-    	}
+            http_response_code(200);        
+            echo 'Token deleted.';
+            die();
+        }
 
     }
 
@@ -268,9 +340,9 @@ class Trongate_tokens extends Trongate {
         if (isset($module_endpoints[$endpoint]["authorization"])) {
             $data['authorization_rules'] = $module_endpoints[$endpoint]["authorization"];
         } else {
-        	http_response_code(412);
-        	echo 'This endpoint has not been activated since no authorization rules have been declared.';
-        	die();
+            http_response_code(412);
+            echo 'This endpoint has not been activated since no authorization rules have been declared.';
+            die();
         }
 
         return $data;
