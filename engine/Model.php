@@ -10,7 +10,7 @@ class Model {
     private $dbh;
     private $stmt;
     private $error;
-    private $debug = DEBUG;
+    private $debug = false;
     private $query_caveat = 'The query shown above is how the query would look <i>before</i> binding.';
     private $current_module;
 
@@ -18,8 +18,18 @@ class Model {
 
         $this->port = (defined('PORT') ? PORT : '3306');
         $this->current_module = $current_module;
-
-        $dsn = 'mysql:host=' . $this->host . ';port=' . $this->port . ';dbname=' . $this->dbname;
+        
+        if (defined('DEBUG')) {
+            $this->debug = DEBUG;
+        }
+        
+        if (defined('DSN') && DSN <> '') {
+            $dsn = DSN;
+        }
+        else {
+            $dsn = 'mysql:host=' . $this->host . ';port=' . $this->port . ';dbname=' . $this->dbname;
+        }
+        
         $options = array(
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
