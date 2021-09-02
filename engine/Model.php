@@ -384,21 +384,11 @@ class Model {
             $caveat_info.= ' PDO currently has no means of displaying previous query executed.</div>';
         }
 
-        echo '<div class="tg-rprt"><b>QUERY TO BE EXECUTED:</b><br><br>  -> ';
+        echo '<!DOCTYPE html>'; // inserted to eliminate Quirks Mode in browser
+        echo '<div style="color: #383623;background-color: #efe79e;font-family: monospace;padding: 1em;border: 1px #383623 solid;clear: both;margin: 1em 0;">
+        <b>QUERY TO BE EXECUTED:</b><br><br>  -> ';
         echo $query.$caveat_info.'</div>';
         ?>
-
-<style>
-.tg-rprt {
-color: #383623;
-background-color: #efe79e;
-font-family: "Lucida Console", Monaco, monospace;
-padding: 1em;
-border: 1px #383623 solid;
-clear: both !important;
-margin: 1em 0;
-}    
-</style>
 
     <?php
     }
