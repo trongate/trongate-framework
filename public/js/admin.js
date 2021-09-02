@@ -293,7 +293,15 @@ if (typeof drawComments == 'boolean') {
                     commentsTbl.removeChild(commentsTbl.lastChild);
                 }
 
-                var comments = JSON.parse(http.responseText);
+                // When database DEBUG mode has been selected, the http.responseText is
+                // prefixed by the HTML generated for the SQL Query panels. The following 
+                // removes it from the responseText before it is passed to JSON.parse().
+
+                var myregexp = /[\s\S]+\[{/g;
+                cleanResponseText = http.responseText.replace(myregexp, "[{");
+
+                var comments = JSON.parse(cleanResponseText);
+
                 for (var i = 0; i < comments.length; i++) {
                     var tblRow = document.createElement("tr");
                     var tblCell = document.createElement("td");
