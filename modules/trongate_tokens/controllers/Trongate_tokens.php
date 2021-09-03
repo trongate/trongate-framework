@@ -164,6 +164,20 @@ class Trongate_tokens extends Trongate {
         return $trongate_user_obj;
     }
 
+    function _fetch_token_obj($token) {
+        $data['token'] = $token;
+        $sql = 'select * from trongate_tokens where token = :token';
+        $token_objs = $this->model->query_bind($sql, $data, 'object');
+
+        if ($token_objs == false) {
+            return false; //token not found
+        } else {
+            $token_obj = $token_objs[0];
+            return $token_obj;
+        }
+
+    }
+
     function generate() {
 
         /*
