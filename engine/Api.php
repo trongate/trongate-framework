@@ -980,7 +980,7 @@ class Api extends Trongate {
 
         if (ENV !== 'dev') {
             http_response_code(403);
-            echo "API Manager disabled since not in 'dev' mode.";
+            echo "API Explorer disabled since not in 'dev' mode.";
             die();
         }
 
