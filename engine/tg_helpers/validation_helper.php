@@ -9,7 +9,6 @@ class Validation_helper {
         if ((!isset($_POST[$key])) && (isset($_FILES[$key]))) {
             $posted_value = $_FILES[$key];
             $tests_to_run[] = 'validate_file';
-
         } else {
             $posted_value = $_POST[$key];
             $tests_to_run = $this->get_tests_to_run($rules);
@@ -22,14 +21,14 @@ class Validation_helper {
         foreach ($tests_to_run as $test_to_run) {
             $this->posted_fields[$key] = $label;
             $validation_data['test_to_run'] = $test_to_run;
-            $this->run_validation_test($validation_data);
+            $this->run_validation_test($validation_data, $rules);
         }
 
         $_SESSION['form_submission_errors'] = $this->form_submission_errors;
 
     }
 
-    private function run_validation_test($validation_data) {
+    private function run_validation_test($validation_data, $rules=null) {
         extract($validation_data);
 
         switch ($test_to_run) {
