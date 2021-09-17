@@ -1,18 +1,16 @@
 <?php
-
-function segment($num, $enable_int=NULL) {
-
+function segment($num, $var_type=null) {
     $segments = SEGMENTS;
     if (isset($segments[$num])) {
         $value = $segments[$num];
-
-        if ($enable_int === TRUE) {
-            $value = settype($value, 'integer');
-        }
-
     } else {
         $value = '';
     }
+
+    if (isset($var_type)) {
+        settype($value, $var_type);
+    }
+    
     return $value;
 }
 
@@ -26,7 +24,7 @@ function previous_url() {
 }
 
 function current_url() {
-    $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
+    $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI']; 
     return $current_url;
 }
 
@@ -93,11 +91,11 @@ function api_auth() {
         $filepath = APPPATH.'modules/'.$current_module.'/assets/api.json';
 
         if (file_exists($filepath)) {
-
+            
             //extract the rules for the current path
             $target_method = $segments[1];
             $settings = file_get_contents($filepath);
-            $endpoints = json_decode($settings, true);
+            $endpoints = json_decode($settings, true); 
 
             $current_uri_path = str_replace(BASE_URL, '', current_url());
             $current_uri_bits = explode('/', $current_uri_path);
@@ -122,7 +120,7 @@ function api_auth() {
                     }
 
                     foreach ($current_uri_bits as $key => $value) {
-
+                   
                         if (isset($required_segments[$key])) {
 
                             if ($value !== $required_segments[$key]) {
@@ -157,7 +155,7 @@ function api_auth() {
                 }
 
             }
-
+            
         }
 
     }
