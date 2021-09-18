@@ -384,6 +384,54 @@ class Trongate_tokens extends Trongate {
         return false;
     }
 
+    function _execute_sql_multi($user_tokens, $user_levels) {
+        //allow access for MORE THAN ONE user level type
+        $where_condition = ' WHERE trongate_tokens.token = :token ';
+        $params['nowtime'] = time();
+
+        $and_condition = ' AND (';
+        $count = 0;
+        foreach ($user_levels as $user_level) { 
+            $count++;
+
+            $this_property = 'user_level_'.$count;
+            $params[$this_property] = $user_level;
+
+            if ($count>1) {
+                $and_condition.= ' OR';
+            }
+
+            $and_condition.= ' trongate_users.user_level_id = :'.$this_property;
+        }
+        $and_condition.= ')';
+        $and_condition = ltrim(trim($and_condition));
+
+
+        foreach ($user_tokens as $token) {
+            $params['token'] = $token;
+            $sql = 'SELECT 
+                            trongate_tokens.token 
+                    FROM 
+                            trongate_tokens 
+                    INNER JOIN
+                            trongate_users 
+                    ON  
+                            trongate_tokens.user_id = trongate_users.id
+                    '.$where_condition.' 
+                    '.$and_condition;  
+            $sql.= ' AND expiry_date > :nowtime ';
+            $rows = $this->model->query_bind($sql, $params, 'object');
+
+                if (count($rows)>0) {
+                    $token = $rows[0]->token;
+                    return $token;
+                }
+
+        }
+
+        return false;
+    }
+
     function _execute_sql_default($user_tokens) {
         //allow access for ANY user level type
         $where_condition = ' WHERE trongate_tokens.token = :token ';
