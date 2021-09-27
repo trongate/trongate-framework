@@ -19,6 +19,10 @@ function get_segments($ignore_custom_routes=NULL) {
         $assumed_url = attempt_add_custom_routes($assumed_url);
     }
 
+    if($pos = strpos($assumed_url, '?')){
+        $assumed_url = substr($assumed_url, $pos, 0);
+    }
+
     $data['assumed_url'] = $assumed_url;
 
     $assumed_url = str_replace('://', '', $assumed_url);
