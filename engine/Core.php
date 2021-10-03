@@ -205,7 +205,8 @@ class Core {
     }
 
     private function csrf_block_request() {
-        redirect(BASE_URL);
+        header("location: ".BASE_URL);
+        die();
     }
 
     private function attempt_init_child_controller($controller_path) {
