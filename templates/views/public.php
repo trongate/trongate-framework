@@ -40,7 +40,7 @@
 			</div>
 		</div>
 	</header>
-	<main><?= Template::display($data) ?></main>
+	<main class="container"><?= Template::display($data) ?></main>
 </div>
 	<footer>
 		<div class="container">
