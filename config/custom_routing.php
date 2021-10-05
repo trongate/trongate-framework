@@ -1,6 +1,6 @@
 <?php
 $routes = [
-    'tg-admin/logout' => 'trongate_administrators/logout',
-    'tg-admin' => 'trongate_administrators/manage'
+    'tg-admin' => 'trongate_administrators/login',
+    'tg-admin/submit_login' => 'trongate_administrators/submit_login'
 ];
 define('CUSTOM_ROUTES', $routes);

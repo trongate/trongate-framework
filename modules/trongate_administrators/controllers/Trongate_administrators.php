@@ -2,18 +2,38 @@
 class Trongate_administrators extends Trongate {
 
     //NOTE: the default username and password is 'admin' and 'admin'
-
-    private $dashboard_home = 'tg-admin'; //where to go after login
+    //private $secret_login_segment = 'tg-admin';
+    private $dashboard_home = 'trongate_administrators/manage'; //where to go after login
 
     function login() {
+
+        if (isset($this->secret_login_segment)) {
+
+            if (is_numeric(strpos(current_url(), 'trongate_administrators'))) {
+                $this->template('error_404');
+                die();
+            }
+
+            $data['form_location'] = BASE_URL.$this->secret_login_segment.'/submit_login';
+        } else {
+            $data['form_location'] = str_replace('/login', '/submit_login', current_url());
+        }
+
         $data['username'] = post('username');
-        $data['form_location'] = str_replace('/login', '/submit_login', current_url());
         $data['view_module'] = 'trongate_administrators';
         $data['view_file'] = 'login_form'; 
         $this->load_template($data);
     }
 
     function submit_login() {
+
+        if (isset($this->secret_login_segment)) {
+            if (is_numeric(strpos(current_url(), 'trongate_administrators'))) {
+                $this->template('error_404');
+                die();
+            }
+        }
+
         $submit = post('submit'); 
 
         if ($submit == 'Submit') {
@@ -258,7 +278,12 @@ class Trongate_administrators extends Trongate {
     function logout() {
         $this->module('trongate_tokens');
         $this->trongate_tokens->_destroy();
-        redirect('trongate_administrators/login');
+
+        if (isset($this->secret_login_segment)) {
+            redirect(BASE_URL);
+        } else {
+            redirect('trongate_administrators/login');
+        }
     }
 
     function _delete_tokens_for_user($trongate_user_id) {
