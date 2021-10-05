@@ -18,7 +18,7 @@
 			</a>
 		</div>
 		<div>
-			<a href="<?= BASE_URL ?>tg-admin">
+			<a href="<?= BASE_URL ?>trongate_administrators">
 				<span class="hide-sm">Manage Administrators</span>
 				<i class="fa fa-gears"></i>
 			</a>
@@ -26,7 +26,7 @@
 				<span class="hide-sm">Your Account</span>
 				<i class="fa fa-user"></i>
 			</a>
-			<a href="<?= BASE_URL ?>tg-admin/logout">
+			<a href="<?= BASE_URL ?>trongate_administrators/logout">
 				<span class="hide-sm">Logout</span>
 				<i class="fa fa-sign-out"></i>
 			</a>
