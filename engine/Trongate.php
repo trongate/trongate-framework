@@ -242,32 +242,30 @@ class Trongate {
         //do we need to resize the picture?
         if ((isset($max_width)) && ($tmp_file_width>$max_width)) {
             $reduce_width = true;
+            $resize_factor_w = $tmp_file_width / $max_width;
         }
 
         if ((isset($max_height)) && ($tmp_file_width>$max_height)) {
             $reduce_height = true;
+            $resize_factor_h = $tmp_file_height / $max_height;
+        }        
+
+        if ((isset($resize_factor_w)) && (isset($resize_factor_h))) {
+            if ($resize_factor_w > $resize_factor_h) {
+                $reduce_height = false;
+            } else {
+                $reduce_width = false;
+            }
         }
 
-        //resize rules figured out, let's rock...
-        if (($reduce_width == true) && ($reduce_height == false)) {
+        //either do the height resize or the width resize - never both
+        if ($reduce_width == true) {
             $image->resizeToWidth($max_width);
-            $image->save($filename, $compression);
-        }
-
-        if (($reduce_width == false) && ($reduce_height == true)) {
+        } elseif($reduce_height == true) {
             $image->resizeToHeight($max_height);
-            $image->save($filename, $compression);
         }
 
-        if (($reduce_width == false) && ($reduce_height == false)) {
-            $image->save($filename, $compression);
-        }
-
-        if (($reduce_width == true) && ($reduce_height == true)) {
-            $image->resizeToWidth($max_width);
-            $image->resizeToHeight($max_height);
-            $image->save($filename, $compression);
-        }
+        $image->save($filename, $compression);
     }
 
     public function upload_file($config) {
