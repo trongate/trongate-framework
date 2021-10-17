@@ -16,7 +16,7 @@ function form_open($location, $attributes=NULL, $additional_code=NULL) {
     }
 
     if (filter_var($location, FILTER_VALIDATE_URL) === FALSE) {
-        $location = BASE_URL.$location;
+        $location = $location;
     }
 
     if (isset($additional_code)) {
