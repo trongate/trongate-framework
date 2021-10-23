@@ -10,7 +10,25 @@ class Core {
 
         $pos = strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER);
 
-        if($pos === false) {
+        if (strpos(ASSUMED_URL, 'vendor/')) {     
+
+            $vendor_file_path = explode('vendor/', ASSUMED_URL)[1];
+            $vendor_file_path = '../vendor/'.$vendor_file_path;
+            $content_type = mime_content_type($vendor_file_path);
+
+            if (strpos($vendor_file_path, '.css')) {
+                $content_type = 'text/css';
+            } else {
+                $content_type == 'text/plain';
+            }
+
+            header('Content-type: '.$content_type);
+            $contents = file_get_contents($vendor_file_path);
+            echo $contents;
+            die();
+
+        } elseif($pos === false) {
+
             $this->serve_controller();
         } else {
             $this->serve_module_asset();
