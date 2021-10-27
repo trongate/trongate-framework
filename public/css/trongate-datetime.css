@@ -1,5 +1,6 @@
 .datepicker-calendar, .timepicker-popup, .datetime-picker-calendar {
     font-family: Lucida console;
+    z-index: 1;
 }
 
 .datepicker-calendar, .datetime-picker-calendar {
