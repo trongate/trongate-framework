@@ -130,6 +130,11 @@ class Trongate_tokens extends Trongate {
     function _get_user_obj($token=null) {
 
     	if (isset($token)) {
+
+            if (gettype($token) !== 'string') {
+                settype($token, 'string');
+            }
+            
     		$params['cookie_token'] = $token;
     		$params['session_token'] = $token;
     	} else {
