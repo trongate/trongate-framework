@@ -56,7 +56,7 @@ class Trongate_administrators extends Trongate {
         $submit = post('submit');
 
         if ($submit == 'Submit') {
-            $this->validation_helper->set_rules('username', 'username', 'required|min_length[6]|callback_username_check');
+            $this->validation_helper->set_rules('username', 'username', 'required|min_length[5]|callback_username_check');
             $this->validation_helper->set_rules('password', 'password', 'required|min_length[5]');
             $this->validation_helper->set_rules('repeat_password', 'repeat password', 'matches[password]');
 
