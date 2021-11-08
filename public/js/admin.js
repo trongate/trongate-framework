@@ -22,34 +22,41 @@ function setPerPage() {
 }
 
 function openModal(modalId) {
-    var modalContainer = document.createElement("div");
-    modalContainer.setAttribute("id", "modal-container");
-    modalContainer.setAttribute("style", "z-index: 3;");
-    body.prepend(modalContainer);
 
-    var overlay = document.createElement("div");
-    overlay.setAttribute("id", "overlay");
-    overlay.setAttribute("style", "z-index: 2");
-    
-    body.prepend(overlay);
+    var pageOverlay = document.getElementById("overlay");
 
-    var targetModal = _(modalId);
-    targetModalContent = targetModal.innerHTML;
-    targetModal.remove();
+    if(typeof(pageOverlay) == 'undefined' || pageOverlay == null) {
 
-    //create a new model
-    var newModal = document.createElement("div");
-    newModal.setAttribute("class", "modal");
-    newModal.setAttribute("id", modalId);
+        var modalContainer = document.createElement("div");
+        modalContainer.setAttribute("id", "modal-container");
+        modalContainer.setAttribute("style", "z-index: 3;");
+        body.prepend(modalContainer);
 
-    newModal.style.zIndex = 4;
-    newModal.innerHTML = targetModalContent;
-    modalContainer.appendChild(newModal);
+        var overlay = document.createElement("div");
+        overlay.setAttribute("id", "overlay");
+        overlay.setAttribute("style", "z-index: 2");
+        
+        body.prepend(overlay);
 
-    setTimeout(() => {
-        newModal.style.opacity = 1;
-        newModal.style.marginTop = '12vh';
-    }, 0);    
+        var targetModal = _(modalId);
+        targetModalContent = targetModal.innerHTML;
+        targetModal.remove();
+
+        //create a new model
+        var newModal = document.createElement("div");
+        newModal.setAttribute("class", "modal");
+        newModal.setAttribute("id", modalId);
+
+        newModal.style.zIndex = 4;
+        newModal.innerHTML = targetModalContent;
+        modalContainer.appendChild(newModal);
+
+        setTimeout(() => {
+            newModal.style.opacity = 1;
+            newModal.style.marginTop = '12vh';
+        }, 0);
+
+    }    
 }
 
 function closeModal() {
