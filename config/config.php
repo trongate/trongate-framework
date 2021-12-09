@@ -3,15 +3,17 @@
     *** PLEASE GIVE TRONGATE A STAR ON GITHUB ***
     https://github.com/davidjconnelly/trongate-framework
 
-    Trongate is on a mission to keep the doors of web development
-    open!  Please do something amazing and give the Trongate 
-    Framework a star on GitHub.  Here's a YouTube video  
-    explaining why this is so important: 
-    https://youtu.be/e8ZLCE4h_aA
+    Trongate is the only PHP framework in the world that 
+    is committed to using PHP the way that it was intended 
+    to be used.  That means; no frequent rewrites, no Composer, 
+    no Packagist, no third party library dependency and definitely 
+    no certification.
 
-    Thank you!  Together, we SHALL make PHP great again! 
+    The Trongate framework and the Trongate Desktop App will always 
+    be free. That's a promise.  All we ask is, if you like Trongate, 
+    please give us a star on GitHub.  We really need your support.
 
-    -DC
+    Thank you!
 */
 
 //The main config file
