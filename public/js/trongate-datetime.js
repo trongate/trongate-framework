@@ -39,7 +39,13 @@ var unavailableAfter;
 var pathArray = window.location.pathname.split( '/' );
 var segment3 = pathArray[3];
 
-if ((segment3 == 'create') || (segment3 == 'submit')) {
+
+var datePickerFields = _('.date-picker');
+var timePickerFields = _('.time-picker');
+var dateTimePickerFields = _('.datetime-picker');
+var dateRangePickerFields = _('.date-range');
+
+if ((datePickerFields.length>0) || (timePickerFields.length>0) || (dateTimePickerFields.length>0) || (dateRangePickerFields.length>0) ) {
 
     //initialize date/time picker vars
     var assumedDate = new Date;
@@ -59,26 +65,22 @@ if ((segment3 == 'create') || (segment3 == 'submit')) {
 
     //check for date/time picker fields;
     //date-picker, time-picker, datetime-picker, date-range, time-range
-    var datePickerFields = _('.date-picker');
     if (datePickerFields.length>0) {
         initDatePickers();
         disableDatePickerInputs('date-picker');
         listenForOffsideClicks('date-picker', 'datepicker-calendar');
     }
-
-    var timePickerFields = _('.time-picker');
+    
     if (timePickerFields.length>0) {
         initTimePickers();
         listenForOffsideClicks('time-picker', 'timepicker-popup');
     }
 
-    var dateTimePickerFields = _('.datetime-picker');
     if (dateTimePickerFields.length>0) {
         initDateTimePickers();
         listenForOffsideClicks('datetime-picker', 'datetime-picker-calendar');
     }
 
-    var dateRangePickerFields = _('.date-range');
     if (dateRangePickerFields.length>0) {
         initDateRangePickers();
         listenForOffsideClicks('date-range', 'datepicker-calendar');

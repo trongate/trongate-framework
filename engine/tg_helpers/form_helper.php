@@ -34,6 +34,11 @@ function form_open_upload($location, $attributes=NULL, $additional_code=NULL) {
 }
 
 function form_close() {
+    $csrf_token = password_hash(session_id(), PASSWORD_BCRYPT, array(
+        'cost' => 11
+    ));
+
+    echo form_hidden('csrf_token', $csrf_token);
     $html = '</form>';
     return $html;
 }

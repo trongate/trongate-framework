@@ -2,18 +2,38 @@
 class Trongate_administrators extends Trongate {
 
     //NOTE: the default username and password is 'admin' and 'admin'
-
-    private $dashboard_home = 'tg-admin'; //where to go after login
+    //private $secret_login_segment = 'tg-admin';
+    private $dashboard_home = 'trongate_administrators/manage'; //where to go after login
 
     function login() {
+
+        if (isset($this->secret_login_segment)) {
+
+            if (is_numeric(strpos(current_url(), 'trongate_administrators'))) {
+                $this->template('error_404');
+                die();
+            }
+
+            $data['form_location'] = BASE_URL.$this->secret_login_segment.'/submit_login';
+        } else {
+            $data['form_location'] = str_replace('/login', '/submit_login', current_url());
+        }
+
         $data['username'] = post('username');
-        $data['form_location'] = str_replace('/login', '/submit_login', current_url());
         $data['view_module'] = 'trongate_administrators';
         $data['view_file'] = 'login_form'; 
         $this->load_template($data);
     }
 
     function submit_login() {
+
+        if (isset($this->secret_login_segment)) {
+            if (is_numeric(strpos(current_url(), 'trongate_administrators'))) {
+                $this->template('error_404');
+                die();
+            }
+        }
+
         $submit = post('submit'); 
 
         if ($submit == 'Submit') {
@@ -36,7 +56,7 @@ class Trongate_administrators extends Trongate {
         $submit = post('submit');
 
         if ($submit == 'Submit') {
-            $this->validation_helper->set_rules('username', 'username', 'required|min_length[6]|callback_username_check');
+            $this->validation_helper->set_rules('username', 'username', 'required|min_length[5]|callback_username_check');
             $this->validation_helper->set_rules('password', 'password', 'required|min_length[5]');
             $this->validation_helper->set_rules('repeat_password', 'repeat password', 'matches[password]');
 
@@ -236,6 +256,7 @@ class Trongate_administrators extends Trongate {
     }
 
     function _log_user_in($username) {
+        $this->module('trongate_tokens');
         $user_obj = $this->model->get_one_where('username', $username);
         $trongate_user_id = $user_obj->trongate_user_id;
         $token_data['user_id'] = $trongate_user_id;
@@ -248,7 +269,6 @@ class Trongate_administrators extends Trongate {
             setcookie('trongatetoken', $token, $token_data['expiry_date'], '/');            
         } else {
             //user did not select 'remember me' checkbox
-            $this->module('trongate_tokens');
             $_SESSION['trongatetoken'] = $this->trongate_tokens->_generate_token($token_data);            
         }
 
@@ -258,7 +278,12 @@ class Trongate_administrators extends Trongate {
     function logout() {
         $this->module('trongate_tokens');
         $this->trongate_tokens->_destroy();
-        redirect('trongate_administrators/login');
+
+        if (isset($this->secret_login_segment)) {
+            redirect(BASE_URL);
+        } else {
+            redirect('trongate_administrators/login');
+        }
     }
 
     function _delete_tokens_for_user($trongate_user_id) {

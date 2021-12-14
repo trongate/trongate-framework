@@ -1,0 +1,37 @@
+{
+  "Generate Token": {
+    "url_segments": "trongate_tokens/generate",
+    "request_type": "POST",
+    "description": "Generate a new token",
+    "enableParams": true,
+    "authorization":"*"
+  },
+  "Validate Token": {
+    "url_segments": "trongate_tokens/auth",
+    "request_type": "GET",
+    "description": "Find out if token is valid",
+    "enableParams": false,
+    "authorization":"*"
+  },
+  "Fetch Trongate User ID": {
+    "url_segments": "trongate_tokens/id",
+    "request_type": "GET",
+    "description": "Fetch Trongate User ID",
+    "enableParams": false,
+    "authorization":"*"
+  },
+  "Fetch Trongate User Obj": {
+    "url_segments": "trongate_tokens/user",
+    "request_type": "GET",
+    "description": "Fetch Trongate User Object",
+    "enableParams": false,
+    "authorization":"*"
+  },
+  "Destroy Token": {
+    "url_segments": "trongate_tokens/destroy",
+    "request_type": "DELETE",
+    "description": "Delete a token",
+    "enableParams": false,
+    "authorization":"*"
+  }
+}

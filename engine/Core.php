@@ -10,7 +10,25 @@ class Core {
 
         $pos = strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER);
 
-        if($pos === false) {
+        if (strpos(ASSUMED_URL, 'vendor/')) {     
+
+            $vendor_file_path = explode('vendor/', ASSUMED_URL)[1];
+            $vendor_file_path = '../vendor/'.$vendor_file_path;
+            $content_type = mime_content_type($vendor_file_path);
+
+            if (strpos($vendor_file_path, '.css')) {
+                $content_type = 'text/css';
+            } else {
+                $content_type == 'text/plain';
+            }
+
+            header('Content-type: '.$content_type);
+            $contents = file_get_contents($vendor_file_path);
+            echo $contents;
+            die();
+
+        } elseif($pos === false) {
+
             $this->serve_controller();
         } else {
             $this->serve_module_asset();
@@ -60,6 +78,12 @@ class Core {
                         $content_type.= '+xml';
                     }
 
+                    //make sure not a PHP file or api.json
+                    if((is_numeric(strpos($content_type, 'php'))) || ($file_name == 'api.json')) {
+                        http_response_code(422);
+                        die();
+                    }
+                    
                     header('Content-type: '.$content_type);
                     $contents = file_get_contents($asset_path);
                     echo $contents;
@@ -173,12 +197,34 @@ class Core {
         }
 
         if (method_exists($this->current_controller, $this->current_method)) {
+            $this->csrf_protect();
             $target_method = $this->current_method;
             $this->current_controller = new $this->current_controller($this->current_module);
             $this->current_controller->$target_method($this->current_value);
         } else {
             $this->draw_error_page();
         }
+    }
+
+    private function csrf_protect() {
+        if (isset($_POST['submit'])) {
+            //make sure they have posted csrf_token
+            if (!isset($_POST['csrf_token'])) {
+                $this->csrf_block_request();
+            } else {
+                $result = password_verify(session_id(), $_POST['csrf_token']);
+                if ($result == false) {
+                    $this->csrf_block_request();
+                }
+
+                unset($_POST['csrf_token']);
+            }
+        }
+    }
+
+    private function csrf_block_request() {
+        header("location: ".BASE_URL);
+        die();
     }
 
     private function attempt_init_child_controller($controller_path) {

@@ -36,7 +36,8 @@ function get_segments($ignore_custom_routes=NULL) {
 
 function attempt_add_custom_routes($target_url) {
     //takes a nice URL and returns the assumed_url
-    $target_segments_str = str_replace(BASE_URL,'', strtolower($target_url));
+    $target_url = rtrim($target_url, '/');
+    $target_segments_str = str_replace(BASE_URL,'', $target_url);
     $target_segments = explode('/',$target_segments_str);
 
     foreach (CUSTOM_ROUTES as $custom_route => $custom_route_destination) {

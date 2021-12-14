@@ -42,9 +42,10 @@ a:hover {
     color: var(--primary-dark);
 }
 
-input[type="text"], input[type="email"], input[type="password"], select {
+input[type="text"], input[type="email"], input[type="password"], select, textarea {
     padding: 0.6em 0.6em;
     font-size: 1em;
+    font-family: Arial;
     width: 100%;
     border: 1px solid var(--border);
     box-sizing: border-box;
@@ -61,7 +62,6 @@ input[type="text"], input[type="email"], input[type="password"], button, textare
 
 textarea {
     padding: 0.6em 0.6em;
-    font-size: 1.231em;
     width: 100%;
     height: 100%; 
     box-sizing: border-box;
@@ -196,7 +196,6 @@ hr {
     width: 90%;
     max-width: 940px;
     margin: 0 auto;
-    background-color: var(--primary-color);
     padding: 1em;
 }
 

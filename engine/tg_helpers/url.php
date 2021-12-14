@@ -1,11 +1,16 @@
 <?php
-function segment($num) {
+function segment($num, $var_type=null) {
     $segments = SEGMENTS;
     if (isset($segments[$num])) {
         $value = $segments[$num];
     } else {
         $value = '';
     }
+
+    if (isset($var_type)) {
+        settype($value, $var_type);
+    }
+    
     return $value;
 }
 
