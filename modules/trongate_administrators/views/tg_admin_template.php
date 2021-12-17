@@ -18,7 +18,7 @@
 			</a>
 		</div>
 		<div>
-			<a href="<?= BASE_URL ?>trongate_administrators">
+			<a href="<?= BASE_URL ?>trongate_administrators/manage">
 				<span class="hide-sm">Manage Administrators</span>
 				<i class="fa fa-gears"></i>
 			</a>
