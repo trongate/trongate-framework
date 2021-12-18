@@ -266,22 +266,39 @@ td:last-child button, td:last-child .button {
     grid-template-columns: 1fr 1fr 1fr;
 }
 
-.card.record-details > div.card-body > div {
-    padding: 0.6em;
+.record-details .row {
+    display: grid;
+    grid-gap: 0;
+    grid-template-columns: repeat(2, 1fr);
     border-bottom: 1px dotted var(--border);
 }
 
-.card.record-details > div.card-body > div:nth-last-child(1) {
+.record-details .row > div {
+    padding: 0.6em;
+}
+
+.record-details > div:nth-last-child(1) {
     border: 0;
 }
 
-.card.record-details > div.card-body > div > span:nth-child(odd) {
-    text-align: left;
+.record-details .row > div:nth-child(odd) {
     font-weight: bold;
 }
 
-.card.record-details > div.card-body > div > span:nth-child(even) {
-    float: right;
+.record-details .row > div:nth-child(even) {
+    text-align: right;
+}
+
+.record-details .row > .full-width {
+    grid-column: 1/3;
+}
+
+.record-details .full-width > div {
+    font-weight: normal;
+}
+
+.record-details .full-width div:nth-child(2) {
+    margin-top: 1em;
 }
 
 .card-create-relation p {
