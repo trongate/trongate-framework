@@ -138,6 +138,24 @@ footer a {
   margin-left: 12px;
 }
 
+.card.record-details > div.card-body > div {
+    padding: 0.6em;
+    border-bottom: 1px dotted var(--border);
+}
+
+.card.record-details > div.card-body > div:nth-last-child(1) {
+    border: 0;
+}
+
+.card.record-details > div.card-body > div > span:nth-child(odd) {
+    text-align: left;
+    font-weight: bold;
+}
+
+.card.record-details > div.card-body > div > span:nth-child(even) {
+    float: right;
+}
+
 .record-details .row {
     display: grid;
     grid-gap: 0;
@@ -149,7 +167,7 @@ footer a {
     padding: 0.6em;
 }
 
-.record-details > div:nth-last-child(1) {
+.record-details .row:nth-last-child(1) {
     border: 0;
 }
 
