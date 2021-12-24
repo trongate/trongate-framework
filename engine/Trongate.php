@@ -179,6 +179,11 @@ class Trongate {
     }
 
     public function upload_picture($data) {
+
+        if (!isset($data['upload_to_module'])) {
+            $data['upload_to_module'] = false;
+        }
+
         //check for valid image width and mime type
         $userfile = array_keys($_FILES)[0];
         $target_file = $_FILES[$userfile];
@@ -199,9 +204,14 @@ class Trongate {
 
         $tmp_name = $target_file['tmp_name'];
         $data['image'] = new Image($tmp_name);
-        $data['filename'] = '../public/'.$data['destination'].'/'.$target_file['name'];
         $data['tmp_file_width'] = $data['image']->getWidth();
         $data['tmp_file_height'] = $data['image']->getHeight();
+
+        if ($data['upload_to_module'] == true) {
+            $data['filename'] = '../modules/'.segment(1).'/assets/'.$data['destination'].'/'.$target_file['name'];
+        } else {
+            $data['filename'] = '../public/'.$data['destination'].'/'.$target_file['name'];
+        }
 
         if (!isset($data['max_width'])) {
             $data['max_width'] = NULL;
@@ -215,7 +225,9 @@ class Trongate {
        
         //rock the thumbnail
         if ((isset($data['thumbnail_max_width'])) && (isset($data['thumbnail_max_height'])) && (isset($data['thumbnail_dir']))) {
-            $data['filename'] = '../public/'.$data['thumbnail_dir'].'/'.$target_file['name'];
+            $ditch = $data['destination'];
+            $replace = $data['thumbnail_dir'];
+            $data['filename'] = str_replace($ditch, $replace, $data['filename']);
             $data['max_width'] = $data['thumbnail_max_width'];
             $data['max_height'] = $data['thumbnail_max_height'];
             $this->save_that_pic($data);
