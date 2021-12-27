@@ -163,12 +163,16 @@ class Core {
         $segments = SEGMENTS;
 
         if (isset($segments[1])) {
-            $this->current_module = strtolower($segments[1]);
+            $module_with_no_params = $segments[1];
+            $module_with_no_params = explode('?',$segments[1])[0];
+            $this->current_module = strtolower($module_with_no_params);
             $this->current_controller = ucfirst($this->current_module);
         }
         
         if (isset($segments[2])) {
-            $this->current_method = strtolower($segments[2]);
+            $method_with_no_params = $segments[2];
+            $method_with_no_params = explode('?',$segments[2])[0];
+            $this->current_method = strtolower($method_with_no_params);
             //make sure not private
             $str = substr($this->current_method, 0, 1);
             if ($str == '_') {
@@ -177,7 +181,9 @@ class Core {
         } 
 
         if (isset($segments[3])) {
-            $this->current_value = $segments[3];
+            $value_with_no_params = $segments[3];
+            $value_with_no_params = explode('?',$segments[3])[0];
+            $this->current_value = $value_with_no_params;
         }
 
         $controller_path = '../modules/'.$this->current_module.'/controllers/'.$this->current_controller.'.php';
