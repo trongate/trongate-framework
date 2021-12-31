@@ -10,12 +10,40 @@ class Trongate_filezone extends Trongate {
         $data['uploader_url'] = 'trongate_filezone/uploader/'.$data['target_module'].'/'.$update_id;
         $data['pictures'] = $this->_fetch_pictures($update_id, $filezone_settings);
         $data['target_directory'] = BASE_URL.$data['target_module'].'_pictures/'.$update_id.'/';
+
+        if (!isset($filezone_settings['upload_to_module'])) {
+            $filezone_settings['upload_to_module'] = false;
+        }
+
+        if ($filezone_settings['upload_to_module'] == true) {
+            $module_assets_dir = BASE_URL.segment(1).MODULE_ASSETS_TRIGGER;
+            $data['target_directory'] = $module_assets_dir.'/'.$filezone_settings['destination'].'/'.$update_id;
+        } else {
+            $data['target_directory'] = BASE_URL.$data['target_module'].'_pictures/'.$update_id.'/';
+        }
+
         $this->view('multi_summary_panel', $data);
     }
 
-    function _make_sure_got_sub_folder($update_id, $filezone_settings) {
+    function _make_sure_got_sub_folder($update_id, $filezone_settings, $target_module=null) {
         $destination = $filezone_settings['destination'];
-        $target_dir = APPPATH.'public/'.$destination.'/'.$update_id;;
+
+        if (!isset($target_module)) {
+            $target_module = segment(1);
+        }
+
+        if (!isset($filezone_settings['upload_to_module'])) {
+            $filezone_settings['upload_to_module'] = false;
+        }
+
+        if ($filezone_settings['upload_to_module'] == true) {
+            $target_dir = APPPATH.'modules/'.$target_module.'/assets/'.$destination.'/'.$update_id;
+        } else {
+            $target_dir = APPPATH.'public/'.$destination.'/'.$update_id;
+        }
+
+        $target_dir = str_replace('\\', '/', $target_dir);
+
         if (!file_exists($target_dir)) {
             mkdir($target_dir, 0777, true);
         }
@@ -24,7 +52,16 @@ class Trongate_filezone extends Trongate {
     function _fetch_pictures($update_id, $filezone_settings) {
         $data = [];
         $pictures_directory = $this->_get_pictures_directory($filezone_settings);
-        $picture_directory_path = str_replace(BASE_URL, './', $pictures_directory . '/' . $update_id);
+
+        if ($filezone_settings['upload_to_module'] == true) {
+            $target_module = (isset($filezone_settings['targetModule']) ? $filezone_settings['targetModule'] : segment(1));
+            $module_assets_dir = APPPATH.'modules/'.$target_module.'/assets';
+            $picture_directory_path = $module_assets_dir.'/'.$pictures_directory.'/'.$update_id;
+        } else {
+            $picture_directory_path = APPPATH.'public/'.$pictures_directory.'/'.$update_id;
+        }
+
+        $picture_directory_path = str_replace('\\', '/', $picture_directory_path);
 
         if (is_dir($picture_directory_path)) {
             $pictures = scandir($picture_directory_path);
@@ -91,21 +128,36 @@ class Trongate_filezone extends Trongate {
         //get all of the uploaded files
         $this->module($target_module);
         $settings = $this->$target_module->_init_filezone_settings();
-        $destination = $settings['destination'];
-        $dir = $destination.'/'.$update_id;
+
+        if (!isset($settings['upload_to_module'])) {
+            $settings['upload_to_module'] = false;
+        }
+
+        $destination = $settings['destination']; // e.g., a2s_pictures
+
+        if ($settings['upload_to_module'] == true) {
+            $target_module = (isset($settings['targetModule']) ? $settings['targetModule'] : segment(1));
+            $picture_directory_path = APPPATH.'modules/'.$target_module.'/assets/'.$destination.'/'.$update_id;
+            $dir = str_replace('\\', '/', $picture_directory_path);
+            $module_assets_dir = BASE_URL.$target_module.MODULE_ASSETS_TRIGGER;
+            $target_dir = $module_assets_dir.'/'.$destination.'/'.$update_id;
+        } else {
+            $dir = $destination.'/'.$update_id;
+            $target_dir = $dir;
+        }
+
         $previously_uploaded_files = [];
-        if (is_dir($dir)){
-            if ($dh = opendir($dir)){
+        if (is_dir($dir)) {
+            if ($dh = opendir($dir)) {
                 while (($file = readdir($dh)) !== false) {
                     $first_char = substr($file, 0, 1);
 
                     if ($first_char !== '.') {
-                        $row_data['directory'] = $dir;
+                        $row_data['directory'] = $target_dir;
                         $row_data['filename'] = $file;
                         $row_data['overlay_id'] = $this->_get_overlay_id($file);
                         $previously_uploaded_files[] = $row_data;
                     }
-
                 }
                 closedir($dh);
             }
@@ -158,6 +210,7 @@ class Trongate_filezone extends Trongate {
         api_auth();
         $post = file_get_contents('php://input');
         $posted_data = json_decode($post, true);
+
         $element_id = $posted_data['elId'];
         $update_id = $posted_data['update_id'];
         $target_module = $posted_data['target_module'];
@@ -173,7 +226,15 @@ class Trongate_filezone extends Trongate {
         $first_chunk = $this->_get_str_chuck($element_id, $target_len, true);
         $correct_last_bit = str_replace('-', '.', $last_bit);
         $target_image_name = $first_chunk.$correct_last_bit;
-        $target_file = $destination.'/'.$update_id.'/'.$target_image_name;
+
+        if ($settings['upload_to_module'] == true) { 
+            $target_dir = APPPATH.'modules/'.$target_module.'/assets/'.$destination.'/'.$update_id.'/';
+            $target_dir = str_replace('\\', '/', $target_dir);
+        } else {
+            $target_dir = $destination.'/'.$update_id.'/';
+        }
+
+        $target_file = $target_dir.$target_image_name;
 
         if (file_exists($target_file)) {
             unlink($target_file);
@@ -202,13 +263,29 @@ class Trongate_filezone extends Trongate {
         $post = file_get_contents('php://input');
         $decoded = json_decode($post, true);
         $picture_path = file_get_contents("php://input");
-        $picture_path = str_replace(BASE_URL, './', $picture_path);
+        $picture_path = str_replace(BASE_URL, '', $picture_path);
+
+        $this->module($target_module);
+        $filezone_settings = $this->$target_module->_init_filezone_settings();
+
+        if ($filezone_settings['upload_to_module'] == true) {
+            $target_module = (isset($filezone_settings['targetModule']) ? $filezone_settings['targetModule'] : segment(1));
+            $ditch = $target_module.MODULE_ASSETS_TRIGGER.'/';
+            $replace = '';
+            $picture_path = str_replace($ditch, $replace, $picture_path);
+            $picture_path = APPPATH.'modules/'.$target_module.'/assets/'.$picture_path;
+        } else {
+            $picture_path = APPPATH.'public/'.$picture_path;
+        }
+
+        $picture_path = str_replace('\\', '/', $picture_path);
 
         if (file_exists($picture_path)) {
             //delete the picture
             unlink($picture_path);
             $this->_fetch();
         } else {
+            echo 'file does not exist at '.$picture_path; die();
             http_response_code(422);
             echo $picture_path;
         }
@@ -261,6 +338,7 @@ class Trongate_filezone extends Trongate {
     }
 
     function _do_upload($update_id, $target_module) {
+
         foreach ($_FILES as $key => $value) {
             $this->_make_sure_image($value);
             $file_name = $value['name'];
@@ -271,6 +349,7 @@ class Trongate_filezone extends Trongate {
         //get picture settings
         $this->module($target_module);
         $filezone_settings = $this->$target_module->_init_filezone_settings();
+        $this->_make_sure_got_sub_folder($update_id, $filezone_settings, $target_module);
 
         $config['targetModule']     = $target_module;
         $config['maxFileSize']      = $filezone_settings['max_file_size'];
@@ -279,13 +358,10 @@ class Trongate_filezone extends Trongate {
         $config['resizedMaxWidth']  = $filezone_settings['max_width'];
         $config['resizedMaxHeight'] = $filezone_settings['max_height'];
         $config['destination']      = $filezone_settings['destination'] . '/' . $update_id;
-
-        if (!is_dir($config['destination'])) {
-            mkdir($config['destination'], 0755);
-        }
+        $config['upload_to_module'] = (!isset($filezone_settings['upload_to_module']) ? false : $filezone_settings['upload_to_module']);
 
         $this->upload_picture($config);
-       
+
         if (isset($_FILES['file1'])) {
             $picture_name = $_FILES['file1']['name'];
             $picture_name_ref = str_replace('.', '-', $picture_name);

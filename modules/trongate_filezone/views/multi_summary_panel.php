@@ -18,9 +18,10 @@
         ?>
             <div id="gallery-pics">
                 <?php
-                foreach ($pictures as $picture) {
-                    $picture_path = $target_directory.$picture;
-                    echo '<div onclick="openPicPreview(\'preview-pic-modal\', \''.$picture_path.'\')">';
+                foreach($pictures as $picture) {
+                    $el_id = str_replace('.', '-', $picture);
+                    $picture_path = $target_directory.'/'.$picture;
+                    echo '<div id="gallery-preview-'.$el_id.'" onclick="openPicPreview(\'preview-pic-modal\', \''.$picture_path.'\')">';
                     echo '<img src="'.$picture_path.'" alt="<?= $picture ?>"></div>';
                 }
                 ?>

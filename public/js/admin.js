@@ -344,19 +344,24 @@ if (typeof drawComments == 'boolean') {
         var previewPic =  document.querySelector('#preview-pic img');
         var picPath = previewPic.src;
         var removePicUrl = baseUrl + 'trongate_filezone/upload/' + segment1 + '/' + updateId;
-        
+        var lastSegment = picPath.split("/").pop();
+        var elId = 'gallery-preview-' + lastSegment.replace('.', '-'); 
+
         const http = new XMLHttpRequest();
         http.open('DELETE', removePicUrl);
         http.setRequestHeader('Content-type', 'application/json');
         http.setRequestHeader('trongateToken', token);
         http.send(picPath);
         http.onload = function() {
-            refreshPictures(http.responseText);
+            if (http.status == 200) {
+                document.getElementById(elId).remove();
+            }
         }
         closeModal();
     }
 
     function refreshPictures(pictures) {
+        console.log('response is ' + pictures);
         var pics = JSON.parse(pictures);
         var galleryPicsGrid = document.getElementById('gallery-pics');
         while (galleryPicsGrid.firstChild) {
