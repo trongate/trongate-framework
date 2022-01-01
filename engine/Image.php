@@ -21,9 +21,16 @@ class Image
      */
     public function __construct($filename = null)
     {
-        if ($filename) {
-            $this->fileName = $filename;
-            $this->load($filename);
+        if (extension_loaded('gd')) {
+            if ($filename) {
+                $this->fileName = $filename;
+                $this->load($filename);
+            }
+        } else {
+            echo "<h1 style='color: red';>*** Warning ***</h1>";
+            echo "<h2>Trongate requires the GD extension for PHP to be loaded for image uploaders to work</h2>";
+            echo "<p>This is not a problem with Trongate but a setup issue with your PHP instance.</p>";
+            die("<p>Please open your <i>'php.ini'</i> file and search for <b>'extension=gd'</b> then remove the leading semicolon or add this line, save and restart your web server to enable this change.</p>");
         }
     }
 
