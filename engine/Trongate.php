@@ -208,7 +208,8 @@ class Trongate {
         $data['tmp_file_height'] = $data['image']->getHeight();
 
         if ($data['upload_to_module'] == true) {
-            $data['filename'] = '../modules/'.segment(1).'/assets/'.$data['destination'].'/'.$target_file['name'];
+            $target_module = (isset($data['targetModule']) ? $data['targetModule'] : segment(1));
+            $data['filename'] = '../modules/'.$target_module.'/assets/'.$data['destination'].'/'.$target_file['name'];
         } else {
             $data['filename'] = '../public/'.$data['destination'].'/'.$target_file['name'];
         }
