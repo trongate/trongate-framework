@@ -90,7 +90,7 @@ function form_input($name, $value=NULL, $attributes=NULL, $additional_code=NULL)
 }
 
 function form_number($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
-    $html = form_input($name, $value=NULL, $attributes=NULL, $additional_code=NULL);
+    $html = form_input($name, $value, $attributes, $additional_code);
     $html = str_replace('type="text"', 'type="number"', $html);
     return $html; 
 }
