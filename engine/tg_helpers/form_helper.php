@@ -89,6 +89,12 @@ function form_input($name, $value=NULL, $attributes=NULL, $additional_code=NULL)
     return '<input type="text" name="'.$name.'" value="'.$value.'"'.$extra.'>';
 }
 
+function form_number($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
+    $html = form_input($name, $value=NULL, $attributes=NULL, $additional_code=NULL);
+    $html = str_replace('type="text"', 'type="number"', $html);
+    return $html; 
+}
+
 function form_password($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
     $html = form_input($name, $value, $attributes, $additional_code);
     $html = str_replace(' type="text" ', ' type="password" ', $html);
