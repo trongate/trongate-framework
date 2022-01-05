@@ -38,12 +38,13 @@ var unavailableAfter;
 
 var pathArray = window.location.pathname.split( '/' );
 var segment3 = pathArray[3];
-
-
 var datePickerFields = _('.date-picker');
 var timePickerFields = _('.time-picker');
 var dateTimePickerFields = _('.datetime-picker');
 var dateRangePickerFields = _('.date-range');
+var targetInputValue = ''; //the value of the form input that has been clicked
+var boxDayNumLZ, boxDayNum, boxYearNum;
+
 
 if ((datePickerFields.length>0) || (timePickerFields.length>0) || (dateTimePickerFields.length>0) || (dateRangePickerFields.length>0) ) {
 
@@ -333,6 +334,9 @@ function initDatePickers() {
     //listen for a datePicker input field getting clicked
     for (var i = 0; i < datePickerFields.length; i++) {
         datePickerFields[i].addEventListener("click", (ev) => {
+
+            targetInputValue = ev.target.value;
+
             //build a datePickerCalendar and then add it to the page * (taking canvas size into account)
             activeEl = ev.target;
             activeType = 'datepicker-calendar';
@@ -457,10 +461,10 @@ function buildAndPopulateDatePickerTbl() {
 
             if ((boxCounter<monthStartDayNum) || (dayCounter>=numDaysInMonth)) {
                 calendarTblTd.setAttribute("class", "empty-day");
-                var boxText = ' ';
+                var boxDayNum = ' ';
             } else {
                 dayCounter++;
-                var boxText = dayCounter;
+                var boxDayNum = dayCounter;
 
                 //test to see if this box is clickable (available)
                 isAvailable = testForIsAvailable(dayCounter);
@@ -480,14 +484,24 @@ function buildAndPopulateDatePickerTbl() {
                         calendarTblTd.setAttribute("class", "day-cell");
                     }
 
-                    calendarTblTd.setAttribute("onclick", "clickDay('" + boxText + "')")
+                    if (targetInputValue !== '') {
+                        boxDayNumLZ = ("0" + boxDayNum).slice(-2);
+                        boxMonthNum = ("0" + (assumedDate.getMonth() + 1)).slice(-2);
+                        boxYearNum = assumedDate.getFullYear();
+                        var unseenBoxValue = boxYearNum + '-' + boxMonthNum + '-' + boxDayNumLZ;
+                        if (unseenBoxValue == targetInputValue) {
+                            calendarTblTd.classList.add("selected-day-cell");
+                        }
+                    }
+
+                    calendarTblTd.setAttribute("onclick", "clickDay('" + boxDayNum + "')")
 
                 }
 
 
             }
 
-            var calendarTblTdTxt = document.createTextNode(boxText);
+            var calendarTblTdTxt = document.createTextNode(boxDayNum);
             calendarTblTd.appendChild(calendarTblTdTxt);
             calendarWeekRow.appendChild(calendarTblTd);
         }
