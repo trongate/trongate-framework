@@ -114,59 +114,6 @@ function formatDateObj(dateObj, outputType) {
     }
 }
 
-function addDateConditionClass(firstDateField, secondDateField, condition) {
-    //GOAL to add date condition class onto secondDateField
-    //condition can be 'before' or 'after'
-
-    var firstDateStr = firstDateField.value;
-
-    if (firstDateStr !== '') {
-        var theDate = Date.parse(firstDateStr);
-        var dateObj = new Date(theDate);
-        if (dateObj == 'Invalid Date') {
-            return; //stop, since no valid 'from' date
-        } else {
-            //we have a valid date obj START
-
-            var adjustedClassList = [];
-            var targetStrStart = condition + '-';
-            var targetStrStartLen = targetStrStart.length;
-            var secondDateFieldClassList = secondDateField.classList;
-
-            //attempt to remove potentially unwanted classes
-            for (var i = 0; i < secondDateFieldClassList.length; i++) {
-                var thisClassName = secondDateFieldClassList[i];
-                //get the first 'x' chars from this class name
-                var classStart = thisClassName.substring(0, condition.length+1);
-
-                if (classStart !== targetStrStart) {
-                    adjustedClassList.push(thisClassName);
-                }
-
-            }
-
-            var newClassName = createClassFromDate(dateObj, condition);
-            adjustedClassList.push(newClassName);
-            
-            secondDateField.removeAttribute("class");
-
-            for (var i = 0; i < adjustedClassList.length; i++) {
-                secondDateField.classList.add(adjustedClassList[i]);
-            }
-
-            if (condition == 'after') {
-                unavailableBefore = dateObj;
-            } else {
-                unavailableAfter = dateObj;
-            }
-
-            //we have a valid date obj END
-        }
-
-    }
-
-}
-
 function createClassFromDate(dateObj, type) {
     //type can be 'before' or 'after'
     var className = type + '-';
@@ -176,137 +123,96 @@ function createClassFromDate(dateObj, type) {
     return className;
 }
 
-function createDateFromClassName(className) {
-    //type can be 'before' or 'after'
-    var classStr = className.replace('before-', '');
-    classStr = className.replace('after-', '');
-    var theDate = Date.parse(classStr);
-    var dateObj = new Date(theDate);
-    return dateObj;
-}
-
 function initDateRangePickers() {
-
-    //listen for date range pickers getting clicked
-    for (var i = 0; i < dateRangePickerFields.length; i++) {
-        dateRangePickerFields[i].addEventListener("click", (ev) => {
-
-            destroyEls("datepicker-calendar");
-            activeEl = ev.target;
-
-            var result = estPartner(activeEl);
-            var elType = result.elType; //1st or 2nd (for the clicked form input)
-        
-            //did we just click the 'first' date?
-            if (elType == '1st') {
-                unavailableBefore = '';
-                unavailableAfter = '';
-                clearBeforeAfterClasses(result.partnerEl);
-            }
-
-            enforcePastAndFutureRestrictions();
-            activeType = 'date-range-calendar';
-            buildDatePickerCalendar();
-
-        });
-    }
-
+    //init in the past or in the future declarations
+    initInThePastDeclarations();
+    initInTheFutureDeclarations();
+    initDateRanges();
 }
 
-function clearBeforeAfterClasses(secondDateField) {
-    var correctedClassList = [];
-    var targetStr1 = 'before-';
-    var targetStr2 = 'after-';
+function initDateRanges() {
 
-    var secondDateFieldClassList = secondDateField.classList;
-    for (var i = 0; i < secondDateFieldClassList.length; i++) {
-        var thisClassName = secondDateFieldClassList[i];
+    var dateRangeInputFields = document.getElementsByClassName('date-range');
 
-        var classStart1 = thisClassName.substring(0, 7);
-        var classStart2 = thisClassName.substring(0, 6);
+    for (var i = 0; i < dateRangeInputFields.length; i++) {
+        var result = estPartner(dateRangeInputFields[i]);
+        var elType = result.elType; //1st or 2nd (for the clicked form input)
+        var partnerEl = result.partnerEl; //the partner form input element
 
-        if ((classStart1 !== 'before-') && (classStart2 !== 'after-')) {
-            correctedClassList.push(thisClassName);
-        }
+        var thisValue = dateRangeInputFields[i].value;
 
-    }
-
-    if (correctedClassList.length>0) {
-
-        secondDateField.removeAttribute("class");
-
-        for (var i = 0; i < correctedClassList.length; i++) {
-            secondDateField.classList.add(correctedClassList[i]);
+        if (thisValue.length == 10) {
+            var theDate = Date.parse(thisValue);
+            var thisDate = new Date(theDate);
+            adjustPartnerClass(elType, partnerEl, thisDate);
         }
 
     }
 
 }
 
-function enforcePastAndFutureRestrictions() {
+function adjustPartnerClass(elType, partnerEl, dateObj) {
 
-    //get an array of all the classes that belong to this element
-    var elClasses = activeEl.classList;
+    if (elType == '1st') {
+        //make sure selectable date is BEFORE whatever value the partner el has
+        customClassRemove(partnerEl, 'after-');
+        var newClassName = createClassFromDate(dateObj, 'after');
+        partnerEl.classList.remove('enforce-after');
+        partnerEl.classList.add('enforce-after');
+        partnerEl.classList.add(newClassName);
 
-    for (var i = 0; i < elClasses.length; i++) {
-
-        if (elClasses[i] == 'in-the-future') {
-            var allClear = attemptClassIntercept(elClasses, 'in-the-future');
-            if (allClear == false) {
-                return;
-            }
-            unavailableBefore = new Date;
-        } else if(elClasses[i] == 'in-the-past') {
-            var allClear = attemptClassIntercept(elClasses, 'in-the-future');
-            if (allClear == false) {
-                return;
-            }
-            unavailableAfter = new Date;
-        }
-
-    }
-
-}
-
-function attemptClassIntercept(elClasses, targetClass) {
-
-    //check to see if there is another date that extends BEYOND...
-    //what in-the-past or in-the-future does
-
-    var nowDate = new Date;
-
-    if (targetClass == 'in-the-past') {
-        var targetStr = 'before-';
-        var endPos = 7;
     } else {
-        var targetStr = 'after-';
-        var endPos = 6;
+        //make sure selectable date is AFTER whatever value the partner el has
+        customClassRemove(partnerEl, 'before-');
+        var newClassName = createClassFromDate(dateObj, 'before');
+        partnerEl.classList.remove('enforce-before');
+        partnerEl.classList.add('enforce-before');
+        partnerEl.classList.add(newClassName);
     }
 
-    for (var i = 0; i < elClasses.length; i++) {
-        var thisClassName = elClasses[i];
-        var classStart = thisClassName.substring(0, endPos);
-        
-        if (classStart == targetStr) {
+}
 
-            var classDate = createDateFromClassName(thisClassName);
+function initInThePastDeclarations() {
+    var inThePastEls = document.getElementsByClassName('in-the-past');
 
-            if ((targetStr == 'before-') && (classDate<nowDate)) {
-                var result = false;
-                return result;
-            }
+    if (inThePastEls.length>0) {
 
-            if ((targetStr == 'after-') && (classDate>nowDate)) {
-                var result = false;
-                return result;
-            }
+        var dateStr = formatDateObj(todayDate, 'date');
+        dateStr = dateStr.replace(/\//g, '-');
+        var newClassName = 'before-' + dateStr;
 
+        for (var i = 0; i < inThePastEls.length; i++) {
+            inThePastEls[i].classList.add('enforce-before');
+            inThePastEls[i].classList.add(newClassName);
+        }
+
+        for (var i = 0; i < inThePastEls.length; i++) {
+            inThePastEls[i].classList.remove('in-the-past');
         }
 
     }
 
-    var result = true;
-    return result;
+}
+
+function initInTheFutureDeclarations() {
+    var inTheFutureEls = document.getElementsByClassName('in-the-future');
+
+    if (inTheFutureEls.length>0) {
+
+        var dateStr = formatDateObj(todayDate, 'date');
+        dateStr = dateStr.replace(/\//g, '-');
+        var newClassName = 'after-' + dateStr;
+
+        for (var i = 0; i < inTheFutureEls.length; i++) {
+            inTheFutureEls[i].classList.add('enforce-after');
+            inTheFutureEls[i].classList.add(newClassName);
+        }
+
+        for (var i = 0; i < inTheFutureEls.length; i++) {
+            inTheFutureEls[i].classList.remove('in-the-future');
+        }
+
+    }
 
 }
 
@@ -333,6 +239,7 @@ function estPartner(el) {
 }
 
 function initDatePickers() {
+
     //listen for a datePicker input field getting clicked
     for (var i = 0; i < datePickerFields.length; i++) {
         datePickerFields[i].addEventListener("click", (ev) => {
@@ -342,22 +249,76 @@ function initDatePickers() {
 
             //build a datePickerCalendar and then add it to the page * (taking canvas size into account)
             activeEl = ev.target;
-            activeType = 'datepicker-calendar';
+            var elClasses = activeEl.classList;
+
+            if (activeEl.classList.contains('date-range')) {
+                activeType = 'date-range-calendar';
+            } else {
+                activeType = 'datepicker-calendar';
+            }
+
             assumedDate = getDateFromInput();
 
             if (assumedDate == 'Invalid Date') {
                 assumedDate = new Date;
             }
 
-            enforcePastAndFutureRestrictions();
             buildDatePickerCalendar();
         });
     }
 
 }
 
+function enforceBeforeVibes() {
+    //get a list of all of the classes that belong to the active element
+    var elClasses = activeEl.classList;
+    for (var i = 0; i < elClasses.length; i++) {
+        if (elClasses[i].length == 17) {
+            var strStart = elClasses[i].substring(0, 7);
+            if (strStart == 'before-') {
+                unavailableAfter = createDateFromClassName(elClasses[i]);
+            }
+        }
+
+    }
+}
+
+function enforceAfterVibes() {
+    //get a list of all of the classes that belong to the active element
+    var elClasses = activeEl.classList;
+    for (var i = 0; i < elClasses.length; i++) {
+        if (elClasses[i].length == 16) {
+            var strStart = elClasses[i].substring(0, 6);
+            if (strStart == 'after-') {
+                unavailableBefore = createDateFromClassName(elClasses[i]);
+            }
+        }
+
+    }
+}
+
+function createDateFromClassName(className) {
+    //type can be 'before' or 'after'
+    var classStr = className.replace('before-', '');
+    classStr = className.replace('after-', '');
+    var theDate = Date.parse(classStr);
+    var dateObj = new Date(theDate);
+    return dateObj;
+}
+
 function buildDatePickerCalendar() {
+
     destroyEls(activeType);
+    unavailableBefore = false;
+    unavailableAfter = false;
+
+    if (activeEl.classList.contains('enforce-before')) {
+        enforceBeforeVibes();
+    }
+
+    if (activeEl.classList.contains('enforce-after')) {
+        enforceAfterVibes();
+    }
 
     var datePickerCalendar = document.createElement("div");
     datePickerCalendar.setAttribute("class", "datepicker-calendar");
@@ -640,6 +601,7 @@ function refreshDatePickerHead() {
 }
 
 function clickDay(dayNum) {
+
     highlightClickedDayCell(dayNum);
     assumedDate.setDate(dayNum);
 
@@ -653,28 +615,34 @@ function clickDay(dayNum) {
     activeEl.value = niceDate;
 
     if (activeType == 'date-range-calendar') {
-
         //get the partner date and target pos (1st or 2nd)
         var result = estPartner(activeEl);
         var elType = result.elType; //1st or 2nd (for the clicked form input)
         var partnerEl = result.partnerEl; //the partner form input element
-
-        //did we just click the 'first' date?
-        if (elType == '1st') {
-            //attempt add 'after-' date condition class onto the second element
-            //   assumedDate   
-            //we need;  a date object for the newly clicked date, class list array from target field + cond
-            var firstDateField = activeEl;
-            var secondDateField = partnerEl;
-            addDateConditionClass(firstDateField, secondDateField, 'after');
-        }
-
+        adjustPartnerClass(elType, partnerEl, assumedDate);
     }
 
     if (activeType !== 'datetime-picker-calendar') {
         activePopUp.remove();
     }
 
+}
+
+function customClassRemove(targetEl, strStart) {
+    var elClasses = targetEl.classList;
+    var targetIndex = strStart.length;
+
+    for (var i = 0; i < elClasses.length; i++) {
+
+        if (elClasses[i].length>targetIndex) {
+            var classStart = elClasses[i].substring(0, targetIndex);
+
+            if (classStart == strStart) {
+                elClasses.remove(elClasses[i]);
+            }
+        }
+        
+    }
 }
 
 function highlightClickedDayCell(dayNum) {
