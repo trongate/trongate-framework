@@ -43,8 +43,8 @@ var timePickerFields = _('.time-picker');
 var dateTimePickerFields = _('.datetime-picker');
 var dateRangePickerFields = _('.date-range');
 var targetInputValue = ''; //the value of the form input that has been clicked
+var targetInputValueSm  = ''; //alt version of targetInputValue (with time removed)
 var boxDayNumLZ, boxDayNum, boxYearNum;
-
 
 if ((datePickerFields.length>0) || (timePickerFields.length>0) || (dateTimePickerFields.length>0) || (dateRangePickerFields.length>0) ) {
 
@@ -91,6 +91,7 @@ if ((datePickerFields.length>0) || (timePickerFields.length>0) || (dateTimePicke
 
 function formatDateObj(dateObj, outputType) {
     //outputType can be time, date or timedate
+
     var options = { year: 'numeric', month: '2-digit', day: '2-digit' };
     if ((outputType == 'date') || (outputType == 'datetime')) {
         var output = dateObj.toLocaleString('en-US', options);
@@ -107,6 +108,7 @@ function formatDateObj(dateObj, outputType) {
     if (outputType == 'time') {
         return time;
     } else {
+        //this MUST be a datetime outputType!
         output+= ' at ' + time;
         return output;
     }
@@ -336,6 +338,7 @@ function initDatePickers() {
         datePickerFields[i].addEventListener("click", (ev) => {
 
             targetInputValue = ev.target.value;
+            targetInputValueSm = targetInputValue;
 
             //build a datePickerCalendar and then add it to the page * (taking canvas size into account)
             activeEl = ev.target;
@@ -489,7 +492,8 @@ function buildAndPopulateDatePickerTbl() {
                         boxMonthNum = ("0" + (assumedDate.getMonth() + 1)).slice(-2);
                         boxYearNum = assumedDate.getFullYear();
                         var unseenBoxValue = boxYearNum + '-' + boxMonthNum + '-' + boxDayNumLZ;
-                        if (unseenBoxValue == targetInputValue) {
+
+                        if (unseenBoxValue == targetInputValueSm) {
                             calendarTblTd.classList.add("selected-day-cell");
                         }
                     }
@@ -1166,8 +1170,6 @@ function buildDateTimePickerCalendar() {
 
     if (datePickerCanvas == 'large') {
         activeEl.parentNode.insertBefore(dateTimePickerCalendar, activeEl.nextSibling);
-    } else {
-        //create an overlay
     }
 
     var dateTimePickerHead = buildDatePickerHead();
@@ -1187,17 +1189,28 @@ function initDateTimePickers() {
             //build a datePickerCalendar and then add it to the page * (taking canvas size into account)
             activeEl = ev.target;
             activeType = 'datetime-picker-calendar';
+            targetInputValue = activeEl.value;
+            targetInputValueSm = targetInputValue.substring(0,10);
 
             unavailableBefore = '';
             unavailableAfter = '';
 
-            if (activeEl.value !== '') {
-                var str1 = activeEl.value;
-                var mon = parseInt(str1.substring(0,2));
-                var day = parseInt(str1.substring(3,5));
-                var year = parseInt(str1.substring(6,10));
-                var hour = parseInt(str1.substring(14,16));
-                var min = parseInt(str1.substring(17,21));
+            if (targetInputValue !== '') {
+
+                if(targetInputValue.includes(" at ")) {
+                    var mon = parseInt(targetInputValue.substring(0,2));
+                    var day = parseInt(targetInputValue.substring(3,5));
+                    var year = parseInt(targetInputValue.substring(6,10));
+                    var hour = parseInt(targetInputValue.substring(14,16));
+                    var min = parseInt(targetInputValue.substring(17,21));
+                } else {
+                    var mon = parseInt(targetInputValue.substring(5,7));
+                    var day = parseInt(targetInputValue.substring(8,10));
+                    var year = parseInt(targetInputValue.substring(0,4));
+                    var hour = parseInt(targetInputValue.substring(11,13));
+                    var min = parseInt(targetInputValue.substring(14,16));
+                }
+
                 var sec = 0;
                 assumedDate = new Date(year, mon-1, day, hour, min, sec);
 
