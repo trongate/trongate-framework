@@ -85,18 +85,22 @@ function closeModal() {
 }
 
 var slideNavLinks = document.querySelector("#slide-nav ul");
-var autoPopulateSlideNav = slideNavLinks.getAttribute("auto-populate");
-if (autoPopulateSlideNav == "true") {
-    var navLinks = document.querySelector("#top-nav");
-    slideNavLinks.innerHTML = navLinks.innerHTML;
-}
 
-body.addEventListener('click', (ev) => {
-    if ((slideNavOpen == true) && (ev.target.id !== 'open-btn')) {
-        if (slideNav.contains(ev.target)) {
-            return true;
-        } else {
-            closeSlideNav();
-        }
+if (slideNavLinks !== null) {
+    var autoPopulateSlideNav = slideNavLinks.getAttribute("auto-populate");
+    if (autoPopulateSlideNav == "true") {
+        var navLinks = document.querySelector("#top-nav");
+        slideNavLinks.innerHTML = navLinks.innerHTML;
     }
-});
+
+    body.addEventListener('click', (ev) => {
+        if ((slideNavOpen == true) && (ev.target.id !== 'open-btn')) {
+            if (slideNav.contains(ev.target)) {
+                return true;
+            } else {
+                closeSlideNav();
+            }
+        }
+    });
+
+}
