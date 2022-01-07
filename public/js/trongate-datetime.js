@@ -240,6 +240,9 @@ function estPartner(el) {
 
 function initDatePickers() {
 
+    initInThePastDeclarations();
+    initInTheFutureDeclarations();
+
     //listen for a datePicker input field getting clicked
     for (var i = 0; i < datePickerFields.length; i++) {
         datePickerFields[i].addEventListener("click", (ev) => {
@@ -1151,6 +1154,10 @@ function buildDateTimePickerCalendar() {
 }
 
 function initDateTimePickers() {
+
+    initInThePastDeclarations();
+    initInTheFutureDeclarations();
+
     //listen for a datetimePicker input field getting clicked
     for (var i = 0; i < dateTimePickerFields.length; i++) {
         dateTimePickerFields[i].addEventListener("click", (ev) => {
