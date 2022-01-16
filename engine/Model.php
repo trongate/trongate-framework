@@ -473,16 +473,16 @@ margin: 1em 0;
 
         $this->prepare_and_execute($sql, $data);
 
-        if (!isset($return_type)) {
-            $return_type = 'object';
-        }
+        if (($return_type == 'object') || ($return_type == 'array')) {
+         
+            if ($return_type == 'object') {
+                $query = $this->stmt->fetchAll(PDO::FETCH_OBJ);
+            } else {
+                $query = $this->stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
 
-        if ($return_type == 'object') {
-            $query = $this->stmt->fetchAll(PDO::FETCH_OBJ);
             return $query;
-        } else {
-            $query = $this->stmt->fetchAll(PDO::FETCH_ASSOC);
-            return $query;
+
         }
 
     }
@@ -495,12 +495,16 @@ margin: 1em 0;
 
         $this->prepare_and_execute($sql, $data);
 
-        if ($return_type == 'object') {
-            $query = $this->stmt->fetchAll(PDO::FETCH_OBJ);
+        if (($return_type == 'object') || ($return_type == 'array')) {
+
+            if ($return_type == 'object') {
+                $query = $this->stmt->fetchAll(PDO::FETCH_OBJ);
+            } else {
+                $query = $this->stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+
             return $query;
-        } elseif ($return_type == 'array') {
-            $query = $this->stmt->fetchAll(PDO::FETCH_ASSOC);
-            return $query;
+
         }
 
     }
