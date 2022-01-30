@@ -88,15 +88,6 @@ class Trongate_filezone extends Trongate {
         }
     }
 
-    function removeDirectory($path) {
-        $files = glob($path . '/*');
-        foreach ($files as $file) {
-            is_dir($file) ? $this->removeDirectory($file) : unlink($file);
-        }
-        rmdir($path);
-        return;
-    }
-
     function _get_previously_uploaded_files($code) {
         $data = [];
         $pictures_directory = BASE_URL.'module_resources/'.$code.'/picture_gallery';
