@@ -50,7 +50,7 @@ class Model {
             $type = PDO::PARAM_STR;
         }
 
-        return $type;       
+        return $type;
     }
 
     function prepare_and_execute($sql, $data) {
@@ -198,7 +198,7 @@ class Model {
 
         if ($result == true) {
             $item = $this->stmt->fetch(PDO::FETCH_OBJ);
-            return $item;            
+            return $item;
         }
 
     }
@@ -221,7 +221,7 @@ class Model {
 
         if ($result == true) {
             $item = $this->stmt->fetch(PDO::FETCH_OBJ);
-            return $item;            
+            return $item;
         }
     }
 
@@ -257,7 +257,7 @@ class Model {
 
         if ($result == true) {
             $obj = $this->stmt->fetch(PDO::FETCH_OBJ);
-            return $obj->total;            
+            return $obj->total;
         }
 
     }
@@ -288,7 +288,7 @@ class Model {
 
         if ($result == true) {
             $obj = $this->stmt->fetch(PDO::FETCH_OBJ);
-            return $obj->total;            
+            return $obj->total;
         }
 
     }
@@ -355,7 +355,7 @@ class Model {
             $bits = explode(' ? ', $query);
 
             $query = '';
-            for ($i=0; $i < count($bits); $i++) { 
+            for ($i=0; $i < count($bits); $i++) {
                 $query.= $bits[$i];
 
                 if (isset($values[$i])) {
@@ -387,7 +387,7 @@ padding: 1em;
 border: 1px #383623 solid;
 clear: both !important;
 margin: 1em 0;
-}    
+}
 </style>
 
     <?php
@@ -400,7 +400,7 @@ margin: 1em 0;
         }
 
         $sql = 'INSERT INTO '.$target_tbl.' (';
-        $sql.= implode(", ", array_keys($data)).')';
+        $sql.= '`'.implode("`, `", array_keys($data)).'`)';
         $sql.= ' VALUES (';
 
         foreach ($data as $key => $value) {
@@ -474,7 +474,7 @@ margin: 1em 0;
         $this->prepare_and_execute($sql, $data);
 
         if (($return_type == 'object') || ($return_type == 'array')) {
-         
+
             if ($return_type == 'object') {
                 $query = $this->stmt->fetchAll(PDO::FETCH_OBJ);
             } else {
@@ -490,7 +490,7 @@ margin: 1em 0;
     public function query_bind($sql, $data, $return_type=false) {
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat); 
+            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
         }
 
         $this->prepare_and_execute($sql, $data);
