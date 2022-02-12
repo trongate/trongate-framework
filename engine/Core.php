@@ -10,6 +10,8 @@ class Core {
 
         $pos = strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER);
 
+        include('init_endpoint_tracker.php');
+
         if (strpos(ASSUMED_URL, 'vendor/')) {     
 
             $vendor_file_path = explode('vendor/', ASSUMED_URL)[1];

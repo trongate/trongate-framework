@@ -415,13 +415,14 @@ class Validation_helper {
 
     private function run_special_test($key, $label, $posted_value, $test_to_run) {
 
-        if ($posted_value == '') {
-            return true; //no need to do tests since no value submitted
-        }
-
         $pos = strpos($test_to_run, '[');
 
         if (is_numeric($pos)) {
+
+            if ($posted_value == '') {
+                return true; //no need to do tests since no value submitted
+            }
+
             //get the value between the square brackets
             $inner_value = $this->_extract_content($test_to_run, '[', ']');
 
