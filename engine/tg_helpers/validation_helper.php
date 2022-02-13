@@ -7,6 +7,11 @@ class Validation_helper {
     public function set_rules($key, $label, $rules) {
 
         if ((!isset($_POST[$key])) && (isset($_FILES[$key]))) {
+
+            if (!isset($_POST[$key])) {
+                $_POST[$key] = '';
+            }
+
             $posted_value = $_FILES[$key];
             $tests_to_run[] = 'validate_file';
         } else {
