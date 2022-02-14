@@ -345,4 +345,8 @@ hr {
     width: 100%;
     display: block;
   }
+  .modal {
+    max-height: 85vh;
+    overflow-y: auto;
+  }
 }
