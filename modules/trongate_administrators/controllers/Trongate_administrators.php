@@ -16,7 +16,7 @@ class Trongate_administrators extends Trongate {
 
             $data['form_location'] = BASE_URL.$this->secret_login_segment.'/submit_login';
         } else {
-            $data['form_location'] = str_replace('/login', '/submit_login', current_url());
+            $data['form_location'] = BASE_URL.'trongate_administrators/submit_login';
         }
 
         $data['username'] = post('username');
