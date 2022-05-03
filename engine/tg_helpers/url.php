@@ -69,14 +69,20 @@ function anchor($target_url, $text, $attributes=NULL, $additional_code=NULL) {
     return $link;
 }
 
-function url_title($string) {
-    $string = trim($string);
-    $string = preg_replace('/\s+/', ' ', $string);
-    $string = preg_replace("/[^A-Za-z0-9 _]/", '', $string);
-    $string = rawurlencode(utf8_encode($string));
-    $string = preg_replace('/-+/', '-', $string);
-    $string = str_replace("%20", '-', $string);
-    return $string;
+function nice_price($num) {
+    $num = number_format($num, 2);
+    $nice_price = str_replace('.00', '', $num);
+    return $nice_price;
+}
+
+function url_title($str, $make_lowercase=false) {
+    $str = $make_lowercase == true ? trim(strtolower($str)) : trim($str);
+    $str = preg_replace('/\s+/', ' ', $str);
+    $str = preg_replace("/[^A-Za-z0-9 _]/", '', $str);
+    $str = rawurlencode(utf8_encode($str));
+    $str = preg_replace('/-+/', '-', $str);
+    $str = str_replace("%20", '-', $str);
+    return $str;
 }
 
 function api_auth() {

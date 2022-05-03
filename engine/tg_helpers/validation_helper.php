@@ -70,6 +70,10 @@ class Validation_helper {
             case 'valid_time':
                 $this->valid_time($label, $posted_value);
                 break;
+            case 'unique':
+                $inner_value = (isset($inner_value)) ? $inner_value : 0;
+                $this->unique($key, $label, $posted_value, $inner_value);
+                break;
             default:
                 $this->run_special_test($key, $label, $posted_value, $test_to_run);
                 break;
@@ -378,6 +382,35 @@ class Validation_helper {
         }
     }
 
+    private function unique($key, $label, $posted_value, $inner_value=null) {
+
+        $bits = explode(',', $inner_value);
+        if (count($bits) == 2) {
+            $table_name = $bits[0];
+            $allowed_id = $bits[1];
+        } else {
+            $table_name = SEGMENTS[1];
+            $allowed_id = $inner_value;
+        }
+
+        settype($allowed_id, 'int');
+
+        require_once(__DIR__.'/../Model.php');
+        $model = new Model();
+
+        $sql = 'select * from '.$table_name; //not passing into query to avoid SQl injection
+        $rows = $model->query($sql, 'object');
+
+        foreach($rows as $row) {
+            $row_id = $row->id;
+            $row_target_value = $row->$key;
+            if (($row->id !== $allowed_id) && ($row->$key == $posted_value)) {
+                $this->form_submission_errors[] = 'The ' . $label . ' field is already on our system.';
+                break; 
+            }
+        }
+    }
+
 
     private function greater_than($key, $label, $posted_value, $inner_value) {
 
@@ -445,6 +478,9 @@ class Validation_helper {
                     break;
                 case 'max_length':
                     $this->max_length($key, $label, $posted_value, $inner_value);
+                    break;
+                case 'unique':
+                    $this->unique($key, $label, $posted_value, $inner_value);
                     break;
                 case 'greater_than':
                     $this->greater_than($key, $label, $posted_value, $inner_value);

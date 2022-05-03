@@ -102,10 +102,8 @@ class Pagination {
             $limit = $data['limit'];
         }
 
-        $segments = get_segments(true);
-        $segments = $segments['segments'];
-        unset($segments[4]);
-
+        $segments_data = get_segments(true);
+        $segments = $segments_data['segments'];
         $current_page = self::get_page_num($page_num_segment, $segments);
         $num_pages = (int) ceil($total_rows / $limit);
 
@@ -131,7 +129,6 @@ class Pagination {
             }
 
             return $showing_statement;
-
         }
 
         $target_settings_method = 'get_settings_'.$pagination_template;
