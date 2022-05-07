@@ -201,11 +201,7 @@ hr {
 
 .pagination {
     display: inline-block;
-    margin: 0 0 12px 0;
-}
-
-.pagination:nth-of-type(2) {
-    margin-top: 1em;
+    margin: 1em 0;
 }
 
 .pagination a {

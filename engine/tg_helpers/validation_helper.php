@@ -384,6 +384,10 @@ class Validation_helper {
 
     private function unique($key, $label, $posted_value, $inner_value=null) {
 
+        if ($posted_value == '') {
+            return;
+        }
+
         $bits = explode(',', $inner_value);
         if (count($bits) == 2) {
             $table_name = $bits[0];
