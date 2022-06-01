@@ -1,6 +1,6 @@
 <?php
 //Database settings
 define('HOST', 'localhost');
-define('USER', 'root');
-define('PASSWORD', '');
-define('DATABASE', '');
+define('USER', 'tgdb');
+define('PASSWORD', 'tgdb');
+define('DATABASE', 'trongate-framework');

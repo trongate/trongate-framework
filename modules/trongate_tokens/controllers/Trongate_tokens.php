@@ -264,9 +264,13 @@ class Trongate_tokens extends Trongate {
         $this->model->insert($params, 'trongate_tokens');
 
         if (isset($data['set_cookie'])) {
-            setcookie('trongatetoken', $random_string, $data['expiry_date'], '/');
-        } else {
-            $_SESSION['trongatetoken'] = $random_string;
+            if ($data['set_cookie'] === true){
+                setcookie('trongatetoken', $random_string, $data['expiry_date'], '/');
+            }else{
+                 $_SESSION['trongatetoken'] = $random_string;
+            }            
+        }else{
+             $_SESSION['trongatetoken'] = $random_string;
         }
 
         return $random_string;
