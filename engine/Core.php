@@ -8,14 +8,23 @@ class Core {
 
     public function __construct() {
 
-        $pos = strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER);
 
-        if (strpos(ASSUMED_URL, 'vendor/')) {     
+        if (strpos(ASSUMED_URL, '/vendor/')) {
+            $this->serve_vendor_asset();
+        } elseif(strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER) === false) {
+            $this->serve_controller();
+        } else {
+            $this->serve_module_asset();
+        }
 
-            $vendor_file_path = explode('vendor/', ASSUMED_URL)[1];
-            $vendor_file_path = '../vendor/'.$vendor_file_path;
+    }
+
+    private function serve_vendor_asset() {
+        $vendor_file_path = explode('/vendor/', ASSUMED_URL)[1];
+        $vendor_file_path = '../vendor/'.$vendor_file_path;
+        if (file_exists($vendor_file_path)) {
             $content_type = mime_content_type($vendor_file_path);
-
+            die($vendor_file_path);
             if (strpos($vendor_file_path, '.css')) {
                 $content_type = 'text/css';
             } else {
@@ -25,15 +34,11 @@ class Core {
             header('Content-type: '.$content_type);
             $contents = file_get_contents($vendor_file_path);
             echo $contents;
+
             die();
-
-        } elseif($pos === false) {
-
-            $this->serve_controller();
-        } else {
-            $this->serve_module_asset();
+        }else{
+            die('Vendor file not found.');
         }
-
     }
 
     private function serve_module_asset() {
@@ -55,8 +60,8 @@ class Core {
                     }
                 }
 
-                $asset_path = '../modules/'.strtolower($target_module).'/assets/'.$target_dir.'/'.$file_name;   
-            
+                $asset_path = '../modules/'.strtolower($target_module).'/assets/'.$target_dir.'/'.$file_name;
+
                 if (file_exists($asset_path)) {
                     $content_type = mime_content_type($asset_path);
 
@@ -66,12 +71,12 @@ class Core {
                         if (is_numeric($pos2)) {
                             $content_type = 'text/css';
                         }
-                        
+
                         $pos2 = strpos($file_name, '.js');
                         if (is_numeric($pos2)) {
                             $content_type = 'text/javascript';
                         }
-                        
+
                     }
 
                     if ($content_type == 'image/svg') {
@@ -80,10 +85,11 @@ class Core {
 
                     //make sure not a PHP file or api.json
                     if((is_numeric(strpos($content_type, 'php'))) || ($file_name == 'api.json')) {
+                        die("no php");
                         http_response_code(422);
                         die();
                     }
-                    
+
                     header('Content-type: '.$content_type);
                     $contents = file_get_contents($asset_path);
                     echo $contents;
@@ -91,7 +97,7 @@ class Core {
                 } else {
                     $this->serve_child_module_asset($asset_path, $file_name);
                 }
-            } 
+            }
         }
 
     }
@@ -144,7 +150,7 @@ class Core {
     private function attempt_sql_transfer($controller_path) {
         $ditch = 'controllers/'.$this->current_controller.'.php';
         $dir_path = str_replace($ditch, '', $controller_path);
-        
+
         $files = array();
         foreach (glob($dir_path."*.sql") as $file) {
             $file = str_replace($controller_path, '', $file);
@@ -155,7 +161,7 @@ class Core {
             require_once('tg_transferer/index.php');
             die();
         }
-        
+
     }
 
     private function serve_controller() {
@@ -168,7 +174,7 @@ class Core {
             $this->current_module = strtolower($module_with_no_params);
             $this->current_controller = ucfirst($this->current_module);
         }
-        
+
         if (isset($segments[2])) {
             $method_with_no_params = $segments[2];
             $method_with_no_params = explode('?',$segments[2])[0];
@@ -178,7 +184,7 @@ class Core {
             if ($str == '_') {
                 $this->draw_error_page();
             }
-        } 
+        }
 
         if (isset($segments[3])) {
             $value_with_no_params = $segments[3];
@@ -238,7 +244,7 @@ class Core {
 
         if (count($bits)==2) {
             if (strlen($bits[1])>0) {
-                
+
                 $parent_module = strtolower($bits[0]);
                 $child_module = strtolower($bits[1]);
                 $this->current_controller = ucfirst($bits[1]);
