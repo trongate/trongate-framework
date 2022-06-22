@@ -22,11 +22,10 @@ class Core {
         $vendor_file_path = explode('/vendor/', ASSUMED_URL)[1];
         $vendor_file_path = '../vendor/'.$vendor_file_path;
         if (file_exists($vendor_file_path)) {
-            $content_type = mime_content_type($vendor_file_path);
             if (strpos($vendor_file_path, '.css')) {
                 $content_type = 'text/css';
             } else {
-                $content_type == 'text/plain';
+                $content_type = 'text/plain';
             }
 
             header('Content-type: '.$content_type);
