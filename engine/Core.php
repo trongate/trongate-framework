@@ -23,7 +23,6 @@ class Core {
         $vendor_file_path = '../vendor/'.$vendor_file_path;
         if (file_exists($vendor_file_path)) {
             $content_type = mime_content_type($vendor_file_path);
-            die($vendor_file_path);
             if (strpos($vendor_file_path, '.css')) {
                 $content_type = 'text/css';
             } else {
@@ -33,13 +32,12 @@ class Core {
             header('Content-type: '.$content_type);
             $contents = file_get_contents($vendor_file_path);
             echo $contents;
-
             die();
         }else{
             die('Vendor file not found.');
         }
     }
-    
+
     private function serve_module_asset() {
 
         $url_segments = SEGMENTS;
