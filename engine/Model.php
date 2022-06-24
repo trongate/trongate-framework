@@ -16,6 +16,10 @@ class Model {
 
     public function __construct($current_module = NULL) {
 
+        if (DATABASE == '') {
+            return;
+        }
+
         $this->port = (defined('PORT') ? PORT : '3306');
         $this->current_module = $current_module;
 
