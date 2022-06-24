@@ -603,6 +603,12 @@ class Api extends Trongate {
         $post = file_get_contents('php://input');
         $decoded = json_decode($post, true);
 
+        if (gettype($decoded) !== 'array') {
+            http_response_code(400);
+            echo 'No posted values have been received!';
+            die();
+        }
+
         if (count($decoded)>0) {
             $params = $this->_get_params_from_post($decoded);
         } else {

@@ -15,7 +15,7 @@ class Validation_helper {
             $posted_value = $_FILES[$key];
             $tests_to_run[] = 'validate_file';
         } else {
-            $posted_value = $_POST[$key];
+            $posted_value = isset($_POST[$key]) ? $_POST[$key] : '';
             $tests_to_run = $this->get_tests_to_run($rules);
         }
 
@@ -390,11 +390,11 @@ class Validation_helper {
 
         $bits = explode(',', $inner_value);
         if (count($bits) == 2) {
-            $table_name = $bits[0];
-            $allowed_id = $bits[1];
+            $allowed_id = $bits[0];
+            $table_name = $bits[1];
         } else {
-            $table_name = SEGMENTS[1];
             $allowed_id = $inner_value;
+            $table_name = SEGMENTS[1];
         }
 
         settype($allowed_id, 'int');
@@ -409,7 +409,7 @@ class Validation_helper {
             $row_id = $row->id;
             $row_target_value = $row->$key;
             if (($row->id !== $allowed_id) && ($row->$key == $posted_value)) {
-                $this->form_submission_errors[] = 'The ' . $label . ' field is already on our system.';
+                $this->form_submission_errors[] = 'The ' . $label . ' that you submitted is already on our system.';
                 break; 
             }
         }

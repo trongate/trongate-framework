@@ -399,7 +399,7 @@ margin: 1em 0;
             $target_tbl = $this->get_table_from_url();
         }
 
-        $sql = 'INSERT INTO '.$target_tbl.' (';
+        $sql = 'INSERT INTO `'.$target_tbl.'` (';
         $sql.= '`'.implode("`, `", array_keys($data)).'`)';
         $sql.= ' VALUES (';
 
