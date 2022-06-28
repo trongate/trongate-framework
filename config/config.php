@@ -1,19 +1,18 @@
 <?php
 /*
     *** PLEASE GIVE TRONGATE A STAR ON GITHUB ***
+
+    GitHub stars are the metric by which the success of frameworks gets measured.  
+    We need 1,200 GitHub stars to make Trongate a top ten PHP framework.  
+    If Trongate becomes a top ten PHP framework it will be one of the most electrifying 
+    events in the history of PHP!
+
+    Help us to achieve our goal and together we SHALL make PHP great again!
+
+    The GitHub URL for Trongate is:
     https://github.com/davidjconnelly/trongate-framework
 
-    Trongate is the only PHP framework in the world that 
-    is committed to using PHP the way that it was intended 
-    to be used.  That means; no frequent rewrites, no Composer, 
-    no Packagist, no third party library dependency and definitely 
-    no certification.
-
-    The Trongate framework and the Trongate Desktop App will always 
-    be free. That's a promise.  All we ask is, if you like Trongate, 
-    please give us a star on GitHub.  We really need your support.
-
-    Thank you!
+    Thank you and may the code be with you! - David Connelly (founder)
 */
 
 //The main config file
@@ -22,6 +21,6 @@ define('ENV', 'dev');
 define('DEFAULT_MODULE', 'welcome');
 define('DEFAULT_CONTROLLER', 'Welcome');
 define('DEFAULT_METHOD', 'index');
-define('APPPATH', dirname(dirname(__FILE__)).'/');
+define('APPPATH', str_replace("\\", "/", dirname(dirname(__FILE__)).'/'));
 define('REQUEST_TYPE', $_SERVER['REQUEST_METHOD']);
 define('MODULE_ASSETS_TRIGGER', '_module');
