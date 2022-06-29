@@ -40,5 +40,7 @@ function load($template_file, $data=NULL) {
     }
 }
 
+define('APPPATH', str_replace("\\", "/", dirname(dirname(__FILE__)).'/'));
+define('REQUEST_TYPE', $_SERVER['REQUEST_METHOD']);
 $tg_helpers = ['form_helper', 'flashdata_helper', 'url', 'validation_helper'];
 define('TRONGATE_HELPERS', $tg_helpers);
