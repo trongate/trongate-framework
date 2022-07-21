@@ -84,6 +84,17 @@ function closeModal() {
     overlay.remove();
 }
 
+function attemptEscCloseModal () {
+    document.onkeydown = function (e) {
+
+        var modalContainer = _("modal-container");
+
+        if ((e.key == "Escape") && (!modalContainer)) {
+            closeModal();
+        }
+    };
+}
+
 var slideNavLinks = document.querySelector("#slide-nav ul");
 
 if (slideNavLinks !== null) {
@@ -102,5 +113,6 @@ if (slideNavLinks !== null) {
             }
         }
     });
-
 }
+
+attemptEscCloseModal ();
