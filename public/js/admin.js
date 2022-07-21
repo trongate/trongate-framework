@@ -77,7 +77,7 @@ function closeModal() {
 function attemptEscCloseModal () {
     document.onkeydown = function (e) {
 
-        var modalContainer = document.getElementById('modal-container');
+        var modalContainer = _("modal-container");
 
         if ((e.key == "Escape") && (modalContainer)) {
             closeModal();
