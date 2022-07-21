@@ -74,6 +74,17 @@ function closeModal() {
     overlay.remove();
 }
 
+function attemptEscCloseModal () {
+    document.onkeydown = function (e) {
+
+        var modalContainer = document.getElementById('modal-container');
+
+        if ((e.key == "Escape") && (modalContainer)) {
+            closeModal();
+        }
+    };
+}
+
 function fetchAssociatedRecords(relationName, updateId) {
 
     var params = {
@@ -435,3 +446,5 @@ body.addEventListener('click', (ev) => {
         }
     }
 });
+
+attemptEscCloseModal ();
