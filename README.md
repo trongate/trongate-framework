@@ -165,7 +165,7 @@ https://github.com/davidjconnelly/trongate-framework.
 
 However, the fastest and easiest way to get the Trongate PHP framework is by using the Trongate Desktop App.  The Trongate Desktop App is 100% free of charge (it always will be!) and is available for Mac, Windows and Linux. The Trongate Desktop App can be downloaded from: 
 
-https://trongate.io/download.​
+https://trongate.io/download
 
 There are a wide variety of benefits from using the Trongate Desktop App.  These include:
 <ul>
