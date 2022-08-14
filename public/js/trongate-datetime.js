@@ -1,6 +1,9 @@
 // DATE/TIME PICKER SETTINGS START : PLEASE FEEL FREE TO CHANGE THE SETTINGS BELOW THIS LINE:
 var weekStartsOn = 1; // 0 = Sunday, 1 = Monday
+
+// the localeString spezifies the locale used to parse the date and to output the date
 var localeString = 'en-GB'; //details:  https://www.w3schools.com/jsref/jsref_tolocalestring.asp
+
 var dateFormatObj = {
     dateStyle: 'long'
 }
@@ -33,6 +36,8 @@ var monthNames = [
 
 var unavailableBefore;
 var unavailableAfter;
+
+
 
 // DATE/TIME PICKER SETTINGS END : DO NOT EDIT BELOW THIS LINE!!!
 
@@ -89,12 +94,98 @@ if ((datePickerFields.length>0) || (timePickerFields.length>0) || (dateTimePicke
 
 }
 
+/* 
+ * retrive the date format string from the locale
+ * the format pieces are YYYY MM DD and the delimeter
+ */ 
+function getDateFormatStringFromLocale (locale) {
+    const formatObj = new Intl.DateTimeFormat(locale).formatToParts(new Date());
+
+    return formatObj
+        .map(obj => {
+            switch (obj.type) {
+                case "day":
+                    return "DD";
+                case "month":
+                    return "MM";
+                case "year":
+                    return "YYYY";
+                default:
+                    return obj.value;
+            }
+        })
+        .join("");
+}
+
+/*
+ * parse a Date obj from input using the locale
+ * given in the global variable localeString.
+ * returns a date obj or 'Invalid Date' like date.parse
+ */
+function parseDate (input) {
+    var parsedDate = 'Invalid Date';
+    if (input !== '') {
+        var format = getDateFormatStringFromLocale(localeString);
+        var input_parts = input.match(/(\d+)/g);
+        try {
+            var i = 0;
+            var format_pos = {};
+            format.replace(/(YYYY|DD|MM)/g, function (part) { format_pos[part] = i++; });
+            var year = parseInt(input_parts[format_pos['YYYY']]);
+            var month = parseInt(input_parts[format_pos['MM']]);
+            var day = parseInt(input_parts[format_pos['DD']]);
+            parsedDate = new Date(year, month - 1, day);
+        } catch (error) {
+            // in this case we return 'Invalid Date'
+        }
+    }
+    return parsedDate
+}
+
+/*
+ * parse a Date obj with date and time from input using the locale
+ * given in the global variable localeString.
+ * returns a date obj or 'Invalid Date' like date.parse
+ */
+function parseDateTime(input) {
+    var parsedDate = 'Invalid Date';
+    if (input !== '') {
+        var inputParts = [];
+        if (input.includes(" at ")) {
+            inputParts = input.split('at');
+        } else {
+            inputParts[0] = input.substring(0,10);
+            inputParts[1] = input.substring(11);
+        }
+        console.log(inputParts);
+        parsedDate = parseDate(inputParts[0].trim());
+        if (parsedDate == 'Invalid Date') {
+            return parsedDate;
+        }
+        var timeStr = inputParts[1].trim();
+        var hour = 0;
+        var min = 0;
+        try {
+            hour = parseInt(timeStr.substring(0, 2));
+            min = parseInt(timeStr.substring(3, 5));
+        } catch (error) {
+            hour = 0;
+            min = 0;
+        }
+        parsedDate.setHours(hour);
+        parsedDate.setMinutes(min);
+        parsedDate.setSeconds(0);
+        parsedDate.setMilliseconds(0);
+    }
+    return parsedDate;
+}
+
 function formatDateObj(dateObj, outputType) {
     //outputType can be time, date or timedate
 
     var options = { year: 'numeric', month: '2-digit', day: '2-digit' };
     if ((outputType == 'date') || (outputType == 'datetime')) {
-        var output = dateObj.toLocaleString('en-US', options);
+        var output = dateObj.toLocaleString(localeString, options);
         if (outputType == 'date') {
             return output;
         }
@@ -109,7 +200,11 @@ function formatDateObj(dateObj, outputType) {
         return time;
     } else {
         //this MUST be a datetime outputType!
-        output+= ' at ' + time;
+        if (localeString == 'en-GB') {
+            output += ' at ' + time;
+        } else {
+            output += ' ' + time;
+        }
         return output;
     }
 }
@@ -142,8 +237,7 @@ function initDateRanges() {
         var thisValue = dateRangeInputFields[i].value;
 
         if (thisValue.length == 10) {
-            var theDate = Date.parse(thisValue);
-            var thisDate = new Date(theDate);
+            parseDate(thisValue);
             adjustPartnerClass(elType, partnerEl, thisDate);
         }
 
@@ -304,9 +398,7 @@ function createDateFromClassName(className) {
     //type can be 'before' or 'after'
     var classStr = className.replace('before-', '');
     classStr = className.replace('after-', '');
-    var theDate = Date.parse(classStr);
-    var dateObj = new Date(theDate);
-    return dateObj;
+    return parseDate(classStr);
 }
 
 function buildDatePickerCalendar() {
@@ -416,7 +508,15 @@ function buildAndPopulateDatePickerTbl() {
     var i = 1;
     var isCurrentDay = false;
     var isAvailable = false;
-
+    
+    var selectedDate = parseDate(targetInputValueSm);
+    if (selectedDate == 'Invalid Date') {
+        selectedDate = new Date();
+    }
+    var selectedDateStr = selectedDate.getFullYear();
+    selectedDateStr += "-"+addZeroBefore(selectedDate.getMonth()+1);
+    selectedDateStr += "-"+addZeroBefore(selectedDate.getDate());
+  
     do {
         //create a week row
         calendarWeekRow = document.createElement("tr");
@@ -456,8 +556,7 @@ function buildAndPopulateDatePickerTbl() {
                         boxMonthNum = ("0" + (assumedDate.getMonth() + 1)).slice(-2);
                         boxYearNum = assumedDate.getFullYear();
                         var unseenBoxValue = boxYearNum + '-' + boxMonthNum + '-' + boxDayNumLZ;
-
-                        if (unseenBoxValue == targetInputValueSm) {
+                        if (unseenBoxValue == selectedDateStr) {
                             calendarTblTd.classList.add("selected-day-cell");
                         }
                     }
@@ -750,9 +849,7 @@ function attemptExtractYear(text) {
 
 function getDateFromInput() {
     value = activeEl.value;
-    var theDate = Date.parse(value);
-    var thisDate = new Date(theDate);
-    return thisDate;
+    return parseDate(value);
 }
 
 
@@ -1170,33 +1267,12 @@ function initDateTimePickers() {
             unavailableBefore = '';
             unavailableAfter = '';
 
-            if (targetInputValue !== '') {
-
-                if(targetInputValue.includes(" at ")) {
-                    var mon = parseInt(targetInputValue.substring(0,2));
-                    var day = parseInt(targetInputValue.substring(3,5));
-                    var year = parseInt(targetInputValue.substring(6,10));
-                    var hour = parseInt(targetInputValue.substring(14,16));
-                    var min = parseInt(targetInputValue.substring(17,21));
-                } else {
-                    var mon = parseInt(targetInputValue.substring(5,7));
-                    var day = parseInt(targetInputValue.substring(8,10));
-                    var year = parseInt(targetInputValue.substring(0,4));
-                    var hour = parseInt(targetInputValue.substring(11,13));
-                    var min = parseInt(targetInputValue.substring(14,16));
-                }
-
-                var sec = 0;
-                assumedDate = new Date(year, mon-1, day, hour, min, sec);
-
-                if (assumedDate == 'Invalid Date') {
-                    assumedDate = new Date;
-                }
-
-            } else {
+            console.log('parse Datetime');
+            assumedDate = parseDateTime(targetInputValue);
+            if (assumedDate == 'Invalid Date') {
                 assumedDate = new Date;
             }
-
+            console.log(assumedDate);
             clickedTimePickerEl = ev.target;
             buildDateTimePickerCalendar();
         });
