@@ -157,7 +157,6 @@ function parseDateTime(input) {
             inputParts[0] = input.substring(0,10);
             inputParts[1] = input.substring(11);
         }
-        console.log(inputParts);
         parsedDate = parseDate(inputParts[0].trim());
         if (parsedDate == 'Invalid Date') {
             return parsedDate;
@@ -1267,12 +1266,10 @@ function initDateTimePickers() {
             unavailableBefore = '';
             unavailableAfter = '';
 
-            console.log('parse Datetime');
             assumedDate = parseDateTime(targetInputValue);
             if (assumedDate == 'Invalid Date') {
                 assumedDate = new Date;
             }
-            console.log(assumedDate);
             clickedTimePickerEl = ev.target;
             buildDateTimePickerCalendar();
         });
