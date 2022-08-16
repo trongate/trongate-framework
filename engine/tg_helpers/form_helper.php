@@ -131,11 +131,15 @@ function form_textarea($name, $value=NULL, $attributes=NULL, $additional_code=NU
     return '<textarea name="'.$name.'"'.$extra.'>'.$value.'</textarea>';
 }
 
-function form_submit($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_submit($name, $value=NULL, $attributes=NULL, $additional_code=NULL, $included_html=NULL) {
 
     $extra = '';
     if (!isset($value)) {
         $value = $name;
+    }
+
+    if (!isset($included_html)) {
+        $included_html = $value;
     }
 
     if (isset($attributes)) {
@@ -146,12 +150,12 @@ function form_submit($name, $value=NULL, $attributes=NULL, $additional_code=NULL
         $extra.= ' '.$additional_code;
     }
 
-    return '<button type="submit" name="'.$name.'" value="'.$value.'"'.$extra.'>'.$value.'</button>';
+    return '<button type="submit" name="'.$name.'" value="'.$value.'"'.$extra.'>'.$included_html.'</button>';
 
 }
 
-function form_button($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
-    $html = form_submit($name, $value, $attributes, $additional_code);
+function form_button($name, $value=NULL, $attributes=NULL, $additional_code=NULL, $included_html=NULL) {
+    $html = form_submit($name, $value, $attributes, $additional_code, $included_html);
     $html = str_replace(' type="submit" ', ' type="button" ', $html);
     return $html;
 }
