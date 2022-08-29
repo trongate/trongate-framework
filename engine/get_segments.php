@@ -43,7 +43,7 @@ function attempt_add_custom_routes($target_url) {
     foreach (CUSTOM_ROUTES as $custom_route => $custom_route_destination) {
         $custom_route_segments = explode('/',$custom_route);
         if(count($target_segments) == count($custom_route_segments)){
-            if ($custom_route == $target_segments_str) { //perfect match; return immediatly
+            if ($custom_route == $target_segments_str) { //perfect match; return immediately
                 $target_url = str_replace($custom_route, $custom_route_destination, $target_url);
                 break;
             }
