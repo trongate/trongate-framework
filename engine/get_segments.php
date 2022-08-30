@@ -1,10 +1,10 @@
 <?php
 function get_segments($ignore_custom_routes=NULL) {
 
-    //figure out how many segments needs to be ditched
-    $psuedo_url = str_replace('://', '', BASE_URL);
-    $psuedo_url = rtrim($psuedo_url, '/');
-    $bits = explode('/', $psuedo_url);
+    //figure out how many segments need to be ditched
+    $pseudo_url = str_replace('://', '', BASE_URL);
+    $pseudo_url = rtrim($pseudo_url, '/');
+    $bits = explode('/', $pseudo_url);
     $num_bits = count($bits);
 
     if ($num_bits>1) {
