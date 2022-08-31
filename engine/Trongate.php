@@ -32,10 +32,6 @@ class Trongate {
         $this->$helper = new $helper;
     }
 
-    public function pagination($pagination_data) {
-        require_once 'tg_helpers/'.$helper.'.php'; 
-    }
-
     public function template($template_name, $data=NULL) {
         $template_controller_path = '../templates/controllers/Templates.php';
         require_once $template_controller_path;
