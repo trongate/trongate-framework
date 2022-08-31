@@ -1,10 +1,10 @@
 <?php
 function get_segments($ignore_custom_routes=NULL) {
 
-    //figure out how many segments needs to be ditched
-    $psuedo_url = str_replace('://', '', BASE_URL);
-    $psuedo_url = rtrim($psuedo_url, '/');
-    $bits = explode('/', $psuedo_url);
+    //figure out how many segments need to be ditched
+    $pseudo_url = str_replace('://', '', BASE_URL);
+    $pseudo_url = rtrim($pseudo_url, '/');
+    $bits = explode('/', $pseudo_url);
     $num_bits = count($bits);
 
     if ($num_bits>1) {
@@ -43,7 +43,7 @@ function attempt_add_custom_routes($target_url) {
     foreach (CUSTOM_ROUTES as $custom_route => $custom_route_destination) {
         $custom_route_segments = explode('/',$custom_route);
         if(count($target_segments) == count($custom_route_segments)){
-            if ($custom_route == $target_segments_str) { //perfect match; return immediatly
+            if ($custom_route == $target_segments_str) { //perfect match; return immediately
                 $target_url = str_replace($custom_route, $custom_route_destination, $target_url);
                 break;
             }
