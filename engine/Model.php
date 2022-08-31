@@ -61,7 +61,7 @@ class Model {
 
         $this->stmt = $this->dbh->prepare($sql);
 
-        if (isset($data[0])) { //unnamaed data
+        if (isset($data[0])) { //unnamed data
             return $this->stmt->execute($data);
         } else {
 
@@ -78,16 +78,6 @@ class Model {
 
     private function get_table_from_url() {
         return $this->current_module;
-    }
-
-    private function correct_tablename($target_tbl) {
-        $bits = explode('-', $target_tbl);
-        $num_bits = count($bits);
-        if ($num_bits>1) {
-            $target_tbl = $bits[$num_bits-1];
-        }
-
-        return $target_tbl;
     }
 
     private function add_limit_offset($sql, $limit, $offset) {
