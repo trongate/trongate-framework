@@ -83,7 +83,6 @@ class Model {
     private function add_limit_offset($sql, $limit, $offset) {
 
         if ((is_numeric($limit)) && (is_numeric($offset))) {
-            $limit_results = true;
             $sql.= " LIMIT $offset, $limit";
         }
 
@@ -118,7 +117,7 @@ class Model {
                 $data = [];
             }
 
-            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+            $this->show_query($sql, $data, $this->query_caveat);
         }
 
         $stmt = $this->dbh->prepare($sql);
@@ -160,7 +159,7 @@ class Model {
                 $data[$column] = $value;
             }
 
-            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+            $this->show_query($sql, $data, $this->query_caveat);
 
         }
 
@@ -185,7 +184,7 @@ class Model {
         $sql = "SELECT * FROM $target_tbl where id = :id";
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+            $this->show_query($sql, $data, $this->query_caveat);
         }
 
         $result = $this->prepare_and_execute($sql, $data);
@@ -208,7 +207,7 @@ class Model {
         $sql = "SELECT * FROM $target_tbl where $column = :$column";
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+            $this->show_query($sql, $data, $this->query_caveat);
         }
 
         $result = $this->prepare_and_execute($sql, $data);
@@ -244,7 +243,7 @@ class Model {
         $data = [];
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data);
+            $this->show_query($sql, $data);
         }
 
         $result = $this->prepare_and_execute($sql, $data);
@@ -275,7 +274,7 @@ class Model {
         $sql = 'SELECT COUNT(id) as total from '.$target_tbl.' where '.$column.' = :'.$column;
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data);
+            $this->show_query($sql, $data);
         }
 
         $result = $this->prepare_and_execute($sql, $data);
@@ -297,7 +296,7 @@ class Model {
         $data = [];
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data);
+            $this->show_query($sql, $data);
         }
 
         $result = $this->prepare_and_execute($sql, $data);
@@ -399,7 +398,7 @@ margin: 1em 0;
         $sql.=')';
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+            $this->show_query($sql, $data, $this->query_caveat);
         }
 
         $this->prepare_and_execute($sql, $data);
@@ -426,7 +425,7 @@ margin: 1em 0;
         $data = $data;
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+            $this->show_query($sql, $data, $this->query_caveat);
         }
 
         $this->prepare_and_execute($sql, $data);
@@ -443,7 +442,7 @@ margin: 1em 0;
         $data['id'] = (int) $id;
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+            $this->show_query($sql, $data, $this->query_caveat);
         }
 
         $this->prepare_and_execute($sql, $data);
@@ -456,7 +455,7 @@ margin: 1em 0;
         $data = [];
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data);
+            $this->show_query($sql, $data);
         }
 
         $this->prepare_and_execute($sql, $data);
@@ -478,7 +477,7 @@ margin: 1em 0;
     public function query_bind($sql, $data, $return_type=false) {
 
         if ($this->debug == true) {
-            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+            $this->show_query($sql, $data, $this->query_caveat);
         }
 
         $this->prepare_and_execute($sql, $data);
