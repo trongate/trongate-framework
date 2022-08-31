@@ -1,6 +1,5 @@
 <?php
-class Image 
-{
+class Image {
     /** @var resource $image */
     private $image;
 
@@ -13,14 +12,13 @@ class Image
     private $contentType = [
         IMAGETYPE_JPEG => 'image/jpeg',
         IMAGETYPE_GIF => 'image/gif',
-        IMAGETYPE_PNG =>'image/png',
+        IMAGETYPE_PNG => 'image/png',
     ];
 
     /**
      * @param null $filename
      */
-    public function __construct($filename = null)
-    {
+    public function __construct($filename = null) {
         if (extension_loaded('gd')) {
             if ($filename) {
                 $this->fileName = $filename;
@@ -34,8 +32,7 @@ class Image
         }
     }
 
-    private function checkFileExists($path)
-    {
+    private function checkFileExists($path) {
         if (!file_exists($path)) {
             throw new NotFoundException("$path does not exist");
         }
@@ -46,17 +43,16 @@ class Image
      * @param string $filename
      * @throws NotFoundException
      */
-    public function load($filename)
-    {
+    public function load($filename) {
         $this->checkFileExists($filename);
         $imageInfo = getimagesize($filename);
         $this->imageType = $imageInfo[2];
 
-        if( $this->imageType == IMAGETYPE_JPEG ) {
+        if ($this->imageType == IMAGETYPE_JPEG) {
             $this->image = imagecreatefromjpeg($filename);
-        }  elseif( $this->imageType == IMAGETYPE_GIF ) {
+        } elseif ($this->imageType == IMAGETYPE_GIF) {
             $this->image = imagecreatefromgif($filename);
-        } elseif( $this->imageType == IMAGETYPE_PNG ) {
+        } elseif ($this->imageType == IMAGETYPE_PNG) {
             $this->image = imagecreatefrompng($filename);
         }
     }
@@ -67,8 +63,7 @@ class Image
      *  @param int $compression
      *  @param string $permissions
      */
-    public function save($filename = null, $compression = 100, $permissions = null)
-    {
+    public function save($filename = null, $compression = 100, $permissions = null) {
         $filename = ($filename) ?: $this->fileName;
 
         switch ($this->getImageType()) {
@@ -84,7 +79,7 @@ class Image
                 break;
         }
 
-        if( $permissions !== null) {
+        if ($permissions !== null) {
             chmod($filename, (int) $permissions);
         }
     }
@@ -94,8 +89,7 @@ class Image
      * @param bool $return either output directly
      * @return null|string image contents  (optional)
      */
-    public function output($return = false)
-    {
+    public function output($return = false) {
         $contents = null;
         if ($return) {
             ob_start();
@@ -108,8 +102,8 @@ class Image
                 imagegif($this->image);
                 break;
             case IMAGETYPE_PNG:
-                imagealphablending($this->image,true);
-                imagesavealpha($this->image,true);
+                imagealphablending($this->image, true);
+                imagesavealpha($this->image, true);
                 imagepng($this->image);
                 break;
         }
@@ -122,69 +116,63 @@ class Image
     /**
      * @return int
      */
-    public function getWidth()
-    {
+    public function getWidth() {
         return imagesx($this->image);
     }
 
     /**
      * @return int
      */
-    public function getHeight()
-    {
+    public function getHeight() {
         return imagesy($this->image);
     }
 
     /**
      * @param int $height
      */
-    public function resizeToHeight($height)
-    {
+    public function resizeToHeight($height) {
         $ratio = $height / $this->getHeight();
         $width = $this->getWidth() * $ratio;
-        $this->resize($width,$height);
+        $this->resize($width, $height);
     }
 
     /**
      * @param int $width
      */
-    public function resizeToWidth($width)
-    {
+    public function resizeToWidth($width) {
         $ratio = $width / $this->getWidth();
         $height = $this->getHeight() * $ratio;
-        $this->resize($width,$height);
+        $this->resize($width, $height);
     }
 
     /**
      * @param int $scale %
      */
-    public function scale($scale)
-    {
+    public function scale($scale) {
         $width = $this->getWidth() * $scale / 100;
         $height = $this->getHeight() * $scale / 100;
-        $this->resize($width,$height);
+        $this->resize($width, $height);
     }
 
     /**
      * @param int $width
      * @param int $height
      */
-    public function resizeAndCrop($width,$height)
-    {
+    public function resizeAndCrop($width, $height) {
         $targetRatio = $width / $height;
         $actualRatio = $this->getWidth() / $this->getHeight();
 
         if ($targetRatio == $actualRatio) {
             // Scale to size
-            $this->resize($width,$height);
+            $this->resize($width, $height);
         } elseif ($targetRatio > $actualRatio) {
             // Resize to width, crop extra height
             $this->resizeToWidth($width);
-            $this->crop($width,$height);
+            $this->crop($width, $height);
         } else {
             // Resize to height, crop additional width
             $this->resizeToHeight($height);
-            $this->crop($width,$height);
+            $this->crop($width, $height);
         }
     }
 
@@ -194,11 +182,10 @@ class Image
      *  @param int $width
      *  @param int $height
      */
-    public function resize($width,$height)
-    {
-        $newImage = imagecreatetruecolor($width, $height);
+    public function resize($width, $height) {
+        $newImage = imagecreatetruecolor((int)$width, (int)$height);
 
-        if ( ($this->getImageType() == IMAGETYPE_GIF) || ($this->getImageType()  == IMAGETYPE_PNG) ) {
+        if (($this->getImageType() == IMAGETYPE_GIF) || ($this->getImageType()  == IMAGETYPE_PNG)) {
 
             // Get transparency color's index number
             $transparency = imagecolortransparent($this->image);
@@ -208,8 +195,7 @@ class Image
 
                 // deal with alpha channels
                 $this->prepWithExistingIndex($newImage, $transparency);
-
-            }  elseif ($this->getImageType() == IMAGETYPE_PNG) {
+            } elseif ($this->getImageType() == IMAGETYPE_PNG) {
 
                 // deal with alpha channels
                 $this->prepTransparentPng($newImage);
@@ -217,7 +203,7 @@ class Image
         }
 
         // Now resample the image
-        imagecopyresampled($newImage, $this->image, 0, 0, 0, 0, $width, $height, $this->getWidth(), $this->getHeight());
+        imagecopyresampled($newImage, $this->image, 0, 0, 0, 0, (int)$width, (int)$height, $this->getWidth(), $this->getHeight());
 
         // And allocate to $this
         $this->image = $newImage;
@@ -227,8 +213,7 @@ class Image
      * @param $resource
      * @param $index
      */
-    private function prepWithExistingIndex($resource, $index)
-    {
+    private function prepWithExistingIndex($resource, $index) {
         // Get the array of RGB vals for the transparency index
         $transparentColor = imagecolorsforindex($this->image, $index);
 
@@ -245,8 +230,7 @@ class Image
     /**
      * @param $resource
      */
-    private function prepTransparentPng($resource)
-    {
+    private function prepTransparentPng($resource) {
         // Set blending mode as false
         imagealphablending($resource, false);
 
@@ -266,8 +250,7 @@ class Image
      * @param int $height
      * @param string $trim
      */
-    public function crop($width,$height, $trim = 'center')
-    {
+    public function crop($width, $height, $trim = 'center') {
         $offsetX = 0;
         $offsetY = 0;
         $currentWidth = $this->getWidth();
@@ -284,7 +267,7 @@ class Image
             }
         }
 
-        $newImage = imagecreatetruecolor($width,$height);
+        $newImage = imagecreatetruecolor($width, $height);
         imagecopyresampled($newImage, $this->image, 0, 0, $offsetX, $offsetY, $width, $height, $width, $height);
         $this->image = $newImage;
     }
@@ -292,8 +275,7 @@ class Image
     /**
      * @return mixed
      */
-    public function getImageType()
-    {
+    public function getImageType() {
         return $this->imageType;
     }
 
@@ -301,8 +283,7 @@ class Image
      * @return mixed
      * @throws NothingLoadedException
      */
-    public function getHeader()
-    {
+    public function getHeader() {
         if (!$this->imageType) {
             throw new NothingLoadedException();
         }
@@ -312,16 +293,13 @@ class Image
     /**
      *  Frees up memory
      */
-    public function destroy()
-    {
+    public function destroy() {
         imagedestroy($this->image);
     }
 }
 
-class NothingLoadedException extends Exception
-{
+class NothingLoadedException extends Exception {
 }
 
-class NotFoundException extends Exception
-{
+class NotFoundException extends Exception {
 }

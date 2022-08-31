@@ -94,7 +94,7 @@ Trongate is also the first PHP framework that has been built with a determinatio
 <details>
   <summary>Graphical Query Builder</summary>
   <p>
-    Trongate is the only framework that comes with a free graphical SQL query builder. So, now you can build complex table joins easily and liberate yourself from costly db mangement software.
+    Trongate is the only framework that comes with a free graphical SQL query builder. So, now you can build complex table joins easily and liberate yourself from costly db management software.
   </p>
 </details>
 <details>
@@ -130,7 +130,7 @@ Trongate is also the first PHP framework that has been built with a determinatio
 <details>
   <summary>Modular HAVC</summary>
   <p>
-   Trongate uses Hierarchical Asset View Controller architecture. It's like HMVC on steroids! Finally, the PHP community have a "truely modular" PHP framework.
+   Trongate uses Hierarchical Asset View Controller architecture. It's like HMVC on steroids! Finally, the PHP community have a "truly modular" PHP framework.
   </p>
 </details>
 <details>
