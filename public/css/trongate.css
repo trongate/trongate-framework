@@ -351,6 +351,48 @@ hr {
     height: 100%;
 }
 
+.spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    position: relative;
+}
+
+.spinner::after {
+    animation: spinning 0.5s infinite linear;
+    width: 24px;
+    height: 24px;
+    background: 0 0;
+    border: 3px solid var(--primary);
+    border-radius: 50%;
+    border-right-color: transparent;
+    border-top-color: transparent;
+    content: "";
+    display: block;
+    opacity: 1;
+    padding: 0;
+    position: absolute;
+    z-index: 1;
+}
+
+.spinner-lhs {
+    justify-content: flex-start;
+}
+
+.spinner-rhs {
+    justify-content: flex-end;
+}
+
+@keyframes spinning {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 @media screen and (max-width: 550px) {
   button, .button {
     width: 100%;
