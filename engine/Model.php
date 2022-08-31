@@ -186,7 +186,7 @@ class Model {
     //fetch a single record
     public function get_where($id, $target_tbl=NULL) {
 
-        $data['id'] = $id;
+        $data['id'] = (int) $id;
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -320,12 +320,6 @@ class Model {
 
     }
 
-    //get result set as array of objects
-    public function resultSet() {
-    //   $this->execute();
-    //   return $this->stmt->fetchAll(PDO::FETCH_OBJ);
-    }
-
     public function show_query($query, $data, $caveat=NULL) {
         $keys = array();
         $values = $data;
@@ -438,7 +432,7 @@ margin: 1em 0;
         $sql = rtrim($sql, ', ');
         $sql.= " WHERE `$target_tbl`.`id` = :id";
 
-        $data['id'] = $update_id;
+        $data['id'] = (int) $update_id;
         $data = $data;
 
         if ($this->debug == true) {
@@ -456,7 +450,7 @@ margin: 1em 0;
         }
 
         $sql = "DELETE from `$target_tbl` WHERE id = :id ";
-        $data['id'] = $id;
+        $data['id'] = (int) $id;
 
         if ($this->debug == true) {
             $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
