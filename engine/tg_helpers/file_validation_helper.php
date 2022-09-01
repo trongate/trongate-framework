@@ -8,7 +8,7 @@ foreach ($file_validation_rules as $file_validation_rule) {
     $file_checks_to_run[$file_validation_test] = $rule_content;
 }
 
-$target_file = get_target_file(); 
+$target_file = get_target_file($key); 
 $target_file = $_FILES[$target_file];
 $temp_file_name = $target_file['tmp_name'];
 $file_size = $target_file['size']/1000; //kilobytes)
@@ -21,7 +21,7 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
             $result = check_is_allowed_type($target_file['name'], $file_check_value);
 
             if ($result !='') {
-                $this->form_submission_errors[] = $result;
+                $this->form_submission_errors[$key][] = $result;
             } 
 
             break;
@@ -29,7 +29,7 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
             $result = check_file_size($file_size, $file_check_value);
 
             if ($result !='') {
-                $this->form_submission_errors[] = $result;
+                $this->form_submission_errors[$key][] = $result;
             } 
             break;
         case 'max_height': 
@@ -42,7 +42,7 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
 
             if ((!is_numeric($image_height)) || ($image_height>$file_check_value)) {
                 $result = 'The file exceeds the maximum allowed height ('.$file_check_value.' pixels).';
-                $this->form_submission_errors[] = $result;
+                $this->form_submission_errors[$key][] = $result;
             }
 
             break;
@@ -56,7 +56,7 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
 
             if ((!is_numeric($image_width)) || ($image_width>$file_check_value)) {
                 $result = 'The file exceeds the maximum allowed width ('.$file_check_value.' pixels).';
-                $this->form_submission_errors[] = $result;
+                $this->form_submission_errors[$key][] = $result;
             }
             
             break;
@@ -70,7 +70,7 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
 
             if ((!is_numeric($image_height)) || ($image_height<$file_check_value)) {
                 $result = 'The image height falls below the minimum allowed height ('.$file_check_value.' pixels).';
-                $this->form_submission_errors[] = $result;
+                $this->form_submission_errors[$key][] = $result;
             }
 
             break;
@@ -84,7 +84,7 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
 
             if ((!is_numeric($image_width)) || ($image_width<$file_check_value)) {
                 $result = 'The image width falls below the minimum allowed width ('.$file_check_value.' pixels).';
-                $this->form_submission_errors[] = $result;
+                $this->form_submission_errors[$key][] = $result;
             }
             
             break;
@@ -99,7 +99,7 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
 
             if ($image_width !== $image_height) {
                 $result = 'The image width does not match the image height.';
-                $this->form_submission_errors[] = $result;            
+                $this->form_submission_errors[$key][] = $result;            
             }
  
             break;
@@ -136,7 +136,7 @@ function check_file_size($file_size, $file_check_value) {
     return $result;
 }
 
-function get_target_file() {
-    $userfile = array_keys($_FILES)[0];
+function get_target_file($key) {
+    $userfile = array_keys($_FILES)[$key];
     return $userfile;
 }

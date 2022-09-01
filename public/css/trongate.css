@@ -351,6 +351,31 @@ hr {
     height: 100%;
 }
 
+.form-field-validation-error {
+    border: 3px #ff0000 solid !important;
+    background-color: #ff000011 !important;
+}
+
+.validation-error-alert {
+    padding: 12px 12px 0 12px;
+}
+
+.validation-error-alert h3 {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    color:  #ff0000;
+}
+
+.validation-error-report  {
+    color:  #ff0000 !important;
+}
+
+.validation-error-report > div {
+    margin-bottom: 7px;
+    font-size: 16px;
+}
+
 .spinner {
     display: flex;
     align-items: center;

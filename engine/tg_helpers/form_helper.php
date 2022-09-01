@@ -38,9 +38,32 @@ function form_close() {
         'cost' => 11
     ));
 
-    echo form_hidden('csrf_token', $csrf_token);
-    $html = '</form>';
+    $html = '<input type="hidden" name="csrf_token" value="'.$csrf_token.'">';
+    $html.= '</form>';
+
+    if (isset($_SESSION['form_submission_errors'])) {
+        $errors_json =  json_encode($_SESSION['form_submission_errors']);
+        $inline_validation_js = highlight_validation_errors($errors_json);
+        $html.= $inline_validation_js;
+        unset($_SESSION['form_submission_errors']);
+    }
+
     return $html;
+}
+
+function build_output_str() {
+    $output_str = file_get_contents(APPPATH.'engine/views/highlight_errors.txt');
+    return $output_str;
+}
+
+function highlight_validation_errors($errors_json) {
+    $code = '<div class="inline-validation-builder">';
+    $output_str = build_output_str();
+    $code.= '<script>let validationErrorsJson  = '.json_encode($errors_json).'</script>';
+    $code.= '<script>';
+    $code.= $output_str;
+    $code.= '</script></div>';
+    return $code;
 }
 
 function get_attributes_str($attributes) {
