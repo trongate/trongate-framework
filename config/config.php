@@ -10,7 +10,7 @@
     Help us to achieve our goal and together we SHALL make PHP great again!
 
     The GitHub URL for Trongate is:
-    https://github.com/davidjconnelly/trongate-framework
+    https://github.com/trongate/trongate-framework
 
     Thank you and may the code be with you! - David Connelly (founder)
 */

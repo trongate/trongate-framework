@@ -10,20 +10,20 @@
   
 <!-- Badges -->
 <p>
-  <a href="https://github.com/davidjconnelly/trongate-framework/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/davidjconnelly/trongate-framework" alt="contributors" />
+  <a href="https://github.com/trongate/trongate-framework/graphs/contributors">
+    <img src="https://img.shields.io/github/contributors/trongate/trongate-framework" alt="contributors" />
   </a>
   <a href="">
-    <img src="https://img.shields.io/github/last-commit/davidjconnelly/trongate-framework" alt="last update" />
+    <img src="https://img.shields.io/github/last-commit/trongate/trongate-framework" alt="last update" />
   </a>
-  <a href="https://github.com/davidjconnelly/trongate-framework/network/members">
-    <img src="https://img.shields.io/github/forks/davidjconnelly/trongate-framework" alt="forks" />
+  <a href="https://github.com/trongate/trongate-framework/network/members">
+    <img src="https://img.shields.io/github/forks/trongate/trongate-framework" alt="forks" />
   </a>
-  <a href="https://github.com/davidjconnelly/trongate-framework/stargazers">
-    <img src="https://img.shields.io/github/stars/davidjconnelly/trongate-framework" alt="stars" />
+  <a href="https://github.com/trongate/trongate-framework/stargazers">
+    <img src="https://img.shields.io/github/stars/trongate/trongate-framework" alt="stars" />
   </a>
-  <a href="https://github.com/davidjconnelly/trongate-framework/issues/">
-    <img src="https://img.shields.io/github/issues/davidjconnelly/trongate-framework" alt="open issues" />
+  <a href="https://github.com/trongate/trongate-framework/issues/">
+    <img src="https://img.shields.io/github/issues/trongate/trongate-framework" alt="open issues" />
   </a>
 </p>
    
@@ -32,9 +32,9 @@
   <span> · </span>
     <a href="https://trongate.io/docs_m/contents">Documentation</a>
   <span> · </span>
-    <a href="https://github.com/davidjconnelly/trongate-framework/issues/">Report Bug</a>
+    <a href="https://github.com/trongate/trongate-framework/issues/">Report Bug</a>
   <span> · </span>
-    <a href="https://github.com/davidjconnelly/trongate-framework/issues/">Request Feature</a>
+    <a href="https://github.com/trongate/trongate-framework/issues/">Request Feature</a>
   </h4>
 </div>
 
@@ -161,7 +161,7 @@ Trongate is also the first PHP framework that has been built with a determinatio
 
 The Trongate PHP framework is available from GitHub at the following URL:
 
-https://github.com/davidjconnelly/trongate-framework.  
+https://github.com/trongate/trongate-framework.  
 
 However, the fastest and easiest way to get the Trongate PHP framework is by using the Trongate Desktop App.  The Trongate Desktop App is 100% free of charge (it always will be!) and is available for Mac, Windows and Linux. The Trongate Desktop App can be downloaded from: 
 
@@ -191,8 +191,8 @@ There are a wide variety of benefits from using the Trongate Desktop App.  These
 <!-- Contributing -->
 ## :wave: Contributing
 
-<a href="https://github.com/davidjconnelly/trongate-framework/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=davidjconnelly/trongate-framework" />
+<a href="https://github.com/trongate/trongate-framework/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=trongate/trongate-framework" />
 </a>
 
 

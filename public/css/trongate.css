@@ -358,6 +358,7 @@ hr {
 
 .validation-error-alert {
     padding: 12px 12px 0 12px;
+    border-radius: 12px;
 }
 
 .validation-error-alert h3 {
