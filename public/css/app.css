@@ -71,6 +71,10 @@ header .fa {
     display:  none;
 }
 
+.wrapper {
+    flex-grow: 1;
+}
+
 main {
     width: 100%;   
     margin: 0 auto;

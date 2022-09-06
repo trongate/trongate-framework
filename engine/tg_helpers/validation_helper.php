@@ -550,7 +550,7 @@ class Validation_helper {
 
                 if (gettype($outcome) == 'string') {
                     $outcome = str_replace('{label}', $label, $outcome);
-                    $this->form_submission_errors[] = $outcome;
+                    $this->form_submission_errors[$key][] = $outcome;
                 }
 
             }
