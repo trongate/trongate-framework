@@ -70,7 +70,7 @@ class Validation_helper {
                 $this->valid_time($validation_data);
                 break;
             case 'unique':
-                $inner_value = (isset($validation_data['inner_value'])) ? $inner_value : 0;
+                $inner_value = $validation_data['inner_value'] ?? 0;
                 $this->unique($validation_data, $inner_value);
                 break;
             default:
