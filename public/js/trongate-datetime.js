@@ -765,54 +765,39 @@ function disableDatePickerInputs(className) {
     var originalValue;
     for (var i = 0; i < datePickerInputs.length; i++) {
 
-        var targetEl = datePickerInputs[i];
-        var pressedKey;
-
         // javascript get character that was pressed
      
         var originalValue = '';
-        datePickerInputs[i].addEventListener("mousedown", (ev) => {
-            originalValue = targetEl.value;
+        datePickerInputs[i].addEventListener("focus", (ev) => {
+            originalValue = ev.target.value;
         });
-
+        
         datePickerInputs[i].addEventListener("blur", (ev) => {
-
-            var isNumber = /^[0-9]$/i.test(pressedKey);
-
-            if (isNumber !== true) {
-                targetEl.value = originalValue;
-            } else {
-                //attempt to extract the year from the form input field
-                var extractedYear = attemptExtractYear(targetEl.value);
-
-                if (extractedYear !== false) {
-                    //we have a valid year in the form input field
-                    assumedDate.setYear(extractedYear);
-                }
-
-            }
-
+            if (parseDate(ev.target.value) == 'Invalid Date') {
+                ev.target.value = originalValue;
+            }  
         });
+        
 
         datePickerInputs[i].addEventListener("keyup", (ev) => {
-            pressedKey = ev.key;
-
-            var isNumber = /^[0-9]$/i.test(pressedKey);
-
-            if (isNumber !== true) {
-                targetEl.value = originalValue;
+            var isNumber = /^[0-9]$/i.test(ev.key);
+            if ((ev.key == 'Backspace') || (ev.key == 'Delete') {
+                if (ev.target.value.length == 0) {
+                    originalValue = ev.target.value;
+                } else {
+                    ev.target.value = originalValue;    
+                }
+            } else if (isNumber !== true) {
+                ev.target.value = originalValue;
             } else {
-
                 //attempt to extract the year from the form input field
-                var extractedYear = attemptExtractYear(targetEl.value);
+                var extractedYear = attemptExtractYear(ev.target.value);
 
                 if (extractedYear !== false) {
                     //we have a valid year in the form input field
                     assumedDate.setYear(extractedYear);
                     activePopUp.remove();
                 }
-
-
             }
             
         });
