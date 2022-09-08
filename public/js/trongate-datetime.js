@@ -781,7 +781,7 @@ function disableDatePickerInputs(className) {
 
         datePickerInputs[i].addEventListener("keyup", (ev) => {
             var isNumber = /^[0-9]$/i.test(ev.key);
-            if ((ev.key == 'Backspace') || (ev.key == 'Delete') {
+            if ((ev.key == 'Backspace') || (ev.key == 'Delete')) {
                 if (ev.target.value.length == 0) {
                     originalValue = ev.target.value;
                 } else {
