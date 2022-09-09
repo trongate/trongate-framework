@@ -628,6 +628,8 @@ function validation_errors($opening_html=NULL, $closing_html=NULL) {
                 $validation_err_str.= '</div>';
             }
 
+            return $validation_err_str;
+
         } else {
             //normal error reporting
             foreach($form_submission_errors as $key => $form_field_errors) {
@@ -647,6 +649,6 @@ function validation_errors($opening_html=NULL, $closing_html=NULL) {
 
             unset($_SESSION['form_submission_errors']);
         }
-        return $validation_err_str;
+        echo $validation_err_str;
     }
 }
