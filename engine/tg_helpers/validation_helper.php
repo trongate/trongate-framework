@@ -617,7 +617,7 @@ function validation_errors($opening_html=NULL, $closing_html=NULL) {
         $closing_html = (isset($closing_html)) ? $closing_html : false;
         $form_submission_errors = $_SESSION['form_submission_errors'];
 
-        if ((isset($opening_html)) && (gettype($closing_html == 'boolean'))) {
+        if ((isset($opening_html)) && (gettype($closing_html) == 'boolean')) {
             //build individual form field validation error(s)
             if (isset($form_submission_errors[$opening_html])) {
                 $validation_err_str.= '<div class="validation-error-report">';
