@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= APP_LOCALE ?>">
 <head>
     <meta charset="UTF-8">
-    <title>Trongate</title>
+    <title><?= t('hello world'); ?></title>
 </head>
 <body>
 <section>
