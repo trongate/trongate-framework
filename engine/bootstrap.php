@@ -73,5 +73,11 @@ function t(string $key, mixed $default = null) {
   return $default ?: $key;
 }
 
+function money($value) {
+  $numberFormatter = new NumberFormatter(APP_LOCALE, NumberFormatter::CURRENCY);
+
+  return $numberFormatter->formatCurrency($value, APP_CURRENCY);
+}
+
 $tg_helpers = ['form_helper', 'flashdata_helper', 'url', 'validation_helper'];
 define('TRONGATE_HELPERS', $tg_helpers);
