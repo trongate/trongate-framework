@@ -13,7 +13,7 @@
 	<div id="top-gutter">
 		<div>
 			<a href="<?= BASE_URL ?>trongate_administrators/go_home">
-				<span class="hide-sm">Home</span>
+				<span class="hide-sm">Admin</span>
 				<i class="fa fa-home"></i>
 			</a>
 		</div>
