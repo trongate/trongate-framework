@@ -1,6 +1,8 @@
 <?php
 class Trongate {
 
+    use Dynamic_properties;
+
     protected $modules;
     protected $model;
     protected $validation_helper;
