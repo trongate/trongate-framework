@@ -1,5 +1,5 @@
 <?php
-function segment($num, $var_type=null) {
+function segment($num, $var_type = null) {
     $segments = SEGMENTS;
     if (isset($segments[$num])) {
         $value = $segments[$num];
@@ -10,7 +10,7 @@ function segment($num, $var_type=null) {
     if (isset($var_type)) {
         settype($value, $var_type);
     }
-    
+
     return $value;
 }
 
@@ -24,7 +24,7 @@ function previous_url() {
 }
 
 function current_url() {
-    $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI']; 
+    $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
     return $current_url;
 }
 
@@ -32,18 +32,18 @@ function redirect($target_url) {
 
     $str = substr($target_url, 0, 4);
     if ($str != 'http') {
-        $target_url = BASE_URL.$target_url;
+        $target_url = BASE_URL . $target_url;
     }
 
-    header('location: '.$target_url);
+    header('location: ' . $target_url);
     die();
 }
 
-function anchor($target_url, $text, $attributes=NULL, $additional_code=NULL) {
+function anchor($target_url, $text, $attributes = NULL, $additional_code = NULL) {
 
     $str = substr($target_url, 0, 4);
     if ($str != 'http') {
-        $target_url = BASE_URL.$target_url;
+        $target_url = BASE_URL . $target_url;
     }
 
     $target_url = attempt_return_nice_url($target_url);
@@ -57,15 +57,15 @@ function anchor($target_url, $text, $attributes=NULL, $additional_code=NULL) {
     $extra = '';
     if (isset($attributes)) {
         foreach ($attributes as $key => $value) {
-            $extra.= ' '.$key.'="'.$value.'"';
+            $extra .= ' ' . $key . '="' . $value . '"';
         }
     }
 
     if (isset($additional_code)) {
-        $extra.= ' '.$additional_code;
+        $extra .= ' ' . $additional_code;
     }
 
-    $link = '<a href="'.$target_url.'"'.$extra.'>'.$text.'</a>';
+    $link = '<a href="' . $target_url . '"' . $extra . '>' . $text . '</a>';
     return $link;
 }
 
@@ -75,14 +75,28 @@ function nice_price($num) {
     return $nice_price;
 }
 
-function url_title($str, $make_lowercase=false) {
-    $str = $make_lowercase == true ? trim(strtolower($str)) : trim($str);
-    $str = preg_replace('/\s+/', ' ', $str);
-    $str = preg_replace("/[^A-Za-z0-9 _]/", '', $str);
-    $str = rawurlencode(utf8_encode($str));
-    $str = preg_replace('/-+/', '-', $str);
-    $str = str_replace("%20", '-', $str);
-    return $str;
+/**
+ * It takes a string, converts it to lowercase, replaces all non-alphanumeric characters with a dash,
+ * and trims any leading or trailing dashes.
+ * 
+ * @author Special thanks to framex who posted this fix on the help-bar
+ * @see https://trongate.io/help_bar/thread/h7W9QyPcsx69
+ * 
+ * @param value The string to be converted.
+ * @param transliteration If you want to transliterate the string, set this to true.
+ * 
+ * @return The slugified version of the string.
+ */
+function url_title($value, $transliteration = true) {
+    if (extension_loaded('intl') && $transliteration == true) {
+        $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII');
+        $value = $transliterator->transliterate($value);
+    }
+    $slug = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+    $slug = preg_replace('~[^\pL\d]+~u', '-', $slug);
+    $slug = trim($slug, '-');
+    $slug = strtolower($slug);
+    return $slug;
 }
 
 function api_auth() {
@@ -94,14 +108,14 @@ function api_auth() {
     if ((isset($segments[0])) && (isset($segments[1]))) {
         $current_module_bits = explode('-', $segments[0]);
         $current_module = $current_module_bits[0];
-        $filepath = APPPATH.'modules/'.$current_module.'/assets/api.json';
+        $filepath = APPPATH . 'modules/' . $current_module . '/assets/api.json';
 
         if (file_exists($filepath)) {
-            
+
             //extract the rules for the current path
             $target_method = $segments[1];
             $settings = file_get_contents($filepath);
-            $endpoints = json_decode($settings, true); 
+            $endpoints = json_decode($settings, true);
 
             $current_uri_path = str_replace(BASE_URL, '', current_url());
             $current_uri_bits = explode('/', $current_uri_path);
@@ -122,19 +136,16 @@ function api_auth() {
                         if (!is_numeric(strpos($value, '{'))) {
                             $required_segments[$key] = $value;
                         }
-
                     }
 
                     foreach ($current_uri_bits as $key => $value) {
-                   
+
                         if (isset($required_segments[$key])) {
 
                             if ($value !== $required_segments[$key]) {
                                 $segments_match = false;
                             }
-
                         }
-
                     }
 
                     if ($segments_match == true) {
@@ -143,7 +154,7 @@ function api_auth() {
                         $token_validation_data['module_name'] = $current_module;
                         $token_validation_data['module_endpoints'] = $endpoints;
 
-                        $api_class_location = APPPATH.'engine/Api.php';
+                        $api_class_location = APPPATH . 'engine/Api.php';
 
                         if (file_exists($api_class_location)) {
                             include_once $api_class_location;
@@ -151,29 +162,24 @@ function api_auth() {
                             $api_helper->_validate_token($token_validation_data);
                             $validation_complete = true;
                         }
-
                     }
 
                     if (isset($required_segments)) {
                         unset($required_segments);
                     }
-
                 }
-
             }
-            
         }
-
     }
 
     if ($validation_complete == false) {
         http_response_code(401);
-        echo "Invalid token."; die();
+        echo "Invalid token.";
+        die();
     }
-
 }
 
-function make_rand_str($strlen, $uppercase=false) {
+function make_rand_str($strlen, $uppercase = false) {
     $characters = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
     $random_string = '';
     for ($i = 0; $i < $strlen; $i++) {
@@ -186,8 +192,8 @@ function make_rand_str($strlen, $uppercase=false) {
     return $random_string;
 }
 
-function json($data, $kill_script=null) {
-    echo '<pre>'.json_encode($data, JSON_PRETTY_PRINT).'</pre>';
+function json($data, $kill_script = null) {
+    echo '<pre>' . json_encode($data, JSON_PRETTY_PRINT) . '</pre>';
 
     if (isset($kill_script)) {
         die();
