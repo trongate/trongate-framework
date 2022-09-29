@@ -161,7 +161,14 @@ function form_submit($name, $value=NULL, $attributes=NULL, $additional_code=NULL
         $value = $name;
     }
 
+    $inner_html = $value;
     if (isset($attributes)) {
+        foreach ($attributes as $key => $attribute_value) {
+            if (strtolower($key) == 'innerhtml') {
+                $inner_html = $attribute_value;
+                unset($attributes[$key]);
+            }
+        }
         $extra = get_attributes_str($attributes);
     }
 
@@ -169,7 +176,7 @@ function form_submit($name, $value=NULL, $attributes=NULL, $additional_code=NULL
         $extra.= ' '.$additional_code;
     }
 
-    return '<button type="submit" name="'.$name.'" value="'.$value.'"'.$extra.'>'.$value.'</button>';
+    return '<button type="submit" name="'.$name.'" value="'.$value.'"'.$extra.'>'. $inner_html.'</button>';
 
 }
 
