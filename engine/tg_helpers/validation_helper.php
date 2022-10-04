@@ -573,51 +573,15 @@ class Validation_helper {
 
 }
 
-function validation_errorsNEW($opening_html=NULL, $closing_html=NULL) {
-    if (isset($_SESSION['form_submission_errors'])) {
-        $form_submission_errors = $_SESSION['form_submission_errors'];
-        $closing_html = (isset($closing_html)) ? $closing_html : false;
-
-        if ((isset($opening_html)) && (gettype($closing_html == 'boolean'))) {
-            //build individual form field validation error(s)
-
-            if (isset($form_submission_errors[$opening_html])) {
-                echo '<div class="validation-error-report">';
-                echo 'you got this';
-
-            }
-
-            json($form_submission_errors);
-
-            $validation_err_str = $opening_html;
-        } else {
-            //normal error reporting
-            if (!isset($opening_html)) {
-                $opening_html = '<p style="color: red;">';
-                $closing_html = '</p>';
-            }
-
-            foreach($form_submission_errors as $form_submission_error) {
-                $validation_err_str.= $opening_html.$form_submission_error.$closing_html;
-            }
-
-            unset($_SESSION['form_submission_errors']);
-        }
-
-        return $validation_err_str;
-    }
-
-}
-
-
 function validation_errors($opening_html=NULL, $closing_html=NULL) {
+
     if (isset($_SESSION['form_submission_errors'])) {
         $validation_err_str = '';
         $validation_errors = [];
         $closing_html = (isset($closing_html)) ? $closing_html : false;
         $form_submission_errors = $_SESSION['form_submission_errors'];
 
-        if ((isset($opening_html)) && (gettype($closing_html == 'boolean'))) {
+        if ((isset($opening_html)) && (gettype($closing_html) == 'boolean')) {
             //build individual form field validation error(s)
             if (isset($form_submission_errors[$opening_html])) {
                 $validation_err_str.= '<div class="validation-error-report">';
