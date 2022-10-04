@@ -82,10 +82,10 @@ function nice_price($num) {
  * @author Special thanks to framex who posted this fix on the help-bar
  * @see https://trongate.io/help_bar/thread/h7W9QyPcsx69
  * 
- * @param value The string to be converted.
- * @param transliteration If you want to transliterate the string, set this to true.
+ * @param string value The string to be converted.
+ * @param bool transliteration If you want to transliterate the string, set this to true.
  * 
- * @return The slugified version of the string.
+ * @return string The slugified version of the string.
  */
 function url_title($value, $transliteration = true) {
     if (extension_loaded('intl') && $transliteration == true) {
