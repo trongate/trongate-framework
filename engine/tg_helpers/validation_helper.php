@@ -52,7 +52,7 @@ class Validation_helper {
                 $this->valid_email($validation_data);
                 break;
             case 'validate_file':
-                $this->validate_file($validation_data, $rules);
+                $this->validate_file($validation_data['key'], $validation_data['label'], $rules);
                 break;
             case 'valid_datepicker_us':
                 $this->valid_datepicker_us($validation_data);
