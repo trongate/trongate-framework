@@ -110,65 +110,28 @@ class Model {
         return $tables;
     }
 
-    public function get($order_by = NULL, $target_tbl = NULL, $limit = NULL, $offset = NULL) {
+    public function get($order_by=NULL, $target_tbl=NULL, $limit=NULL, $offset=NULL) {
 
-        $limit_results = false;
-
-        if (!isset($order_by)) {
-            $order_by = 'id';
-        }
+        $order_by = (!isset($order_by)) ? 'id' : $order_by;
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
         }
 
-        $all_tables = $this->_get_all_tables();
-        if (!in_array($target_tbl, $all_tables)) {
-            http_response_code(422);
-            echo 'invalid table name';
-            die();
-        } else {
-            $sql_x = 'DESCRIBE ' . $target_tbl;
-            $result_x = $this->query($sql_x, 'object');
-            $is_valid_order_by = false;
-            foreach ($result_x as $row_x) {
-                if ($row_x->Field == $order_by) {
-                    $is_valid_order_by = true;
-                }
-            }
-
-            if ($is_valid_order_by == false) {
-                echo 'invalid order by value';
-                die();
-            }
-        }
-
-
         $sql = "SELECT * FROM $target_tbl order by $order_by";
 
         if ((isset($limit)) && (isset($offset))) {
+            settype($limit, 'int');
+            settype($offset, 'int');
             $sql = $this->add_limit_offset($sql, $limit, $offset);
         }
 
         if ($this->debug == true) {
-
-            if ($limit_results == true) {
-                $data['limit'] = $limit;
-                $data['offset'] = $offset;
-            } else {
-                $data = [];
-            }
-
+            $data = [];
             $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
         }
 
         $stmt = $this->dbh->prepare($sql);
-
-        if ($limit_results == true) {
-            $stmt->bindValue(":limit", $limit, PDO::PARAM_INT);
-            $stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
-        }
-
         $stmt->execute();
         $query = $stmt->fetchAll(PDO::FETCH_OBJ);
         return $query;
