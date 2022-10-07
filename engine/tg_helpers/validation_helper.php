@@ -386,6 +386,8 @@ class Validation_helper {
             return;
         }
 
+        $forbidden_values[] = $posted_value;
+
         $bits = explode(',', $inner_value);
         if (count($bits) == 2) {
             $allowed_id = $bits[0];
@@ -400,15 +402,23 @@ class Validation_helper {
         require_once(__DIR__.'/../Model.php');
         $model = new Model();
 
-        $sql = 'select * from '.$table_name; //not passing into query to avoid SQl injection
+        $sql = 'select * from '.$table_name;
         $rows = $model->query($sql, 'object');
+
+        $forbidden_values[] = trim(strip_tags($posted_value));
+        $forbidden_values[] = preg_replace('/\s+/', ' ', $posted_value);
+
+        if (!defined('ALLOW_SPECIAL_CHARACTERS')) {
+            //filter out potentially malicious characters
+            $forbidden_values[] = remove_special_characters($posted_value);
+        }
 
         foreach($rows as $row) {
             $row_id = $row->id;
             $row_target_value = $row->$key;
-            if (($row->id !== $allowed_id) && ($row->$key == $posted_value)) {
-                $this->form_submission_errors[$key][] = 'The ' . $label . ' that you submitted is already on our system.';
-                break; 
+            if ((in_array($row_target_value, $forbidden_values)) && ($row->id !== $allowed_id)) {
+                $this->form_submission_errors[] = 'The ' . $label . ' that you submitted is already on our system.';
+                break;                 
             }
         }
     }

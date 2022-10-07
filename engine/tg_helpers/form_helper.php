@@ -276,6 +276,8 @@ function post($field_name, $clean_up=NULL) {
 
 function remove_special_characters($value) {
     $value = preg_replace('/[^(\x20-\x7F)]*/','', $value);
+    $charset = (defined('CHARSET')) ? CHARSET : 'UTF-8';
+    $value = htmlspecialchars($value, ENT_QUOTES, $charset);
     $var_type = gettype($value);
     switch (strtolower($var_type)) {
         case 'string':
