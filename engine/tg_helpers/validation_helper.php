@@ -417,7 +417,7 @@ class Validation_helper {
             $row_id = $row->id;
             $row_target_value = $row->$key;
             if ((in_array($row_target_value, $forbidden_values)) && ($row->id !== $allowed_id)) {
-                $this->form_submission_errors[] = 'The ' . $label . ' that you submitted is already on our system.';
+                $this->form_submission_errors[$key][] = 'The ' . $label . ' that you submitted is already on our system.';
                 break;                 
             }
         }
