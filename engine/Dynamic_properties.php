@@ -2,7 +2,7 @@
 trait Dynamic_properties {
     private $attributes = [];
     
-    public function __set(string $key, mixed $value): void {
+    public function __set(string $key, object $value): void {
         $this->attributes[$key] = $value;
     }
     
