@@ -152,7 +152,7 @@ th, td {
 }
 
 td:hover {
-    cursor: pointer;
+    cursor: auto;
 }
 
 tr:hover, tr:nth-child(odd):hover {
