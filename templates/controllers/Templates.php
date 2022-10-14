@@ -43,7 +43,7 @@ class Templates extends Trongate {
         $html = '';
         foreach ($files as $file) {
             $file_bits = explode('.', $file);
-            $filename_extension = $file_bits[count($file_bits)-1];
+            $filename_extension == $file_bits[count($file_bits)-1];
 
             if (($filename_extension !== 'js') && ($filename_extension !== 'css')) {
                 $html.= $file;
