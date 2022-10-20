@@ -486,6 +486,15 @@ class Model {
         }
     }
 
+    public function attempt_truncate($tablename) {
+        $num_rows = $this->count($tablename);
+
+        if ($num_rows == 0) {
+            $sql = 'TRUNCATE '.$tablename;
+            $this->query($sql);
+        }
+    }
+
     public function insert_batch($table, array $records) {
 
         //WARNING:  Never let your website visitors invoke this method!

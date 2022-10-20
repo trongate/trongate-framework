@@ -261,49 +261,12 @@ function post($field_name, $clean_up=NULL) {
 
         if (isset($clean_up)) {
             $value = trim(strip_tags($value));
-            $value = preg_replace('/\s+/', ' ', $value);
-
-            if (!defined('ALLOW_SPECIAL_CHARACTERS')) {
-                //filter out potentially malicious characters
-                $value = remove_special_characters($value);
-            }
+            $value = preg_replace("/[ ]+/", " ", $value);
+            $charset = (defined('CHARSET')) ? CHARSET : 'UTF-8';
+            $value = htmlspecialchars($value, ENT_QUOTES, $charset);
         }
 
     }
 
-    return $value;
-}
-
-function remove_special_characters($value) {
-    $value = preg_replace('/[^(\x20-\x7F)]*/','', $value);
-    $charset = (defined('CHARSET')) ? CHARSET : 'UTF-8';
-    $value = htmlspecialchars($value, ENT_QUOTES, $charset);
-    $var_type = gettype($value);
-    switch (strtolower($var_type)) {
-        case 'string':
-            $filter = FILTER_SANITIZE_STRING;
-            break;
-        case 'int':
-            $filter = FILTER_SANITIZE_NUMBER_INT;
-            break;
-        case 'decimal':
-            $filter = FILTER_SANITIZE_NUMBER_FLOAT;
-            break;
-        case 'float':
-            $filter = FILTER_SANITIZE_NUMBER_FLOAT;
-            break;
-        case 'encoded':
-            $filter = FILTER_SANITIZE_ENCODED;
-            break;
-        case 'url':
-            $filter = FILTER_SANITIZE_URL;
-            break;
-        case 'email':
-            $filter = FILTER_SANITIZE_EMAIL;
-            break;
-        default:
-            $filter = FILTER_SANITIZE_STRING;
-    }
-    $value = filter_var($value, $filter);
     return $value;
 }
