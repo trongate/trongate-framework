@@ -264,6 +264,11 @@ function post($field_name, $clean_up=NULL) {
             $value = preg_replace("/[ ]+/", " ", $value);
             $charset = (defined('CHARSET')) ? CHARSET : 'UTF-8';
             $value = htmlspecialchars($value, ENT_QUOTES, $charset);
+
+            if (is_numeric($value)) {
+                $var_type = (is_numeric(strpos($value, '.'))) ? 'double' : 'int';
+                settype($value, $var_type);
+            }
         }
 
     }
