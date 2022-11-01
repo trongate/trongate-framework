@@ -1,11 +1,11 @@
 <?php
 class Model {
-
+    
     private $host = HOST;
     private $user = USER;
     private $pass = PASSWORD;
     private $dbname = DATABASE;
-
+        
     private $dbh;
     private $stmt;
     private $error;
@@ -18,10 +18,10 @@ class Model {
         if (defined('DEBUG')) {
             $this->debug = DEBUG;
         }
-
+        
         $this->current_module = $current_module;
 
-        $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
+        $dsn = DRIVER.':host=' . $this->host . ';dbname=' . $this->dbname;
         $options = array(
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
