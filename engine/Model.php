@@ -424,7 +424,8 @@ class Model {
             $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
         }
 
-        $this->prepare_and_execute($sql, $data);
+        $count = $this->prepare_and_execute($sql, $data);
+        return $count;
     }
 
     public function delete($id, $target_tbl = NULL) {
