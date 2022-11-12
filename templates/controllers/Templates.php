@@ -48,7 +48,7 @@ class Templates extends Trongate {
             if (($filename_extension !== 'js') && ($filename_extension !== 'css')) {
                 $html.= $file;
             } else {
-                if ($filename_extension = 'js') {
+                if ($filename_extension == 'js') {
                     $html.= $this->_build_js_include_code($file);
                 } else {
                    $html.= $this->_build_css_include_code($file);
