@@ -15,6 +15,11 @@ class Validation_helper {
             $posted_value = $_FILES[$key];
             $tests_to_run[] = 'validate_file';
         } else {
+
+            if (isset($_POST[$key])) {
+                $_POST[$key] = trim($_POST[$key]);
+            }
+
             $posted_value = isset($_POST[$key]) ? $_POST[$key] : '';
             $tests_to_run = $this->get_tests_to_run($rules);
         }
