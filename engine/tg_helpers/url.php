@@ -199,3 +199,7 @@ function json($data, $kill_script = null) {
         die();
     }
 }
+
+function ip_address() {
+    return $_SERVER['REMOTE_ADDR'];
+}

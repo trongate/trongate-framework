@@ -321,8 +321,4 @@ class Trongate {
         }
     }
 
-    public function ip_address() {
-        return $_SERVER['REMOTE_ADDR'];
-    }
-
 }
