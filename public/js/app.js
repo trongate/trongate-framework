@@ -101,7 +101,9 @@ if (slideNavLinks !== null) {
     var autoPopulateSlideNav = slideNavLinks.getAttribute("auto-populate");
     if (autoPopulateSlideNav == "true") {
         var navLinks = document.querySelector("#top-nav");
-        slideNavLinks.innerHTML = navLinks.innerHTML;
+        if (navLinks !== null) {
+            slideNavLinks.innerHTML = navLinks.innerHTML;
+        }
     }
 
     body.addEventListener('click', (ev) => {
