@@ -7,7 +7,6 @@ class Core {
     protected $current_value = '';
 
     public function __construct() {
-
         if (strpos(ASSUMED_URL, '/vendor/')) {
             $this->serve_vendor_asset();
         } elseif(strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER) === false) {
@@ -15,7 +14,6 @@ class Core {
         } else {
             $this->serve_module_asset();
         }
-
     }
 
     private function serve_vendor_asset() {

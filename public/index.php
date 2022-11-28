@@ -1,5 +1,5 @@
 <?php
-require_once '../engine/bootstrap.php';
+require_once '../engine/ignition.php';
 
 //Init Core Library
 $init = new Core;

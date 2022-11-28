@@ -4,6 +4,10 @@ class Validation_helper {
     public $form_submission_errors = [];
     public $posted_fields = [];
 
+    public function say_hello() {
+        echo 'hello from validation helper'; die();
+    }
+
     public function set_rules($key, $label, $rules) {
 
         if ((!isset($_POST[$key])) && (isset($_FILES[$key]))) {
