@@ -1,4 +1,44 @@
 <?php
+session_start();
+require_once '../config/config.php';
+require_once '../config/custom_routing.php';
+require_once '../config/database.php';
+require_once '../config/site_owner.php';
+require_once '../config/themes.php';
+
+spl_autoload_register(function($class_name) {
+
+    if (strpos($class_name, '_helper')) {
+        $class_name = 'tg_helpers/'.$class_name;
+    }
+
+    require_once $class_name . '.php';
+});
+
+function load($template_file, $data=NULL) {
+    //load template view file
+    if (isset(THEMES[$template_file])) {
+        $theme_dir = THEMES[$template_file]['dir'];
+        $template = THEMES[$template_file]['template'];
+        $file_path = APPPATH.'public/themes/'.$theme_dir.'/'.$template;
+        define('THEME_DIR', BASE_URL.'themes/'.$theme_dir.'/');
+    } else {
+        $file_path = APPPATH.'templates/views/'.$template_file.'.php';
+    }
+
+    if (file_exists($file_path)) {
+
+        if (isset($data)) {
+            extract($data);
+        }
+
+        require_once($file_path);
+
+    } else {
+        die('<br><b>ERROR:</b> View file does not exist at: '.$file_path);
+    }
+}
+
 function get_segments($ignore_custom_routes=NULL) {
 
     //figure out how many segments need to be ditched
@@ -87,7 +127,15 @@ function attempt_return_nice_url($target_url) {
     return $target_url;
 }
 
+define('APPPATH', str_replace("\\", "/", dirname(dirname(__FILE__)).'/'));
+define('REQUEST_TYPE', $_SERVER['REQUEST_METHOD']);
+$tg_helpers = ['form_helper', 'flashdata_helper', 'img_helper', 'url_helper', 'validation_helper'];
+define('TRONGATE_HELPERS', $tg_helpers);
 $data = get_segments();
-
 define('SEGMENTS', $data['segments']);
 define('ASSUMED_URL', $data['assumed_url']);
+
+//load the helper classes
+foreach (TRONGATE_HELPERS as $tg_helper) {
+    require_once 'tg_helpers/'.$tg_helper.'.php';
+}

@@ -152,7 +152,7 @@ th, td {
 }
 
 td:hover {
-    cursor: pointer;
+    cursor: auto;
 }
 
 tr:hover, tr:nth-child(odd):hover {
@@ -197,6 +197,30 @@ hr {
     max-width: 940px;
     margin: 0 auto;
     padding: 1em;
+}
+
+.container-xxs {
+  max-width: 450px;
+}
+
+.container-xs {
+  max-width: 640px;
+}
+
+.container-sm {
+  max-width: 760px;
+}
+
+.container-lg {
+    max-width: 960px;
+}
+
+.container-xl {
+  max-width: 1100px;
+}
+
+.container-xxl {
+  max-width: 1300px;
 }
 
 .pagination {

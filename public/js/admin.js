@@ -434,7 +434,9 @@ var slideNavLinks = document.querySelector("#slide-nav ul");
 var autoPopulateSlideNav = slideNavLinks.getAttribute("auto-populate");
 if (autoPopulateSlideNav == "true") {
     var leftNavLinks = document.querySelector("#left-nav ul");
-    slideNavLinks.innerHTML = leftNavLinks.innerHTML;
+    if (leftNavLinks !== null) {
+        slideNavLinks.innerHTML = leftNavLinks.innerHTML;
+    }
 }
 
 body.addEventListener('click', (ev) => {

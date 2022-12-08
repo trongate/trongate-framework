@@ -8,7 +8,7 @@ foreach ($file_validation_rules as $file_validation_rule) {
     $file_checks_to_run[$file_validation_test] = $rule_content;
 }
 
-$target_file = get_target_file($key); 
+$target_file = get_target_file();
 $target_file = $_FILES[$target_file];
 $temp_file_name = $target_file['tmp_name'];
 $file_size = $target_file['size']/1000; //kilobytes)
@@ -136,7 +136,7 @@ function check_file_size($file_size, $file_check_value) {
     return $result;
 }
 
-function get_target_file($key) {
-    $userfile = array_keys($_FILES)[$key];
+function get_target_file() {
+    $userfile = array_keys($_FILES)[0];
     return $userfile;
 }

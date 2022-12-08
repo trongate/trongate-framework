@@ -5,28 +5,18 @@ class Trongate {
 
     protected $modules;
     protected $model;
-    protected $validation_helper;
     protected $url;
     protected $module_name;
     protected $parent_module = '';
     protected $child_module = '';
 
     public function __construct($module_name=NULL) {
-    
         $this->module_name = $module_name;
         $this->modules = new Modules;
-
-        //load the helper classes
-        foreach (TRONGATE_HELPERS as $tg_helper) {
-            require_once 'tg_helpers/'.$tg_helper.'.php';
-        }
-
-        $this->validation_helper = new Validation_helper;
 
         //load the model class
         require_once 'Model.php';
         $this->model = new Model($module_name);
-
     }
 
     public function load($helper) {
@@ -177,152 +167,11 @@ class Trongate {
     }
 
     public function upload_picture($data) {
-
-        if (!isset($data['upload_to_module'])) {
-            $data['upload_to_module'] = false;
-        }
-
-        //check for valid image width and mime type
-        $userfile = array_keys($_FILES)[0];
-        $target_file = $_FILES[$userfile];
-
-        $dimension_data = getimagesize($target_file['tmp_name']);
-        $image_width = $dimension_data[0];
-
-        if (!is_numeric($image_width)) {
-            die('ERROR: non numeric image width');
-        }
-
-        $content_type = mime_content_type($target_file['tmp_name']);
-
-        $str = substr($content_type, 0, 6);
-        if ($str !== 'image/') {
-            die('ERROR: not an image.');
-        }
-
-        $tmp_name = $target_file['tmp_name'];
-        $data['image'] = new Image($tmp_name);
-        $data['tmp_file_width'] = $data['image']->getWidth();
-        $data['tmp_file_height'] = $data['image']->getHeight();
-
-        if ($data['upload_to_module'] == true) {
-            $target_module = (isset($data['targetModule']) ? $data['targetModule'] : segment(1));
-            $data['filename'] = '../modules/'.$target_module.'/assets/'.$data['destination'].'/'.$target_file['name'];
-        } else {
-            $data['filename'] = '../public/'.$data['destination'].'/'.$target_file['name'];
-        }
-
-        if (!isset($data['max_width'])) {
-            $data['max_width'] = NULL;
-        }
-
-        if (!isset($data['max_height'])) {
-            $data['max_height'] = NULL;
-        }
-
-        $this->save_that_pic($data);
-       
-        //rock the thumbnail
-        if ((isset($data['thumbnail_max_width'])) && (isset($data['thumbnail_max_height'])) && (isset($data['thumbnail_dir']))) {
-            $ditch = $data['destination'];
-            $replace = $data['thumbnail_dir'];
-            $data['filename'] = str_replace($ditch, $replace, $data['filename']);
-            $data['max_width'] = $data['thumbnail_max_width'];
-            $data['max_height'] = $data['thumbnail_max_height'];
-            $this->save_that_pic($data);
-        }
+        $this->img_helper->upload($data); 
     }
 
-    private function save_that_pic($data) {
-        extract($data);
-        $reduce_width = false;
-        $reduce_height = false;
-
-        if (!isset($data['compression'])) {
-            $compression = 100;
-        } else {
-            $compression = $data['compression'];
-        }
-
-        if (!isset($data['permissions'])) {
-            $permissions = 775;
-        } else {
-            $permissions = $data['permissions'];
-        }
-
-        //do we need to resize the picture?
-        if ((isset($max_width)) && ($tmp_file_width>$max_width)) {
-            $reduce_width = true;
-            $resize_factor_w = $tmp_file_width / $max_width;
-        }
-
-        if ((isset($max_height)) && ($tmp_file_width>$max_height)) {
-            $reduce_height = true;
-            $resize_factor_h = $tmp_file_height / $max_height;
-        }        
-
-        if ((isset($resize_factor_w)) && (isset($resize_factor_h))) {
-            if ($resize_factor_w > $resize_factor_h) {
-                $reduce_height = false;
-            } else {
-                $reduce_width = false;
-            }
-        }
-
-        //either do the height resize or the width resize - never both
-        if ($reduce_width == true) {
-            $image->resizeToWidth($max_width);
-        } elseif($reduce_height == true) {
-            $image->resizeToHeight($max_height);
-        }
-
-        $image->save($filename, $compression);
-    }
-
-    public function upload_file($config) {
-        extract($config);
-
-        if (!isset($destination)) {
-            die('ERROR: upload requires inclusion of \'destination\' property.  Check documentation for details.');
-        }
-
-        $userfile = array_keys($_FILES)[0];
-        $target_file = $_FILES[$userfile];
-
-        if (!isset($new_file_name)) {
-            $new_file_name = $target_file['name'];
-        } elseif ($new_file_name === true) {
-            $characters = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
-            $randomString = '';
-            for ($i = 0; $i < 10; $i++) {
-                $randomString .= $characters[rand(0, strlen($characters) - 1)];
-            }
-
-            $new_file_name = $randomString;
-        }
-
-        $bits = explode('.', $target_file['name']);
-        $file_extension = '.'.$bits[count($bits)-1];
-
-        $new_file_name = str_replace($file_extension, '', $new_file_name);
-        $new_file_name = ltrim(trim(filter_var($new_file_name, FILTER_SANITIZE_STRING)));
-        $new_file_name.= $file_extension;
-
-        //make sure the destination folder exists
-        $target_destination = '../public/'.$destination;
-
-        if (is_dir($target_destination)) {
-            //upload the temp file to the destination
-            $new_file_path = $target_destination.'/'.$new_file_name;
-            move_uploaded_file($target_file['tmp_name'], $new_file_path);
-
-        } else {
-            die('ERROR: Unable to find target file destination: $destination');
-        }
-    }
-
-    public function ip_address() {
-        return $_SERVER['REMOTE_ADDR'];
+    public function upload_file($data) {
+        $this->img_helper->upload($data); 
     }
 
 }

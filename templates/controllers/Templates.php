@@ -42,14 +42,17 @@ class Templates extends Trongate {
 
         $html = '';
         foreach ($files as $file) {
+            $file_bits = explode('.', $file);
+            $filename_extension = $file_bits[count($file_bits)-1];
 
-            $last_four = substr($file, -4);
-            
-            if ($last_four == '.css') {
-                $html.= $this->_build_css_include_code($file);
-                
+            if (($filename_extension !== 'js') && ($filename_extension !== 'css')) {
+                $html.= $file;
             } else {
-               $html.= $this->_build_js_include_code($file);
+                if ($filename_extension == 'js') {
+                    $html.= $this->_build_js_include_code($file);
+                } else {
+                   $html.= $this->_build_css_include_code($file);
+                }   
             }
 
             $html.= '
@@ -59,6 +62,7 @@ class Templates extends Trongate {
         $html = trim($html);
         $html.= '
 ';
+
         return $html;
     }
 
