@@ -42,6 +42,11 @@ a:hover {
     color: var(--primary-dark);
 }
 
+img {
+    max-width: 100%;
+    height: auto;
+}
+
 input[type="text"], input[type="number"], input[type="email"], input[type="password"], select, textarea {
     padding: 0.6em 0.6em;
     font-size: 1em;
