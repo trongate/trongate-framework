@@ -272,14 +272,15 @@ class Trongate_tokens extends Trongate {
         return $random_string;
     }
 
-    function _generate_rand_str() {
-        $token_length = 32;
-        $characters = '-_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $random_string = '';
-        for ($i = 0; $i < $token_length; $i++) {
-            $random_string .= $characters[mt_rand(0, strlen($characters) - 1)];
+    function _generate_rand_str($length = 32) {
+        $token_length = ($length / 2);
+
+        try {
+            $random_bytes = random_bytes($token_length); # (PHP > 7.0)
+        } catch (\Exception) {
+            exit("Appropriate source of randomness cannot be found");
         }
-        return $random_string;
+        return bin2hex($random_bytes);
     }
 
     function regenerate() {
