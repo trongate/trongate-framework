@@ -179,7 +179,7 @@ function api_auth() {
     }
 }
 
-function make_rand_str($length, $uppercase = false) {
+function make_rand_str($length = 32, $uppercase = false) {
     $random_string_length = ($length / 2);
 
     try {
