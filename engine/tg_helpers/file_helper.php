@@ -14,13 +14,7 @@ class File_helper {
         if (!isset($new_file_name)) {
             $new_file_name = $target_file['name'];
         } elseif ($new_file_name === true) {
-            $characters = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
-            $randomString = '';
-            for ($i = 0; $i < 10; $i++) {
-                $randomString .= $characters[rand(0, strlen($characters) - 1)];
-            }
-
-            $new_file_name = $randomString;
+            $new_file_name = make_rand_str(10);
         }
 
         $bits = explode('.', $target_file['name']);
