@@ -189,7 +189,7 @@ function make_rand_str($length = 32, $uppercase = false) {
     }
     $random_string = bin2hex($random_bytes);
 
-    if ($uppercase) {
+    if ($uppercase === true) {
         $random_string = strtoupper($random_string);
     }
     return $random_string;
