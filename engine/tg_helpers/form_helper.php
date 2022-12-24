@@ -260,10 +260,7 @@ function post($field_name, $clean_up=NULL) {
         $value = $_POST[$field_name];
 
         if (isset($clean_up)) {
-            $value = trim(strip_tags($value));
-            $value = preg_replace("/[ ]+/", " ", $value);
-            $charset = (defined('CHARSET')) ? CHARSET : 'UTF-8';
-            $value = htmlspecialchars($value, ENT_QUOTES, $charset);
+            $value = filter_string($value);
 
             if (is_numeric($value)) {
                 $var_type = (is_numeric(strpos($value, '.'))) ? 'double' : 'int';
@@ -274,4 +271,17 @@ function post($field_name, $clean_up=NULL) {
     }
 
     return $value;
+}
+
+function filter_string($string) {
+    // Apply XSS filtering
+    $string = strip_tags(htmlspecialchars($string));
+
+    // Convert double spaces to single spaces
+    $string = preg_replace('/\s+/', ' ', $string);
+
+    // Trim leading and trailing white space
+    $string = trim($string);
+
+    return $string;
 }
