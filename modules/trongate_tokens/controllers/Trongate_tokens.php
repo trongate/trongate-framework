@@ -247,7 +247,7 @@ class Trongate_tokens extends Trongate {
          */
 
         //generate 32 digit random string
-        $random_string = $this->_generate_rand_str();
+        $random_string = make_rand_str();
 
         //build data array variables (required for table insert)
         if (!isset($data['expiry_date'])) {
@@ -272,16 +272,6 @@ class Trongate_tokens extends Trongate {
         return $random_string;
     }
 
-    function _generate_rand_str() {
-        $token_length = 32;
-        $characters = '-_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $random_string = '';
-        for ($i = 0; $i < $token_length; $i++) {
-            $random_string .= $characters[mt_rand(0, strlen($characters) - 1)];
-        }
-        return $random_string;
-    }
-
     function regenerate() {
         $old_token = segment(3);
         $expiry_date = segment(4);
@@ -300,7 +290,7 @@ class Trongate_tokens extends Trongate {
         if ($num_rows>0) {
             $this_token = $tokens[0];
             $update_id = $this_token->id;
-            $new_token = $this->_generate_rand_str();
+            $new_token = make_rand_str();
 
             $new_data['user_id'] = $this_token->user_id;
             $new_data['code'] = $this_token->code;

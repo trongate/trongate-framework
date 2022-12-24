@@ -179,14 +179,17 @@ function api_auth() {
     }
 }
 
-function make_rand_str($strlen, $uppercase = false) {
-    $characters = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
-    $random_string = '';
-    for ($i = 0; $i < $strlen; $i++) {
-        $random_string .= $characters[mt_rand(0, strlen($characters) - 1)];
-    }
+function make_rand_str($length = 32, $uppercase = false) {
+    $random_string_length = ($length / 2);
 
-    if ($uppercase == true) {
+    try {
+        $random_bytes = random_bytes($random_string_length);
+    } catch (\Exception) {
+        exit("Appropriate source of randomness cannot be found");
+    }
+    $random_string = bin2hex($random_bytes);
+
+    if ($uppercase === true) {
         $random_string = strtoupper($random_string);
     }
     return $random_string;
