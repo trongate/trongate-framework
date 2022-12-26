@@ -273,9 +273,49 @@ function post($field_name, $clean_up=NULL) {
     return $value;
 }
 
-function filter_string($string) {
+    /*
+        IMPORTANT NOTE REGARDING STRIP_TAGS():
+
+        It's possible that you may have to write and use your own, unique 
+        string filter methods depending on your specific use case. With this 
+        being the case, please note that strip_tags function has an optional 
+        second argument, which is a string of allowed HTML tags and attributes. 
+        If you want to allow certain HTML tags or attributes in the string, 
+        you can pass a list of allowed tags and attributes as the second argument.
+
+        Example 1: 
+
+                    $string = '<p>This is a <strong>test</strong> string.</p>';
+                    $filtered_string = strip_tags($string, '<strong>');
+                    echo $filtered_string;  // Outputs: "This is a <strong>test</strong> string."
+
+        Example 2:
+                    In this example, we allow both 'strong' tags and 'em' tags...
+
+                    $string = '<p>This is a <strong>test</strong> string.</p>';
+                    $filtered_string = strip_tags($string, '<strong><em>');
+                    echo $filtered_string;  // Outputs: "This is a <strong>test</strong> string."
+
+        Example 3:
+                    In this example, we allow the style attribute for the <em> tag...
+
+                    $string = '<p>This is a <strong>test</strong> string.</p><em style="color:red">Emphasis</em>';
+                    $filtered_string = strip_tags($string, '<strong><em style>');
+                    echo $filtered_string;  // Outputs: "This is a <strong>test</strong> string.<em style="color:red">Emphasis</em>"
+
+        FINALLY 
+                   If you pass an array of allowed tags into strip_tags, before a database insert, 
+                   use html_entity_decode() when displaying the stored string in the browser. 
+    */
+
+function filter_string($string, $allowed_tags=[]) {
+    //Potentially suitable for filtering data submitted via textarea.
+
+    //remove HTML & PHP tags (please read note above for more!)
+    $string = strip_tags($string, $allowed_tags);
+
     // Apply XSS filtering
-    $string = strip_tags(htmlspecialchars($string));
+    $string = htmlspecialchars($string);
 
     // Convert double spaces to single spaces
     $string = preg_replace('/\s+/', ' ', $string);
@@ -284,4 +324,33 @@ function filter_string($string) {
     $string = trim($string);
 
     return $string;
+}
+
+function filter_name($name, $allowed_chars=[]) {
+    //Similar to filter_string() but better suited for usernames etc
+
+    //remove HTML & PHP tags (please read note above for more!)
+    $name = strip_tags($name);
+
+    // Apply XSS filtering
+    $name = htmlspecialchars($name);
+
+    // Create a regex pattern that includes the allowed characters
+    $pattern = '/[^a-zA-Z0-9\s';
+
+    if (!empty($allowed_chars)) {
+      $pattern .= '[' . implode('', $allowed_chars) . ']';
+    }
+    $pattern .= '/';
+
+    // Replace any characters that are not in the allowed list
+    $name = preg_replace($pattern, '', $name);
+
+    // Convert double spaces to single spaces
+    $name = preg_replace('/\s+/', ' ', $name);
+
+    // Trim leading and trailing white space
+    $name = trim($name);
+
+    return $name;
 }
