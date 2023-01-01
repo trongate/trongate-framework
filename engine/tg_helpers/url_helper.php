@@ -180,20 +180,17 @@ function api_auth() {
 }
 
 function make_rand_str($length = 32, $uppercase = false) {
-    $random_string_length = ($length / 2);
-
-    try {
-        $random_bytes = random_bytes($random_string_length);
-    } catch (\Exception) {
-        exit("Appropriate source of randomness cannot be found");
+    $characters = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+        $randomByte = random_bytes(1);
+        $randomInt = ord($randomByte) % $charactersLength;
+        $randomString .= $characters[$randomInt];
     }
-    $random_string = bin2hex($random_bytes);
-
-    if ($uppercase === true) {
-        $random_string = strtoupper($random_string);
-    }
-    return $random_string;
+    return $uppercase ? strtoupper($randomString) : $randomString;
 }
+
 
 function json($data, $kill_script = null) {
     echo '<pre>' . json_encode($data, JSON_PRETTY_PRINT) . '</pre>';
