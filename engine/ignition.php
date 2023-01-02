@@ -12,7 +12,13 @@ spl_autoload_register(function($class_name) {
         $class_name = 'tg_helpers/'.$class_name;
     }
 
-    require_once $class_name . '.php';
+    $target_filename = realpath(__DIR__.'/'.$class_name.'.php');
+
+    if (file_exists($target_filename)) {
+        return require_once($target_filename);
+    }
+
+    return false;
 });
 
 function load($template_file, $data=NULL) {
