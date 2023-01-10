@@ -171,7 +171,7 @@ class Trongate {
     }
 
     public function upload_file($data) {
-        $this->img_helper->upload($data); 
+        $this->file_helper->upload($data); 
     }
 
 }

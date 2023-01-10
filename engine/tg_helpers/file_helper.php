@@ -11,18 +11,21 @@ class File_helper {
         $userfile = array_keys($_FILES)[0];
         $target_file = $_FILES[$userfile];
 
-        if (!isset($new_file_name)) {
-            $new_file_name = $target_file['name'];
-        } elseif ($new_file_name === true) {
-            $new_file_name = make_rand_str(10);
+        if(!isset($make_rand_name)) {
+            $make_rand_name = false;
         }
 
-        $bits = explode('.', $target_file['name']);
-        $file_extension = '.'.$bits[count($bits)-1];
+        $new_file_name = ($make_rand_name === true) ? make_rand_str(10) : $target_file['name'];
 
-        $new_file_name = str_replace($file_extension, '', $new_file_name);
-        $new_file_name = ltrim(trim(filter_var($new_file_name, FILTER_SANITIZE_STRING)));
-        $new_file_name.= $file_extension;
+        if ($make_rand_name === true) {
+            //add file extension onto rand file name
+            $bits = explode('.', $target_file['name']);
+            $file_extension = '.'.$bits[count($bits)-1];
+
+            $new_file_name = str_replace($file_extension, '', $new_file_name);
+            $new_file_name = ltrim(trim(filter_var($new_file_name, FILTER_SANITIZE_STRING)));
+            $new_file_name.= $file_extension;
+        }
 
         //make sure the destination folder exists
         $target_destination = '../public/'.$destination;
