@@ -135,7 +135,7 @@ function attempt_return_nice_url($target_url) {
 
 define('APPPATH', str_replace("\\", "/", dirname(dirname(__FILE__)).'/'));
 define('REQUEST_TYPE', $_SERVER['REQUEST_METHOD']);
-$tg_helpers = ['form_helper', 'flashdata_helper', 'img_helper', 'url_helper', 'validation_helper'];
+$tg_helpers = ['form_helper', 'flashdata_helper', 'file_helper', 'img_helper', 'url_helper', 'validation_helper'];
 define('TRONGATE_HELPERS', $tg_helpers);
 $data = get_segments();
 define('SEGMENTS', $data['segments']);
