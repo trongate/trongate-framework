@@ -94,9 +94,18 @@ function url_title($value, $transliteration = true) {
     }
     $slug = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
     $slug = preg_replace('~[^\pL\d]+~u', '-', $slug);
-    $slug = trim($slug, '-');
+    $slug = trim($slug, '- ');
     $slug = strtolower($slug);
     return $slug;
+}
+
+function return_file_info($file_string) {
+    // Get the file extension
+    $file_extension = pathinfo($file_string, PATHINFO_EXTENSION);
+    // Get the file name without the extension
+    $file_name = str_replace("." . $file_extension, "", $file_string);
+    // Return an array containing the file name and file extension
+    return array("file_name" => $file_name, "file_extension" => "." . $file_extension);
 }
 
 function api_auth() {
