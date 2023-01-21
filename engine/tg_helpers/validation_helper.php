@@ -6,6 +6,8 @@ class Validation_helper {
 
     public function set_rules($key, $label, $rules) {
 
+        $this->csrf_protect();
+
         if ((!isset($_POST[$key])) && (isset($_FILES[$key]))) {
 
             if (!isset($_POST[$key])) {
@@ -558,6 +560,29 @@ class Validation_helper {
     }
 
     private function validate_file($key, $label, $rules) {
+        if(!isset($_FILES[$key])) {
+            $this->handle_missing_file_error($key, $label);
+            return;
+        }
+        if ($_FILES[$key]['name'] == '') {
+            $this->handle_empty_file_error($key, $label);
+            return;
+        }
+        $this->run_file_validation($key, $rules);
+    }
+
+    private function handle_missing_file_error($key, $label) {
+        $error_msg = 'You are required to select a file.';
+        $this->form_submission_errors[$key][] = $error_msg;
+    }
+
+    private function handle_empty_file_error($key, $label) {
+        $error_msg = 'You did not select a file.';
+        $this->form_submission_errors[$key][] = $error_msg;
+    }
+
+    private function run_file_validation($key, $rules) {
+        // file validation logic here
         require_once('file_validation_helper.php');
     }
 
@@ -611,6 +636,25 @@ class Validation_helper {
         return $value;
     }
 
+    private function csrf_protect() {
+        //make sure they have posted csrf_token
+        if (!isset($_POST['csrf_token'])) {
+            $this->csrf_block_request();
+        } else {
+            $result = password_verify(session_id(), $_POST['csrf_token']);
+            if ($result == false) {
+                $this->csrf_block_request();
+            }
+
+            unset($_POST['csrf_token']);
+        }
+    }
+
+    private function csrf_block_request() {
+        header("location: ".BASE_URL);
+        die();
+    }    
+
 }
 
 function validation_errors($opening_html=NULL, $closing_html=NULL) {
@@ -656,4 +700,5 @@ function validation_errors($opening_html=NULL, $closing_html=NULL) {
         }
         echo $validation_err_str;
     }
+
 }
