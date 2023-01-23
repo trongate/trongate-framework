@@ -6,8 +6,6 @@ class Validation_helper {
 
     public function set_rules($key, $label, $rules) {
 
-        $this->csrf_protect();
-
         if ((!isset($_POST[$key])) && (isset($_FILES[$key]))) {
 
             if (!isset($_POST[$key])) {
@@ -88,6 +86,8 @@ class Validation_helper {
     }
 
     public function run($validation_array=null) {
+
+        $this->csrf_protect();
 
         if (isset($_SESSION['form_submission_errors'])) {
             unset($_SESSION['form_submission_errors']);
