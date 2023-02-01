@@ -76,7 +76,7 @@ class Validation_helper {
                 break;
             case 'unique':
                 $inner_value = $validation_data['inner_value'] ?? 0;
-                $this->unique($validation_data, $inner_value);
+                $this->unique($validation_data['key'], $validation_data['label'], $validation_data['posted_value'], $inner_value);
                 break;
             default:
                 $this->run_special_test($validation_data);
