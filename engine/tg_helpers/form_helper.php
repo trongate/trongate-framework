@@ -337,8 +337,8 @@ function filter_name($name, $allowed_chars=[]) {
 
     // Create a regex pattern that includes the allowed characters
     $pattern = '/[^a-zA-Z0-9\s';
-    $pattern .= !empty($allowed_chars) ? '[' . implode('', $allowed_chars) . ']' : ']';
-    $pattern .= '/';
+    $pattern .= !empty($allowed_chars) ? implode('', $allowed_chars) : '';
+    $pattern .= ']/';
 
     // Replace any characters that are not in the allowed list
     $name = preg_replace($pattern, '', $name);
