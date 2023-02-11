@@ -317,8 +317,8 @@ function filter_string($string, $allowed_tags=[]) {
     // Apply XSS filtering
     $string = htmlspecialchars($string);
 
-    // Convert double spaces to single spaces
-    $string = preg_replace('/\s+/', ' ', $string);
+    // Convert multiple consecutive whitespaces to a single space, except for line breaks
+    $string = preg_replace('/[^\S\r\n]+/', ' ', $string);
 
     // Trim leading and trailing white space
     $string = trim($string);
