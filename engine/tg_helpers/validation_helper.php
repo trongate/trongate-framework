@@ -74,10 +74,6 @@ class Validation_helper {
             case 'valid_time':
                 $this->valid_time($validation_data);
                 break;
-            case 'unique':
-                $inner_value = $validation_data['inner_value'] ?? 0;
-                $this->unique($validation_data, $inner_value);
-                break;
             default:
                 $this->run_special_test($validation_data);
                 break;
@@ -387,50 +383,6 @@ class Validation_helper {
         }
     }
 
-    private function unique($key, $label, $posted_value, $inner_value=null) {
-
-        if ($posted_value == '') {
-            return;
-        }
-
-        $forbidden_values[] = $posted_value;
-
-        $bits = explode(',', $inner_value);
-        if (count($bits) == 2) {
-            $allowed_id = $bits[0];
-            $table_name = $bits[1];
-        } else {
-            $allowed_id = $inner_value;
-            $table_name = SEGMENTS[1];
-        }
-
-        settype($allowed_id, 'int');
-
-        require_once(__DIR__.'/../Model.php');
-        $model = new Model();
-
-        $sql = 'select * from '.$table_name;
-        $rows = $model->query($sql, 'object');
-
-        $forbidden_values[] = trim(strip_tags($posted_value));
-        $forbidden_values[] = preg_replace('/\s+/', ' ', $posted_value);
-
-        if (!defined('ALLOW_SPECIAL_CHARACTERS')) {
-            //filter out potentially malicious characters
-            $forbidden_values[] = remove_special_characters($posted_value);
-        }
-
-        foreach($rows as $row) {
-            $row_id = $row->id;
-            $row_target_value = $row->$key;
-            if ((in_array($row_target_value, $forbidden_values)) && ($row->id !== $allowed_id)) {
-                $this->form_submission_errors[$key][] = 'The ' . $label . ' that you submitted is already on our system.';
-                break;                 
-            }
-        }
-    }
-
-
     private function greater_than($key, $label, $posted_value, $inner_value) {
 
         if (((is_numeric($_POST[$key])) && ($_POST[$key]<=$inner_value)) && ($posted_value !== '')) {
@@ -522,9 +474,6 @@ class Validation_helper {
                     break;
                 case 'max_length':
                     $this->max_length($key, $label, $posted_value, $inner_value);
-                    break;
-                case 'unique':
-                    $this->unique($key, $label, $posted_value, $inner_value);
                     break;
                 case 'greater_than':
                     $this->greater_than($key, $label, $posted_value, $inner_value);
