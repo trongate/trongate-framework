@@ -19,7 +19,7 @@ class Trongate_user_levels extends Trongate {
         $data['user_id'] = $user_id;
         $result = $this->model->query_bind($sql, $data, 'array');
         
-        $user_level = $result[0]['user_level'] ?? '';
+        $user_level = $result[0]['level_title'] ?? '';
 
         return $user_level;
     }
