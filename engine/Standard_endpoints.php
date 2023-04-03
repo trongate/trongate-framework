@@ -899,6 +899,7 @@ class Standard_endpoints extends Trongate {
 
     private function fetch_query_params_from_url() {
         $query_str = parse_url(urldecode(current_url()), PHP_URL_QUERY);
+        settype($query_str, 'string');
         $query_params = [];
         $query_str_bits = explode('&', $query_str);
         $operators = $this->operators;
