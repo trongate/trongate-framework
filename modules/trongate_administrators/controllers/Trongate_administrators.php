@@ -315,7 +315,7 @@ class Trongate_administrators extends Trongate {
 
     function username_check($str) {
         //NOTE: You may wish to add other rules of your own here! 
-        $update_id =  segment(3);
+        $update_id =  (int) segment(3);
         $result = $this->model->get_one_where('username', $str, 'trongate_administrators');
         $error_msg = 'The username that you submitted is not available.';
 
