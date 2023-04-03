@@ -52,7 +52,7 @@ function addErrorClasses(key, allFormFields) {
 	for (var i = 0; i < allFormFields.length; i++) {
 		if (allFormFields[i]['name'] == key) {
 			let formFieldType = allFormFields[i]['type'];
-			if ((formFieldType == 'checkbox') || (formFieldType == 'radio')) {
+			if ((formFieldType === 'checkbox') || (formFieldType === 'radio')) {
 				let parentContainer = allFormFields[i].closest('div');
 				parentContainer.classList.add('form-field-validation-error');
 				parentContainer.style.textIndent = '7px';

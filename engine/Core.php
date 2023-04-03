@@ -59,7 +59,7 @@ class Core {
                 if (file_exists($asset_path)) {
                     $content_type = mime_content_type($asset_path);
 
-                    if ($content_type == 'text/plain' || $content_type == 'text/html') {
+                    if ($content_type === 'text/plain' || $content_type === 'text/html') {
 
                         $pos2 = strpos($file_name, '.css');
                         if (is_numeric($pos2)) {
@@ -73,12 +73,12 @@ class Core {
 
                     }
 
-                    if ($content_type == 'image/svg') {
+                    if ($content_type === 'image/svg') {
                         $content_type.= '+xml';
                     }
 
                     //make sure not a PHP file or api.json
-                    if((is_numeric(strpos($content_type, 'php'))) || ($file_name == 'api.json')) {
+                    if((is_numeric(strpos($content_type, 'php'))) || ($file_name === 'api.json')) {
                         http_response_code(422);
                         die();
                     }
@@ -119,7 +119,7 @@ class Core {
 
                     $content_type = mime_content_type($asset_path);
 
-                    if ($content_type == 'text/plain'|| $content_type == 'text/html') {
+                    if ($content_type === 'text/plain'|| $content_type === 'text/html') {
                         $pos2 = strpos($file_name, '.css');
                         if (is_numeric($pos2)) {
                             $content_type = 'text/css';
@@ -174,7 +174,7 @@ class Core {
             $this->current_method = strtolower($method_with_no_params);
             //make sure not private
             $str = substr($this->current_method, 0, 1);
-            if ($str == '_') {
+            if ($str === '_') {
                 $this->draw_error_page();
             }
         }
@@ -187,8 +187,18 @@ class Core {
 
         $controller_path = '../modules/'.$this->current_module.'/controllers/'.$this->current_controller.'.php';
 
-        if ($controller_path == '../modules/api/controllers/Api.php') {
+        if ($controller_path === '../modules/api/controllers/Api.php') {
+            //API intercept, since segment(1) is 'api/'
             $controller_path = '../engine/Api.php';
+            require_once $controller_path;
+            $target_method = $this->current_method;
+            $this->current_controller = new $this->current_controller($this->current_module);
+            if (method_exists($this->current_controller, $this->current_method)) {
+                $this->current_controller->$target_method($this->current_value);
+                return;
+            } else {
+                $this->draw_error_page();
+            }
         }
 
         if (!file_exists($controller_path)) {
@@ -197,7 +207,7 @@ class Core {
 
         require_once $controller_path;
 
-        if (ENV == 'dev') {
+        if (strtolower(ENV) == 'dev') {
             $this->attempt_sql_transfer($controller_path);
         }
 
@@ -206,6 +216,24 @@ class Core {
             $this->current_controller = new $this->current_controller($this->current_module);
             $this->current_controller->$target_method($this->current_value);
         } else {
+            //method does not exist - attempt invoke standard endpoint
+            $this->current_controller = 'Standard_endpoints';
+            $controller_path = '../engine/Standard_endpoints.php';
+            require_once $controller_path;
+            $se = new Standard_endpoints();
+            $endpoint_index = $se->attempt_find_endpoint_index();
+
+            if ($endpoint_index !== '') {
+                $target_method = $this->current_method;
+                if(is_numeric($target_method)) {
+                    $se->attempt_serve_standard_endpoint($endpoint_index);
+                } else {
+                    $se->$target_method($this->current_value);
+                }
+
+                return;
+            }
+
             $this->draw_error_page();
         }
     }

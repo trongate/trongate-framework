@@ -14,6 +14,12 @@ function segment($num, $var_type = null) {
     return $value;
 }
 
+function remove_query_string($string) {
+    $parts = explode("?", $string, 2);
+    return $parts[0];
+}
+
+
 function previous_url() {
     if (isset($_SERVER['HTTP_REFERER'])) {
         $url = $_SERVER['HTTP_REFERER'];
@@ -50,7 +56,7 @@ function anchor($target_url, $text, $attributes = NULL, $additional_code = NULL)
 
     $text_type = gettype($text);
 
-    if ($text_type == 'boolean') {
+    if ($text_type === 'boolean') {
         return $target_url;
     }
 
@@ -88,7 +94,7 @@ function nice_price($num) {
  * @return string The slugified version of the string.
  */
 function url_title($value, $transliteration = true) {
-    if (extension_loaded('intl') && $transliteration == true) {
+    if (extension_loaded('intl') && $transliteration === true) {
         $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII');
         $value = $transliterator->transliterate($value);
     }
@@ -157,7 +163,7 @@ function api_auth() {
                         }
                     }
 
-                    if ($segments_match == true) {
+                    if ($segments_match === true) {
 
                         $token_validation_data['endpoint'] = $rule_name;
                         $token_validation_data['module_name'] = $current_module;
@@ -181,7 +187,7 @@ function api_auth() {
         }
     }
 
-    if ($validation_complete == false) {
+    if ($validation_complete === false) {
         http_response_code(401);
         echo "Invalid token.";
         die();
