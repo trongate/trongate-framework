@@ -734,7 +734,17 @@ class Standard_endpoints extends Trongate {
         }
 
         $endpoints = json_decode(file_get_contents($file_path), true);
-        $input['target_endpoint'] = $endpoints[$endpoint_name] ?? false;
+
+        if ($endpoint_name === 'Search') {
+            $input['target_endpoint'] = $endpoints[$endpoint_name] ?? false;
+            
+            // If the 'Search' endpoint is not found, try 'Get By Post' as fallback
+            if ($input['target_endpoint'] === false) {
+                $input['target_endpoint'] = $endpoints['Get By Post'] ?? false;
+            }
+        } else {
+            $input['target_endpoint'] = $endpoints[$endpoint_name] ?? false;
+        }
 
         if ($input['target_endpoint'] === false) {
             if (segment(1) !== 'api') {
