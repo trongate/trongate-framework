@@ -212,4 +212,15 @@ class Api extends Trongate {
         $se->delete_one();
     }
 
+    public function validate_token($token_validation_data) {
+        //get an array of ALL the rules for this endpoint
+        $target_endpoint = $token_validation_data['module_endpoints'][$token_validation_data['endpoint']];
+        $table_name = segment(1) === 'api' || segment(1) === 'trongate_filezone' ? segment(3) : segment(1);
+        $table_name = remove_query_string($table_name);
+        require_once('Standard_endpoints.php');
+        $se = new Standard_endpoints();
+        $token = $se->make_sure_allowed($target_endpoint, $table_name);
+        return $token;
+    }
+
 }

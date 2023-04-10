@@ -784,7 +784,7 @@ class Standard_endpoints extends Trongate {
         return $input;
     }
 
-    private function make_sure_allowed($target_endpoint, $table_name) {
+    public function make_sure_allowed($target_endpoint, $table_name) {
 
         if (!isset($target_endpoint['authorization'])) {
             $msg = 'Endpoint not activated since no authorization rules have been declared.';

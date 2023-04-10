@@ -174,7 +174,7 @@ function api_auth() {
                         if (file_exists($api_class_location)) {
                             include_once $api_class_location;
                             $api_helper = new Api;
-                            $api_helper->_validate_token($token_validation_data);
+                            $api_helper->validate_token($token_validation_data);
                             $validation_complete = true;
                         }
                     }
