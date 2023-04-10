@@ -1,5 +1,5 @@
 {
-  "Get By Post": {
+  "Search": {
     "url_segments": "api/get/trongate_comments",
     "request_type": "POST",
     "description": "Fetch rows from table using POST request.",

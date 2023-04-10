@@ -10,7 +10,7 @@
         ]
     }
   },
-  "Get By Post": {
+  "Search": {
     "url_segments": "api/get/trongate_administrators",
     "request_type": "POST",
     "description": "Fetch rows from table using POST request.",
