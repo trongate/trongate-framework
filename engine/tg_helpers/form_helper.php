@@ -213,7 +213,7 @@ function form_checkbox($name, $value=NULL, $checked=NULL, $attributes=NULL, $add
     return $html;
 }
 
-function form_dropdown($name, $options, $selected_key=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_dropdown($name, $options, $selected_key = NULL, $attributes = NULL, $additional_code = NULL, $data_attributes = NULL) {
 
     $extra = '';
     if (isset($attributes)) {
@@ -221,28 +221,41 @@ function form_dropdown($name, $options, $selected_key=NULL, $attributes=NULL, $a
     }
 
     if (isset($additional_code)) {
-        $extra.= ' '.$additional_code;
+        $extra .= ' ' . $additional_code;
     }
 
-    $html = '<select name="'.$name.'"'.$extra.'>
+    $html = '<select name="' . $name . '"' . $extra . '>
 ';
 
-    if (isset($options[$selected_key])) {
+    if (is_scalar($selected_key) && isset($options[$selected_key])) {
         $selected_value = $options[$selected_key];
-        $html.= '<option value="'.$selected_key.'" selected>'.$selected_value.'</option>
-';
-    }
+        $data_attrs_str = '';
 
-    if (isset($options[$selected_key])) {
+        if (isset($data_attributes[$selected_key])) {
+            foreach ($data_attributes[$selected_key] as $data_key => $data_value) {
+                $data_attrs_str .= ' data-' . $data_key . '="' . $data_value . '"';
+            }
+        }
+
+        $html .= '<option value="' . $selected_key . '" selected' . $data_attrs_str . '>' . $selected_value . '</option>
+';
         unset($options[$selected_key]);
     }
 
     foreach ($options as $option_key => $option_value) {
-        $html.= '<option value="'.$option_key.'">'.$option_value.'</option>
+        $data_attrs_str = '';
+
+        if (isset($data_attributes[$option_key])) {
+            foreach ($data_attributes[$option_key] as $data_key => $data_value) {
+                $data_attrs_str .= ' data-' . $data_key . '="' . $data_value . '"';
+            }
+        }
+
+        $html .= '<option value="' . $option_key . '"' . $data_attrs_str . '>' . $option_value . '</option>
 ';
     }
 
-    $html.= '</select>';
+    $html .= '</select>';
     return $html;
 }
 
