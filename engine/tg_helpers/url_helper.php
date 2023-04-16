@@ -45,7 +45,7 @@ function redirect($target_url) {
     die();
 }
 
-function anchor($target_url, $text, $attributes = NULL, $additional_code = NULL) {
+function anchor($target_url, $text, $attributes = null, $additional_code = null) {
 
     $str = substr($target_url, 0, 4);
     if ($str != 'http') {

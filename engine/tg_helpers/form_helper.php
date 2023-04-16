@@ -1,5 +1,5 @@
 <?php
-function form_open($location, $attributes=NULL, $additional_code=NULL) {
+function form_open($location, $attributes=null, $additional_code=null) {
     $extra = '';
 
     if (isset($attributes['method'])) {
@@ -27,7 +27,7 @@ function form_open($location, $attributes=NULL, $additional_code=NULL) {
     return $html;
 }
 
-function form_open_upload($location, $attributes=NULL, $additional_code=NULL) {
+function form_open_upload($location, $attributes=null, $additional_code=null) {
     $html = form_open($location, $attributes, $additional_code);
     $html = str_replace('>', ' enctype="multipart/form-data">', $html);
     return $html;
@@ -81,7 +81,7 @@ function get_attributes_str($attributes) {
     return $attributes_str;  
 }
 
-function form_label($label_text, $attributes=NULL, $additional_code=NULL) {
+function form_label($label_text, $attributes=null, $additional_code=null) {
     $extra = '';
 
     if (isset($attributes)) {
@@ -95,7 +95,7 @@ function form_label($label_text, $attributes=NULL, $additional_code=NULL) {
     return '<label'.$extra.'>'.$label_text.'</label>';
 }
 
-function form_input($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_input($name, $value=null, $attributes=null, $additional_code=null) {
     $extra = '';
     if (!isset($value)) {
         $value = '';
@@ -112,31 +112,31 @@ function form_input($name, $value=NULL, $attributes=NULL, $additional_code=NULL)
     return '<input type="text" name="'.$name.'" value="'.$value.'"'.$extra.'>';
 }
 
-function form_number($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_number($name, $value=null, $attributes=null, $additional_code=null) {
     $html = form_input($name, $value, $attributes, $additional_code);
     $html = str_replace('type="text"', 'type="number"', $html);
     return $html; 
 }
 
-function form_password($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_password($name, $value=null, $attributes=null, $additional_code=null) {
     $html = form_input($name, $value, $attributes, $additional_code);
     $html = str_replace(' type="text" ', ' type="password" ', $html);
     return $html;
 }
 
-function form_email($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_email($name, $value=null, $attributes=null, $additional_code=null) {
     $html = form_input($name, $value, $attributes, $additional_code);
     $html = str_replace(' type="text" ', ' type="email" ', $html);
     return $html;
 }
 
-function form_hidden($name, $value=NULL, $additional_code=NULL) {
+function form_hidden($name, $value=null, $additional_code=null) {
     $html = form_input($name, $value, $additional_code);
     $html = str_replace(' type="text" ', ' type="hidden" ', $html);
     return $html;
 }
 
-function form_textarea($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_textarea($name, $value=null, $attributes=null, $additional_code=null) {
 
     $extra = '';
     if (!isset($value)) {
@@ -154,7 +154,7 @@ function form_textarea($name, $value=NULL, $attributes=NULL, $additional_code=NU
     return '<textarea name="'.$name.'"'.$extra.'>'.$value.'</textarea>';
 }
 
-function form_submit($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_submit($name, $value=null, $attributes=null, $additional_code=null) {
 
     $extra = '';
     if (!isset($value)) {
@@ -173,13 +173,13 @@ function form_submit($name, $value=NULL, $attributes=NULL, $additional_code=NULL
 
 }
 
-function form_button($name, $value=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_button($name, $value=null, $attributes=null, $additional_code=null) {
     $html = form_submit($name, $value, $attributes, $additional_code);
     $html = str_replace(' type="submit" ', ' type="button" ', $html);
     return $html;
 }
 
-function form_radio($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_radio($name, $value=null, $checked=null, $attributes=null, $additional_code=null) {
 
     $extra = '';
 
@@ -207,13 +207,13 @@ function form_radio($name, $value=NULL, $checked=NULL, $attributes=NULL, $additi
     return $html;
 }
 
-function form_checkbox($name, $value=NULL, $checked=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_checkbox($name, $value=null, $checked=null, $attributes=null, $additional_code=null) {
     $html = form_radio($name, $value, $checked, $attributes, $additional_code);
     $html = str_replace(' type="radio" ', ' type="checkbox" ', $html);
     return $html;
 }
 
-function form_dropdown($name, $options, $selected_key=NULL, $attributes=NULL, $additional_code=NULL) {
+function form_dropdown($name, $options, $selected_key=null, $attributes=null, $additional_code=null) {
 
     $extra = '';
     if (isset($attributes)) {
@@ -246,14 +246,14 @@ function form_dropdown($name, $options, $selected_key=NULL, $attributes=NULL, $a
     return $html;
 }
 
-function form_file_select($name, $attributes=NULL, $additional_code=NULL) {
-    $value = NULL;
+function form_file_select($name, $attributes=null, $additional_code=null) {
+    $value = null;
     $html = form_input($name, $value, $attributes, $additional_code);
     $html = str_replace(' type="text" ', ' type="file" ', $html);
     return $html;
 }
 
-function post($field_name, $clean_up=NULL) {
+function post($field_name, $clean_up=null) {
     if (!isset($_POST[$field_name])) {
         $value = '';
     } else {

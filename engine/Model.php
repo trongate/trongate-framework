@@ -14,7 +14,7 @@ class Model {
     private $query_caveat = 'The query shown above is how the query would look <i>before</i> binding.';
     private $current_module;
 
-    public function __construct($current_module = NULL) {
+    public function __construct($current_module = null) {
 
         if (DATABASE == '') {
             return;
@@ -110,7 +110,7 @@ class Model {
         return $tables;
     }
 
-    public function get($order_by=NULL, $target_tbl=NULL, $limit=NULL, $offset=NULL) {
+    public function get($order_by=null, $target_tbl=null, $limit=null, $offset=null) {
 
         $order_by = (!isset($order_by)) ? 'id' : $order_by;
 
@@ -137,7 +137,7 @@ class Model {
         return $query;
     }
 
-    public function get_where_custom($column, $value, $operator = '=', $order_by = 'id', $target_tbl = NULL, $limit = NULL, $offset = NULL) {
+    public function get_where_custom($column, $value, $operator = '=', $order_by = 'id', $target_tbl = null, $limit = null, $offset = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -175,7 +175,7 @@ class Model {
     }
 
     //fetch a single record
-    public function get_where($id, $target_tbl = NULL) {
+    public function get_where($id, $target_tbl = null) {
 
         $data['id'] = (int) $id;
 
@@ -198,7 +198,7 @@ class Model {
     }
 
     //fetch a single record (alternative version)
-    public function get_one_where($column, $value, $target_tbl = NULL) {
+    public function get_one_where($column, $value, $target_tbl = null) {
         $data[$column] = $value;
 
         if (!isset($target_tbl)) {
@@ -219,7 +219,7 @@ class Model {
         }
     }
 
-    public function get_many_where($column, $value, $target_tbl = NULL) {
+    public function get_many_where($column, $value, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -233,7 +233,7 @@ class Model {
         return $query;
     }
 
-    public function count($target_tbl = NULL) {
+    public function count($target_tbl = null) {
         //return number of rows on a table
 
         if (!isset($target_tbl)) {
@@ -255,7 +255,7 @@ class Model {
         }
     }
 
-    public function count_where($column, $value, $operator = '=', $order_by = 'id', $target_tbl = NULL, $limit = NULL, $offset = NULL) {
+    public function count_where($column, $value, $operator = '=', $order_by = 'id', $target_tbl = null, $limit = null, $offset = null) {
         //return number of rows on table (with query customisation)
 
         $query = $this->get_where_custom($column, $value, $operator, $order_by, $target_tbl, $limit, $offset);
@@ -263,7 +263,7 @@ class Model {
         return $num_rows;
     }
 
-    public function count_rows($column, $value, $target_tbl = NULL) {
+    public function count_rows($column, $value, $target_tbl = null) {
         //simplified version of count_where (accepts one condition)
 
         if (!isset($target_tbl)) {
@@ -285,7 +285,7 @@ class Model {
         }
     }
 
-    public function get_max($target_tbl = NULL) {
+    public function get_max($target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -307,7 +307,7 @@ class Model {
         }
     }
 
-    public function show_query($query, $data, $caveat = NULL) {
+    public function show_query($query, $data, $caveat = null) {
         $keys = array();
         $values = $data;
         $named_params = true;
@@ -376,7 +376,7 @@ class Model {
 <?php
     }
 
-    public function insert($data, $target_tbl = NULL) {
+    public function insert($data, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -402,7 +402,7 @@ class Model {
         return $id;
     }
 
-    public function update($update_id, $data, $target_tbl = NULL) {
+    public function update($update_id, $data, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -427,7 +427,7 @@ class Model {
         $this->prepare_and_execute($sql, $data);
     }
 
-    public function delete($id, $target_tbl = NULL) {
+    public function delete($id, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();

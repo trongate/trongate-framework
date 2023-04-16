@@ -3,24 +3,23 @@ class Trongate {
 
     use Dynamic_properties;
 
-    private $model;
-    protected $modules;
-    protected $url;
-    protected $module_name;
-    protected $parent_module = '';
-    protected $child_module = '';
+    protected Modules $modules;
+    private ?Model $model;
+    protected ?string $module_name;
+    protected string $parent_module = '';
+    protected string $child_module = '';
 
-    public function __construct($module_name=NULL) {
+    public function __construct(?string $module_name=null) {
         $this->module_name = $module_name;
         $this->modules = new Modules;
     }
 
-    public function load($helper) {
+    public function load(string $helper): void {
         require_once 'tg_helpers/'.$helper.'.php';
         $this->$helper = new $helper;
     }
 
-    public function template($template_name, $data=NULL) {
+    public function template(string $template_name, array $data): void {
         $template_controller_path = '../templates/controllers/Templates.php';
         require_once $template_controller_path;
 
@@ -40,7 +39,7 @@ class Trongate {
         }
     }
 
-    public function module($target_module) {
+    public function module(string $target_module): void {
         $target_controller = ucfirst($target_module);
         $target_controller_path = '../modules/'.$target_module.'/controllers/'.$target_controller.'.php';
 
@@ -57,7 +56,7 @@ class Trongate {
         $this->$target_module = new $target_module($target_module);
     }
 
-    private function get_child_module($target_module) {
+    private function get_child_module(string $target_module): string|null {
         $child_module_path = false;
         $bits = explode('-', $target_module);
 
@@ -76,98 +75,62 @@ class Trongate {
         return $child_module;
     }
 
-    protected function view($view, $data = [], $return_as_str=NULL) {
-
-        if ((isset($return_as_str)) || (gettype($data) == 'boolean')) {
-            $return_as_str = true;
-        } else {
-            $return_as_str = false;
-        }
-
-        if (($this->parent_module !== '') && ($this->child_module !== '')) {
-            //load view from child module
-            if ($return_as_str == true) {
-                // Return output as string
-                ob_start();
-                $this->load_child_view($view, $data);
-                $output = ob_get_clean();
+    protected function view(string $view, array $data = [], bool $return_as_str = false): string|null {
+        if ($this->parent_module !== '' && $this->child_module !== '') {
+            // Load view from child module
+            $output = $this->load_view_file($view, $data, $return_as_str);
+            if ($return_as_str) {
                 return $output;
-            } else {
-                // Require child file
-                $this->load_child_view($view, $data);
             }
-
         } else {
-            //normal view loading process
-            if (isset($data['view_module'])) {
-                $module_name = $data['view_module'];
-            } else {
-                $module_name = $this->module_name;
-            }
-
+            // Normal view loading process
+            $module_name = $data['view_module'] ?? $this->module_name;
             extract($data);
-
-            $view_path = APPPATH.'modules/'.$module_name.'/views/'.$view.'.php';
-
-            // Check for view file
-            if(file_exists($view_path)){
-                
-                if ($return_as_str == true) {
-                    // Return output as string
-                    ob_start();
-                    require $view_path;
-                    $output = ob_get_clean();
-                    return $output;
-                } else {
-                    // Require view file
-                    require $view_path;
-                }
-                
-            } else {
-                // No view exists
+            $view_path = APPPATH . 'modules/' . $module_name . '/views/' . $view . '.php';
+            if (!file_exists($view_path)) {
                 $view = str_replace('/', '/views/', $view);
-                $view_path = APPPATH.'modules/'.$view.'.php';
-            
-                if(file_exists($view_path)){
-
-                    if ($return_as_str == true) {
-                        // Return output as string
-                        ob_start();
-                        require $view_path;
-                        $output = ob_get_clean();
-                        return $output;
-                    } else {
-                        // Require view file
-                        require $view_path;
-                    }
-
-                } else {
-                    throw new exception('view '.$view_path.' does not exist');
-                }
+                $view_path = APPPATH . 'modules/' . $view . '.php';
+            }
+            $output = $this->load_view_file($view_path, $data, $return_as_str);
+            if ($return_as_str) {
+                return $output;
             }
         }
     }
 
-    private function load_child_view($view, $data) {
+    protected function load_view_file(string $view_path, array $data, bool $return_as_str): string|null {
+        if (!file_exists($view_path)) {
+            throw new Exception('View ' . $view_path . ' does not exist');
+        }
+        if ($return_as_str) {
+            ob_start();
+            require $view_path;
+            return ob_get_clean();
+        } else {
+            require $view_path;
+        }
+    }
+
+    private function load_child_view(string $view, array $data): void {
         extract($data);
-        $view_path = APPPATH.'modules/'.$this->parent_module.'/'.$this->child_module.'/views/'.$view.'.php';
+        $view_path = APPPATH . 'modules/' . $this->parent_module . '/' . $this->child_module . '/views/' . $view . '.php';
 
         // Check for view file
-        if(file_exists($view_path)){
+        if (file_exists($view_path)) {
             // Require view file
             require_once $view_path;
         } else {
             // No view exists
-            throw new exception('view '.$view_path.' does not exist');
+            throw new Exception('view ' . $view_path . ' does not exist');
         }
     }
 
-    public function upload_picture($data) {
+    public function upload_picture(array $data): array|null {
         $uploaded_file_info = $this->img_helper->upload($data);
         return $uploaded_file_info;
     }
 
-    public function upload_file($data) {
+    public function upload_file(array $data): array|null {
         $uploaded_file_info = $this->file_helper->upload($data);
         return $uploaded_file_info;
     }

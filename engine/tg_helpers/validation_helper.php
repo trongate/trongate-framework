@@ -610,7 +610,7 @@ class Validation_helper {
 
 }
 
-function validation_errors($opening_html=NULL, $closing_html=NULL) {
+function validation_errors($opening_html=null, $closing_html=null) {
 
     if (isset($_SESSION['form_submission_errors'])) {
 

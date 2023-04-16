@@ -260,7 +260,7 @@ class Standard_endpoints extends Trongate {
 
     }
 
-    function make_sure_columns_exist($table_name, $params, $valid_columns=NULL) {
+    function make_sure_columns_exist($table_name, $params, $valid_columns=null) {
 
         if(!isset($valid_columns)) {
             $valid_columns = $this->get_all_columns($table_name);

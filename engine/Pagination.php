@@ -34,7 +34,7 @@ class Pagination {
         return $page_num_segment;
     }
 
-    static public function display($data=NULL) {
+    static public function display($data=null) {
 
         if (!isset($data)) {
             die('<br><b>ERROR:</b> Data must be passed into the pagination class in order for it to work.  Please refer to documentation.');
@@ -168,7 +168,7 @@ class Pagination {
             if (isset($data['record_name_plural'])) {
                 $record_name_plural = $data['record_name_plural'];
             } else {
-                $record_name_plural = NULL;
+                $record_name_plural = null;
             }
 
             $pagination_data['showing_statement'] = self::get_showing_statement($limit, $current_page, $total_rows, $record_name_plural);
@@ -331,7 +331,7 @@ class Pagination {
         return $settings;
     }
 
-    static public function get_showing_statement($limit, $current_page, $total_rows, $record_name_plural=NULL) {
+    static public function get_showing_statement($limit, $current_page, $total_rows, $record_name_plural=null) {
 
         $offset = ($current_page * $limit) - $limit;
         
