@@ -93,7 +93,7 @@ class Trongate {
      *
      * @throws ReflectionException If the target module is not found.
      */
-    private function get_child_module(string $target_module): string|null {
+    private function get_child_module(string $target_module): ?string {
         $child_module_path = false;
         $bits = explode('-', $target_module);
 
@@ -123,7 +123,7 @@ class Trongate {
      *
      * @throws ReflectionException If a reflection error occurs while loading the view.
      */
-    protected function view(string $view, array $data = [], bool $return_as_str = false): string|null {
+    protected function view(string $view, array $data = [], bool $return_as_str = false): ?string {
         if ($this->parent_module !== '' && $this->child_module !== '') {
             // Load view from child module
             $output = $this->load_view_file($view, $data, $return_as_str);
@@ -148,18 +148,19 @@ class Trongate {
     }
 
     /**
-     * Load a view file.
+     * Load a view file and optionally return it as a string.
      *
      * @param string $view_path      The path to the view file.
      * @param array  $data           The data to pass to the view.
      * @param bool   $return_as_str  Whether to return the view as a string or output it.
      *
-     * @return string|null|false The rendered view as a string, or null if not rendered and $return_as_str is true,
-     *                           or false if not rendered and $return_as_str is false.
+     * @return string|null  The rendered view as a string, or null if not rendered
+     *                      and $return_as_str is true, or false if not rendered
+     *                      and $return_as_str is false.
      *
      * @throws Exception If the view file does not exist.
      */
-    protected function load_view_file(string $view_path, array $data, bool $return_as_str): string|null|false {
+    protected function load_view_file(string $view_path, array $data, bool $return_as_str): ?string {
         if (!file_exists($view_path)) {
             throw new Exception('View ' . $view_path . ' does not exist');
         }
