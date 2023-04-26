@@ -164,6 +164,7 @@ class Trongate {
         if (!file_exists($view_path)) {
             throw new Exception('View ' . $view_path . ' does not exist');
         }
+        extract($data);
         if ($return_as_str) {
             ob_start();
             require $view_path;
