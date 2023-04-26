@@ -33,7 +33,11 @@ function load($template_file, $data=null) {
     }
 
     if (file_exists($file_path)) {
-        extract($data);
+
+        if (isset($data)) {
+            extract($data);
+        }
+
         require_once($file_path);
     } else {
         die('<br><b>ERROR:</b> View file does not exist at: '.$file_path);
