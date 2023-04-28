@@ -84,18 +84,15 @@ class Trongate {
         $this->$target_module = new $target_module($target_module);
     }
 
-    /**
-     * Get the child module name from the target module name.
-     *
-     * @param string $target_module The name of the target module.
-     *
-     * @return string|null The name of the child module, or null if not found.
-     *
-     * @throws ReflectionException If the target module is not found.
-     */
+	/**
+	 * Get the child module name from the target module name.
+	 *
+	 * @param  string  $target_module The name of the target module.
+	 *
+	 * @return string|null The name of the child module, or null if not found.
+	 */
     private function get_child_module(string $target_module): ?string {
-        $child_module_path = false;
-        $bits = explode('-', $target_module);
+	    $bits = explode('-', $target_module);
 
         if (count($bits) == 2) {
             if (strlen($bits[1]) > 0) {
@@ -112,14 +109,16 @@ class Trongate {
         return $child_module;
     }
 
-    /**
-     * Renders a view and returns the output as a string, or to the browser.
-     *
-     * @param string $view The name of the view file to render.
-     * @param array $data An array of data to pass to the view file.
-     * @param bool|null $return_as_str If set to true, the output is returned as a string, otherwise to the browser.
-     * @return string|null If $return_as_str is true, returns the output as a string, otherwise returns null.
-     */
+	/**
+	 * Renders a view and returns the output as a string, or to the browser.
+	 *
+	 * @param  string     $view The name of the view file to render.
+	 * @param  array      $data An array of data to pass to the view file.
+	 * @param  bool|null  $return_as_str If set to true, the output is returned as a string, otherwise to the browser.
+	 *
+	 * @return string|null If $return_as_str is true, returns the output as a string, otherwise returns null.
+	 * @throws \Exception
+	 */
     protected function view(string $view, array $data = [], ?bool $return_as_str = null): ?string {
         $return_as_str = $return_as_str ?? false;
 
@@ -130,8 +129,8 @@ class Trongate {
             // Output as string
             ob_start();
             require $view_path;
-            $output = ob_get_clean();
-            return $output;
+
+	        return ob_get_clean();
         } else {
             // Output view file
             require $view_path;
@@ -139,62 +138,36 @@ class Trongate {
         }
     }
 
-    /**
-     * Get the path of a view file.
-     *
-     * @param string $view The name of the view file.
-     * @param array $data The data to be passed to the view file.
-     * @return string The path of the view file.
-     * @throws Exception If the view file does not exist.
-     */
+	/**
+	 * Get the path of a view file.
+	 *
+	 * @param string $view The name of the view file.
+	 *
+	 * @return string The path of the view file.
+	 * @throws \Exception If the view file does not exist.
+	 */
     function _get_view_path(string $view): string {
         $module_name = $data['view_module'] ?? $this->module_name;
 
         if ($this->parent_module !== '' && $this->child_module !== '') {
             // Load view from child module
-            $view_path = APPPATH . "modules/{$this->parent_module}/{$this->child_module}/views/{$view}.php";
+            $view_path = APPPATH . "modules/$this->parent_module/$this->child_module/views/$view.php";
         } else {
             // Normal view loading process
-            $view_path = APPPATH . "modules/{$module_name}/views/{$view}.php";
+            $view_path = APPPATH . "modules/$module_name/views/$view.php";
         }
 
         if (file_exists($view_path)) {
             return $view_path;
         } else {
             $error_message = $this->parent_module !== '' && $this->child_module !== '' ?
-                "View '{$view_path}' does not exist for child view" :
-                "View '{$view_path}' does not exist";
+                "View '$view_path' does not exist for child view" :
+                "View '$view_path' does not exist";
             throw new Exception($error_message);
         }
     }
 
-    //----------------
-
-    /**
-     * Load a child view file.
-     *
-     * @param string $view  The name of the view file.
-     * @param array  $data  The data to pass to the view.
-     *
-     * @return void
-     *
-     * @throws Exception If the view file does not exist.
-     */
-    private function load_child_view(string $view, array $data): void {
-        extract($data);
-        $view_path = APPPATH . 'modules/' . $this->parent_module . '/' . $this->child_module . '/views/' . $view . '.php';
-
-        // Check for view file
-        if (file_exists($view_path)) {
-            // Require view file
-            require_once $view_path;
-        } else {
-            // No view exists
-            throw new Exception('view ' . $view_path . ' does not exist');
-        }
-    }
-
-    /**
+	/**
      * Upload a picture file.
      *
      * @param array $data The data for the uploaded file.
@@ -202,8 +175,7 @@ class Trongate {
      * @return array|null The information of the uploaded file.
      */
     public function upload_picture(array $data): ?array {
-        $uploaded_file_info = $this->img_helper->upload($data);
-        return $uploaded_file_info;
+	    return $this->img_helper->upload($data);
     }
 
     /**
@@ -214,7 +186,6 @@ class Trongate {
      * @return array|null The information of the uploaded file.
      */
     public function upload_file(array $data): ?array {
-        $uploaded_file_info = $this->file_helper->upload($data);
-        return $uploaded_file_info;
+	    return $this->file_helper->upload($data);
     }
 }
