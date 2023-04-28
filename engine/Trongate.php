@@ -112,68 +112,137 @@ class Trongate {
         return $child_module;
     }
 
-    /**
-     * Render a view.
-     *
-     * @param string $view           The name of the view to render.
-     * @param array  $data           The data to pass to the view.
-     * @param bool   $return_as_str  Whether to return the view as a string or output it.
-     *
-     * @return string|null The rendered view as a string, or null if not rendered.
-     *
-     * @throws ReflectionException If a reflection error occurs while loading the view.
-     */
-    protected function view(string $view, array $data = [], bool $return_as_str = false): ?string {
-        if ($this->parent_module !== '' && $this->child_module !== '') {
-            // Load view from child module
-            $output = $this->load_view_file($view, $data, $return_as_str);
-            if ($return_as_str) {
+    protected function view_old(string $view, array $data = [], ?bool $return_as_str = null): ?string {
+
+        if ((isset($return_as_str)) || (gettype($data) == 'boolean')) {
+            $return_as_str = true;
+        } else {
+            $return_as_str = false;
+        }
+
+        if (($this->parent_module !== '') && ($this->child_module !== '')) {
+            //load view from child module
+            if ($return_as_str == true) {
+                // Return output as string
+                ob_start();
+                $this->load_child_view($view, $data);
+                $output = ob_get_clean();
                 return $output;
+            } else {
+                // Require child file
+                $this->load_child_view($view, $data);
+                return null;
             }
         } else {
-            // Normal view loading process
-            $module_name = $data['view_module'] ?? $this->module_name;
+            //normal view loading process
+            if (isset($data['view_module'])) {
+                $module_name = $data['view_module'];
+            } else {
+                $module_name = $this->module_name;
+            }
+
             extract($data);
+
             $view_path = APPPATH . 'modules/' . $module_name . '/views/' . $view . '.php';
-            if (!file_exists($view_path)) {
+
+            // Check for view file
+            if (file_exists($view_path)) {
+
+                if ($return_as_str == true) {
+                    // Return output as string
+                    ob_start();
+                    require $view_path;
+                    $output = ob_get_clean();
+                    return $output;
+                } else {
+                    // Require view file
+                    require $view_path;
+                    return null;
+                }
+            } else {
+                // No view exists
                 $view = str_replace('/', '/views/', $view);
                 $view_path = APPPATH . 'modules/' . $view . '.php';
-            }
-            $output = $this->load_view_file($view_path, $data, $return_as_str);
-            if ($return_as_str) {
-                return $output;
+
+                if (file_exists($view_path)) {
+
+                    if ($return_as_str == true) {
+                        // Return output as string
+                        ob_start();
+                        require $view_path;
+                        $output = ob_get_clean();
+                        return $output;
+                    } else {
+                        // Require view file
+                        require $view_path;
+                        return null;
+                    }
+                } else {
+                    throw new Exception('View ' . $view_path . ' does not exist');
+                }
             }
         }
-        return null;
+    }
+
+    //----------------
+
+    /**
+     * Renders a view and returns the output as a string, or to the browser.
+     *
+     * @param string $view The name of the view file to render.
+     * @param array $data An array of data to pass to the view file.
+     * @param bool|null $return_as_str If set to true, the output is returned as a string, otherwise to the browser.
+     * @return string|null If $return_as_str is true, returns the output as a string, otherwise returns null.
+     */
+    protected function view(string $view, array $data = [], ?bool $return_as_str = null): ?string {
+        $return_as_str = $return_as_str ?? false;
+
+        $view_path = $this->_get_view_path($view);
+        extract($data);
+
+        if ($return_as_str) {
+            // Output as string
+            ob_start();
+            require $view_path;
+            $output = ob_get_clean();
+            return $output;
+        } else {
+            // Output view file
+            require $view_path;
+            return null;
+        }
     }
 
     /**
-     * Load a view file and optionally return it as a string.
+     * Get the path of a view file.
      *
-     * @param string $view_path      The path to the view file.
-     * @param array  $data           The data to pass to the view.
-     * @param bool   $return_as_str  Whether to return the view as a string or output it.
-     *
-     * @return string|null  The rendered view as a string, or null if not rendered
-     *                      and $return_as_str is true, or false if not rendered
-     *                      and $return_as_str is false.
-     *
+     * @param string $view The name of the view file.
+     * @param array $data The data to be passed to the view file.
+     * @return string The path of the view file.
      * @throws Exception If the view file does not exist.
      */
-    protected function load_view_file(string $view_path, array $data, bool $return_as_str): ?string {
-        if (!file_exists($view_path)) {
-            throw new Exception('View ' . $view_path . ' does not exist');
-        }
-        extract($data);
-        if ($return_as_str) {
-            ob_start();
-            require $view_path;
-            return ob_get_clean() ?: null;
+    function _get_view_path(string $view): string {
+        $module_name = $data['view_module'] ?? $this->module_name;
+
+        if ($this->parent_module !== '' && $this->child_module !== '') {
+            // Load view from child module
+            $view_path = APPPATH . "modules/{$this->parent_module}/{$this->child_module}/views/{$view}.php";
         } else {
-            require $view_path;
-            return false;
+            // Normal view loading process
+            $view_path = APPPATH . "modules/{$module_name}/views/{$view}.php";
+        }
+
+        if (file_exists($view_path)) {
+            return $view_path;
+        } else {
+            $error_message = $this->parent_module !== '' && $this->child_module !== '' ?
+                "View '{$view_path}' does not exist for child view" :
+                "View '{$view_path}' does not exist";
+            throw new Exception($error_message);
         }
     }
+
+    //----------------
 
     /**
      * Load a child view file.
