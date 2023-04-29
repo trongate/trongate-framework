@@ -795,11 +795,6 @@ class Standard_endpoints extends Trongate {
         $this->module('trongate_tokens');
         $token = (isset($_SERVER['HTTP_TRONGATETOKEN']) ? $_SERVER['HTTP_TRONGATETOKEN'] : false);
 
-        if ((($token === '') || ($token === false)) && (segment(1) !== 'api')) {
-            //attempt to fetch a token from cookie or session data
-            $token = $this->trongate_tokens->_attempt_get_valid_token();
-        }
-
         $endpoint_auth_rules = $target_endpoint['authorization'];
         $var_type = gettype($endpoint_auth_rules);
 
