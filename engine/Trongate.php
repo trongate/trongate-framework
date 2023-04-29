@@ -9,6 +9,11 @@ class Trongate {
     protected string $parent_module = '';
     protected string $child_module = '';
 
+    /**
+     * Constructor for Trongate class.
+     * 
+     * @param string|null $module_name The name of the module to use, or null for default module.
+     */
     public function __construct(?string $module_name = null) {
         $this->module_name = $module_name;
         $this->modules = new Modules;
@@ -84,15 +89,15 @@ class Trongate {
         $this->$target_module = new $target_module($target_module);
     }
 
-	/**
-	 * Get the child module name from the target module name.
-	 *
-	 * @param  string  $target_module The name of the target module.
-	 *
-	 * @return string|null The name of the child module, or null if not found.
-	 */
+    /**
+     * Get the child module name from the target module name.
+     *
+     * @param  string  $target_module The name of the target module.
+     *
+     * @return string|null The name of the child module, or null if not found.
+     */
     private function get_child_module(string $target_module): ?string {
-	    $bits = explode('-', $target_module);
+        $bits = explode('-', $target_module);
 
         if (count($bits) == 2) {
             if (strlen($bits[1]) > 0) {
@@ -109,28 +114,28 @@ class Trongate {
         return $child_module;
     }
 
-	/**
-	 * Renders a view and returns the output as a string, or to the browser.
-	 *
-	 * @param  string     $view The name of the view file to render.
-	 * @param  array      $data An array of data to pass to the view file.
-	 * @param  bool|null  $return_as_str If set to true, the output is returned as a string, otherwise to the browser.
-	 *
-	 * @return string|null If $return_as_str is true, returns the output as a string, otherwise returns null.
-	 * @throws \Exception
-	 */
+    /**
+     * Renders a view and returns the output as a string, or to the browser.
+     *
+     * @param  string     $view The name of the view file to render.
+     * @param  array      $data An array of data to pass to the view file.
+     * @param  bool|null  $return_as_str If set to true, the output is returned as a string, otherwise to the browser.
+     *
+     * @return string|null If $return_as_str is true, returns the output as a string, otherwise returns null.
+     * @throws \Exception
+     */
     protected function view(string $view, array $data = [], ?bool $return_as_str = null): ?string {
         $return_as_str = $return_as_str ?? false;
+        $module_name = $data['view_module'] ?? $this->module_name;
 
-        $view_path = $this->_get_view_path($view);
+        $view_path = $this->_get_view_path($view, $module_name);
         extract($data);
 
         if ($return_as_str) {
             // Output as string
             ob_start();
             require $view_path;
-
-	        return ob_get_clean();
+            return ob_get_clean();
         } else {
             // Output view file
             require $view_path;
@@ -138,16 +143,16 @@ class Trongate {
         }
     }
 
-	/**
-	 * Get the path of a view file.
-	 *
-	 * @param string $view The name of the view file.
-	 *
-	 * @return string The path of the view file.
-	 * @throws \Exception If the view file does not exist.
-	 */
-    function _get_view_path(string $view): string {
-        $module_name = $data['view_module'] ?? $this->module_name;
+    /**
+     * Get the path of a view file.
+     *
+     * @param string $view The name of the view file.
+     * @param string $module_name Module name to which the view belongs.
+     *
+     * @return string The path of the view file.
+     * @throws \Exception If the view file does not exist.
+     */
+    function _get_view_path(string $view, ?string $module_name): string {
 
         if ($this->parent_module !== '' && $this->child_module !== '') {
             // Load view from child module
@@ -167,7 +172,7 @@ class Trongate {
         }
     }
 
-	/**
+    /**
      * Upload a picture file.
      *
      * @param array $data The data for the uploaded file.
@@ -175,7 +180,7 @@ class Trongate {
      * @return array|null The information of the uploaded file.
      */
     public function upload_picture(array $data): ?array {
-	    return $this->img_helper->upload($data);
+        return $this->img_helper->upload($data);
     }
 
     /**
@@ -186,6 +191,6 @@ class Trongate {
      * @return array|null The information of the uploaded file.
      */
     public function upload_file(array $data): ?array {
-	    return $this->file_helper->upload($data);
+        return $this->file_helper->upload($data);
     }
 }
