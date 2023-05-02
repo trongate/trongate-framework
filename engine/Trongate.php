@@ -5,7 +5,7 @@ class Trongate {
 
     protected Modules $modules;
     private ?Model $model;
-    protected ?string $module_name;
+    protected ?string $module_name = '';
     protected string $parent_module = '';
     protected string $child_module = '';
 
@@ -43,6 +43,8 @@ class Trongate {
      * @return void
      *
      * @throws Exception If the template controller file cannot be found or the template method does not exist.
+     * 
+     * @see https://trongate.io/docs/information/what-are-templates
      */
     public function template(string $template_name, array $data = []): void {
         $template_controller_path = '../templates/controllers/Templates.php';
@@ -123,6 +125,8 @@ class Trongate {
      *
      * @return string|null If $return_as_str is true, returns the output as a string, otherwise returns null.
      * @throws \Exception
+     * 
+     * @see https://trongate.io/docs/information/understanding-view-files
      */
     protected function view(string $view, array $data = [], ?bool $return_as_str = null): ?string {
         $return_as_str = $return_as_str ?? false;
