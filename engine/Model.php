@@ -6,6 +6,7 @@ class Model {
     private $user = USER;
     private $pass = PASSWORD;
     private $dbname = DATABASE;
+	private $dbtype = DB_TYPE;
 
     private $dbh;
     private $stmt;
@@ -30,7 +31,13 @@ class Model {
         );
 
         try {
-            $this->dbh = new PDO($dsn, $this->user, $this->pass, $options);
+
+			if(DB_TYPE == 'SQLite') {
+
+				$this->dbh = new PDO('sqlite:' . APPPATH . DB_SQLITE_FILENAME);
+			} else {
+				$this->dbh = new PDO($dsn, $this->user, $this->pass, $options);
+			}
         } catch (PDOException $e) {
             $this->error = $e->getMessage();
             echo $this->error;
