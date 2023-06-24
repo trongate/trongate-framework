@@ -427,6 +427,32 @@ class Model {
         $this->prepare_and_execute($sql, $data);
     }
 
+    //update a record by a field besides the table.id
+    public function update_custom($update_value, $data, $field, $target_tbl = null){
+
+        if (!isset($target_tbl)) {
+            $target_tbl = $this->get_table_from_url();
+        }
+
+        $sql = "UPDATE `$target_tbl` SET ";
+
+        foreach ($data as $key => $value) {
+            $sql .= "`$key` = :$key, ";
+        }
+
+        $sql = rtrim($sql, ', ');
+        $sql .= " WHERE `$target_tbl`.`$field` = :value";
+
+        $data['value'] = $update_value;
+        $data = $data;
+
+        if ($this->debug == true) {
+            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+        }
+
+        $this->prepare_and_execute($sql, $data);
+    }
+
     public function delete($id, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
