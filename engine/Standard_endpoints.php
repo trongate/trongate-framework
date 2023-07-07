@@ -260,7 +260,7 @@ class Standard_endpoints extends Trongate {
 
     }
 
-    function make_sure_columns_exist($table_name, $params, $valid_columns=NULL) {
+    function make_sure_columns_exist($table_name, $params, $valid_columns=null) {
 
         if(!isset($valid_columns)) {
             $valid_columns = $this->get_all_columns($table_name);
@@ -794,11 +794,6 @@ class Standard_endpoints extends Trongate {
         //attempt get user token
         $this->module('trongate_tokens');
         $token = (isset($_SERVER['HTTP_TRONGATETOKEN']) ? $_SERVER['HTTP_TRONGATETOKEN'] : false);
-
-        if ((($token === '') || ($token === false)) && (segment(1) !== 'api')) {
-            //attempt to fetch a token from cookie or session data
-            $token = $this->trongate_tokens->_attempt_get_valid_token();
-        }
 
         $endpoint_auth_rules = $target_endpoint['authorization'];
         $var_type = gettype($endpoint_auth_rules);

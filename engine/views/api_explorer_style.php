@@ -280,9 +280,12 @@ button#submit-btn {
    font-size: .9em;
 }
 
+#test-endpoint-modal > div.modal-body > form > label:nth-child(1) {
+  margin-top: 3em;
+}
+
 label {
   font-weight: bold;
-  margin-top: 3em;
 }
 
 textarea {

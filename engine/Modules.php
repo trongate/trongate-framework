@@ -1,7 +1,7 @@
 <?php
 class Modules {
 
-    public static function run($moduleControllerAction, $first_value=NULL, $second_value=NULL, $third_value=NULL) {
+    public static function run($moduleControllerAction, $first_value=null, $second_value=null, $third_value=null) {
         $debris = explode('/', $moduleControllerAction);
         $target_module = $debris[0];
         $target_controller = ucfirst($target_module);

@@ -21,7 +21,7 @@ spl_autoload_register(function($class_name) {
     return false;
 });
 
-function load($template_file, $data=NULL) {
+function load($template_file, $data=null) {
     //load template view file
     if (isset(THEMES[$template_file])) {
         $theme_dir = THEMES[$template_file]['dir'];
@@ -39,13 +39,12 @@ function load($template_file, $data=NULL) {
         }
 
         require_once($file_path);
-
     } else {
         die('<br><b>ERROR:</b> View file does not exist at: '.$file_path);
     }
 }
 
-function get_segments($ignore_custom_routes=NULL) {
+function get_segments($ignore_custom_routes=null) {
 
     //figure out how many segments need to be ditched
     $pseudo_url = str_replace('://', '', BASE_URL);

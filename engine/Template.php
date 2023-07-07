@@ -17,7 +17,7 @@ class Template {
         return $view_module;
     }
 
-    static public function display($data=NULL) {
+    static public function display($data=null) {
 
         if (!isset($data['view_module'])) {
             $data['view_module'] = self::get_view_module();
@@ -31,12 +31,12 @@ class Template {
         self::attempt_include($file_path, $data);
     }
 
-    static public function partial($file_name, $data=NULL) {
+    static public function partial($file_name, $data=null) {
         $file_path = APPPATH.'templates/views/'.$file_name.'.php';
         self::attempt_include($file_path, $data);
     }
 
-    static private function attempt_include($file_path, $data=NULL) {
+    static private function attempt_include($file_path, $data=null) {
 
         if (file_exists($file_path)) {
 

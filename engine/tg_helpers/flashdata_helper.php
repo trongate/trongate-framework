@@ -3,7 +3,7 @@ function set_flashdata($msg) {
     $_SESSION['flashdata'] = $msg;
 }
 
-function flashdata($opening_html=NULL, $closing_html=NULL) {
+function flashdata($opening_html=null, $closing_html=null) {
 
     if (isset($_SESSION['flashdata'])) {
 

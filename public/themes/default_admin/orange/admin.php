@@ -15,14 +15,14 @@
     <header>    
         <nav class="hide-sm">
             <ul>
-                <li><?= anchor('#', 'Logo') ?></li>
-                <li><?= anchor('#', 'About') ?></li>
-                <li><?= anchor('#', 'Values') ?></li>
-                <li><?= anchor('#', 'News') ?></li>
-                <li><?= anchor('#', 'Contact') ?></li>
-                <li><?= anchor('#', 'Clients') ?></li>
-                <li><?= anchor('#', 'Partners') ?></li>
-            </ul>        
+                <li><?= anchor(BASE_URL, 'Homepage', array('target' => '_blank')) ?></li>
+                <li><?= anchor('https://trongate.io/docs', 'Docs', array('target' => '_blank')) ?></li>
+                <li><?= anchor('https://trongate.io/help_bar', 'Help Bar', array('target' => '_blank')) ?></li>
+                <li><?= anchor('https://trongate.io/learning-zone', 'Learning Zone', array('target' => '_blank')) ?></li>
+                <li><?= anchor('https://trongate.io/news', 'News', array('target' => '_blank')) ?></li>
+                <li><?= anchor('https://trongate.io/module_requests/browse', 'Module Requests', array('target' => '_blank')) ?></li>
+                <li><?= anchor('https://trongate.io/module-market', 'Module Market', array('target' => '_blank')) ?></li>
+            </ul>     
         </nav>
         <div id="hamburger" class="hide-lg" onclick="openSlideNav()">&#9776;</div>
         <div>

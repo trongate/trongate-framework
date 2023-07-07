@@ -45,7 +45,7 @@ function redirect($target_url) {
     die();
 }
 
-function anchor($target_url, $text, $attributes = NULL, $additional_code = NULL) {
+function anchor($target_url, $text, $attributes = null, $additional_code = null) {
 
     $str = substr($target_url, 0, 4);
     if ($str != 'http') {
@@ -126,7 +126,6 @@ function api_auth() {
         $filepath = APPPATH . 'modules/' . $current_module . '/assets/api.json';
 
         if (file_exists($filepath)) {
-
             //extract the rules for the current path
             $target_method = $segments[1];
             $settings = file_get_contents($filepath);
@@ -137,34 +136,30 @@ function api_auth() {
 
             foreach ($endpoints as $rule_name => $api_rule_value) {
 
-                $segments_match = true;
-
                 if (isset($api_rule_value['url_segments'])) {
 
-                    //ignore placeholders for decent comparison
+                    //make sure the current URL segments match against the required segments
                     $target_url_segments = $api_rule_value['url_segments'];
                     $bits = explode('/', $target_url_segments);
-                    $required_bits = [];
+                    $required_segments = [];
 
                     foreach ($bits as $key => $value) {
-
                         if (!is_numeric(strpos($value, '{'))) {
                             $required_segments[$key] = $value;
                         }
                     }
 
+                    $num_required_segments = count($required_segments);
+
                     foreach ($current_uri_bits as $key => $value) {
-
                         if (isset($required_segments[$key])) {
-
-                            if ($value !== $required_segments[$key]) {
-                                $segments_match = false;
+                            if ($value === $required_segments[$key]) {
+                                $num_required_segments--;
                             }
                         }
                     }
 
-                    if ($segments_match === true) {
-
+                    if ($num_required_segments === 0) {
                         $token_validation_data['endpoint'] = $rule_name;
                         $token_validation_data['module_name'] = $current_module;
                         $token_validation_data['module_endpoints'] = $endpoints;

@@ -4,7 +4,7 @@ class File_helper {
     public function upload($config) {
 
         //declare all inbound variables
-        $destination = $config['destination'] ?? NULL;
+        $destination = $config['destination'] ?? null;
         $target_module = $config['target_module'] ?? segment(1);
         $upload_to_module = $config['upload_to_module'] ?? false;
         $make_rand_name = $config['make_rand_name'] ?? false;

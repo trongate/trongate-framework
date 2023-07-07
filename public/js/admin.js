@@ -60,18 +60,23 @@ function openModal(modalId) {
 }
 
 function closeModal() {
-    var modalContainer = _("modal-container");
-    var openModal = modalContainer.firstChild;
+    var modalContainer = document.getElementById("modal-container");
+    if (modalContainer) {
+        var openModal = modalContainer.firstChild;
 
-    openModal.style.zIndex = -4;
-    openModal.style.opacity = 0;
-    openModal.style.marginTop = '12vh';
-    openModal.style.display = 'none';
-    body.appendChild(openModal);
+        openModal.style.zIndex = -4;
+        openModal.style.opacity = 0;
+        openModal.style.marginTop = '12vh';
+        openModal.style.display = 'none';
+        document.body.appendChild(openModal);
 
-    modalContainer.remove();
-    var overlay = _("overlay");
-    overlay.remove();
+        modalContainer.remove();
+
+        var overlay = document.getElementById("overlay");
+        if (overlay) {
+            overlay.remove();
+        }
+    }
 }
 
 function attemptEscCloseModal () {
