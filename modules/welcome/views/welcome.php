@@ -11,7 +11,7 @@
 
 <section>
     <h3>Getting Started</h3>
-    <p>You can log into the admin panel by going to <a href="http://localhost/trongate_pages_demo/tg-admin">tg-admin</a>. The default login credentials are as follows:</p>
+    <p>You can log into the admin panel by going to <a href="<?= BASE_URL ?>tg-admin">tg-admin</a>. The default login credentials are as follows:</p>
     <ul>
         <li><b>Username:</b> admin</li>
         <li><b>Password:</b> admin</li>
