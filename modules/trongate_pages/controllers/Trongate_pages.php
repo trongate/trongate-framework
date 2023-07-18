@@ -98,7 +98,8 @@ class Trongate_pages extends Trongate {
         $token = $this->_make_sure_allowed();
 
         // Check if the image folder exists and is writable
-        if (!is_writable('modules/trongate_pages/assets/images')) {
+        $folder_path = APPPATH.'modules/trongate_pages/assets/images';
+        if (!is_writable($folder_path)) {
             $data['view_module'] = 'trongate_pages';
             $this->view('permissions_error', $data);
             die();
