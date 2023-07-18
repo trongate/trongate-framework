@@ -166,6 +166,14 @@ class Core {
             $module_with_no_params = explode('?',$segments[1])[0];
             $this->current_module = strtolower($module_with_no_params);
             $this->current_controller = ucfirst($this->current_module);
+
+            if (defined('TRONGATE_PAGES_TRIGGER')) {
+                if($segments[1] === TRONGATE_PAGES_TRIGGER) {
+                    $this->current_module = 'trongate_pages';
+                    $this->current_controller = 'Trongate_pages';
+                }
+            }
+
         }
 
         if (isset($segments[2])) {
