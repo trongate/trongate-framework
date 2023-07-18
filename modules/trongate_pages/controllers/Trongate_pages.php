@@ -97,6 +97,13 @@ class Trongate_pages extends Trongate {
     function manage(): void {
         $token = $this->_make_sure_allowed();
 
+        // Check if the image folder exists and is writable
+        if (!is_writable('modules/trongate_pages/assets/images')) {
+            $data['view_module'] = 'trongate_pages';
+            $this->view('permissions_error', $data);
+            die();
+        }
+
         if (segment(4) !== '') {
             $data['headline'] = 'Search Results';
             $searchphrase = trim($_GET['searchphrase']);
