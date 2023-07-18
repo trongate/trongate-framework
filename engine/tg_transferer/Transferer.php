@@ -76,6 +76,10 @@ class Transferer
 
     private function run_sql($sql) {
         $model_file = '../engine/Model.php';
+
+        $rand_str = make_rand_str(32);
+        $sql = str_replace('Tz8tehsWsTPUHEtzfbYjXzaKNqLmfAUz', $rand_str, $sql);
+        
         require_once $model_file;
         $model = new Model;
         $model->exec($sql);

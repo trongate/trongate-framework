@@ -3,8 +3,8 @@
     <h2 class="mt-1">Welcome to Trongate - the revolutionary new framework for developers who love pure PHP.</h2>
     <p class="text-center lg">
         <?php
-        echo anchor('https://trongate.io/learning-zone', 'Learning Zone', array('class' => 'button'));
-        echo anchor('https://trongate.io/docs', 'Documentation', array('class' => 'button alt'));
+        echo anchor('tg-admin', 'Admin Panel', array('class' => 'button'));
+        echo anchor('https://trongate.io/learning-zone', 'Learning Zone', array('class' => 'button alt'));
         ?>
     </p>
 </section>
