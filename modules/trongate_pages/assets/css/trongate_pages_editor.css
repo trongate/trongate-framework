@@ -102,8 +102,8 @@
 #tgp-choose-another-image-btn,
 #tgp-confirm-delete-btn,
 .tgp-trongate-pages-danger {
-    background-color: #cc0000;
-    border: 1px #cc0000 solid;
+    background-color: #cc0000 !important;
+    border: 1px #cc0000 solid !important;
 }
 
 #trongate-pages-dock #tgp-delete-page-btn:hover,
@@ -111,8 +111,8 @@
 #tgp-choose-another-image-btn:hover,
 #tgp-confirm-delete-btn:hover,
 .tgp-trongate-pages-danger:hover {
-    background-color: #ff0000;
-    border: 1px #ff0000 solid;
+    background-color: #ff0000 !important;
+    border: 1px #ff0000 solid !important;
 }
 
 .dock-icon {
