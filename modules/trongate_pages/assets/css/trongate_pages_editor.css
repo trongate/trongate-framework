@@ -8,7 +8,7 @@
     align-items: center;
     justify-content: space-between;
     background-color: #000000;
-    color:  #eee;
+    color: #eee;
     position: fixed;
     width: 100%;
     z-index: 9997;
@@ -17,13 +17,13 @@
     transition: 2.3s;
 }
 
-#trongate-pages-dock > div {
+#trongate-pages-dock>div {
     display: flex;
     flex-direction: row;
     margin: 12px;
 }
 
-#trongate-pages-dock > div > div {
+#trongate-pages-dock>div>div {
     margin: 0 6px;
 }
 
@@ -34,6 +34,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #fff;
+}
+
+#trongate-pages-dock #tgp-create-page-el-btn {
+    background-color: steelblue;
+    border: 1px #38678f solid;
 }
 
 #trongate-pages-dock button .fa {
@@ -66,21 +72,21 @@
 }
 
 #trongate-pages-dock #tgp-settings-btn,
-#tgp-mobi-options-grid  #tgp-settings-btn-mobi {
+#tgp-mobi-options-grid #tgp-settings-btn-mobi {
     background-color: #bb9849;
     border: 1px #bb9849 solid;
 }
 
 #trongate-pages-dock #tgp-settings-btn:hover,
-#tgp-mobi-options-grid  #tgp-settings-btn-mobi:hover {
+#tgp-mobi-options-grid #tgp-settings-btn-mobi:hover {
     background-color: #edc66d;
-    border:  1px #edc66d solid;
+    border: 1px #edc66d solid;
 }
 
 #tgp-code-view-btn,
 #tgp-code-view-btn-mobi {
     background-color: #cc4400;
-    border:  1px #cc4400 solid;
+    border: 1px #cc4400 solid;
     color: #fff;
 }
 
@@ -94,7 +100,7 @@
 #trongate-pages-dock #tgp-delete-page-btn,
 #tgp-mobi-options-grid #tgp-delete-page-btn-mobi,
 #tgp-choose-another-image-btn,
-#tgp-confirm-delete-btn, 
+#tgp-confirm-delete-btn,
 .tgp-trongate-pages-danger {
     background-color: #cc0000;
     border: 1px #cc0000 solid;
@@ -110,17 +116,17 @@
 }
 
 .dock-icon {
-    border:  2px #ddd solid;
+    border: 2px #ddd solid;
     font-size: 1px;
     width: 24px;
-    height:  24px;
+    height: 24px;
     display: grid;
     grid-template-columns: 2fr 3fr;
     grid-gap: 0;
-    margin:  12px;
+    margin: 12px;
 }
 
-.dock-icon > div:nth-child(1) {
+.dock-icon>div:nth-child(1) {
     background-color: #ddd;
 }
 
@@ -141,8 +147,8 @@
     border: 2px #88bfed solid;
 }
 
-.dock-active > div:nth-child(1) {
-    background-color:  #88bfed;
+.dock-active>div:nth-child(1) {
+    background-color: #88bfed;
 }
 
 .dock-left {
@@ -160,37 +166,37 @@
     right: 0;
 }
 
-.dock-left #toolbar-lhs, 
-.dock-left #toolbar-rhs,  
-.dock-right #toolbar-lhs, 
+.dock-left #toolbar-lhs,
+.dock-left #toolbar-rhs,
+.dock-right #toolbar-lhs,
 .dock-right #toolbar-rhs {
     flex-direction: column;
 }
 
-.dock-left #toolbar-lhs, 
-.dock-left #toolbar-rhs > div,
-.dock-right #toolbar-lhs, 
-.dock-right #toolbar-rhs > div {
+.dock-left #toolbar-lhs,
+.dock-left #toolbar-rhs>div,
+.dock-right #toolbar-lhs,
+.dock-right #toolbar-rhs>div {
     margin-bottom: 12px;
 }
 
-.dock-left #toolbar-lhs > div,
-.dock-right #toolbar-lhs > div {
+.dock-left #toolbar-lhs>div,
+.dock-right #toolbar-lhs>div {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding:  0 !important;
-    margin:  0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
-.dock-left #toolbar-lhs button, 
+.dock-left #toolbar-lhs button,
 .dock-right #toolbar-lhs button {
     margin: 12px 0;
     width: 100% !important;
 }
 
 .dock-btm {
-    bottom:  0 !important;
+    bottom: 0 !important;
 }
 
 #trongate-pages-dock-mobi .round-button {
@@ -227,7 +233,7 @@
 }
 
 #tgp-mobi-options-grid button {
-    margin-top:  0;
+    margin-top: 0;
     font-size: 2em;
     width: 100%;
 }
@@ -239,7 +245,7 @@
 .tgp-close-cross {
     margin: 12px 6px;
     font-weight: bold;
-    font-size:  27px;
+    font-size: 27px;
 }
 
 .tgp-close-cross:hover {
@@ -251,10 +257,10 @@
     display: grid;
     grid-gap: 1em;
     grid-template-columns: repeat(3, 1fr);
-    margin:  1em;
+    margin: 1em;
 }
 
-#page-el-options-grid > div {
+#page-el-options-grid>div {
     border: 3px #666 solid;
     min-height: 100px;
     display: flex;
@@ -265,18 +271,18 @@
     cursor: pointer;
 }
 
-#page-el-options-grid > div img {
+#page-el-options-grid>div img {
     position: relative;
 }
 
-#page-el-options-grid > div > div:nth-child(2) {
+#page-el-options-grid>div>div:nth-child(2) {
     text-align: center;
 }
 
 #trongate-editor {
     background-color: #d8dbf2;
     border: 3px solid #989787;
-    display:flex;
+    display: flex;
     flex-direction: row;
     align-items: stretch;
     justify-content: space-between;
@@ -288,9 +294,9 @@
     top: 0;
     left: 0;
     right: 0;
-    -webkit-box-shadow: 2px 3px 13px 0px rgba(0,0,0,0.75);
-    -moz-box-shadow: 2px 3px 13px 0px rgba(0,0,0,0.75);
-    box-shadow: 2px 3px 13px 0px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 2px 3px 13px 0px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 2px 3px 13px 0px rgba(0, 0, 0, 0.75);
+    box-shadow: 2px 3px 13px 0px rgba(0, 0, 0, 0.75);
     z-index: 9998;
 }
 
@@ -298,14 +304,14 @@
 #code-btn {
     font-family: Georgia;
     font-size: 21px;
-    margin-right:4px;
+    margin-right: 4px;
     min-width: 2em;
     font-weight: bold;
     margin-top: 0;
     background-color: #eee;
     color: #444;
     padding: 5px;
-    border:  1px #333 solid;
+    border: 1px #333 solid;
     border-radius: 4px;
 }
 
@@ -314,8 +320,8 @@
 }
 
 #trongate-editor button {
-  height: 38px;
-  margin-right: 4px;
+    height: 38px;
+    margin-right: 4px;
 }
 
 #trongate-editor button:hover {
@@ -324,8 +330,8 @@
 }
 
 #trongate-editor-toolbar {
-  display: flex;
-  flex-wrap: wrap;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 #trongate-editor-toolbar button {
@@ -335,11 +341,11 @@
 }
 
 #trongate-editor-toolbar select {
-    margin-top:  3px;
+    margin-top: 3px;
 }
 
 #tgp-heading-select {
-    width:  max-content;
+    width: max-content;
     background-color: #eee;
     color: #444;
     border: 1px #333 solid;
@@ -360,12 +366,7 @@
     color: #eee !important;
 }
 
-
-/*
-IMAGE UPLOADER START
-*/
-
-#tgp-media-manager > div.modal-body {
+#tgp-media-manager>div.modal-body {
     min-height: 450px;
 }
 
@@ -391,7 +392,7 @@ IMAGE UPLOADER START
 }
 
 .force-flex-para button {
-    margin-top:0;
+    margin-top: 0;
 }
 
 .tgp-uploaded-images-grid {
@@ -402,7 +403,7 @@ IMAGE UPLOADER START
     padding-right: 1em;
 }
 
-.tgp-uploaded-images-grid > div {
+.tgp-uploaded-images-grid>div {
     border: 3px #ccc solid;
     height: 140px;
     display: flex;
@@ -442,6 +443,7 @@ IMAGE UPLOADER START
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(720deg);
     }
@@ -455,9 +457,11 @@ IMAGE UPLOADER START
     0% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.2);
     }
+
     100% {
         transform: scale(1);
     }
@@ -472,20 +476,22 @@ IMAGE UPLOADER START
     0% {
         border-color: #10a37f;
     }
+
     50% {
         border-color: white;
     }
+
     100% {
         border-color: #10a37f;
     }
 }
 
-.tgp-uploaded-images-grid > div > img {
+.tgp-uploaded-images-grid>div>img {
     max-width: 72%;
     max-height: 72%;
 }
 
-.tgp-uploaded-images-grid > div:hover {
+.tgp-uploaded-images-grid>div:hover {
     border: 3px steelblue solid;
     cursor: pointer;
 }
@@ -505,9 +511,9 @@ IMAGE UPLOADER START
     margin: 33px auto;
 }
 
-#tgp-image-modal > div > p.text-left {
+#tgp-image-modal>div>p.text-left {
     text-align: left;
-} 
+}
 
 #tgp-image-properties {
     text-align: left;
@@ -515,7 +521,7 @@ IMAGE UPLOADER START
 
 #progress-bar {
     display: block;
-    margin:  0 auto;
+    margin: 0 auto;
 }
 
 #upload-status {
@@ -524,7 +530,7 @@ IMAGE UPLOADER START
     font-size: 1.2em;
 }
 
-#tgp-media-manager  #tg-conf-delete-img-form {
+#tgp-media-manager #tg-conf-delete-img-form {
     margin-top: 12px;
     display: flex;
     flex-direction: row;
@@ -533,16 +539,16 @@ IMAGE UPLOADER START
 }
 
 #tgp-media-manager input[type="text"] {
-  border: 1px solid #ccc;
-  padding: 0.5em;
-  font-size: 1em;
-  box-sizing: border-box;
-  text-transform: uppercase;
-  font-weight: bold;
+    border: 1px solid #ccc;
+    padding: 0.5em;
+    font-size: 1em;
+    box-sizing: border-box;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
 #tgp-media-manager #tg-delete-img-now-btn {
-  margin-top: 0;
+    margin-top: 0;
 }
 
 .tgp-neutral {
@@ -554,18 +560,18 @@ IMAGE UPLOADER START
 .tgp-neutral:hover {
     background-color: #000;
     border: 1px #000 solid;
-    color:  #cc4400 !important;
+    color: #cc4400 !important;
 }
 
 .active-code-btn-img {
     background-color: #cc4400 !important;
-    border:  1px #cc4400 solid;
+    border: 1px #cc4400 solid;
     color: #eee !important;
 }
 
 .active-code-btn-img:hover {
     background-color: #f36721 !important;
-    border:  1px #cc4400 solid;
+    border: 1px #cc4400 solid;
     color: #fff !important;
 }
 
@@ -577,21 +583,17 @@ IMAGE UPLOADER START
     display: none !important;
 }
 
-/*
-IMAGE UPLOADER END
-*/
-
 .tgp-fake-link {
-    color:  steelblue;
+    color: steelblue;
     text-decoration: underline;
     cursor: pointer;
 }
 
 .tgp-fake-link:hover {
-   color:  #2b4f6c;
+    color: #2b4f6c;
 }
 
-.circ{
+.circ {
     opacity: 0;
     stroke-dasharray: 130;
     stroke-dashoffset: 130;
@@ -601,7 +603,8 @@ IMAGE UPLOADER END
     -o-transition: all 1s;
     transition: all 1s;
 }
-.tick{
+
+.tick {
     stroke-dasharray: 50;
     stroke-dashoffset: 50;
     -webkit-transition: stroke-dashoffset 1s 0.5s ease-out;
@@ -610,7 +613,8 @@ IMAGE UPLOADER END
     -o-transition: stroke-dashoffset 1s 0.5s ease-out;
     transition: stroke-dashoffset 1s 0.5s ease-out;
 }
-.tick2{
+
+.tick2 {
     stroke-dasharray: 50;
     stroke-dashoffset: 50;
     -webkit-transition: stroke-dashoffset 1s 0.7s ease-out;
@@ -619,29 +623,30 @@ IMAGE UPLOADER END
     -o-transition: stroke-dashoffset 1s 0.7s ease-out;
     transition: stroke-dashoffset 1s 0.7s ease-out;
 }
-.drawn + svg .path{
+
+.drawn+svg .path {
     opacity: 1;
     stroke-dashoffset: 0;
 }
 
-#tgp-settings-modal > div.modal-heading {
+#tgp-settings-modal>div.modal-heading {
     background-color: #d5b367;
-    border:  1px #d5b367 solid;
+    border: 1px #d5b367 solid;
     color: #fff;
 }
 
-#tgp-code-view-modal > div.modal-heading {
+#tgp-code-view-modal>div.modal-heading {
     background-color: #cc4400;
-    border:  1px #cc4400 solid;
+    border: 1px #cc4400 solid;
     color: #fff;
 }
 
 #tgp-code-view-modal .modal-body #content-as-code,
 #tgp-code-view {
     background-color: #282b32 !important;
-    color:  #eee !important;
+    color: #eee !important;
     font-family: "Courier New", Courier, monospace !important;
-    font-size:  19px !important;
+    font-size: 19px !important;
 }
 
 #content-as-code {
@@ -651,7 +656,7 @@ IMAGE UPLOADER END
 
 #tgp-code-view-modal {
     max-width: 96%;
-    width:  1100px;
+    width: 1100px;
 }
 
 .el-location-selector {
@@ -662,12 +667,12 @@ IMAGE UPLOADER END
     margin-bottom: 33px;
 }
 
-.el-location-selector > div {
+.el-location-selector>div {
     width: 70%;
     text-align: center;
 }
 
-.el-location-selector > div button {
+.el-location-selector>div button {
     width: 100%;
 }
 
@@ -677,7 +682,7 @@ IMAGE UPLOADER END
 }
 
 #trongate-pages-dock-mobi {
-    border-top:  3px steelblue solid;
+    border-top: 3px steelblue solid;
     background-color: #222;
     position: fixed;
     left: 0;
@@ -689,21 +694,168 @@ IMAGE UPLOADER END
     display: none;
 }
 
+#tgp-button-modal,
+#tgp-camera-modal,
+#tgp-code-view-modal,
+#tgp-conf-trashify-modal,
+#tgp-confirm-save-page,
+#tgp-create-page-el,
+#tgp-delete-page-modal,
+#tgp-image-modal,
+#tgp-intercept-add-el,
+#tgp-link-modal,
+#tgp-media-manager,
+#tgp-mobi-options,
+#tgp-settings-modal,
+#tgp-video-overlay,
+#tgp-youtube-modal {
+    font-family: Tahoma, Geneva, sans-serif !important;
+    font-size: 1rem;
+}
+
+#tgp-button-modal .modal-body h2,
+#tgp-camera-modal .modal-body h2,
+#tgp-code-view-modal .modal-body h2,
+#tgp-conf-trashify-modal .modal-body h2,
+#tgp-confirm-save-page .modal-body h2,
+#tgp-create-page-el .modal-body h2,
+#tgp-delete-page-modal .modal-body h2,
+#tgp-image-modal .modal-body h2,
+#tgp-intercept-add-el .modal-body h2,
+#tgp-link-modal .modal-body h2,
+#tgp-media-manager .modal-body h2,
+#tgp-mobi-options .modal-body h2,
+#tgp-settings-modal .modal-body h2,
+#tgp-video-overlay .modal-body h2,
+#tgp-youtube-modal .modal-body h2 {
+    margin-top: 7px;
+    font-size: 24px;
+    font-weight: bold !important;
+}
+
+#tgp-button-modal .modal-heading,
+#tgp-camera-modal .modal-heading,
+#tgp-conf-trashify-modal .modal-heading,
+#tgp-confirm-save-page .modal-heading,
+#tgp-create-page-el .modal-heading,
+#tgp-image-modal .modal-heading,
+#tgp-intercept-add-el .modal-heading,
+#tgp-link-modal .modal-heading,
+#tgp-media-manager .modal-heading,
+#tgp-mobi-options .modal-heading,
+#tgp-video-overlay .modal-heading,
+#tgp-youtube-modal .modal-heading {
+    background-color: #4682b4;
+    border: 1px #4682b4 solid !important;
+    color: #eee !important;
+    font-weight: normal;
+}
+
+#tgp-button-modal button,
+#tgp-camera-modal button,
+#tgp-code-view-modal button,
+#tgp-conf-trashify-modal button,
+#tgp-confirm-save-page button,
+#tgp-create-page-el button,
+#tgp-delete-page-modal button,
+#tgp-image-modal button,
+#tgp-intercept-add-el button,
+#tgp-link-modal button,
+#tgp-media-manager button,
+#tgp-mobi-options button,
+#tgp-settings-modal button,
+#tgp-video-overlay button,
+#tgp-youtube-modal button {
+    transition: .3s;
+    background-color: #4682b4;
+    color: #eee !important;
+    border: 1px #333 solid !important;
+    font-weight: normal;
+}
+
+#tgp-button-modal button:hover,
+#tgp-camera-modal button:hover,
+#tgp-code-view-modal button:hover,
+#tgp-conf-trashify-modal button:hover,
+#tgp-confirm-save-page button:hover,
+#tgp-create-page-el button:hover,
+#tgp-delete-page-modal button:hover,
+#tgp-image-modal button:hover,
+#tgp-intercept-add-el button:hover,
+#tgp-link-modal button:hover,
+#tgp-media-manager button:hover,
+#tgp-mobi-options button:hover,
+#tgp-settings-modal button:hover,
+#tgp-video-overlay button:hover,
+#tgp-youtube-modal button:hover {
+    color: #fff !important;
+    border: 1px #294d6b solid !important;
+    background-color: #38678f;
+}
+
+#tgp-button-modal button.alt,
+#tgp-camera-modal button.alt,
+#tgp-code-view-modal button.alt,
+#tgp-conf-trashify-modal button.alt,
+#tgp-confirm-save-page button.alt,
+#tgp-create-page-el button.alt,
+#tgp-delete-page-modal button.alt,
+#tgp-image-modal button.alt,
+#tgp-intercept-add-el button.alt,
+#tgp-link-modal button.alt,
+#tgp-media-manager button.alt,
+#tgp-mobi-options button.alt,
+#tgp-settings-modal button.alt,
+#tgp-video-overlay button.alt,
+#tgp-youtube-modal button.alt {
+    transition: .3s;
+    background-color: #fff;
+    color: #333 !important;
+    border: 1px #4682b4 solid !important;
+    font-weight: normal;
+}
+
+#tgp-button-modal button.alt:hover,
+#tgp-camera-modal button.alt:hover,
+#tgp-code-view-modal button.alt:hover,
+#tgp-conf-trashify-modal button.alt:hover,
+#tgp-confirm-save-page button.alt:hover,
+#tgp-create-page-el button.alt:hover,
+#tgp-delete-page-modal button.alt:hover,
+#tgp-image-modal button.alt:hover,
+#tgp-intercept-add-el button.alt:hover,
+#tgp-link-modal button.alt:hover,
+#tgp-media-manager button.alt:hover,
+#tgp-mobi-options button.alt:hover,
+#tgp-settings-modal button.alt:hover,
+#tgp-video-overlay button.alt:hover,
+#tgp-youtube-modal button.alt:hover {
+    color: #4682b4 !important;
+    border: 1px #4682b4 solid !important;
+    background-color: #fff;
+}
+
+.active-el-highlight {
+    background-color: #fff1d2 !important;
+    border:  3px #38678f dashed !important;
+    color: #38678f !important;
+}
+
 @media (min-width: 1px) {
-    #trongate-pages-dock > div:nth-child(2) {
+    #trongate-pages-dock>div:nth-child(2) {
         display: none;
     }
 
-  .tgp-uploaded-images-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-    #page-el-options-grid > div > div:nth-child(2),
-    #tgp-link-modal > div.modal-body > p:nth-child(1) {
-        display:  none;
+    .tgp-uploaded-images-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 
-    #page-el-options-grid > div img {
+    #page-el-options-grid>div>div:nth-child(2),
+    #tgp-link-modal>div.modal-body>p:nth-child(1) {
+        display: none;
+    }
+
+    #page-el-options-grid>div img {
         top: 0;
         max-width: 64px;
     }
@@ -720,23 +872,23 @@ IMAGE UPLOADER END
 }
 
 @media (min-width: 760px) {
-    #trongate-pages-dock > div:nth-child(2) {
+    #trongate-pages-dock>div:nth-child(2) {
         display: flex;
     }
 
-  .tgp-uploaded-images-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  #page-el-options-grid > div {
-    min-height: 160px;
-  }
-
-    #page-el-options-grid > div > div:nth-child(2) {
-        display:  block;
+    .tgp-uploaded-images-grid {
+        grid-template-columns: repeat(4, 1fr);
     }
 
-   #page-el-options-grid > div img {
+    #page-el-options-grid>div {
+        min-height: 160px;
+    }
+
+    #page-el-options-grid>div>div:nth-child(2) {
+        display: block;
+    }
+
+    #page-el-options-grid>div img {
         top: 16px;
         max-width: 100%;
     }
@@ -753,7 +905,6 @@ IMAGE UPLOADER END
         flex-direction: row;
         justify-content: flex-end;
     }
-
 }
 
 @media (min-width: 1100px) {
@@ -777,7 +928,7 @@ IMAGE UPLOADER END
         grid-template-columns: repeat(6, 1fr);
     }
 
-    #tgp-link-modal > div.modal-body > p:nth-child(1) {
+    #tgp-link-modal>div.modal-body>p:nth-child(1) {
         display: block;
     }
 }

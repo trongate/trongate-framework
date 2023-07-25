@@ -162,6 +162,10 @@ class Trongate_pages extends Trongate {
 
         if(($last_segment === 'edit') && ($token !== false)) {
             $data['enable_page_edit'] = true;
+        } elseif (($last_segment === 'edit') && ($token === false)) {
+            if(strtolower(ENV) === 'dev') {
+                redirect('trongate_pages/manage');
+            }
         }
 
         if (($data['published'] === 0) && ($last_segment !== 'edit')) {
