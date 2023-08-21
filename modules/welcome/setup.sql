@@ -1,15 +1,6 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 
-CREATE TABLE IF NOT EXISTS `tasks` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `task_title` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-INSERT INTO `tasks` (`id`, `task_title`) VALUES
-(1, 'First Task');
-
 CREATE TABLE IF NOT EXISTS `trongate_administrators` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(65) DEFAULT NULL,

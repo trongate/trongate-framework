@@ -467,8 +467,8 @@ class Standard_endpoints extends Trongate {
             $update_ids_str = implode(',', $update_ids);
 
             if(count($update_ids)>0) {
-                // Build the SQL query to delete rows from the 'tasks' table where 'id' values match those in the array
-                $sql = "DELETE FROM tasks WHERE id IN ({$update_ids_str})";
+                // Build the SQL query to delete rows from the table where 'id' values match those in the array
+                $sql = "DELETE FROM $table_name WHERE id IN ({$update_ids_str})";
                 $this->model->query($sql);
             }
 
