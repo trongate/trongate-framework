@@ -641,8 +641,15 @@ function validation_errors($opening_html=null, $closing_html=null) {
             }
 
             if (!isset($opening_html)) {
-                $opening_html = '<p style="color: red;">';
-                $closing_html = '</p>';
+
+                if (defined('ERROR_OPEN') && defined('ERROR_CLOSE')) {
+                    $opening_html = ERROR_OPEN;
+                    $closing_html = ERROR_CLOSE;
+                } else {
+                    $opening_html = '<p style="color: red;">';
+                    $closing_html = '</p>';
+                }
+
             }
 
             foreach($validation_errors as $form_submission_error) {
