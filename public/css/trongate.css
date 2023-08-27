@@ -192,17 +192,17 @@ hr {
 
 .text-left,
 div.modal-body p.text-left {
-    text-align: left;
+    text-align: left !important;
 }
 
 .text-right,
 div.modal-body p.text-right {
-    text-align: right;
+    text-align: right !important;
 }
 
 .text-center,
 div.modal-body p.text-center {
-    text-align: center;
+    text-align: center !important;
 }
 
 .container {
