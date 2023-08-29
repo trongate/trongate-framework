@@ -76,6 +76,21 @@ function anchor($target_url, $text, $attributes = null, $additional_code = null)
 }
 
 /**
+ * Truncates a string to a specified maximum length.
+ *
+ * @param string $value The input string to be truncated.
+ * @param int $max_length The maximum length of the truncated string.
+ * @return string The truncated string with an ellipsis (...) if necessary.
+ */
+function truncate_string(string $value, int $max_length): string {
+    if (strlen($value) <= $max_length) {
+        return $value;
+    } else {
+        return substr($value, 0, $max_length) . '...';
+    }
+}
+
+/**
  * Format a number as a price with commas and optional currency symbol.
  *
  * @param float $num The number to be formatted.
