@@ -82,7 +82,7 @@ function anchor($target_url, $text, $attributes = null, $additional_code = null)
  * @param int $max_length The maximum length of the truncated string.
  * @return string The truncated string with an ellipsis (...) if necessary.
  */
-function truncate_string(string $value, int $max_length): string {
+function truncate_str(string $value, int $max_length): string {
     if (strlen($value) <= $max_length) {
         return $value;
     } else {
