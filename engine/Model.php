@@ -402,7 +402,41 @@ class Model {
         return $id;
     }
 
-    public function update($update_id, $data, $target_tbl = null) {
+    // If $column null default column is id with the value of $update_id. 
+    // Table required if using $column argument.
+    public function update($update_id, $data, $target_tbl = null, $column = null) {
+
+        if (!isset($target_tbl)) {
+            $target_tbl = $this->get_table_from_url();
+        }
+
+        $sql = "UPDATE `$target_tbl` SET ";
+
+        foreach ($data as $key => $value) {
+            $sql .= "`$key` = :$key, ";
+        }
+
+        if (!$column) {
+            $column = 'id';
+            $data['id'] = (int) $update_id;
+        } else {
+            $data['id'] = $update_id;
+        }
+
+        $sql = rtrim($sql, ', ');
+        $sql .= " WHERE `$target_tbl`. `$column` = :id";
+
+        $data = $data;
+
+        if ($this->debug == true) {
+            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+        }
+
+        $this->prepare_and_execute($sql, $data);
+    }
+
+    //update a record by a field besides the table.id
+    public function update_custom($update_value, $data, $field, $target_tbl = null){
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -415,9 +449,9 @@ class Model {
         }
 
         $sql = rtrim($sql, ', ');
-        $sql .= " WHERE `$target_tbl`.`id` = :id";
+        $sql .= " WHERE `$target_tbl`.`$field` = :value";
 
-        $data['id'] = (int) $update_id;
+        $data['value'] = $update_value;
         $data = $data;
 
         if ($this->debug == true) {
