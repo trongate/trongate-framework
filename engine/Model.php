@@ -402,7 +402,7 @@ class Model {
         return $id;
     }
 
-    public function update($update_id, $data, $target_tbl = null) {
+    public function update($update_id, $data, $target_tbl = null, $column = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -414,10 +414,16 @@ class Model {
             $sql .= "`$key` = :$key, ";
         }
 
-        $sql = rtrim($sql, ', ');
-        $sql .= " WHERE `$target_tbl`.`id` = :id";
+        if (!$column) {
+            $column = 'id';
+            $data['id'] = (int) $update_id;
+        } else {
+            $data['id'] = $update_id;
+        }
 
-        $data['id'] = (int) $update_id;
+        $sql = rtrim($sql, ', ');
+        $sql .= " WHERE `$target_tbl`. `$column` = :id";
+
         $data = $data;
 
         if ($this->debug == true) {
@@ -426,6 +432,7 @@ class Model {
 
         $this->prepare_and_execute($sql, $data);
     }
+
 
     //update a record by a field besides the table.id
     public function update_custom($update_value, $data, $column, $target_tbl = null){
