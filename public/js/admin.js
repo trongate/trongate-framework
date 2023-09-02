@@ -293,6 +293,11 @@ if (typeof drawComments == 'boolean') {
 
     function fetchComments() {
 
+        var commentsTbl = document.querySelector("#comments-block > table");
+        if(commentsTbl == null) {
+            return;
+        }
+
         var params = {
             target_table: segment1,
             update_id: updateId,
