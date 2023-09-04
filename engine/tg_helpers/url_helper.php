@@ -75,9 +75,36 @@ function anchor($target_url, $text, $attributes = null, $additional_code = null)
     return $link;
 }
 
-function nice_price($num) {
+/**
+ * Truncates a string to a specified maximum length.
+ *
+ * @param string $value The input string to be truncated.
+ * @param int $max_length The maximum length of the truncated string.
+ * @return string The truncated string with an ellipsis (...) if necessary.
+ */
+function truncate_str(string $value, int $max_length): string {
+    if (strlen($value) <= $max_length) {
+        return $value;
+    } else {
+        return substr($value, 0, $max_length) . '...';
+    }
+}
+
+/**
+ * Format a number as a price with commas and optional currency symbol.
+ *
+ * @param float $num The number to be formatted.
+ * @param string|null $currency_symbol The optional currency symbol to be added.
+ * @return string|float The formatted nice price.
+ */
+function nice_price(float $num, ?string $currency_symbol = null): string|float {
     $num = number_format($num, 2);
     $nice_price = str_replace('.00', '', $num);
+
+    if (isset($currency_symbol)) {
+        $nice_price = $currency_symbol . $nice_price;
+    }
+
     return $nice_price;
 }
 

@@ -1,7 +1,19 @@
 <?php
 class Trongate_comments extends Trongate {
 
-    function _prep_comments($output) {
+    /**
+     * @var string The default system'username for comments from a user id of 0.
+     */
+    private $zero_id_username = 'System';
+
+    /**
+     * Prepare comments data with formatted dates and user information.
+     * This method is typically called via admin.js.
+     *
+     * @param array $output The output data containing comments.
+     * @return array Processed output data with formatted comments.
+     */
+    function _prep_comments(array $output): array {
         //return comments with nicely formatted date
         $body = $output['body'];
 
@@ -25,7 +37,13 @@ class Trongate_comments extends Trongate {
             if (isset($admin_users[$value->user_id])) {
                 $posted_by = $admin_users[$value->user_id];
             } else {
-                $posted_by = 'an unknown user';
+
+                if(($value->user_id === 0) && (isset($this->zero_id_username))) {
+                    $posted_by = $this->zero_id_username;
+                } else {
+                    $posted_by = 'an unknown user';
+                }
+
             }
 
             $date_created = date('l jS \of F Y \a\t h:i:s A', $value->date_created);
@@ -41,8 +59,23 @@ class Trongate_comments extends Trongate {
         return $output;
     }
 
-    function _pre_insert($input) {
-        //establish user_id, date_created and code before doing an insert
+    /**
+     * Pre-insert hook to be invoked by API manager before inserting a comment
+     *
+     * @param array $input The input data for insertion.
+     *                     Expected structure:
+     *                     [
+     *                         'token' => string, // The token associated with the user.
+     *                         'params' => array[ // Additional parameters for insertion.
+     *                             'user_id' => int,      // ID of the user.
+     *                             'date_created' => int, // Unix timestamp of creation date.
+     *                             'code' => string,      // Randomly generated code.
+     *                         ],
+     *                     ]
+     * @return array Processed input data with additional parameters.
+     */
+    function _pre_insert(array $input): array {
+        // Establish user_id, date_created, and code before doing an insert.
         $this->module('trongate_tokens');
         $token = $input['token'];
         $user = $this->trongate_tokens->_fetch_token_obj($token);
@@ -53,6 +86,5 @@ class Trongate_comments extends Trongate {
 
         return $input;
     }
-    
 
 }

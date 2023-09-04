@@ -166,6 +166,14 @@ class Core {
             $module_with_no_params = explode('?',$segments[1])[0];
             $this->current_module = strtolower($module_with_no_params);
             $this->current_controller = ucfirst($this->current_module);
+
+            if (defined('TRONGATE_PAGES_TRIGGER')) {
+                if($segments[1] === TRONGATE_PAGES_TRIGGER) {
+                    $this->current_module = 'trongate_pages';
+                    $this->current_controller = 'Trongate_pages';
+                }
+            }
+
         }
 
         if (isset($segments[2])) {
@@ -253,6 +261,18 @@ class Core {
                     return $controller_path;
                 }
             }
+        }
+
+        //do we have a custom 404 intercept declared?
+        if (defined('INTERCEPT_404')) {
+            $intercept_bits = explode('/', INTERCEPT_404);
+            $this->current_module = $intercept_bits[0];
+            $this->current_controller = ucfirst($intercept_bits[0]);
+            $this->current_method = $intercept_bits[1];
+            $controller_path = '../modules/'.$this->current_module.'/controllers/'.$this->current_controller.'.php';
+            if(file_exists($controller_path)) {
+                return $controller_path;
+            }        
         }
 
         $this->draw_error_page();

@@ -2,7 +2,7 @@
 var weekStartsOn = 1; // 0 = Sunday, 1 = Monday
 
 // the localeString spezifies the locale used to parse the date and to output the date
-var localeString = 'en-GB'; //details:  https://www.w3schools.com/jsref/jsref_tolocalestring.asp
+var localeString = 'en-US'; //details:  https://www.w3schools.com/jsref/jsref_tolocalestring.asp
 
 var dateFormatObj = {
     dateStyle: 'long'
