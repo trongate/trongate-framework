@@ -402,6 +402,7 @@ class Model {
         return $id;
     }
 
+
     public function update($update_id, $data, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
@@ -426,6 +427,33 @@ class Model {
 
         $this->prepare_and_execute($sql, $data);
     }
+
+    public function update_where($column, $column_value, $data, $target_tbl = null) {
+
+        if (!isset($target_tbl)) {
+            $target_tbl = $this->get_table_from_url();
+        }
+
+        $sql = "UPDATE `$target_tbl` SET ";
+
+        foreach ($data as $key => $value) {
+            $sql .= "`$key` = :$key, ";
+        }
+
+        $sql = rtrim($sql, ', ');
+        $sql .= " WHERE `$target_tbl`.`$column` = :value";
+
+        $data['value'] = $column_value;
+        $data = $data;
+
+        if ($this->debug == true) {
+            $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
+        }
+
+        $this->prepare_and_execute($sql, $data);
+    }
+
+  
 
     public function delete($id, $target_tbl = null) {
 
