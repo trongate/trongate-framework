@@ -7,7 +7,7 @@
   <body>
     <div class="container">
       <h1>Permissions Error <span class="xs">(don't panic!)</span></h1>
-      <p>The folder 'modules/trongate_pages/assets/images' is not writable. Please change the folder permissions to allow write access.</p>
+      <p>The folder 'modules/trongate_pages/assets/images/uploads' is not writable. Please change the folder permissions to allow write access.</p>
       <h3>Mac Users</h3>
       <ol>
         <li>Open the Terminal app.</li>
