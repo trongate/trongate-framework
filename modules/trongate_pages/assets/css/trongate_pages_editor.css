@@ -60,15 +60,15 @@
 #trongate-pages-dock #tgp-save-page-btn,
 #tgp-mobi-options-grid #tgp-save-page-btn-mobi,
 .tgp-trongate-pages-success {
-    background-color: #3c8f38;
-    border: 1px #3c8f38 solid;
+    background-color: #3c8f38 !important;
+    border: 1px #3c8f38 solid !important;
 }
 
 #trongate-pages-dock #tgp-save-page-btn:hover,
 #tgp-mobi-options-grid #tgp-save-page-btn-mobi:hover,
 .tgp-trongate-pages-success:hover {
-    background-color: #4bb446;
-    border: 1px #4bb446 solid;
+    background-color: #4bb446 !important;
+    border: 1px #4bb446 solid !important;
 }
 
 #trongate-pages-dock #tgp-settings-btn,
@@ -273,6 +273,7 @@
 
 #page-el-options-grid>div img {
     position: relative;
+    max-height: 64px;
 }
 
 #page-el-options-grid>div>div:nth-child(2) {
@@ -370,6 +371,15 @@
     min-height: 450px;
 }
 
+#tgp-media-manager > div.modal-body > p > button > i {
+    font-size: 1.33em;
+}
+
+#tgp-media-manager > div.modal-body > p > button:nth-child(1) > i {
+    top: -2px;
+    position: relative;
+}
+
 .tgp-showcase-img-div {
     display: flex;
     flex-direction: column;
@@ -403,17 +413,30 @@
     padding-right: 1em;
 }
 
-.tgp-uploaded-images-grid>div {
+.tgp-uploaded-images-grid > div {
     border: 3px #ccc solid;
     height: 140px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-around;
     border-radius: 12px;
 }
 
-.tgp-preview-box {
-    position: relative;
+.tgp-uploaded-images-grid > div > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    margin:  0 auto;
+}
+
+.tgp-uploaded-images-grid > div > div:nth-child(1) {
+    flex-grow: 1;
+}
+
+.tgp-uploaded-images-grid > div > div:nth-child(2) {
+    margin-bottom: 7px;
 }
 
 .tgp-preview-box.active {
@@ -486,9 +509,9 @@
     }
 }
 
-.tgp-uploaded-images-grid>div>img {
+.tgp-uploaded-images-grid>div img {
     max-width: 72%;
-    max-height: 72%;
+    max-height: 100px;
 }
 
 .tgp-uploaded-images-grid>div:hover {
@@ -530,6 +553,7 @@
     font-size: 1.2em;
 }
 
+#tgp-media-manager #tgp-create-new-folder-form,
 #tgp-media-manager #tg-conf-delete-img-form {
     margin-top: 12px;
     display: flex;
@@ -547,6 +571,7 @@
     font-weight: bold;
 }
 
+#tgp-media-manager #tgp-create-folder-now-btn,
 #tgp-media-manager #tg-delete-img-now-btn {
     margin-top: 0;
 }
@@ -839,6 +864,49 @@
     background-color: #fff1d2 !important;
     border:  3px #38678f dashed !important;
     color: #38678f !important;
+}
+
+.tgp-preview-box-edit-mode {
+    border: 3px #0000ff solid !important;
+    background-color: #0000ff55 !important;
+}
+
+.tgp-preview-box-edit-mode .tgp-preview-element-name {
+    background-color: #f5f5fe !important;
+    padding-left: 7px;
+    padding-right: 7px;
+    text-align: left !important;
+    justify-content: center;
+    width: max-content;
+}
+
+.tgp-delete-dir-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px !important;
+    width:  33px !important;
+    height: 33px !important;
+    border-radius: 8px !important;
+    padding:  0 !important;
+    margin:  0 !important;
+    background-color: #cc0000 !important;
+    border: 1px #cc0000 solid !important;
+    position: absolute !important;
+}
+
+.tgp-delete-dir-btn:hover {
+    background-color: #ff0000 !important;
+    border: 1px #ff0000 solid !important;
+}
+
+.tgp-grey-label {
+    color: #333;
+    font-weight: bold;
+    font-family: "Lucida Console", monospace;
+    background-color: #eee;
+    border:  1px #ccc solid;
+    padding:  3px 10px;
 }
 
 @media (min-width: 1px) {

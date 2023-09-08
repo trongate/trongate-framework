@@ -40,6 +40,7 @@ function tgpAddHeadlineToolbar(targetEl) {
 
     divLeft.appendChild(select);
 
+
     select.addEventListener('change', () => {
       const selectedOption = select.value;
       tgpChangeTagType(selectedOption);
@@ -256,6 +257,7 @@ function tgpBuildPicBtn(containerEl) {
 }
 
 function tgpToggleCodeView() {
+  removeUponScrollAllowed = false;
   const activeEl = trongatePagesObj.activeEl;
   const codeBtn = document.getElementById('code-btn');
   const editCodeTextarea = document.getElementById('tgp-code-view');
@@ -288,6 +290,11 @@ function tgpRemoveCodeView() {
     parentNode.replaceChild(newElement, editCodeTextarea);
     trongatePagesObj.activeEl = newElement;
     newElement.click();
+
+    setTimeout(() => {
+      tgpMakeSurePositionsGood(newElement);
+    }, 1);
+
   }
 }
 
@@ -330,7 +337,8 @@ function tgpInitCodeView(codeBtn=null) {
   trongatePagesObj.activeEl.parentNode.replaceChild(textarea, trongatePagesObj.activeEl);
 
   setTimeout(() => {
-    tgpMakeSurePositionsGood();
+    const belowElement = document.getElementById('tgp-code-view');
+    tgpMakeSurePositionsGood(belowElement);
   }, 1);
 }
 
@@ -362,7 +370,24 @@ function tgpCalcTANumRows(strLength) {
   return numRows;
 }
 
-function tgpMakeSurePositionsGood() {
+function tgpMakeSurePositionsGood(belowElement) {
+
+  const editorElement = document.getElementById('trongate-editor');
+  //const belowElement = document.getElementById('tgp-code-view');
+
+  if (editorElement && belowElement) {
+    const codeViewRect = belowElement.getBoundingClientRect();
+
+    editorElement.style.position = 'fixed';
+    
+    const newTop = Math.max(0, codeViewRect.top - editorElement.offsetHeight);
+    editorElement.style.top = `${newTop}px`;
+  }
+
+  removeUponScrollAllowed = true;
+}
+
+function tgpMakeSurePositionsGoodORIG() {
   const editorElement = document.getElementById('trongate-editor');
   const codeViewElement = document.getElementById('tgp-code-view');
 
@@ -957,7 +982,7 @@ function tgpToggleEditorToolbarBtn(btnId) {
 
 
 
-
+let removeUponScrollAllowed = true;
 
 
 
@@ -968,6 +993,9 @@ function tgpHandleScroll(event) {
   const targetEl = document.getElementById('trongate-editor');
   if (targetEl) {
     // Remove the target element from its parent
-    tgpReset(['codeviews', 'toolbars']);
+    if(removeUponScrollAllowed === true) {
+      tgpReset(['codeviews', 'toolbars']);
+    }
+    
   }
 }

@@ -3,7 +3,7 @@
 flashdata();
 validation_errors();
 echo '<p>';
-echo form_button('create', 'Create New Article', array('onclick' => 'openModal(\'create-page-modal\')'));
+echo form_button('create', 'Create New Webpage', array('onclick' => 'openModal(\'create-page-modal\')'));
 if(strtolower(ENV) === 'dev') {
     echo anchor('api/explorer/trongate_pages', 'API Explorer', array("class" => "button alt"));
 }
@@ -50,15 +50,15 @@ $attr['class'] = 'button alt';
             <tr>
                 <td class="text-center"><?= $published_icon ?></td>
                 <td class="double-decker">
-                    <div><span class="fake-link" onclick="openGoToArticlePage('<?= $row->article_url ?>', '<?= $row->id ?>')"><?= $row->page_title ?></span></div>
-                    <div class="xs"><b>URL:</b> <?= $row->article_url ?></div>
+                    <div><span class="fake-link" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')"><?= $row->page_title ?></span></div>
+                    <div class="xs"><b>URL:</b> <?= $row->webpage_url ?></div>
                 </td>
                 <td><?= $row->author ?></td>
                 <td class="double-decker">
                     <div><span class="smaller">Created on </span> <?= date('l jS F Y', $row->date_created) ?></div>
                     <div class="xs">Last updated: <?= date('l jS F Y \a\t H:i', $row->last_updated) ?></div>
                 </td>
-                <td><button class="alt" onclick="openGoToArticlePage('<?= $row->article_url ?>', '<?= $row->id ?>')">Edit</button></td>    
+                <td><button class="alt" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')">Edit</button></td>    
             </tr>
             <?php
             }
@@ -90,15 +90,15 @@ $attr['class'] = 'button alt';
             $attr['class'] = 'button alt';
             foreach($rows as $row) { 
                 $status = $row->published === 'yes' ? 'Published' : 'Not published';
-                $article_url = $row->published === 'yes' ? $row->article_url : 'trongate_pages/not_published/'.$row->url_string;
+                $webpage_url = $row->published === 'yes' ? $row->webpage_url : 'trongate_pages/not_published/'.$row->url_string;
                 $published_icon = $row->published === 'yes' ? '<i class="fa fa-check-square" id="published-icon-alt-'.$row->id.'"></i>' : '<i class="fa fa-times-circle" id="published-icon-alt-'.$row->id.'"></i>';
                 $published_status = $row->published === 'yes' ? 'Published' : 'Not published';
             ?>
             <tr>
                 <td>
-                    <div><span class="fake-link" onclick="openGoToArticlePage('<?= $row->article_url ?>', '<?= $row->id ?>')"><?= $row->page_title ?></span>
+                    <div><span class="fake-link" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')"><?= $row->page_title ?></span>
                         <div class="published-status"><?= $published_icon.' <span class="published-txt">'.$published_status ?></span></div></div>
-                    <div><button class="alt" onclick="openGoToArticlePage('<?= $row->article_url ?>', '<?= $row->id ?>')">Edit</button></div>
+                    <div><button class="alt" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')">Edit</button></div>
                 </td>
             </tr>
             <?php
@@ -129,7 +129,7 @@ $attr['class'] = 'button alt';
   </div>
 </div>
 
-<div class="modal" id="goto-article-modal" style="display:none">
+<div class="modal" id="goto-webpage-modal" style="display:none">
   <div class="modal-heading"><i class="fa fa-eye"></i> View Page</div>
   <div class="modal-body">
     <p><b>Choose from one of the following options:</b></p>
@@ -139,7 +139,7 @@ $attr['class'] = 'button alt';
     </ul>
     <div id="not-published-warning">
         <i class="fa fa-warning"></i> <b>WARNING</b><br><br>
-        The target article is currently unpublished and will not be visible to regular website visitors!
+        The target webpage is currently unpublished and will not be visible to regular website visitors!
     </div>
         <p class="text-right">
             <button class="alt" onclick="closeModal()">Cancel</button>
@@ -262,7 +262,7 @@ $attr['class'] = 'button alt';
         display: none;
     }
 
-    #goto-article-modal > div.modal-body > p:nth-child(1) {
+    #goto-webpage-modal > div.modal-body > p:nth-child(1) {
         display: none;
     }
 }
@@ -278,7 +278,7 @@ $attr['class'] = 'button alt';
 }
 
 @media (min-width: 720px) {
-    #goto-article-modal > div.modal-body > p:nth-child(1) {
+    #goto-webpage-modal > div.modal-body > p:nth-child(1) {
         display: block;
     }
 }
@@ -362,16 +362,16 @@ function togglePublishedIcon(clickedIcon) {
     publishedTxtEl.innerHTML = publishedTitle;
 }
 
-function openGoToArticlePage(articleUrl, recordId) {
+function openGoToWebpagePage(webpageUrl, recordId) {
     const targetIcon = document.getElementById('published-icon-' + recordId);
     const isPublished = (targetIcon.classList.contains('fa-times-circle')) ? 'no' : 'yes';
     
-    openModal('goto-article-modal');
+    openModal('goto-webpage-modal');
     setTimeout(() => {
-        const firstLink = document.querySelector('#goto-article-modal > div.modal-body > ul > li:nth-child(1) > a');
-        firstLink.href = articleUrl + '/edit';
-        const secondLink = document.querySelector('#goto-article-modal > div.modal-body > ul > li:nth-child(2) > a');
-        secondLink.href = articleUrl;
+        const firstLink = document.querySelector('#goto-webpage-modal > div.modal-body > ul > li:nth-child(1) > a');
+        firstLink.href = webpageUrl + '/edit';
+        const secondLink = document.querySelector('#goto-webpage-modal > div.modal-body > ul > li:nth-child(2) > a');
+        secondLink.href = webpageUrl;
         const notPublishedWarning = document.getElementById('not-published-warning');
         notPublishedWarning.style.display = isPublished === 'yes' ? 'none' : 'block';
     }, 1);

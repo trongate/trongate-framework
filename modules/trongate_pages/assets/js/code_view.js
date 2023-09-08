@@ -1,5 +1,4 @@
 function tgpOpenCodeViewModal() {
-
     tgpReset(['selectedRange', 'codeviews', 'customModals', 'toolbars', 'activeEl']);
     tgpRemoveContentEditables();
 
@@ -40,7 +39,8 @@ function tgpOpenCodeViewModal() {
     contentAsCode.style.opacity = 0;
 
     setTimeout(() => {
-        const pageContent = document.getElementsByClassName('page-content')[0];
+
+        let pageContent = document.getElementsByClassName('page-content')[0];
         let htmlContent = pageContent.innerHTML;
         htmlContent = htmlContent.replace(/ style=""/g, '');
         htmlContent = htmlContent.replace(/style=""/g, '');

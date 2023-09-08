@@ -202,7 +202,6 @@ function tgpAddPointersToBtnDivs() {
   parentElement.addEventListener('click', (event) => {
 
     if (event.target.closest('div.button-div')) {
-      console.log('clicked btn div');
       trongatePagesObj.activeEl = event.target.closest('div.button-div');
       tgpAddButtonEditor(trongatePagesObj.activeEl);
     }

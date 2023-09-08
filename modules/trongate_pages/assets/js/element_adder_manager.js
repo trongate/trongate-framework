@@ -155,6 +155,48 @@ function tgpBuildCustomModal(modalId, options = {}) {
     return newModal;
 }
 
+function tgpHideModalBody(targetModalBody, addSpinner=false) {
+
+    const targetModalBodyChildren = targetModalBody.children;
+    for (var i = 0; i < targetModalBodyChildren.length; i++) {
+      targetModalBodyChildren[i].style.opacity = 0;
+    }
+
+    if(addSpinner === true) {
+        // Add a spinner.
+        const spinnerDiv = document.createElement('div');
+        spinnerDiv.setAttribute('class', 'spinner');
+
+        // Apply CSS to center the spinner
+        spinnerDiv.style.position = 'absolute';
+        spinnerDiv.style.top = '50%';
+        spinnerDiv.style.left = '50%';
+        spinnerDiv.style.transform = 'translate(-50%, -50%)';
+        targetModalBody.appendChild(spinnerDiv);
+    }
+
+}
+
+function tgpClearModalBody(targetModalBody, addSpinner=false) {
+    while(targetModalBody.firstChild) {
+        targetModalBody.removeChild(targetModalBody.lastChild);
+    }
+
+    if(addSpinner === true) {
+        // Add a spinner.
+        const spinnerDiv = document.createElement('div');
+        spinnerDiv.setAttribute('class', 'spinner');
+
+        // Apply CSS to center the spinner
+        spinnerDiv.style.position = 'absolute';
+        spinnerDiv.style.top = '50%';
+        spinnerDiv.style.left = '50%';
+        spinnerDiv.style.transform = 'translate(-50%, -50%)';
+        targetModalBody.appendChild(spinnerDiv);
+    }
+
+}
+
 function tgpRemoveCustomModals() {
   let targetModals = [];
   for (let i = tgpModals.length - 1; i >= 0; i--) {
@@ -219,7 +261,7 @@ function tgpInsertElement(newEl) {
     newEl = document.createElement('img');
     newEl.src = imgPath;
     newEl.addEventListener("click", (ev) => {
-      buildEditImgModal(ev.target);
+      tgpBuildEditImgModal(ev.target);
     });
   }
 

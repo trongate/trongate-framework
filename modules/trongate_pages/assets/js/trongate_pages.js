@@ -68,7 +68,7 @@ function tgpHandleElementClick(clickedEl) {
 
   if (clickedEl.tagName === 'IMG') {
     // Display image modal here
-    buildEditImgModal(clickedEl);
+    tgpBuildEditImgModal(clickedEl);
     return null; // No toolbar should be drawn for the image element
   }
 
@@ -109,6 +109,8 @@ function tgpSavePage() {
     tgpSavingPage = true; //so that pointers do not get added to HRs upon mouseup
 
     tgpRemoveContentEditables();
+
+    let pageContent = document.getElementsByClassName('page-content')[0];
 
     setTimeout(() => {
         const params = {
@@ -280,6 +282,7 @@ function tgpRemovePointersFromHrs() {
 
 function tgpSendSaveRequest(params) {
     const targetUrl = trongatePagesObj.baseUrl + 'api/update/trongate_pages/' + trongatePagesObj.trongatePagesId;
+
     const http = new XMLHttpRequest();
     http.open('put', targetUrl);
     http.setRequestHeader('Content-type', 'application/json');
