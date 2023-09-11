@@ -336,7 +336,7 @@ class Trongate_tokens extends Trongate {
                     $token = $this->_execute_sql_multi($user_tokens, $user_levels);
                     break;
                 default:
-                    //allow access for AND user level type
+                    //allow access for ANY user level type
                     $token = $this->_execute_sql_default($user_tokens);
                     break;
             }
