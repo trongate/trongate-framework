@@ -1,1 +1,0 @@
-INSERT INTO `a` (`value`) SELECT `b`.`value` FROM `b`

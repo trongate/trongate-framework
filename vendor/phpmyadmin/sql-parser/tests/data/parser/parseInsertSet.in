@@ -1,1 +1,0 @@
-INSERT INTO `a` (`value`) SET `value` = '123'

@@ -1,3 +1,0 @@
-CREATE TABLE IF NOT EXISTS users (
-    `id` UNKNOWN
-) ENGINE=InnoDB;

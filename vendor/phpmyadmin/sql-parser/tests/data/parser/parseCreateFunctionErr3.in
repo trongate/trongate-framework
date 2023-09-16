@@ -1,3 +1,0 @@
-DELIMITER $$
-CREATE FUNCTION coincide
-END;$$

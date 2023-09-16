@@ -1,4 +1,0 @@
-SELECT a
-into outfile '/tmp/temp.data'
-fields terminated by ',' enclosed by '"' ESCAPED BY '$'
-FROM sometable

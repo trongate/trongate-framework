@@ -1,1 +1,0 @@
-DELETE FROM emp x WHERE x.salary = 20

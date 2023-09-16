@@ -1,1 +1,0 @@
-LOAD DATA INFILE 'employee3.txt' INTO TABLE employee FIELDS TERMINATED BY ',' ENCLOSED BY '"';

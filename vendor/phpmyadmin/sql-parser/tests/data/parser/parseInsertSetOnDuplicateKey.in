@@ -1,1 +1,0 @@
-INSERT INTO `a` (`value`) SET `value` = '123' ON DUPLICATE KEY UPDATE `value` = '1234'

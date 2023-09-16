@@ -1,2 +1,0 @@
-DELIMITER abcdefghijklmnopqrstuvwxyz
-SELECT 1 abcdefghijklmnopqrstuvwxyz

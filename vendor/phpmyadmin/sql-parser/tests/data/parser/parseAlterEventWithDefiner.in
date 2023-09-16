@@ -1,1 +1,0 @@
-ALTER DEFINER = user EVENT my_event ENABLE;

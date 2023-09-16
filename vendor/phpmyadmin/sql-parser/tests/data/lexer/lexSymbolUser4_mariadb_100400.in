@@ -1,1 +1,0 @@
-ALTER USER 'user'@'hostname' IDENTIFIED VIA mysql_native_password BY 'password';

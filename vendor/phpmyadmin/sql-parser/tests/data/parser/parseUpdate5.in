@@ -1,1 +1,0 @@
-update user u left join user_detail ud on u.id = ud.user_id set ud.ip ='33' where u.id = 1

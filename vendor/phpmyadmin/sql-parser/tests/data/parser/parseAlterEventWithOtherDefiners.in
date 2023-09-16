@@ -1,5 +1,0 @@
-ALTER DEFINER = 'user' EVENT my_event ENABLE;
-ALTER DEFINER = `user` EVENT my_event ENABLE;
-ALTER DEFINER = user@host EVENT my_event ENABLE;
-ALTER DEFINER = 'user'@'host' EVENT my_event ENABLE;
-ALTER DEFINER = `user`@`host` EVENT my_event ENABLE;

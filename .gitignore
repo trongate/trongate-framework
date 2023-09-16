@@ -2,3 +2,4 @@
 \.phpintel/
 .idea/
 .vscode/
+./vendor

@@ -1,2 +1,0 @@
-ALTER USER 'jeffrey'@'localhost'
-  IDENTIFIED BY 'new_password' PASSWORD EXPIRE;

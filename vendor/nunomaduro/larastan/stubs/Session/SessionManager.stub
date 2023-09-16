@@ -1,9 +1,0 @@
-<?php
-
-namespace Illuminate\Session;
-
-use Illuminate\Support\Manager;
-
-class SessionManager extends Manager
-{
-}

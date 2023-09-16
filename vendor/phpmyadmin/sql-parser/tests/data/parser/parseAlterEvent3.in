@@ -1,1 +1,0 @@
-ALTER EVENT my_event DISABLE ON SLAVE;

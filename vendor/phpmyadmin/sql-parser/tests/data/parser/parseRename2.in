@@ -1,1 +1,0 @@
-RENAME TABLE foo TO bar, baz TO qux;

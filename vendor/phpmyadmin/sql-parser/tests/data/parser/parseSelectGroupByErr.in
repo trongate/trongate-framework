@@ -1,1 +1,0 @@
-SELECT * FROM movie GROUP BY title WITH ROLLUP, year WITH ROLLUP;

@@ -1,1 +1,0 @@
-SELECT (SELECT 'foo') as Bar, (SELECT 'baz') as fOo;

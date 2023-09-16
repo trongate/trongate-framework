@@ -1,5 +1,0 @@
-SELECT * FROM foo;
-DELIMITER $$
-SELECT * FROM bar$$
-DELIMITER ;
-SELECT * FROM baz;

@@ -1,6 +1,0 @@
-<?php
-
-namespace Illuminate\Cookie;
-
-class CookieJar
-{}

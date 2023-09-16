@@ -1,1 +1,0 @@
-LOAD DATA CONCURRENT FROM 'employee1.txt' INTO TABLE employee;

@@ -1,2 +1,0 @@
-SELECT * FROM Orders NATURAL JOIN Items_Orders NATURAL JOIN Items
-WHERE customer= 'username'

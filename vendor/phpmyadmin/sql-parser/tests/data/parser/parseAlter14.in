@@ -1,1 +1,0 @@
-ALTER TABLE `table` ADD UNIQUE KEY `functional_index` (`field1`,`field2`, (IFNULL(`field3`,0)));

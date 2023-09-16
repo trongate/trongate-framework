@@ -1,3 +1,0 @@
-REPLACE LOW_PRIORITY
-INTO users(id, username)
-VALUES (1, 'Foo'), (2, 'Bar')

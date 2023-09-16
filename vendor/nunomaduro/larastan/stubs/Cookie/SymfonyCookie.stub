@@ -1,5 +1,0 @@
-<?php
-
-namespace Symfony\Component\HttpFoundation;
-
-class Cookie {}

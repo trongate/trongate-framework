@@ -1,5 +1,0 @@
-DELIMITER $$
-CREATE PROCEDURE P_TEST(IN uid INT, IN unused VARCHAR)
-BEGIN
-    SELECT username FROM users WHERE ID = uid;
-END
