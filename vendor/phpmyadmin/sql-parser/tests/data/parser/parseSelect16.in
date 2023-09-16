@@ -1,0 +1,20 @@
+SELECT
+p.aa,
+p.bb,
+CASE
+WHEN p.cc = 'Y' and dd = 'Found' then '99.99999'
+WHEN p.cc = '' and dd = 'Found' then '00.00000'
+    ELSE '99.99999' END as RR,
+CASE
+WHEN dd = 'Found' then 'Y'
+    ELSE 'N' END as RRI,
+CASE
+	WHEN (SELECT MAX(cd) from LSA act group by act.an having p.acn = act.an) > '2021-01-28' THEN '06/30/2020'
+    WHEN p.co < '2021-01-28' THEN '12/31/2019'
+    ELSE '06/30/2020' END as DAOD
+FROM `LTKP` p
+left join `LQA` qa
+on qa.pi = p.ID
+left join LSA act
+on p.acn = act.an
+where  p.a =1 and p.mr = 1 and p.sc<> '23' and qa.qt = 'TEXT' and p.tl = "TEXT" and qa.a = 1

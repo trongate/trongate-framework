@@ -2,7 +2,11 @@
 <html>
   <head>
     <title>Permissions Error</title>
-    <link rel="stylesheet" href="<?= BASE_URL ?>css/trongate.css">
+    <link rel="stylesheet" href="<?php
+
+declare(strict_types=1);
+
+    echo BASE_URL ?>css/trongate.css">
   </head>
   <body>
     <div class="container">

@@ -1,14 +1,24 @@
 <?php
-class Trongate_user_levels extends Trongate {
 
-    function __construct() {
+declare(strict_types=1);
+
+class Trongate_user_levels extends Trongate
+{
+    public function __construct()
+    {
         parent::__construct();
         $this->parent_module = 'trongate_users';
         $this->child_module = 'trongate_user_levels';
     }
 
-    function _get_user_level($user_id) {
+    public function __destruct()
+    {
+        $this->parent_module = '';
+        $this->child_module = '';
+    }
 
+    public function _get_user_level($user_id)
+    {
         $sql = 'SELECT
                     trongate_user_levels.level_title
                 FROM
@@ -18,15 +28,7 @@ class Trongate_user_levels extends Trongate {
 
         $data['user_id'] = $user_id;
         $result = $this->model->query_bind($sql, $data, 'array');
-        
-        $user_level = $result[0]['level_title'] ?? '';
 
-        return $user_level;
+        return $result[0]['level_title'] ?? '';
     }
-
-    function __destruct() {
-        $this->parent_module = '';
-        $this->child_module = '';        
-    }
-
 }

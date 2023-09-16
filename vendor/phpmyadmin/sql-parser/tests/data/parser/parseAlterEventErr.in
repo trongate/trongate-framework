@@ -1,0 +1,2 @@
+-- No option in ALTER EVENT.
+ALTER EVENT my_event;

@@ -1,0 +1,2 @@
+-- ENUM with a string that is a database option.
+ALTER TABLE `test_table` MODIFY `COL` ENUM("COLLATE") NULL;

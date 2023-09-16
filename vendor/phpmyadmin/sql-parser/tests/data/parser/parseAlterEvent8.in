@@ -1,0 +1,2 @@
+ALTER EVENT my_event DO
+  SELECT * FROM my_table;

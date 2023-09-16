@@ -539,7 +539,11 @@ function enablePopulateOnClick() {
   }
 
   const defaultValues = {};
-  const columns = <?php echo json_encode($columns); ?>;
+  const columns = <?php
+
+declare(strict_types=1);
+
+  echo json_encode($columns); ?>;
 
   columns.forEach(column => {
     if (column.Field !== 'id') {
@@ -741,7 +745,7 @@ function displayEndpointDetails(parentEl) {
 
   const endpointSettingsValue = document.createElement('span');
   endpointSettingsValue.setAttribute('id', 'endpoint-settings');
-  endpointSettingsValue.textContent = '/modules/<?= $target_table ?>/assets/api.json';
+  endpointSettingsValue.textContent = '/modules/<?php echo $target_table ?>/assets/api.json';
   endpointSettings.appendChild(endpointSettingsValue);
 
   p.appendChild(document.createElement('br'));

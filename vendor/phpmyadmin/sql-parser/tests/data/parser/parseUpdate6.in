@@ -1,0 +1,11 @@
+UPDATE customer_table c
+
+  JOIN
+      employee_table e
+      ON c.city_id = e.city_id
+  JOIN
+      anyother_table a
+      ON a.someID = e.someID
+
+SET c.active = "Yes"
+WHERE c.city = "New york";

@@ -1,0 +1,11 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use NamespacedDummyTestCase;
+
+class {{ class }} extends DummyTestCase
+{
+    //
+}

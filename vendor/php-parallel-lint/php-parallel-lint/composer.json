@@ -1,0 +1,51 @@
+{
+    "name": "php-parallel-lint/php-parallel-lint",
+    "description": "This tool check syntax of PHP files about 20x faster than serial check.",
+    "homepage": "https://github.com/php-parallel-lint/PHP-Parallel-Lint",
+    "license": "BSD-2-Clause",
+    "authors": [
+        {
+            "name": "Jakub Onderka",
+            "email": "ahoj@jakubonderka.cz"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "ext-json": "*"
+    },
+    "replace": {
+        "grogy/php-parallel-lint": "*",
+        "jakub-onderka/php-parallel-lint": "*"
+    },
+    "require-dev": {
+        "nette/tester": "^1.3 || ^2.0",
+        "php-parallel-lint/php-console-highlighter": "0.* || ^1.0",
+        "squizlabs/php_codesniffer": "^3.6"
+    },
+    "suggest": {
+        "php-parallel-lint/php-console-highlighter": "Highlight syntax in code snippet"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "autoload": {
+        "classmap": [
+            "./src/"
+        ]
+    },
+    "autoload-dev": {
+        "classmap": [
+            "./tests/"
+        ]
+    },
+    "bin": [
+        "parallel-lint"
+    ],
+    "scripts": {
+        "test": "@php vendor/bin/tester -C -p php tests",
+        "testphp5": "@php vendor/bin/tester -c tests/php5.3-5.5.ini -p php tests"
+    },
+    "scripts-descriptions": {
+        "test": "Run all tests!"
+    }
+}

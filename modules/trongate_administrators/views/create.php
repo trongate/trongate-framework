@@ -1,6 +1,11 @@
-<h1><?=$headline ?></h1>
-<?= validation_errors('<div class="error">', "</div>") ?>
-<?php   
+<h1><?php
+
+declare(strict_types=1);
+
+echo $headline ?></h1>
+<?php echo validation_errors('<div class="error">', '</div>') ?>
+<?php
+declare(strict_types=1);
 echo form_open($form_location);
 $input_attr['placeholder'] = 'Enter username here';
 $input_attr['autocomplete'] = 'off';
@@ -14,10 +19,10 @@ echo form_label('Repeat Password');
 echo form_password('repeat_password', '', $input_attr);
 echo form_submit('submit', 'Submit');
 
-if ((is_numeric(segment(3))) && (segment(3) !== $my_admin_id)) {
-	$delete_attr['class'] = 'button danger float-right-lg';
-	$delete_attr['onclick'] = 'confDelete()';
-	echo form_button('submit', 'Delete', $delete_attr);
+if (is_numeric(segment(3)) && (segment(3) !== $my_admin_id)) {
+    $delete_attr['class'] = 'button danger float-right-lg';
+    $delete_attr['onclick'] = 'confDelete()';
+    echo form_button('submit', 'Delete', $delete_attr);
 }
 
 $cancel_btn_attr['class'] = 'alt';
@@ -25,7 +30,7 @@ echo form_submit('submit', 'Cancel', $cancel_btn_attr);
 echo form_close();
 ?>
 <script>
-	function confDelete() {
-		window.location.href = "<?= $conf_delete_url ?>";
-	}
+    function confDelete() {
+        window.location.href = "<?php echo $conf_delete_url ?>";
+    }
 </script>

@@ -6,51 +6,55 @@
 </div>
 
 <?php
-function get_child_categories($parent_id, $rows) {
-  $child_categories = [];
-  foreach($rows as $row) {
-    if($row->parent_page_id === $parent_id) {
-      $child_categories[] = $row;
-    }    
-  }
 
-  $num_child_categories = count($child_categories);
-  if($num_child_categories<1) {
-    $child_categories = false;
-  }
+declare(strict_types=1);
 
-  return $child_categories;
-}
-
-function build_sub_categories($parent_id, $rows) {
-  // Establish what the sub categories are
-  $sub_categories = get_child_categories($parent_id, $rows);
-  if ($sub_categories !== false) {
-    echo '<div class="subwebpage">';
-
-    foreach ($sub_categories as $sub_webpage) {
-      // Get the id of this subwebpage
-      $sub_webpage_id = $sub_webpage->id;
-
-      // Does this sub webpage have children?
-      $child_categories = get_child_categories($sub_webpage_id, $rows);
-      $got_children = ($child_categories === false) ? false : true;
-
-      if ($got_children === false) {
-        $webpage_url = BASE_URL.'trongate_pages/display/'.$sub_webpage->url_string;
-        echo '<p><a href="'.$webpage_url.'">' . $sub_webpage->page_title . '</a></p>';
-      } else {
-
-        echo '<div class="webpage">';
-        echo '<button class="accordion-btn">'.$sub_webpage->page_title.' <span class="plus">+</span></button>';
-        build_sub_categories($sub_webpage->id, $rows);
-        echo '</div>';
-      }
+function get_child_categories($parent_id, $rows)
+{
+    $child_categories = [];
+    foreach ($rows as $row) {
+        if ($row->parent_page_id === $parent_id) {
+            $child_categories[] = $row;
+        }
     }
 
-    // Close the subwebpage div
-    echo '</div>';
-  }
+    $num_child_categories = count($child_categories);
+    if ($num_child_categories < 1) {
+        $child_categories = false;
+    }
+
+    return $child_categories;
+}
+
+function build_sub_categories($parent_id, $rows): void
+{
+    // Establish what the sub categories are
+    $sub_categories = get_child_categories($parent_id, $rows);
+    if ($sub_categories !== false) {
+        echo '<div class="subwebpage">';
+
+        foreach ($sub_categories as $sub_webpage) {
+            // Get the id of this subwebpage
+            $sub_webpage_id = $sub_webpage->id;
+
+            // Does this sub webpage have children?
+            $child_categories = get_child_categories($sub_webpage_id, $rows);
+            $got_children = $child_categories === false ? false : true;
+
+            if ($got_children === false) {
+                $webpage_url = BASE_URL.'trongate_pages/display/'.$sub_webpage->url_string;
+                echo '<p><a href="'.$webpage_url.'">'.$sub_webpage->page_title.'</a></p>';
+            } else {
+                echo '<div class="webpage">';
+                echo '<button class="accordion-btn">'.$sub_webpage->page_title.' <span class="plus">+</span></button>';
+                build_sub_categories($sub_webpage->id, $rows);
+                echo '</div>';
+            }
+        }
+
+        // Close the subwebpage div
+        echo '</div>';
+    }
 }
 ?>
 
@@ -58,19 +62,19 @@ function build_sub_categories($parent_id, $rows) {
 
 <div class="accordion">
     <?php
-    foreach($rows as $row) {
-      if ($row->parent_page_id == 0) {
-      ?>
+    foreach ($rows as $row) {
+        if ($row->parent_page_id === 0) {
+            ?>
     <div class="webpage">
-      <button class="accordion-btn"><?= $row->page_title ?> <span class="plus">+</span></button>
+      <button class="accordion-btn"><?php echo $row->page_title ?> <span class="plus">+</span></button>
       <?php
-      build_sub_categories($row->id, $rows);
-      ?>
+            build_sub_categories($row->id, $rows);
+            ?>
     </div>
       <?php
-    }   
-  }
-    ?>
+        }
+    }
+?>
 </div>
 <style>
 .accordion {

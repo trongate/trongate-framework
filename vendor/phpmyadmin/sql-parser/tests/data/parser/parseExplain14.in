@@ -1,0 +1,1 @@
+DESC TABLE `fo` ORDER BY `fo`.`uuid` ASC;

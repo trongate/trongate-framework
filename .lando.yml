@@ -1,0 +1,19 @@
+name: trongate
+recipe: laravel
+config:
+  framework: trongate
+  webroot: ./public
+  php: "8.2"
+  via: nginx
+
+env_file:
+  - .env
+
+services:
+  appserver:
+    config:
+      php: .lando/php.ini
+      type: "8.2"
+      overrides:
+        environment:
+          PHP_IDE_CONFIG: serverName=appserver

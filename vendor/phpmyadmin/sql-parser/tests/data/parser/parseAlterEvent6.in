@@ -1,0 +1,1 @@
+ALTER EVENT my_event RENAME TO my_new_event;

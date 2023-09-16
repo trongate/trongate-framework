@@ -1,0 +1,6 @@
+SELECT * FROM movie GROUP BY title;
+SELECT * FROM movie GROUP BY 1;
+SELECT * FROM movie GROUP BY year, title;
+SELECT * FROM movie GROUP BY year WITH ROLLUP;
+SELECT * FROM movie GROUP BY year, title WITH ROLLUP;
+SELECT * FROM movie GROUP BY year, title WITH ROLLUP ORDER BY year ASC LIMIT 0, 2;

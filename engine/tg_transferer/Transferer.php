@@ -1,52 +1,54 @@
 <?php
+
+declare(strict_types=1);
+
 class Transferer
 {
-    function __construct() {
-        if (ENV != 'dev') {
-            die();
+    public function __construct()
+    {
+        if (ENV !== 'dev') {
+            exit;
         }
     }
-   
-    public function process_post() {
 
+    public function process_post(): void
+    {
         $posted_data = file_get_contents('php://input');
         $data = json_decode($posted_data);
 
-        if (!isset($data->action)) {
-            die();
+        if (! isset($data->action)) {
+            exit;
         }
 
-        if ((isset($data->controllerPath)) && ($data->action == 'viewSql')) {
-            readFile($data->controllerPath);
-            die();
+        if (isset($data->controllerPath) && ($data->action === 'viewSql')) {
+            readfile($data->controllerPath);
+            exit;
         }
-        
-        if ((isset($data->targetFile)) && ($data->action == 'deleteFile')) {
 
+        if (isset($data->targetFile) && ($data->action === 'deleteFile')) {
             $result = $this->delete_file($data->targetFile);
 
-            if ($result == '') {
+            if ($result === '') {
                 echo 'Finished.';
             }
 
-            die();
+            exit;
         }
 
-        if ((isset($data->sqlCode)) && (isset($data->targetFile)) && ($data->action == 'runSql')) {
+        if (isset($data->sqlCode) && (isset($data->targetFile)) && ($data->action === 'runSql')) {
             $this->run_sql($data->sqlCode);
             $this->delete_file($data->targetFile);
-            die();
+            exit;
         }
 
-        if ((isset($data->sampleFile)) && ($data->action == 'getFinishUrl')) {
+        if (isset($data->sampleFile) && ($data->action === 'getFinishUrl')) {
             $this->get_finish_location($data->sampleFile);
-            die();
+            exit;
         }
-        
     }
 
-    public function check_sql($file_contents) {
-
+    public function check_sql($file_contents)
+    {
         $file_contents = strtolower($file_contents);
 
         $dangerous_strings[] = 'drop ';
@@ -56,7 +58,7 @@ class Transferer
 
         foreach ($dangerous_strings as $dangerous_string) {
             $contains_dangerous_string = $this->contains_needle($dangerous_string, $file_contents);
-            if ($contains_dangerous_string == true) {
+            if ($contains_dangerous_string === true) {
                 return false;
             }
         }
@@ -64,60 +66,61 @@ class Transferer
         return true;
     }
 
-    private function contains_needle($needle, $haystack) {
+    private function contains_needle($needle, $haystack)
+    {
         $pos = strpos($haystack, $needle);
 
         if ($pos === false) {
             return false;
-        } else {
-            return true;
         }
+        return true;
     }
 
-    private function run_sql($sql) {
+    private function run_sql($sql): void
+    {
         $model_file = '../engine/Model.php';
 
         $rand_str = make_rand_str(32);
         $sql = str_replace('Tz8tehsWsTPUHEtzfbYjXzaKNqLmfAUz', $rand_str, $sql);
-        
+
         require_once $model_file;
-        $model = new Model;
+        $model = new Model();
         $model->exec($sql);
         echo 'Finished.';
     }
 
-    private function delete_file($filepath) {
-        if ((file_exists($filepath)) && (is_writable($filepath))) {
+    private function delete_file($filepath): void
+    {
+        if (file_exists($filepath) && (is_writable($filepath))) {
             unlink($filepath);
         } else {
             http_response_code(403);
-            echo $filepath; die();
+            echo $filepath;
+            exit;
         }
     }
 
-    private function get_finish_location($sample_file) {
-
+    private function get_finish_location($sample_file): void
+    {
         //get the directory path
         $bits = explode('/', $sample_file);
         unset($bits[4]);
         unset($bits[3]);
 
-        $files = array();
+        $files = [];
         $dir_path = $bits[0].'/'.$bits[1].'/'.$bits[2].'/';
 
         if (file_exists($dir_path)) {
-            $files = array();
-            foreach (glob($dir_path."*.sql") as $file) {
+            $files = [];
+            foreach (glob($dir_path.'*.sql') as $file) {
                 $files[] = $file;
             }
         }
 
-        if (count($files)>0) {
+        if (count($files) > 0) {
             echo 'current_url';
         } else {
             echo BASE_URL;
         }
-
     }
-
 }

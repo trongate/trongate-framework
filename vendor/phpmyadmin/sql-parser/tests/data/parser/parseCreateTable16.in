@@ -1,0 +1,4 @@
+CREATE TABLE test (
+  user_id INT,
+  INDEX `test` (user_id ASC)
+)

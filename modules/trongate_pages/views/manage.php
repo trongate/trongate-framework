@@ -1,34 +1,39 @@
-<h1><?= $headline ?></h1>
+<h1><?php
+
+declare(strict_types=1);
+
+echo $headline ?></h1>
 <?php
+declare(strict_types=1);
 flashdata();
 validation_errors();
 echo '<p>';
-echo form_button('create', 'Create New Webpage', array('onclick' => 'openModal(\'create-page-modal\')'));
-if(strtolower(ENV) === 'dev') {
-    echo anchor('api/explorer/trongate_pages', 'API Explorer', array("class" => "button alt"));
+echo form_button('create', 'Create New Webpage', ['onclick' => 'openModal(\'create-page-modal\')']);
+if (strtolower(ENV) === 'dev') {
+    echo anchor('api/explorer/trongate_pages', 'API Explorer', ['class' => 'button alt']);
 }
 echo '</p>';
 
 echo Pagination::display($pagination_data);
 
-if (count($rows)>0) { 
-$attr['class'] = 'button alt';
-?>
+if (count($rows) > 0) {
+    $attr['class'] = 'button alt';
+    ?>
     <table id="results-tbl">
         <thead>
             <tr>
                 <th colspan="5">
                     <div>
                         <div><?php
-                        echo '<form>';
-                        echo form_input('searchphrase', '', array("id" => "searchphrase", "placeholder" => "Search records...", "autocomplete" => "off"));
-                        echo form_button('submit', 'Search', array("class" => "alt", "onclick" => "initSearch()"));
-                        echo '</form>';
-                        ?></div>
+                            echo '<form>';
+    echo form_input('searchphrase', '', ['id' => 'searchphrase', 'placeholder' => 'Search records...', 'autocomplete' => 'off']);
+    echo form_button('submit', 'Search', ['class' => 'alt', 'onclick' => 'initSearch()']);
+    echo '</form>';
+    ?></div>
                         <div>Records Per Page: <?php
-                        $dropdown_attr['onchange'] = 'setPerPage()';
-                        echo form_dropdown('per_page', $per_page_options, $selected_per_page, $dropdown_attr); 
-                        ?></div>
+    $dropdown_attr['onchange'] = 'setPerPage()';
+    echo form_dropdown('per_page', $per_page_options, $selected_per_page, $dropdown_attr);
+    ?></div>
                     </div>                    
                 </th>
             </tr>
@@ -41,28 +46,28 @@ $attr['class'] = 'button alt';
             </tr>
         </thead>
         <tbody>
-            <?php 
+            <?php
             $attr['class'] = 'button alt';
-            foreach($rows as $row) { 
-                $published_icon_str = ($row->published === 'yes') ? 'fa-check-square' : 'fa-times-circle';
-                $published_icon = '<i class="fa '.$published_icon_str.'" id="published-icon-'.$row->id.'"></i>';
-            ?>
+    foreach ($rows as $row) {
+        $published_icon_str = $row->published === 'yes' ? 'fa-check-square' : 'fa-times-circle';
+        $published_icon = '<i class="fa '.$published_icon_str.'" id="published-icon-'.$row->id.'"></i>';
+        ?>
             <tr>
-                <td class="text-center"><?= $published_icon ?></td>
+                <td class="text-center"><?php echo $published_icon ?></td>
                 <td class="double-decker">
-                    <div><span class="fake-link" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')"><?= $row->page_title ?></span></div>
-                    <div class="xs"><b>URL:</b> <?= $row->webpage_url ?></div>
+                    <div><span class="fake-link" onclick="openGoToWebpagePage('<?php echo $row->webpage_url ?>', '<?php echo $row->id ?>')"><?php echo $row->page_title ?></span></div>
+                    <div class="xs"><b>URL:</b> <?php echo $row->webpage_url ?></div>
                 </td>
-                <td><?= $row->author ?></td>
+                <td><?php echo $row->author ?></td>
                 <td class="double-decker">
-                    <div><span class="smaller">Created on </span> <?= date('l jS F Y', $row->date_created) ?></div>
-                    <div class="xs">Last updated: <?= date('l jS F Y \a\t H:i', $row->last_updated) ?></div>
+                    <div><span class="smaller">Created on </span> <?php echo date('l jS F Y', $row->date_created) ?></div>
+                    <div class="xs">Last updated: <?php echo date('l jS F Y \a\t H:i', $row->last_updated) ?></div>
                 </td>
-                <td><button class="alt" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')">Edit</button></td>    
+                <td><button class="alt" onclick="openGoToWebpagePage('<?php echo $row->webpage_url ?>', '<?php echo $row->id ?>')">Edit</button></td>    
             </tr>
             <?php
-            }
-            ?>
+    }
+    ?>
         </tbody>
     </table>
 
@@ -72,15 +77,15 @@ $attr['class'] = 'button alt';
                 <th>
                     <div>
                         <div><?php
-                        echo form_open('trongate_pages/manage/1/', array("method" => "get"));
-                        echo form_input('searchphrase', '', array("placeholder" => "Search records...", "autocomplete" => "off"));
-                        echo form_submit('submit', 'Search', array("class" => "alt"));
-                        echo form_close();
-                        ?></div>
+                echo form_open('trongate_pages/manage/1/', ['method' => 'get']);
+    echo form_input('searchphrase', '', ['placeholder' => 'Search records...', 'autocomplete' => 'off']);
+    echo form_submit('submit', 'Search', ['class' => 'alt']);
+    echo form_close();
+    ?></div>
                         <div>Records Per Page: <?php
-                        $dropdown_attr['onchange'] = 'setPerPage()';
-                        echo form_dropdown('per_page', $per_page_options, $selected_per_page, $dropdown_attr); 
-                        ?></div>
+    $dropdown_attr['onchange'] = 'setPerPage()';
+    echo form_dropdown('per_page', $per_page_options, $selected_per_page, $dropdown_attr);
+    ?></div>
                     </div>                    
                 </th>
             </tr>
@@ -88,26 +93,26 @@ $attr['class'] = 'button alt';
         <tbody>
             <?php
             $attr['class'] = 'button alt';
-            foreach($rows as $row) { 
-                $status = $row->published === 'yes' ? 'Published' : 'Not published';
-                $webpage_url = $row->published === 'yes' ? $row->webpage_url : 'trongate_pages/not_published/'.$row->url_string;
-                $published_icon = $row->published === 'yes' ? '<i class="fa fa-check-square" id="published-icon-alt-'.$row->id.'"></i>' : '<i class="fa fa-times-circle" id="published-icon-alt-'.$row->id.'"></i>';
-                $published_status = $row->published === 'yes' ? 'Published' : 'Not published';
-            ?>
+    foreach ($rows as $row) {
+        $status = $row->published === 'yes' ? 'Published' : 'Not published';
+        $webpage_url = $row->published === 'yes' ? $row->webpage_url : 'trongate_pages/not_published/'.$row->url_string;
+        $published_icon = $row->published === 'yes' ? '<i class="fa fa-check-square" id="published-icon-alt-'.$row->id.'"></i>' : '<i class="fa fa-times-circle" id="published-icon-alt-'.$row->id.'"></i>';
+        $published_status = $row->published === 'yes' ? 'Published' : 'Not published';
+        ?>
             <tr>
                 <td>
-                    <div><span class="fake-link" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')"><?= $row->page_title ?></span>
-                        <div class="published-status"><?= $published_icon.' <span class="published-txt">'.$published_status ?></span></div></div>
-                    <div><button class="alt" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')">Edit</button></div>
+                    <div><span class="fake-link" onclick="openGoToWebpagePage('<?php echo $row->webpage_url ?>', '<?php echo $row->id ?>')"><?php echo $row->page_title ?></span>
+                        <div class="published-status"><?php echo $published_icon.' <span class="published-txt">'.$published_status ?></span></div></div>
+                    <div><button class="alt" onclick="openGoToWebpagePage('<?php echo $row->webpage_url ?>', '<?php echo $row->id ?>')">Edit</button></div>
                 </td>
             </tr>
             <?php
-            }
-            ?>
+    }
+    ?>
         </tbody>
     </table>
-<?php 
-    if(count($rows)>9) {
+<?php
+    if (count($rows) > 9) {
         unset($pagination_data['include_showing_statement']);
         echo Pagination::display($pagination_data);
     }
@@ -118,14 +123,14 @@ $attr['class'] = 'button alt';
   <div class="modal-body">
     <?php
     echo form_open('trongate_pages/submit');
-    echo form_label('Page Title');
-    echo form_input('page_title', '', array('placeholder' => 'Enter a page title here...', 'autocomplete' => 'off'));
-    echo '<p class="text-right">';
-    echo form_button('close', 'Cancel', array('class' => 'alt', 'onclick' => 'closeModal()'));
-    echo form_submit('submit', 'Submit');
-    echo '</p>';
-    echo form_close();
-    ?>
+echo form_label('Page Title');
+echo form_input('page_title', '', ['placeholder' => 'Enter a page title here...', 'autocomplete' => 'off']);
+echo '<p class="text-right">';
+echo form_button('close', 'Cancel', ['class' => 'alt', 'onclick' => 'closeModal()']);
+echo form_submit('submit', 'Submit');
+echo '</p>';
+echo form_close();
+?>
   </div>
 </div>
 
@@ -134,8 +139,8 @@ $attr['class'] = 'button alt';
   <div class="modal-body">
     <p><b>Choose from one of the following options:</b></p>
     <ul style="width: max-content; margin: 0 auto" class="mt-1">
-        <li class="mt-1"><?= anchor('#', 'View Page In \'Edit\' Mode') ?></li>
-        <li class="mt-1"><?= anchor('#', 'View Page As Normal Visitor') ?></li>
+        <li class="mt-1"><?php echo anchor('#', 'View Page In \'Edit\' Mode') ?></li>
+        <li class="mt-1"><?php echo anchor('#', 'View Page As Normal Visitor') ?></li>
     </ul>
     <div id="not-published-warning">
         <i class="fa fa-warning"></i> <b>WARNING</b><br><br>
@@ -323,12 +328,12 @@ function togglePublishedStatus(clickedIcon) {
     }
 
     clickedIcon.style.display = 'none';
-    const targetUrl = '<?= BASE_URL ?>api/update/trongate_pages/' + recordId;
+    const targetUrl = '<?php echo BASE_URL ?>api/update/trongate_pages/' + recordId;
     const http = new XMLHttpRequest();
 
     http.open('put', targetUrl);
     http.setRequestHeader('Content-type', 'application/json');
-    http.setRequestHeader('trongateToken', '<?= $token ?>');
+    http.setRequestHeader('trongateToken', '<?php echo $token ?>');
     http.send(JSON.stringify(params));
     http.onload = (ev) => {
       if(http.status == 200) {
@@ -380,7 +385,7 @@ function openGoToWebpagePage(webpageUrl, recordId) {
 function initSearch() {
     const searchInput = document.getElementById('searchphrase');
     const encodedString = encodeURIComponent(searchInput.value);
-    const targetUrl = '<?= BASE_URL ?>trongate_pages/manage/1/?searchphrase=' + encodedString;
+    const targetUrl = '<?php echo BASE_URL ?>trongate_pages/manage/1/?searchphrase=' + encodedString;
     window.location.href = targetUrl;
 }
 </script>

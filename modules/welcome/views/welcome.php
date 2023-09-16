@@ -3,21 +3,24 @@
     <h2 class="mt-1">Welcome to Trongate - the revolutionary new framework for developers who love pure PHP.</h2>
     <p class="text-center lg">
         <?php
-        echo anchor('tg-admin', 'Admin Panel', array('class' => 'button'));
-        echo anchor('https://trongate.io/learning-zone', 'Learning Zone', array('class' => 'button alt'));
+
+declare(strict_types=1);
+
+        echo anchor('tg-admin', 'Admin Panel', ['class' => 'button']);
+        echo anchor('https://trongate.io/learning-zone', 'Learning Zone', ['class' => 'button alt']);
         ?>
     </p>
 </section>
 
 <section>
     <h3>Getting Started</h3>
-    <p>You can log into the admin panel by going to <a href="<?= BASE_URL ?>tg-admin">tg-admin</a>. The default login credentials are as follows:</p>
+    <p>You can log into the admin panel by going to <a href="<?php echo BASE_URL ?>tg-admin">tg-admin</a>. The default login credentials are as follows:</p>
     <ul>
         <li><b>Username:</b> admin</li>
         <li><b>Password:</b> admin</li>
     </ul>
     <p class="sm"><b>PLEASE NOTE:</b>
-        The <?= anchor('https://trongate.io/learning-zone', 'Learning Zone', array('target' => '_blank')) ?> is a great starting place if you're new to Trongate. If you need help, head over to the <?= anchor('https://trongate.io/help_bar', 'Help Bar', array('target' => '_blank')) ?>.</p>
+        The <?php echo anchor('https://trongate.io/learning-zone', 'Learning Zone', ['target' => '_blank']) ?> is a great starting place if you're new to Trongate. If you need help, head over to the <?php echo anchor('https://trongate.io/help_bar', 'Help Bar', ['target' => '_blank']) ?>.</p>
 </section>
 
 <hr>
@@ -116,7 +119,7 @@
             </div>
             <div class="card-body">
                 <p class="sm"><b>Trongate is the 12th most popular active PHP framework, based on GitHub stars.  Help us to reach the top ten and be a part of history!</b></p>
-                <p class="text-center"><?= anchor('https://github.com/trongate/trongate-framework', '<i class="fa fa-github"></i> Go To GitHub', array('class' => 'button')) ?></p>
+                <p class="text-center"><?php echo anchor('https://github.com/trongate/trongate-framework', '<i class="fa fa-github"></i> Go To GitHub', ['class' => 'button']) ?></p>
             </div>
         </div>
         <div class="card">
@@ -125,7 +128,7 @@
             </div>
             <div class="card-body">
                 <p class="sm"><b>Most PHP developers haven't heard of Trongate.  Help us to change that!  Post a tweet about Trongate and help us to spread the word!</b></p>
-                <p class="text-center"><?= anchor('https://twitter.com/intent/tweet?text=I%27m%20checking%20out%20the%20Trongate%20PHP%20framework!%20Check%20it%20out%20at%20&url=https%3A%2F%2Ftrongate.io', '<i class="fa fa-twitter"></i> Compose Tweet', array('class' => 'button')) ?></p>
+                <p class="text-center"><?php echo anchor('https://twitter.com/intent/tweet?text=I%27m%20checking%20out%20the%20Trongate%20PHP%20framework!%20Check%20it%20out%20at%20&url=https%3A%2F%2Ftrongate.io', '<i class="fa fa-twitter"></i> Compose Tweet', ['class' => 'button']) ?></p>
             </div>
         </div>
         <div class="card">
@@ -191,7 +194,7 @@
     <div class="modal-heading"><i class="fa fa-code"></i> Write Code</div>
     <div class="modal-body">
         <p class="sm">Trongate is open source.  We greatly value contributions from our community. By contributing to our codebase on GitHub, you become a part of our growing army of developers committed to building a faster and better way to do PHP.</p>
-        <p class="sm">If you're interested in contributing, head over to our <?= anchor('https://github.com/trongate/trongate-framework', 'GitHub repository') ?> and explore the open issues, feature requests, or areas for improvement. You can submit pull requests, offer code enhancements, or help address bugs. Additionally, consider sharing your ideas, insights, and knowledge through documentation improvements or community support.</p>
+        <p class="sm">If you're interested in contributing, head over to our <?php echo anchor('https://github.com/trongate/trongate-framework', 'GitHub repository') ?> and explore the open issues, feature requests, or areas for improvement. You can submit pull requests, offer code enhancements, or help address bugs. Additionally, consider sharing your ideas, insights, and knowledge through documentation improvements or community support.</p>
         <p class="sm">Together, we can shape the future of Trongate and create a powerful PHP framework that benefits developers worldwide.</p>
         <p class="text-center"><button class="alt" onclick="closeModal('my-modal-3')">Close</button></p>
     </div>
@@ -201,8 +204,8 @@
     <div class="modal-body">
         <p class="sm">Trongate may not appeal to everyone, and that's alright. Criticism is welcome and can even be helpful. It's not necessary for everyone to like Trongate! However, spreading false technical information is both unethical and - sometimes - malicious.</p>
         <p class="sm">If you encounter any false technical claims or misunderstandings about Trongate, we encourage you to report them to us.</p>
-        <p class="sm">Your feedback is essential in our mission to provide reliable information to the wider web development community regarding Trongate. Help us to <?= anchor('https://www.youtube.com/watch?v=FfirQfFgh9A', 'fact-check') ?> the critics! Our objective is to ensure that developers have access to accurate details about the framework's capabilities, features, and benefits.</p>
-        <p class="sm">If you spot anyone dishing out false information about Trongate, please feel free to reach out to us via our <?= anchor('https://trongate.io/contactus', 'contact form') ?>. We'll take care of the rest.</p>
+        <p class="sm">Your feedback is essential in our mission to provide reliable information to the wider web development community regarding Trongate. Help us to <?php echo anchor('https://www.youtube.com/watch?v=FfirQfFgh9A', 'fact-check') ?> the critics! Our objective is to ensure that developers have access to accurate details about the framework's capabilities, features, and benefits.</p>
+        <p class="sm">If you spot anyone dishing out false information about Trongate, please feel free to reach out to us via our <?php echo anchor('https://trongate.io/contactus', 'contact form') ?>. We'll take care of the rest.</p>
         <p class="text-center"><button class="alt" onclick="closeModal('my-modal-4')">Close</button></p>
     </div>
 </div>

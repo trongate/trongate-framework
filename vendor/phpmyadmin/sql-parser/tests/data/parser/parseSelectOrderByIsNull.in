@@ -1,0 +1,1 @@
+SELECT * FROM some_table ORDER BY some_col IS NULL;

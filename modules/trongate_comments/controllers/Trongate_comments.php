@@ -1,19 +1,24 @@
 <?php
-class Trongate_comments extends Trongate {
 
+declare(strict_types=1);
+
+class Trongate_comments extends Trongate
+{
     /**
      * @var string The default system'username for comments from a user id of 0.
      */
-    private $zero_id_username = 'System';
+    private string $zero_id_username = 'System';
 
     /**
      * Prepare comments data with formatted dates and user information.
      * This method is typically called via admin.js.
      *
-     * @param array $output The output data containing comments.
+     * @param  array  $output The output data containing comments.
+     *
      * @return array Processed output data with formatted comments.
      */
-    function _prep_comments(array $output): array {
+    public function _prep_comments(array $output): array
+    {
         //return comments with nicely formatted date
         $body = $output['body'];
 
@@ -25,25 +30,23 @@ class Trongate_comments extends Trongate {
         $all_admins = $this->model->query($sql, 'object');
 
         $admin_users = [];
-        foreach($all_admins as $admin_user) {
+        foreach ($all_admins as $admin_user) {
             $admin_users[$admin_user->id] = $admin_user->username;
         }
 
         $comments = json_decode($body);
         $data = [];
-        foreach ($comments as $key=>$value) {
+        foreach ($comments as $key => $value) {
             $row_data['comment'] = nl2br($value->comment);
 
             if (isset($admin_users[$value->user_id])) {
                 $posted_by = $admin_users[$value->user_id];
             } else {
-
-                if(($value->user_id === 0) && (isset($this->zero_id_username))) {
+                if (($value->user_id === 0) && (isset($this->zero_id_username))) {
                     $posted_by = $this->zero_id_username;
                 } else {
                     $posted_by = 'an unknown user';
                 }
-
             }
 
             $date_created = date('l jS \of F Y \a\t h:i:s A', $value->date_created);
@@ -56,13 +59,14 @@ class Trongate_comments extends Trongate {
         }
 
         $output['body'] = json_encode($data);
+
         return $output;
     }
 
     /**
      * Pre-insert hook to be invoked by API manager before inserting a comment
      *
-     * @param array $input The input data for insertion.
+     * @param  array  $input The input data for insertion.
      *                     Expected structure:
      *                     [
      *                         'token' => string, // The token associated with the user.
@@ -72,9 +76,11 @@ class Trongate_comments extends Trongate {
      *                             'code' => string,      // Randomly generated code.
      *                         ],
      *                     ]
+     *
      * @return array Processed input data with additional parameters.
      */
-    function _pre_insert(array $input): array {
+    public function _pre_insert(array $input): array
+    {
         // Establish user_id, date_created, and code before doing an insert.
         $this->module('trongate_tokens');
         $token = $input['token'];
@@ -86,5 +92,4 @@ class Trongate_comments extends Trongate {
 
         return $input;
     }
-
 }

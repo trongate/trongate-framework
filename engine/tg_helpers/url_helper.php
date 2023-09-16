@@ -1,5 +1,9 @@
 <?php
-function segment($num, $var_type = null) {
+
+declare(strict_types=1);
+
+function segment($num, $var_type = null)
+{
     $segments = SEGMENTS;
     if (isset($segments[$num])) {
         $value = $segments[$num];
@@ -14,42 +18,45 @@ function segment($num, $var_type = null) {
     return $value;
 }
 
-function remove_query_string($string) {
-    $parts = explode("?", $string, 2);
+function remove_query_string($string)
+{
+    $parts = explode('?', $string, 2);
+
     return $parts[0];
 }
 
-
-function previous_url() {
+function previous_url()
+{
     if (isset($_SERVER['HTTP_REFERER'])) {
         $url = $_SERVER['HTTP_REFERER'];
     } else {
         $url = '';
     }
+
     return $url;
 }
 
-function current_url() {
-    $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
-    return $current_url;
+function current_url()
+{
+    return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 }
 
-function redirect($target_url) {
-
+function redirect($target_url): void
+{
     $str = substr($target_url, 0, 4);
-    if ($str != 'http') {
-        $target_url = BASE_URL . $target_url;
+    if ($str !== 'http') {
+        $target_url = BASE_URL.$target_url;
     }
 
-    header('location: ' . $target_url);
-    die();
+    header('location: '.$target_url);
+    exit;
 }
 
-function anchor($target_url, $text, $attributes = null, $additional_code = null) {
-
+function anchor($target_url, $text, $attributes = null, $additional_code = null)
+{
     $str = substr($target_url, 0, 4);
-    if ($str != 'http') {
-        $target_url = BASE_URL . $target_url;
+    if ($str !== 'http') {
+        $target_url = BASE_URL.$target_url;
     }
 
     $target_url = attempt_return_nice_url($target_url);
@@ -63,46 +70,48 @@ function anchor($target_url, $text, $attributes = null, $additional_code = null)
     $extra = '';
     if (isset($attributes)) {
         foreach ($attributes as $key => $value) {
-            $extra .= ' ' . $key . '="' . $value . '"';
+            $extra .= ' '.$key.'="'.$value.'"';
         }
     }
 
     if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
+        $extra .= ' '.$additional_code;
     }
 
-    $link = '<a href="' . $target_url . '"' . $extra . '>' . $text . '</a>';
-    return $link;
+    return '<a href="'.$target_url.'"'.$extra.'>'.$text.'</a>';
 }
 
 /**
  * Truncates a string to a specified maximum length.
  *
- * @param string $value The input string to be truncated.
- * @param int $max_length The maximum length of the truncated string.
+ * @param  string  $value The input string to be truncated.
+ * @param  int  $max_length The maximum length of the truncated string.
+ *
  * @return string The truncated string with an ellipsis (...) if necessary.
  */
-function truncate_str(string $value, int $max_length): string {
+function truncate_str(string $value, int $max_length): string
+{
     if (strlen($value) <= $max_length) {
         return $value;
-    } else {
-        return substr($value, 0, $max_length) . '...';
     }
+    return substr($value, 0, $max_length).'...';
 }
 
 /**
  * Format a number as a price with commas and optional currency symbol.
  *
- * @param float $num The number to be formatted.
- * @param string|null $currency_symbol The optional currency symbol to be added.
+ * @param  float  $num The number to be formatted.
+ * @param  string|null  $currency_symbol The optional currency symbol to be added.
+ *
  * @return string|float The formatted nice price.
  */
-function nice_price(float $num, ?string $currency_symbol = null): string|float {
+function nice_price(float $num, ?string $currency_symbol = null): string|float
+{
     $num = number_format($num, 2);
     $nice_price = str_replace('.00', '', $num);
 
     if (isset($currency_symbol)) {
-        $nice_price = $currency_symbol . $nice_price;
+        $nice_price = $currency_symbol.$nice_price;
     }
 
     return $nice_price;
@@ -111,16 +120,18 @@ function nice_price(float $num, ?string $currency_symbol = null): string|float {
 /**
  * It takes a string, converts it to lowercase, replaces all non-alphanumeric characters with a dash,
  * and trims any leading or trailing dashes.
- * 
+ *
  * @author Special thanks to framex who posted this fix on the help-bar
+ *
  * @see https://trongate.io/help_bar/thread/h7W9QyPcsx69
- * 
+ *
  * @param string value The string to be converted.
  * @param bool transliteration If you want to transliterate the string, set this to true.
- * 
+ *
  * @return string The slugified version of the string.
  */
-function url_title($value, $transliteration = true) {
+function url_title($value, $transliteration = true): string
+{
     if (extension_loaded('intl') && $transliteration === true) {
         $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII');
         $value = $transliterator->transliterate($value);
@@ -128,29 +139,31 @@ function url_title($value, $transliteration = true) {
     $slug = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
     $slug = preg_replace('~[^\pL\d]+~u', '-', $slug);
     $slug = trim($slug, '- ');
-    $slug = strtolower($slug);
-    return $slug;
+    return strtolower($slug);
 }
 
-function return_file_info($file_string) {
+function return_file_info($file_string)
+{
     // Get the file extension
     $file_extension = pathinfo($file_string, PATHINFO_EXTENSION);
     // Get the file name without the extension
-    $file_name = str_replace("." . $file_extension, "", $file_string);
+    $file_name = str_replace('.'.$file_extension, '', $file_string);
+
     // Return an array containing the file name and file extension
-    return array("file_name" => $file_name, "file_extension" => "." . $file_extension);
+    return ['file_name' => $file_name, 'file_extension' => '.'.$file_extension];
 }
 
-function api_auth() {
+function api_auth(): void
+{
     //find out where the api.json file lives
     $validation_complete = false;
     $target_url = str_replace(BASE_URL, '', current_url());
     $segments = explode('/', $target_url);
 
-    if ((isset($segments[0])) && (isset($segments[1]))) {
+    if (isset($segments[0]) && (isset($segments[1]))) {
         $current_module_bits = explode('-', $segments[0]);
         $current_module = $current_module_bits[0];
-        $filepath = APPPATH . 'modules/' . $current_module . '/assets/api.json';
+        $filepath = APPPATH.'modules/'.$current_module.'/assets/api.json';
 
         if (file_exists($filepath)) {
             //extract the rules for the current path
@@ -162,16 +175,14 @@ function api_auth() {
             $current_uri_bits = explode('/', $current_uri_path);
 
             foreach ($endpoints as $rule_name => $api_rule_value) {
-
                 if (isset($api_rule_value['url_segments'])) {
-
                     //make sure the current URL segments match against the required segments
                     $target_url_segments = $api_rule_value['url_segments'];
                     $bits = explode('/', $target_url_segments);
                     $required_segments = [];
 
                     foreach ($bits as $key => $value) {
-                        if (!is_numeric(strpos($value, '{'))) {
+                        if (! is_numeric(strpos($value, '{'))) {
                             $required_segments[$key] = $value;
                         }
                     }
@@ -191,11 +202,11 @@ function api_auth() {
                         $token_validation_data['module_name'] = $current_module;
                         $token_validation_data['module_endpoints'] = $endpoints;
 
-                        $api_class_location = APPPATH . 'engine/Api.php';
+                        $api_class_location = APPPATH.'engine/Api.php';
 
                         if (file_exists($api_class_location)) {
                             include_once $api_class_location;
-                            $api_helper = new Api;
+                            $api_helper = new Api();
                             $api_helper->validate_token($token_validation_data);
                             $validation_complete = true;
                         }
@@ -211,12 +222,13 @@ function api_auth() {
 
     if ($validation_complete === false) {
         http_response_code(401);
-        echo "Invalid token.";
-        die();
+        echo 'Invalid token.';
+        exit;
     }
 }
 
-function make_rand_str($length = 32, $uppercase = false) {
+function make_rand_str($length = 32, $uppercase = false)
+{
     $characters = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
     $charactersLength = strlen($characters);
     $randomString = '';
@@ -225,18 +237,20 @@ function make_rand_str($length = 32, $uppercase = false) {
         $randomInt = ord($randomByte) % $charactersLength;
         $randomString .= $characters[$randomInt];
     }
+
     return $uppercase ? strtoupper($randomString) : $randomString;
 }
 
-
-function json($data, $kill_script = null) {
-    echo '<pre>' . json_encode($data, JSON_PRETTY_PRINT) . '</pre>';
+function json($data, $kill_script = null): void
+{
+    echo '<pre>'.json_encode($data, JSON_PRETTY_PRINT).'</pre>';
 
     if (isset($kill_script)) {
-        die();
+        exit;
     }
 }
 
-function ip_address() {
+function ip_address()
+{
     return $_SERVER['REMOTE_ADDR'];
 }

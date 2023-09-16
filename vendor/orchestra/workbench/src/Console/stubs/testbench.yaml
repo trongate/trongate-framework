@@ -1,0 +1,12 @@
+providers: []
+
+migrations: true
+seeders: []
+
+workbench:
+  start: '/'
+  install: true
+  welcome: true
+  build: []
+  assets: []
+  sync: []

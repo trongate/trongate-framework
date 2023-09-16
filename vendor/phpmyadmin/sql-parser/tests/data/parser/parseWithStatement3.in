@@ -1,0 +1,1 @@
+WITH categories(identifier, name, parent_id) AS ( SELECT c.identifier, c.name, c.parent_id FROM category c WHERE c.identifier = 'a' UNION ALL SELECT c.identifier, c.name, c.parent_id FROM categories, category c WHERE c.identifier = categories.parent_id ), foo AS ( SELECT * FROM test ) SELECT * FROM categories

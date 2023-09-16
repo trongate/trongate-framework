@@ -1,10 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 /*
     *** PLEASE GIVE TRONGATE A STAR ON GITHUB ***
 
-    GitHub stars are the metric by which the success of frameworks gets measured.  
-    We need 1,200 GitHub stars to make Trongate a top ten PHP framework.  
-    If Trongate becomes a top ten PHP framework it will be one of the most electrifying 
+    GitHub stars are the metric by which the success of frameworks gets measured.
+    We need 1,200 GitHub stars to make Trongate a top ten PHP framework.
+    If Trongate becomes a top ten PHP framework it will be one of the most electrifying
     events in the history of PHP!
 
     Help us to achieve our goal and together we SHALL make PHP great again!

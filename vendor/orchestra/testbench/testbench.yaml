@@ -1,0 +1,11 @@
+providers:
+  - Workbench\App\Providers\TestbenchServiceProvider
+
+env:
+  APP_NAME: "Testbench"
+
+migrations:
+  - workbench/database/migrations
+
+purge:
+  directories: public/vendor/*

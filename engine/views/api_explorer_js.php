@@ -1,18 +1,22 @@
-<script src = "<?= BASE_URL ?>js/app.js"></script>
+<script src = "<?php
+
+declare(strict_types=1);
+
+echo BASE_URL ?>js/app.js"></script>
 <script>
 let token = '';
 let currentEndpoint;
 let currentEndpointIndex = '';
 let headerInfo = '';
 let currentModalType = 'GET';
-let goldenToken = '<?= $golden_token ?>';
+let goldenToken = '<?php echo $golden_token ?>';
 
-const baseUrl = '<?= BASE_URL ?>';
-const HTTP_STATUS_CODES = <?= json_encode($http_status_codes) ?>
+const baseUrl = '<?php echo BASE_URL ?>';
+const HTTP_STATUS_CODES = <?php echo json_encode($http_status_codes) ?>
 
-const endpoints = <?= json_encode($endpoints) ?>
+const endpoints = <?php echo json_encode($endpoints) ?>
 
-const columns = <?= json_encode($columns) ?>
+const columns = <?php echo json_encode($columns) ?>
 
 function setToken() {
   const inputTokenEl = document.getElementById('input-token');

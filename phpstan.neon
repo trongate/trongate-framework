@@ -1,0 +1,10 @@
+includes:
+    - ./vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    paths:
+        - engine
+        - modules
+        - templates
+    # Level 9 is the highest level
+    level: 4

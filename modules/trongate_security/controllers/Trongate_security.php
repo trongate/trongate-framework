@@ -1,7 +1,11 @@
 <?php
-class Trongate_security extends Trongate {
 
-    function _make_sure_allowed($scenario='admin panel') {
+declare(strict_types=1);
+
+class Trongate_security extends Trongate
+{
+    public function _make_sure_allowed($scenario = 'admin panel')
+    {
         //returns EITHER (trongate)token OR initialises 'not allowed' procedure
 
         switch ($scenario) {
@@ -17,5 +21,4 @@ class Trongate_security extends Trongate {
 
         return $token;
     }
-
 }

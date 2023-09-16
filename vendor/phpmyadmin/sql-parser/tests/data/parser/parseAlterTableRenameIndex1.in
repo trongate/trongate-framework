@@ -1,0 +1,1 @@
+ALTER TABLE `transactions` RENAME INDEX `fk_transactions_catalog_entries1_idx` TO `fk_transactions_catalog_entries2_idx`

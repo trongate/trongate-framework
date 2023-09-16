@@ -1,0 +1,33 @@
+{
+  "name": "trongate/trongate-framework",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "Trongate\\TrongateFramework\\": "engine/"
+    }
+  },
+  "require": {
+  },
+  "require-dev": {
+    "laravel/pint": "^1.0",
+    "nunomaduro/larastan": "^2.0",
+    "nunomaduro/phpinsights": "^2.7",
+    "orchestra/testbench": "^8.10"
+  },
+  "scripts": {
+    "pint": [
+      "./vendor/bin/pint"
+    ],
+    "analyse": [
+      "./vendor/bin/phpstan analyse"
+    ],
+    "insights": [
+      "./vendor/bin/phpinsights --fix"
+    ]
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  }
+}

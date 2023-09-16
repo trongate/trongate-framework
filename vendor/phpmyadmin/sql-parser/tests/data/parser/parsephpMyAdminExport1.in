@@ -1,0 +1,87 @@
+-- phpMyAdmin SQL Dump
+-- version 5.0.0-dev
+-- https://www.phpmyadmin.net/
+--
+-- Hôte : xxxx.xxxxx.eu-west-1.rds.amazonaws.com
+-- Généré le :  mer. 05 sep. 2018 à 00:03
+-- Version du serveur :  10.0.24-MariaDB
+-- Version de PHP :  7.2.8-1+ubuntu18.04.1+deb.sury.org+1
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de données :  `xxxxxdbnamexxxxx`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `monitoring__times`
+--
+
+CREATE TABLE `monitoring__times` (
+  `idServer` int(11) UNSIGNED NOT NULL COMMENT 'Id of server',
+  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Time UTC',
+  `totalTime` float UNSIGNED NOT NULL COMMENT 'Total time in ms'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Déclencheurs `monitoring__times`
+--
+DELIMITER $$
+CREATE TRIGGER `copyTimes` AFTER INSERT ON `monitoring__times` FOR EACH ROW INSERT INTO monitoring__times_mirror
+(`idServer`, `time`, `totalTime`) VALUES(new.idServer, new.time, new.totalTime)
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `deleteTimes` AFTER DELETE ON `monitoring__times` FOR EACH ROW DELETE FROM monitoring__times_mirror
+WHERE `idServer`=old.idServer
+AND `time`=old.time
+AND `totalTime`=old.totalTime
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `updateTimes` AFTER UPDATE ON `monitoring__times` FOR EACH ROW UPDATE monitoring__times_mirror
+SET `idServer`=new.idServer,
+`time`=new.time,
+`totalTime`=new.totalTime
+WHERE `idServer`=old.idServer
+AND `time`=old.time
+AND `totalTime`=old.totalTime
+$$
+DELIMITER ;
+
+--
+-- Index pour les tables déchargées
+--
+
+--
+-- Index pour la table `monitoring__times`
+--
+ALTER TABLE `monitoring__times`
+  ADD UNIQUE KEY `idServer` (`idServer`,`time`) USING BTREE COMMENT 'Unique idServer/time',
+  ADD KEY `INDEX_totalTime` (`totalTime`) USING BTREE COMMENT 'Index for totalTime column';
+
+--
+-- Contraintes pour les tables déchargées
+--
+
+--
+-- Contraintes pour la table `monitoring__times`
+--
+ALTER TABLE `monitoring__times`
+  ADD CONSTRAINT `monitoring__times__idServer` FOREIGN KEY (`idServer`) REFERENCES `monitoring__servers` (`id`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -1,0 +1,2 @@
+INSERT INTO labels(`label`)
+VALUES (concat('A', ' ', 'label'));

@@ -1,0 +1,4 @@
+CREATE TABLE `test1` (
+ `amultipoint` multipoint DEFAULT NULL,
+ `amultipolygon` multipolygon DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4

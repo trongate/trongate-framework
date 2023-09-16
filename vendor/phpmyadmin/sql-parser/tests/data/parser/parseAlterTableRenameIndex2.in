@@ -1,0 +1,1 @@
+ALTER TABLE testtable RENAME INDEX my_index TO my_index2, ALGORITHM=INPLACE, LOCK=NONE;

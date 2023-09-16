@@ -1,6 +1,9 @@
-<?php 
-function draw_child_nodes($parent_page_id, $all_pages) {
+<?php
 
+declare(strict_types=1);
+
+function draw_child_nodes($parent_page_id, $all_pages): void
+{
     $child_nodes = [];
     foreach ($all_pages as $page) {
         $node_data['id'] = $page->id;
@@ -8,7 +11,7 @@ function draw_child_nodes($parent_page_id, $all_pages) {
         $priority = $page->priority;
         $node_parent_id = $page->parent_page_id;
 
-        if ($node_parent_id == $parent_page_id) {
+        if ($node_parent_id === $parent_page_id) {
             //this node MUST be a child of the parent_page_id
             $child_nodes[$priority] = $node_data;
         }
@@ -23,7 +26,6 @@ function draw_child_nodes($parent_page_id, $all_pages) {
         draw_child_nodes($child_node['id'], $all_pages); //draw child nodes for THIS node
         echo '</div>';
     }
-
 }
 
 draw_child_nodes(0, $all_pages);

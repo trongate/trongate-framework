@@ -1,0 +1,12 @@
+{
+    "$schema": "https://laravel-ide.com/schema/laravel-ide-v2.json",
+    "blade": {
+        "directives": [
+            {
+                "name": "ray",
+                "prefix": "<?php ray(",
+                "suffix": "); ?>"
+            }
+        ]
+    }
+}

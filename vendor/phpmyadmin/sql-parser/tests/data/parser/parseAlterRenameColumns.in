@@ -1,0 +1,4 @@
+ALTER TABLE myTable RENAME COLUMN a TO b,
+                    RENAME COLUMN b TO c,
+                    RENAME COLUMN c TO d,
+                    RENAME COLUMN d TO a;

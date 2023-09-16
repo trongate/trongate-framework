@@ -1,0 +1,6 @@
+BEGIN;
+    INSERT INTO t2 VALUES (3);
+    SAVEPOINT my_savepoint;
+    INSERT INTO t2 VALUES (4);
+    ROLLBACK TO SAVEPOINT my_savepoint;
+COMMIT;

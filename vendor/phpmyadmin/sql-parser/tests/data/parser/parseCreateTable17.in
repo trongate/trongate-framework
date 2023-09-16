@@ -1,0 +1,8 @@
+CREATE TABLE `autos8` (
+    `auto_id` int(10) UNSIGNED NOT NULL UNIQUE KEY,
+    `make` varchar(128) DEFAULT NULL,
+    `year` int(11) DEFAULT NULL,
+    `mileage` int(11) DEFAULT NULL,
+    `city` point NOT NULL,
+    SPATIAL INDEX `city_index` (`city`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;

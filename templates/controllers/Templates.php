@@ -1,16 +1,21 @@
 <?php
-class Templates extends Trongate {
 
-    function public($data) {
+declare(strict_types=1);
+
+class Templates extends Trongate
+{
+    public function public($data): void
+    {
         load('public', $data);
     }
 
-    function error_404($data) {
+    public function error_404($data): void
+    {
         load('error_404', $data);
     }
 
-    function admin($data) {
-
+    public function admin($data): void
+    {
         if (isset($data['additional_includes_top'])) {
             $data['additional_includes_top'] = $this->_build_additional_includes($data['additional_includes_top']);
         } else {
@@ -26,44 +31,41 @@ class Templates extends Trongate {
         load('admin', $data);
     }
 
-    function _build_css_include_code($file) {
+    public function _build_css_include_code($file)
+    {
         $code = '<link rel="stylesheet" href="'.$file.'">';
-        $code = str_replace('""></script>', '"></script>', $code);
-        return $code;
+        return str_replace('""></script>', '"></script>', $code);
     }
 
-    function _build_js_include_code($file) {
-       $code = '<script src="'.$file.'"></script>';
-       $code = str_replace('""></script>', '"></script>', $code);
-       return $code;
+    public function _build_js_include_code($file)
+    {
+        $code = '<script src="'.$file.'"></script>';
+        return str_replace('""></script>', '"></script>', $code);
     }
 
-    function _build_additional_includes($files) {
-
+    public function _build_additional_includes($files)
+    {
         $html = '';
         foreach ($files as $file) {
             $file_bits = explode('.', $file);
-            $filename_extension = $file_bits[count($file_bits)-1];
+            $filename_extension = $file_bits[count($file_bits) - 1];
 
             if (($filename_extension !== 'js') && ($filename_extension !== 'css')) {
-                $html.= $file;
+                $html .= $file;
             } else {
-                if ($filename_extension == 'js') {
-                    $html.= $this->_build_js_include_code($file);
+                if ($filename_extension === 'js') {
+                    $html .= $this->_build_js_include_code($file);
                 } else {
-                   $html.= $this->_build_css_include_code($file);
-                }   
+                    $html .= $this->_build_css_include_code($file);
+                }
             }
 
-            $html.= '
+            $html .= '
     ';
         }
 
         $html = trim($html);
-        $html.= '
+        return $html . '
 ';
-
-        return $html;
     }
-
 }

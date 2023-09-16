@@ -1,0 +1,8 @@
+/vendor
+/docs/.vuepress/dist
+/docs/.vuepress/public/*
+.idea/*
+.env
+.phpunit.result.cache
+/composer.lock
+.php_cs.cache

@@ -1,0 +1,6 @@
+CREATE TABLE `trips2` (
+    `id` bigint(20) UNSIGNED NOT NULL PRIMARY KEY COMMENT 'Unique trip Id',
+    `trip_code` int(11) UNSIGNED NOT NULL COMMENT 'Trip code',
+    `trip_category` int(11) UNSIGNED NOT NULL COMMENT 'Trip category',
+    `trip_date` date NOT NULL COMMENT 'The trip date'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'The trips';

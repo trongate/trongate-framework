@@ -1,16 +1,20 @@
 <script>
 const trongatePagesObj = {
-  baseUrl: '<?= BASE_URL ?>',
-  trongatePagesId: '<?= $recordId ?>',
-  trongatePagesToken: '<?= $trongate_token ?>',
+  baseUrl: '<?php
+
+declare(strict_types=1);
+
+  echo BASE_URL ?>',
+  trongatePagesId: '<?php echo $recordId ?>',
+  trongatePagesToken: '<?php echo $trongate_token ?>',
   imgRootDir: '../modules/trongate_pages/assets/images/uploads',
   currentImgDir: '',
   pageBody: document.getElementsByTagName('body')[0],
   defaultActiveElParent: document.getElementsByClassName('page-content')[0],
   headlineTags: ["H1", "H2", "H3", "H4", "H5", "h1", "h2", "h3", "h4", "h5"],
-  targetTable: '<?= $targetTable ?>',
-  imgUploadApi: '<?= $imgUploadApi ?>',
-  moduleAssetsTrigger: '<?= MODULE_ASSETS_TRIGGER ?>',
+  targetTable: '<?php echo $targetTable ?>',
+  imgUploadApi: '<?php echo $imgUploadApi ?>',
+  moduleAssetsTrigger: '<?php echo MODULE_ASSETS_TRIGGER ?>',
   activeElParent: document.getElementsByClassName('page-content')[0],
   activeEl: document.getElementsByClassName('page-content')[0],
   currentlySelectedElType: '',
@@ -19,23 +23,23 @@ const trongatePagesObj = {
   lastHeadlineSelected: {},
   storedRange: null,
   targetVideoDiv: null,
-  textDivSampleText: '<?= $sample_text ?>'
+  textDivSampleText: '<?php echo $sample_text ?>'
 }
 
 const tgpScriptUrls = [
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/button_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/camera_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/code_view.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/divider_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/dock_manager.js', 
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/element_adder_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/folder_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/headline_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/image_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/text_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/trongate_pages.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/toolbar_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/youtube_manager.js'
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/button_manager.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/camera_manager.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/code_view.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/divider_manager.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/dock_manager.js', 
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/element_adder_manager.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/folder_manager.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/headline_manager.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/image_manager.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/text_manager.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/trongate_pages.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/toolbar_manager.js',
+ '<?php echo BASE_URL ?>trongate_pages<?php echo MODULE_ASSETS_TRIGGER ?>/js/youtube_manager.js'
 ];
 
 const tgpModals = [

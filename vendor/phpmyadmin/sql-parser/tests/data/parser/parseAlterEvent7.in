@@ -1,0 +1,1 @@
+ALTER EVENT my_event COMMENT 'This is an event';

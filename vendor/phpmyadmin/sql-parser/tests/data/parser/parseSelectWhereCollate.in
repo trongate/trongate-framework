@@ -1,0 +1,1 @@
+SELECT  1 FROM   my_table WHERE   first_col = 'foo' AND     second_col COLLATE utf8_bin = 'bar';

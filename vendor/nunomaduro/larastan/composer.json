@@ -1,0 +1,73 @@
+{
+    "name": "nunomaduro/larastan",
+    "type": "phpstan-extension",
+    "description": "Larastan - Discover bugs in your code without running it. A phpstan/phpstan wrapper for Laravel",
+    "keywords": ["laravel", "larastan", "phpstan", "php", "package", "static analysis", "code analysis", "code analyse"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nuno Maduro",
+            "email": "enunomaduro@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0.2",
+        "ext-json": "*",
+        "illuminate/console": "^9.47.0 || ^10.0.0",
+        "illuminate/container": "^9.47.0 || ^10.0.0",
+        "illuminate/contracts": "^9.47.0 || ^10.0.0",
+        "illuminate/database": "^9.47.0 || ^10.0.0",
+        "illuminate/http": "^9.47.0 || ^10.0.0",
+        "illuminate/pipeline": "^9.47.0 || ^10.0.0",
+        "illuminate/support": "^9.47.0 || ^10.0.0",
+        "phpmyadmin/sql-parser": "^5.6.0",
+        "phpstan/phpstan": "~1.10.6"
+    },
+    "require-dev": {
+        "nikic/php-parser": "^4.15.2",
+        "orchestra/testbench": "^7.19.0 || ^8.0.0",
+        "phpunit/phpunit": "^9.5.27"
+    },
+    "suggest": {
+        "orchestra/testbench": "Using Larastan for analysing a package needs Testbench"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\": "tests/application/app/",
+            "Database\\Factories\\": "tests/application/database/factories/",
+            "Database\\Migrations\\": "tests/application/database/migrations/"
+        },
+      "classmap": [
+        "tests/"
+      ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "NunoMaduro\\Larastan\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0-dev"
+        },
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        }
+    },
+    "scripts": {
+        "test:types": "phpstan analyse --ansi --memory-limit 256M",
+        "test:unit": "phpunit --colors=always -d memory_limit=1280M",
+        "test": [
+            "@test:types",
+            "@test:unit"
+        ]
+    }
+}

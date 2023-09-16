@@ -1,0 +1,1 @@
+INSERT INTO table_name WITH cte (col1) AS ( SELECT 1 ) SELECT col1 FROM cte ON DUPLICATE KEY UPDATE col_name = 3

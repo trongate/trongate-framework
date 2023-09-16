@@ -1,22 +1,27 @@
-<h1><?= $headline ?></h1>
+<h1><?php
+
+declare(strict_types=1);
+
+echo $headline ?></h1>
 <p>Please use this page to upload images.  When you are finished, click 'Go Back'.</p>  
-<p><?php 
+<p><?php
+declare(strict_types=1);
 $btn_attr['class'] = 'button';
 echo anchor($previous_url, '<i class="fa fa-arrow-left"></i> Go Back', $btn_attr) ?></p>
 <div class="drop-zone" id="drop-zone">
-    <div bp="grid 4@sm 3@md 2@lg container" id="thumbnail-grid"><?php 
+    <div bp="grid 4@sm 3@md 2@lg container" id="thumbnail-grid"><?php
         $num_previously_uploaded_files = count($previously_uploaded_files);
-        foreach ($previously_uploaded_files as $previously_uploaded_file) {
-            $file_path= $previously_uploaded_file['directory'].'/'.$previously_uploaded_file['filename'];
-        ?>
-        <div class="drop-zone__thumb" data-label="<?= $previously_uploaded_file['filename'] ?>" id="vWVnX" style="background-image: url('<?= $file_path ?>');">
-            <div class="thumboverlay thumboverlay-green" id="<?= $previously_uploaded_file['overlay_id'] ?>">
-               <div class="ditch-cross" onclick="deleteImg('<?= $previously_uploaded_file['overlay_id'] ?>')">✘</div>
+foreach ($previously_uploaded_files as $previously_uploaded_file) {
+    $file_path = $previously_uploaded_file['directory'].'/'.$previously_uploaded_file['filename'];
+    ?>
+        <div class="drop-zone__thumb" data-label="<?php echo $previously_uploaded_file['filename'] ?>" id="vWVnX" style="background-image: url('<?php echo $file_path ?>');">
+            <div class="thumboverlay thumboverlay-green" id="<?php echo $previously_uploaded_file['overlay_id'] ?>">
+               <div class="ditch-cross" onclick="deleteImg('<?php echo $previously_uploaded_file['overlay_id'] ?>')">✘</div>
             </div>
         </div>   
-        <?php 
-        }
-        ?>
+        <?php
+}
+?>
     </div>
     <div id="controls">
         <span class="drop-zone__prompt">
@@ -28,9 +33,9 @@ echo anchor($previous_url, '<i class="fa fa-arrow-left"></i> Go Back', $btn_attr
     </div> 
 </div>
 <script>
-const targetModule = '<?= $target_module ?>';
-const updateId = <?= $update_id ?>;
-const uploadUrl = '<?= $upload_url ?>';
-const deleteUrl = '<?= $delete_url  ?>';
-const token = '<?= $token ?>';
+const targetModule = '<?php echo $target_module ?>';
+const updateId = <?php echo $update_id ?>;
+const uploadUrl = '<?php echo $upload_url ?>';
+const deleteUrl = '<?php echo $delete_url  ?>';
+const token = '<?php echo $token ?>';
 </script>

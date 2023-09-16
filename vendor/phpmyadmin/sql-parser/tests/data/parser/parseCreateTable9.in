@@ -1,0 +1,100 @@
+CREATE TABLE `trips` (
+    `id` bigint(20) UNSIGNED NOT NULL COMMENT 'Unique trip Id',
+    `trip_code` int(11) UNSIGNED NOT NULL COMMENT 'Trip code',
+    `trip_category` int(11) UNSIGNED NOT NULL COMMENT 'Trip category',
+    `trip_date` date NOT NULL COMMENT 'The trip date'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'The trips' PARTITION BY LIST(trip_category) SUBPARTITION BY HASH(DAY(trip_date)) SUBPARTITIONS 31 (
+    PARTITION p1
+    VALUES
+        IN(1),
+        PARTITION p2
+    VALUES
+        IN(2),
+        PARTITION p3
+    VALUES
+        IN(3),
+        PARTITION p4
+    VALUES
+        IN(4),
+        PARTITION p5
+    VALUES
+        IN(5),
+        PARTITION p6
+    VALUES
+        IN(6),
+        PARTITION p7
+    VALUES
+        IN(7),
+        PARTITION p8
+    VALUES
+        IN(8),
+        PARTITION p9
+    VALUES
+        IN(9),
+        PARTITION p10
+    VALUES
+        IN(10),
+        PARTITION p11
+    VALUES
+        IN(11),
+        PARTITION p12
+    VALUES
+        IN(12),
+        PARTITION p13
+    VALUES
+        IN(13),
+        PARTITION p14
+    VALUES
+        IN(14),
+        PARTITION p15
+    VALUES
+        IN(15),
+        PARTITION p16
+    VALUES
+        IN(16),
+        PARTITION p17
+    VALUES
+        IN(17),
+        PARTITION p18
+    VALUES
+        IN(18),
+        PARTITION p19
+    VALUES
+        IN(19),
+        PARTITION p20
+    VALUES
+        IN(20),
+        PARTITION p21
+    VALUES
+        IN(21),
+        PARTITION p22
+    VALUES
+        IN(22),
+        PARTITION p23
+    VALUES
+        IN(23),
+        PARTITION p24
+    VALUES
+        IN(24),
+        PARTITION p25
+    VALUES
+        IN(25),
+        PARTITION p26
+    VALUES
+        IN(26),
+        PARTITION p27
+    VALUES
+        IN(27),
+        PARTITION p28
+    VALUES
+        IN(28),
+        PARTITION p29
+    VALUES
+        IN(29),
+        PARTITION p30
+    VALUES
+        IN(30),
+        PARTITION p31
+    VALUES
+        IN(31)
+);

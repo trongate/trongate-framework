@@ -1,7 +1,11 @@
 <?php
-class Template {
 
-    static public function get_view_module() {
+declare(strict_types=1);
+
+class Template
+{
+    public static function get_view_module()
+    {
         //attempt to get view_module from URL
 
         $url = str_replace(BASE_URL, '', current_url());
@@ -17,13 +21,13 @@ class Template {
         return $view_module;
     }
 
-    static public function display($data=null) {
-
-        if (!isset($data['view_module'])) {
+    public static function display($data = null): void
+    {
+        if (! isset($data['view_module'])) {
             $data['view_module'] = self::get_view_module();
         }
 
-        if (!isset($data['view_file'])) {
+        if (! isset($data['view_file'])) {
             $data['view_file'] = 'index';
         }
 
@@ -31,25 +35,22 @@ class Template {
         self::attempt_include($file_path, $data);
     }
 
-    static public function partial($file_name, $data=null) {
+    public static function partial($file_name, $data = null): void
+    {
         $file_path = APPPATH.'templates/views/'.$file_name.'.php';
         self::attempt_include($file_path, $data);
     }
 
-    static private function attempt_include($file_path, $data=null) {
-
+    private static function attempt_include($file_path, $data = null): void
+    {
         if (file_exists($file_path)) {
-
             if (isset($data)) {
                 extract($data);
             }
 
-            require_once($file_path);
-
+            require_once $file_path;
         } else {
-            die('<br><b>ERROR:</b> View file does not exist at: '.$file_path);
+            exit('<br><b>ERROR:</b> View file does not exist at: '.$file_path);
         }
-
     }
-
 }

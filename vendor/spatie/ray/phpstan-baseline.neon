@@ -1,0 +1,16 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Function app not found\\.$#"
+			count: 1
+			path: src/helpers.php
+
+		-
+			message: "#^Instantiated class Spatie\\\\RayBundle\\\\Ray not found\\.$#"
+			count: 1
+			path: src/helpers.php
+
+		-
+			message: "#^Instantiated class Spatie\\\\WordPressRay\\\\Ray not found\\.$#"
+			count: 1
+			path: src/helpers.php

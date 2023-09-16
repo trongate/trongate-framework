@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 //Settings to do with the identification of the site owner
 define('WEBSITE_NAME', '');
 define('OUR_NAME', 'Your Company Name');

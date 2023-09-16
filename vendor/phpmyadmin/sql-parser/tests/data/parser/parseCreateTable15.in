@@ -1,0 +1,6 @@
+CREATE TABLE autos (
+    auto_id INT UNSIGNED ZEROFILL NOT NULL KEY,
+    make VARCHAR(128),
+    year INTEGER,
+    mileage INTEGER
+);

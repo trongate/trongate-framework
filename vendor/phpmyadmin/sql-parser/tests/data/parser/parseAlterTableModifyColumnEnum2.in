@@ -1,0 +1,2 @@
+-- ENUM with a string that is a table option.
+ALTER TABLE `test_table` MODIFY `COL` ENUM("LOCK") NULL;

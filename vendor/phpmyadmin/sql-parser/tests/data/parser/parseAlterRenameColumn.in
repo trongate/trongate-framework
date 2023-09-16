@@ -1,0 +1,1 @@
+ALTER TABLE myTable RENAME COLUMN foo TO bar;

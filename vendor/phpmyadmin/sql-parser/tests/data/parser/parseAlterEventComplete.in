@@ -1,0 +1,11 @@
+ALTER EVENT my_event
+    ON SCHEDULE
+      EVERY 2 WEEK
+      STARTS CURRENT_TIMESTAMP + INTERVAL 4 WEEK
+      ENDS '2099-12-30 23:12:01' + INTERVAL 1 DAY
+    ON COMPLETION NOT PRESERVE
+    RENAME TO my_complete_event
+    DISABLE
+    COMMENT 'String as a comment'
+    DO
+        SELECT * FROM my_table;

@@ -1,0 +1,1 @@
+WITH cte (col1) AS ( SELECT 1 UNN ALL SELECT 2 ) SELECT col1 FROM cte

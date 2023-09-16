@@ -1,0 +1,8 @@
+parameters:
+	level: 6
+	errorFormat: raw
+	editorUrl: '%%file%% %%line%% %%column%%: %%error%%'
+	paths:
+		- src
+		- tests
+

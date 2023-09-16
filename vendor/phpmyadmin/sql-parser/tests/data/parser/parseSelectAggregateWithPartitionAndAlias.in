@@ -1,0 +1,1 @@
+SELECT *, COUNT(*) OVER(PARTITION BY `REGION`) AS "count(REGION)" FROM `world_borders`

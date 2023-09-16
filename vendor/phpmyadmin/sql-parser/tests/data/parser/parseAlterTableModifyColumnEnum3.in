@@ -1,0 +1,2 @@
+-- ENUM with a string that is a statement.
+ALTER TABLE `test_table` MODIFY `COL` ENUM("INSERT") NULL;

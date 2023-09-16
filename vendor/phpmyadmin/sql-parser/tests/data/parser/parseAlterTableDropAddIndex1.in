@@ -1,0 +1,1 @@
+ALTER TABLE testtable DROP INDEX my_index2, ADD INDEX my_index3(id, id3) USING BTREE, ALGORITHM=COPY;

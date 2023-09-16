@@ -1,37 +1,42 @@
 <h1>Category Builder</h1>
-<p><button onclick="openWebpageModal(0)"><i class="fa fa-pencil"></i> Create New <?= $entity_name_singular ?></button></p>
+<p><button onclick="openWebpageModal(0)"><i class="fa fa-pencil"></i> Create New <?php
+
+declare(strict_types=1);
+
+echo $entity_name_singular ?></button></p>
 
 <div class="modal" id="create-webpage-modal" style="display: none;">
     <div class="modal-heading">
-        <i class="fa fa-pencil"></i> <span class="modal-title">Create New <?= $entity_name_singular ?></span>
+        <i class="fa fa-pencil"></i> <span class="modal-title">Create New <?php echo $entity_name_singular ?></span>
     </div>
     <div class="modal-body">
         <p id="error-msg"></p>
         <?php
-        echo form_label($entity_name_singular.' Title');
-        $input_attr['id'] = 'new-webpage';
-        $input_attr['placeholder'] = 'Enter '.strtolower($entity_name_singular).' title here';
-        $input_attr['autocomplete'] = 'off';
-        echo form_input('new_webpage', '', $input_attr);
-        echo '<div class="webpage-builder-btns">';
+declare(strict_types=1);
+echo form_label($entity_name_singular.' Title');
+$input_attr['id'] = 'new-webpage';
+$input_attr['placeholder'] = 'Enter '.strtolower($entity_name_singular).' title here';
+$input_attr['autocomplete'] = 'off';
+echo form_input('new_webpage', '', $input_attr);
+echo '<div class="webpage-builder-btns">';
 
-        echo '<div></div>'; //delete button to go here
+echo '<div></div>'; //delete button to go here
 
-        echo '<div>';
-        $cancel_btn_attr['class'] = 'alt';
-        $cancel_btn_attr['onclick'] = 'initCancel()';
-        echo form_button('cancel', 'Cancel', $cancel_btn_attr);
-        $submit_btn_attr['class'] = 'modal-title';
-        $submit_btn_attr['onclick'] = 'submitWebpage()';
-        echo form_button('submit', 'Create New '.$entity_name_singular, $submit_btn_attr);
-        echo '</div>';
+echo '<div>';
+$cancel_btn_attr['class'] = 'alt';
+$cancel_btn_attr['onclick'] = 'initCancel()';
+echo form_button('cancel', 'Cancel', $cancel_btn_attr);
+$submit_btn_attr['class'] = 'modal-title';
+$submit_btn_attr['onclick'] = 'submitWebpage()';
+echo form_button('submit', 'Create New '.$entity_name_singular, $submit_btn_attr);
+echo '</div>';
 
-        echo '</div>';
-        ?>
+echo '</div>';
+?>
     </div>
 </div>
 
-<div id="dragzone"><?= Modules::run('trongate_pages/_draw_dragzone_content', $all_pages) ?></div>
+<div id="dragzone"><?php echo Modules::run('trongate_pages/_draw_dragzone_content', $all_pages) ?></div>
 
 <style>
     #dragzone {
@@ -66,8 +71,8 @@
 </style>
 
 <script>
-var maxAllowedLevels = <?= $max_allowed_levels ?>;
-var token = '<?= $token ?>';
+var maxAllowedLevels = <?php echo $max_allowed_levels ?>;
+var token = '<?php echo $token ?>';
 var dragzone = document.getElementById("dragzone");
 var nodes = document.getElementsByClassName("node");
 var selectedNode = '';
@@ -335,13 +340,13 @@ function openWebpageModal(elId) {
     if (elId == 0) {
         openTheModal('create-webpage-modal');
         updateId = 0;
-        var mdlTitle = 'CREATE NEW <?= strtoupper($entity_name_singular) ?>';
+        var mdlTitle = 'CREATE NEW <?php echo strtoupper($entity_name_singular) ?>';
         destroyDeleteBtn();
         destroyCMSLink();
     } else {
         openTheModal('create-webpage-modal');
         updateId = elId.replace('record-id-', '');
-        var mdlTitle = 'UPDATE <?= strtoupper($entity_name_singular) ?> TITLE';
+        var mdlTitle = 'UPDATE <?php echo strtoupper($entity_name_singular) ?> TITLE';
 
         //get the webpage title from the clicked element
         var webpageTitle = extractWebpageTitle(elId);
@@ -397,7 +402,7 @@ function openTheModal(modalId) {
 function deleteWebpage() {
 
     var http = new XMLHttpRequest();
-    http.open('POST', '<?=  BASE_URL ?>api/delete/trongate_pages/' + updateId);
+    http.open('POST', '<?php echo BASE_URL ?>api/delete/trongate_pages/' + updateId);
     http.setRequestHeader('trongatetoken', token);
     http.send();
 
@@ -427,9 +432,9 @@ function initCancel() {
 function submitWebpage() {
 
     if (updateId == 0) {
-        var targetUrl = '<?= BASE_URL ?>api/create/trongate_pages';
+        var targetUrl = '<?php echo BASE_URL ?>api/create/trongate_pages';
     } else {
-        var targetUrl = '<?= BASE_URL ?>api/update/trongate_pages/' + updateId;
+        var targetUrl = '<?php echo BASE_URL ?>api/update/trongate_pages/' + updateId;
     }
 
     var newWebpageTitle = document.getElementById("new-webpage").value;
@@ -510,11 +515,11 @@ function buildDeleteBtn() {
         deleteBtn.setAttribute("class", "danger");
 
         <?php
-        $long_btn_text = 'DELETE '.strtoupper($entity_name_singular);
-        $delete_btn_text = ((strlen($entity_name_singular)>8) ? 'DELETE' : $long_btn_text);   
-        ?>
+$long_btn_text = 'DELETE '.strtoupper($entity_name_singular);
+$delete_btn_text = (strlen($entity_name_singular) > 8 ? 'DELETE' : $long_btn_text);
+?>
 
-        deleteBtn.innerHTML = '<i class=\'fa fa-trash\'></i> <?= $delete_btn_text ?>';
+        deleteBtn.innerHTML = '<i class=\'fa fa-trash\'></i> <?php echo $delete_btn_text ?>';
         var deleteBtnParent = document.querySelector("#create-webpage-modal > div.modal-body > div > div:nth-child(1)");
         deleteBtn.setAttribute("onclick", "deleteWebpage()");
         deleteBtnParent.appendChild(deleteBtn);
@@ -528,7 +533,7 @@ function buildCMSLink(recordId) {
     cmsLinkContainer.classList.add('cms-link');
     const cmsLink = document.createElement('a');
     cmsLink.innerText = 'Edit Webpage';
-    cmsLink.setAttribute('href', '<?= BASE_URL ?>trongate_pages/goto/' + recordId);
+    cmsLink.setAttribute('href', '<?php echo BASE_URL ?>trongate_pages/goto/' + recordId);
     cmsLinkContainer.appendChild(cmsLink);
 
 

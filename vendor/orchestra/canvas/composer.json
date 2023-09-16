@@ -1,0 +1,80 @@
+{
+    "name": "orchestra/canvas",
+    "description": "Code Generators for Laravel Applications and Packages",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Taylor Otwell",
+            "email": "taylor@laravel.com"
+        },
+        {
+            "name": "Mior Muhammad Zaki",
+            "email": "crynobone@gmail.com"
+        }
+    ],
+    "bin": [
+        "canvas"
+    ],
+    "autoload": {
+        "psr-4": {
+            "Orchestra\\Canvas\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Orchestra\\Canvas\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "composer-runtime-api": "^2.2",
+        "composer/semver": "^3.0",
+        "illuminate/database": "^10.17",
+        "illuminate/support": "^10.17",
+        "orchestra/canvas-core": "^8.7",
+        "symfony/yaml": "^6.2"
+    },
+    "require-dev": {
+        "laravel/framework": "^10.17",
+        "laravel/pint": "^1.6",
+        "mockery/mockery": "^1.5.1",
+        "orchestra/testbench-core": "^8.9.1",
+        "phpstan/phpstan": "^1.10.5",
+        "phpunit/phpunit": "^10.1",
+        "spatie/laravel-ray": "^1.32.4"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "9.0-dev"
+        },
+        "laravel": {
+            "providers": [
+                "Orchestra\\Canvas\\LaravelServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "lint": [
+            "@php vendor/bin/pint",
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "test": "@php vendor/bin/phpunit -c ./ --color",
+        "ci": [
+            "@composer audit",
+            "@prepare",
+            "@lint",
+            "@test"
+        ]
+    },
+    "minimum-stability": "dev"
+}

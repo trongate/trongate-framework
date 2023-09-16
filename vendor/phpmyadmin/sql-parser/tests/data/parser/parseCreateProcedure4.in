@@ -1,0 +1,93 @@
+DELIMITER $$
+CREATE DEFINER=`user`@`localhost` PROCEDURE `multiDBqueryRun_V12`(IN `query` TEXT, IN `table_name_var` VARCHAR(255), IN `columns_used_var` TEXT, IN `where_text_var` TEXT, IN `separator_value_var` VARCHAR(255)) COMMENT 'Query: SingleDB → MultiDB (All DBs) + run it' NOT DETERMINISTIC MODIFIES SQL DATA SQL SECURITY INVOKER BEGIN
+SET @TABLE_NAME = table_name_var;
+SET @WHERE_TEXT = where_text_var;
+SET @COLUMNS_USED = columns_used_var;
+SET @MULTIDB_QUERY = CONCAT('SELECT "$MULTIDB" FROM `$MULTIDB`.', @TABLE_NAME, @WHERE_TEXT);
+
+-- EXECUTION --
+CREATE TEMPORARY TABLE `MULTIDB_TEMP_DB_TBL_COLS` AS
+SELECT * FROM (
+  SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE
+    TABLE_SCHEMA NOT IN('mysql', 'test', 'tmp', 'information_schema', 'sys', 'performance_schema') AND
+    TABLE_NAME = @TABLE_NAME AND
+    FIND_IN_SET(COLUMN_NAME, @COLUMNS_USED)
+) tbl
+GROUP BY
+  TABLE_SCHEMA,
+  TABLE_NAME;
+
+SELECT GROUP_CONCAT(REPLACE(@MULTIDB_QUERY, '$MULTIDB', CONCAT('', TABLE_SCHEMA, '')) SEPARATOR "\nUNION ALL\n")
+INTO @stmt_sql
+FROM `MULTIDB_TEMP_DB_TBL_COLS`;
+
+PREPARE stmt FROM @stmt_sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+END$$
+
+--
+-- Functions
+--
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` FUNCTION `attrParentShiftIds` (`parent_id` TEXT, `option_id_shift` INT, `option_value_id_shift` INT) RETURNS TEXT CHARSET utf8mb4 COLLATE utf8mb4_unicode_520_ci DETERMINISTIC READS SQL DATA SQL SECURITY INVOKER BEGIN
+  DECLARE i INT UNSIGNED DEFAULT 0;
+  DECLARE pair_count INT UNSIGNED;
+  DECLARE result TEXT DEFAULT '';
+
+  DECLARE pair VARCHAR(255) DEFAULT '';
+  DECLARE oid INT DEFAULT '';
+  DECLARE vid INT DEFAULT '';
+
+  SET pair_count = substrCount(parent_id, ',') + 1;
+
+  WHILE i < pair_count DO
+    SET result = CONCAT(result, IF(i <= 0, '', ','));
+
+    SET pair = split(parent_id, ',', i + 1);
+
+    SET oid = split(pair, '-', 1) + option_id_shift;
+    SET vid = split(pair, '-', 2) + option_value_id_shift;
+
+    SET pair = CONCAT(oid, '-', vid);
+    SET result = CONCAT(result, pair);
+
+    SET i = i + 1;
+  END WHILE;
+
+  RETURN result;
+END$$
+
+DELIMITER $$
+CREATE DEFINER=`user`@`localhost` FUNCTION `split` (`string` TEXT, `delim` TEXT, `n` INT) RETURNS TEXT CHARSET utf8mb4 COLLATE utf8mb4_unicode_520_ci DETERMINISTIC SQL SECURITY INVOKER RETURN IF(
+    (LENGTH(string) - LENGTH(REPLACE(string, delim, ''))) / LENGTH(delim) < n - 1,
+    NULL,
+    SUBSTRING_INDEX(SUBSTRING_INDEX(string, delim, n), delim, -1)
+)$$
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` FUNCTION `substrCount` (`s` VARCHAR(255), `ss` VARCHAR(255)) RETURNS TINYINT(3) UNSIGNED DETERMINISTIC READS SQL DATA SQL SECURITY INVOKER BEGIN
+DECLARE COUNT TINYINT(3) UNSIGNED;
+DECLARE OFFSET_I TINYINT(3) UNSIGNED;
+DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET s = NULL;
+
+SET COUNT = 0;
+SET OFFSET_I = 1;
+
+REPEAT
+IF NOT ISNULL(s) AND OFFSET_I > 0 THEN
+SET OFFSET_I = LOCATE(ss, s, OFFSET_I);
+IF OFFSET_I > 0 THEN
+SET COUNT = COUNT + 1;
+SET OFFSET_I = OFFSET_I + 1;
+END IF;
+END IF;
+UNTIL ISNULL(s) OR OFFSET_I = 0 END REPEAT;
+
+RETURN COUNT;
+END$$
+
+DELIMITER ;
+

@@ -1,0 +1,72 @@
+{
+    "name": "orchestra/workbench",
+    "description": "Workbench Companion for Laravel Packages Development",
+    "type": "library",
+    "keywords": ["laravel", "laravel-packages", "testing", "dev"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mior Muhammad Zaki",
+            "email": "crynobone@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Orchestra\\Workbench\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Orchestra\\Workbench\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "require": {
+        "php": "^8.0",
+        "composer-runtime-api": "^2.2",
+        "illuminate/console": "^9.52.15 || ^10.17.0",
+        "illuminate/support": "^9.52.15 || ^10.17.0",
+        "laravel/tinker": "^2.8.2",
+        "orchestra/canvas": "^7.8 || ^8.7",
+        "orchestra/testbench-core": "^7.30.0 || ^8.10.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.4",
+        "orchestra/testbench": "^7.30.0 || ^8.10.0",
+        "phpstan/phpstan": "^1.10.7",
+        "phpunit/phpunit": "^9.6"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.2.x-dev"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "@build",
+            "@php vendor/bin/testbench serve"
+        ],
+        "lint": [
+            "@php vendor/bin/pint",
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "test": "@php vendor/bin/phpunit",
+        "ci": [
+            "@composer audit",
+            "@prepare",
+            "@lint",
+            "@test"
+        ]
+    },
+    "prefer-stable": true,
+    "minimum-stability": "dev"
+}

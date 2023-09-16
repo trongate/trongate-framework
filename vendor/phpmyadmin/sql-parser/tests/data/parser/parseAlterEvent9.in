@@ -1,0 +1,2 @@
+ALTER EVENT old_db.old_event RENAME TO new_db.new_event;
+ALTER EVENT `old_db`.`old_event` RENAME TO `new_db`.`new_event`;

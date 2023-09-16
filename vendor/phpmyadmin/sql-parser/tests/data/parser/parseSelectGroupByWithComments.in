@@ -1,0 +1,1 @@
+SELECT id, title FROM movie GROUP BY movie.id, /* removed_field, */ title;

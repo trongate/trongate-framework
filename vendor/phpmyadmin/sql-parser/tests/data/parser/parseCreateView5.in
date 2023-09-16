@@ -1,0 +1,1 @@
+CREATE VIEW `t3` as SELECT `t1` IS NOT NULL AS `is_not_null` FROM `test3`;
