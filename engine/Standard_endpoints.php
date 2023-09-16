@@ -975,7 +975,7 @@ class Standard_endpoints extends Trongate {
                 }
             }
 
-            $row_data['value'] = trim($value);
+            $row_data['value'] = (gettype($value) === 'string') ? trim($value) : $value;
             $query_params[] = $row_data;
         }
 
