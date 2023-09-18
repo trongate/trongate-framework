@@ -1,3 +1,7 @@
+<IfModule mod_headers.c>
+    Header set Content-Security-Policy "frame-ancestors 'none'"
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine on
   RewriteRule ^$ public/ [L]
