@@ -173,6 +173,33 @@ function form_label($label_text, $attributes = null, $additional_code = null) {
 }
 
 /**
+ * Generate an HTML input element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param mixed $value (optional) The initial value for the input element. Default is null.
+ * @param array|null $attributes (optional) Additional attributes for the input element. Default is null.
+ * @param string|null $additional_code (optional) Additional code to include in the input element. Default is null.
+ *
+ * @return string The HTML representation of the input element.
+ */
+function form_input(string $name, $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    $extra = '';
+    if (!isset($value)) {
+        $value = '';
+    }
+
+    if (isset($attributes)) {
+        $extra = get_attributes_str($attributes);
+    }
+
+    if (isset($additional_code)) {
+        $extra .= ' ' . $additional_code;
+    }
+
+    return '<input type="text" name="' . $name . '" value="' . $value . '"' . $extra . '>';
+}
+
+/**
  * Generate an HTML input element with type "number".
  *
  * @param string $name The name attribute for the input element.
