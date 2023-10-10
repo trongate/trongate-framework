@@ -57,6 +57,7 @@ function tgpDeletePage() {
 
 
 function tgpOpenCreatePageEl() {
+
     tgpReset(['selectedRange', 'codeviews', 'customModals', 'toolbars']);
 
     const modalId = 'tgp-create-page-el';

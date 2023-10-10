@@ -22,6 +22,31 @@ const trongatePagesObj = {
   textDivSampleText: '<?= $sample_text ?>'
 }
 
+<?php
+if (isset($additional_files_js) && count($additional_files_js) > 0) {
+    // Sort the additional files alphabetically
+    sort($additional_files_js);
+
+    $additional_script_urls_code = ',';
+
+$additional_script_urls_code.= '
+';
+
+    foreach ($additional_files_js as $index => $additional_file_js) {
+        $additional_script_urls_code .= ' \'' . $additional_file_js . '\'';
+        if ($index < count($additional_files_js) - 1) {
+            $additional_script_urls_code .= ',';
+        }
+
+$additional_script_urls_code.= '
+';
+
+    }
+} else {
+    $additional_script_urls_code = '';
+}
+?>
+
 const tgpScriptUrls = [
  '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/button_manager.js',
  '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/camera_manager.js',
@@ -35,8 +60,11 @@ const tgpScriptUrls = [
  '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/text_manager.js',
  '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/trongate_pages.js',
  '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/toolbar_manager.js',
- '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/youtube_manager.js'
+ '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/youtube_manager.js'<?= $additional_script_urls_code ?>
 ];
+
+
+
 
 const tgpModals = [
           'tgp-button-modal',
@@ -72,8 +100,32 @@ function tgpLoadScripts(urls) {
       document.head.appendChild(script);
     });
   });
-
+  <?php
+  if(isset($additional_files_css)) {
+    if(count($additional_files_css)>0) {
+      echo 'console.log("load more CSS");';
+      echo 'tgpLoadMoreCSS('.json_encode($additional_files_css).');';
+    }
+  }
+  ?>
   return Promise.all(promises);
+}
+
+function tgpLoadMoreCSS(additionalCSSFiles) {
+  console.log('I am now trying to load more CSS files');
+  console.log(additionalCSSFiles.length);
+
+  const pageHead = document.getElementsByTagName('head')[0];
+  if(!pageHead) {
+    return;
+  }
+
+  for (var i = 0; i < additionalCSSFiles.length; i++) {
+    const thisCSSFile = document.createElement('link');
+    thisCSSFile.setAttribute('rel', 'stylesheet');
+    thisCSSFile.setAttribute('href', additionalCSSFiles[i]);
+    pageHead.appendChild(thisCSSFile);
+  }
 }
 
 window.onload = (event) => {
