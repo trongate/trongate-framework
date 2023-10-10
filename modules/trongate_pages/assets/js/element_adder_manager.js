@@ -91,9 +91,9 @@ function tgpOpenCreatePageEl() {
 
       Example:
       trongatePagesObj.additionalOptions = [
-        { imageSrc: 'items_module/images/item.png', label: 'Add Item', type: 'Item' },
-        { imageSrc: 'nav_module/images/nav.png', label: 'Update Nav', type: 'Nav' },
-        { imageSrc: 'categories_module/images/category.png', label: 'Update Categories', type: 'Category' }
+        { onClick: 'initAddItem()', imageSrc: 'items_module/images/item.png', label: 'Add Item', type: 'Item' },
+        { onClick: 'initUpdateNav()', imageSrc: 'nav_module/images/nav.png', label: 'Update Nav', type: 'Nav' },
+        { onClick: 'initUpdateCategories()', imageSrc: 'categories_module/images/category.png', label: 'Update Categories', type: 'Category' }
       ];
     */
 
@@ -118,7 +118,14 @@ function tgpOpenCreatePageEl() {
       gridBox.appendChild(lowerDiv);
 
       pageElOptionsGrid.appendChild(gridBox);
-      gridBox.setAttribute('onclick', `tgpAddPageElement('${option.type}')`);
+     
+      // Check if the option is in the elementOptions array before setting the attribute
+      if (elementOptions.includes(option)) {
+        gridBox.setAttribute('onclick', `tgpAddPageElement('${option.type}')`);
+      } else {
+        gridBox.setAttribute('onclick', option.onClick);
+      }
+
     });
 
 
