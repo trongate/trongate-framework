@@ -1350,6 +1350,13 @@ function tgpAddSubmitImgChangesBtn() {
     });
 }
 
+function tgpAddPageElementInner(elType) {
+  //remember the selected range
+  trongatePagesObj.storedRange = window.getSelection().getRangeAt(0);
+  tgpReset(['toolbars']);
+  tgpAddPageElement(elType);
+}
+
 function tgpImgUpdateAhoy(closeTgModal = true) {
     const codeViewTextArea = document.querySelector('#tgp-media-manager #tgp-code-view');
     const newSource = codeViewTextArea.value;
