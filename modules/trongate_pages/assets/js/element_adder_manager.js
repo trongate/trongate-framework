@@ -75,6 +75,7 @@ function tgpOpenCreatePageEl() {
     headlinePara.style.marginTop = 0;
     modalBody.appendChild(headlinePara);
 
+    // Your existing elementOptions array (guaranteed to exist)
     const elementOptions = [
       { imageSrc: 'trongate_pages_module/images/headline.png', label: 'Headline', type: 'Headline' },
       { imageSrc: 'trongate_pages_module/images/text.png', label: 'Text Block', type: 'Text Block' },
@@ -84,11 +85,27 @@ function tgpOpenCreatePageEl() {
       { imageSrc: 'trongate_pages_module/images/button.png', label: 'Button(s)', type: 'Button' }
     ];
 
+    /*
+      To add custom options to Trongate Pages, declare the trongatePagesObj.additionalOptions array within any JavaScript file
+      located in a 'public/trongate_pages_extra/js' directory. Trongate Pages will automatically detect and read those files if they exist.
+
+      Example:
+      trongatePagesObj.additionalOptions = [
+        { imageSrc: 'items_module/images/item.png', label: 'Add Item', type: 'Item' },
+        { imageSrc: 'nav_module/images/nav.png', label: 'Update Nav', type: 'Nav' },
+        { imageSrc: 'categories_module/images/category.png', label: 'Update Categories', type: 'Category' }
+      ];
+    */
+
+    // Concatenate the two arrays (only if trongatePagesObj.additionalOptions exists)
+    const allOptions = trongatePagesObj.additionalOptions ? elementOptions.concat(trongatePagesObj.additionalOptions) : elementOptions;
+
+    // Rest of your code remains the same
     let pageElOptionsGrid = document.createElement('div');
     pageElOptionsGrid.setAttribute('id', 'page-el-options-grid');
     modalBody.appendChild(pageElOptionsGrid);
 
-    elementOptions.forEach(option => {
+    allOptions.forEach(option => {
       let gridBox = document.createElement('div');
       let upperDiv = document.createElement('div');
       let upperDivPic = document.createElement('img');
@@ -103,6 +120,7 @@ function tgpOpenCreatePageEl() {
       pageElOptionsGrid.appendChild(gridBox);
       gridBox.setAttribute('onclick', `tgpAddPageElement('${option.type}')`);
     });
+
 
     const closePara = document.createElement('p');
     modalBody.appendChild(closePara);

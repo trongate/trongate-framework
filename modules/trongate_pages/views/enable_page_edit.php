@@ -63,9 +63,6 @@ const tgpScriptUrls = [
  '<?= BASE_URL ?>trongate_pages<?= MODULE_ASSETS_TRIGGER ?>/js/youtube_manager.js'<?= $additional_script_urls_code ?>
 ];
 
-
-
-
 const tgpModals = [
           'tgp-button-modal',
           'tgp-camera-modal',
@@ -103,7 +100,6 @@ function tgpLoadScripts(urls) {
   <?php
   if(isset($additional_files_css)) {
     if(count($additional_files_css)>0) {
-      echo 'console.log("load more CSS");';
       echo 'tgpLoadMoreCSS('.json_encode($additional_files_css).');';
     }
   }
@@ -112,8 +108,6 @@ function tgpLoadScripts(urls) {
 }
 
 function tgpLoadMoreCSS(additionalCSSFiles) {
-  console.log('I am now trying to load more CSS files');
-  console.log(additionalCSSFiles.length);
 
   const pageHead = document.getElementsByTagName('head')[0];
   if(!pageHead) {

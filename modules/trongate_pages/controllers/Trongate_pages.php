@@ -508,43 +508,41 @@ class Trongate_pages extends Trongate {
                     $trongate_pages_data['additional_files_css'] = $additional_files_css;
                 }
 
-                json($trongate_pages_data['additional_files_css']);
             }
 
             $this->view('enable_page_edit', $trongate_pages_data);
         }
     }
 
-/**
- * Fetches a list of files in the specified directory with full website paths.
- *
- * @param string $directory The directory path to fetch files from.
- *
- * @return array An array containing the full website paths of the files in the directory.
- *               The array may be empty if the directory does not exist or has no files.
- */
-function _fetch_additional_files(string $directory): array {
-    $file_list = array(); // Initialize an empty array to store website paths
+    /**
+     * Fetches a list of files in the specified directory with full website paths.
+     *
+     * @param string $directory The directory path to fetch files from.
+     *
+     * @return array An array containing the full website paths of the files in the directory.
+     *               The array may be empty if the directory does not exist or has no files.
+     */
+    function _fetch_additional_files(string $directory): array {
+        $file_list = array(); // Initialize an empty array to store website paths
 
-    // Check if the directory exists
-    if (is_dir($directory)) {
-        // Use scandir to get the list of files and directories in the specified directory
-        $files = scandir($directory);
-        $alt_directory = BASE_URL . str_replace(array(APPPATH, 'public/'), '', $directory);
+        // Check if the directory exists
+        if (is_dir($directory)) {
+            // Use scandir to get the list of files and directories in the specified directory
+            $files = scandir($directory);
+            $alt_directory = BASE_URL . str_replace(array(APPPATH, 'public/'), '', $directory);
 
-        // Loop through the files and add their full website paths to the file list
-        foreach ($files as $file) {
-            // Exclude "." and ".." entries, which are references to the current and parent directories
-            if ($file != "." && $file != "..") {
-                $file_list[] = $alt_directory . '/' . $file; // Add the full website path to the array
+            // Loop through the files and add their full website paths to the file list
+            foreach ($files as $file) {
+                // Exclude "." and ".." entries, which are references to the current and parent directories
+                if ($file != "." && $file != "..") {
+                    $file_list[] = $alt_directory . '/' . $file; // Add the full website path to the array
+                }
             }
         }
+
+        return $file_list; // Return the array of website paths (could be empty)
     }
 
-    return $file_list; // Return the array of website paths (could be empty)
-}
-
-    
     /**
      * Accepts an array of records and reduces array size,
      * based on current $limit and $offset values.
