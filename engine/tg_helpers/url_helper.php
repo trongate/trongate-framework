@@ -1,5 +1,12 @@
 <?php
-function segment($num, $var_type = null) {
+/**
+ * Get a specific URL segment.
+ *
+ * @param int $num The segment number to retrieve.
+ * @param string|null $var_type (Optional) The desired data type of the segment value. Default is null.
+ * @return mixed The value of the specified URL segment.
+ */
+function segment(int $num, ?string $var_type = null) {
     $segments = SEGMENTS;
     if (isset($segments[$num])) {
         $value = $segments[$num];
@@ -14,13 +21,23 @@ function segment($num, $var_type = null) {
     return $value;
 }
 
-function remove_query_string($string) {
+/**
+ * Remove query string from a URL.
+ *
+ * @param string $string The URL with a query string to be processed.
+ * @return string The URL without the query string.
+ */
+function remove_query_string(string $string): string {
     $parts = explode("?", $string, 2);
     return $parts[0];
 }
 
-
-function previous_url() {
+/**
+ * Get the URL of the previous page, if available.
+ *
+ * @return string The URL of the previous page as a string.
+ */
+function previous_url(): string {
     if (isset($_SERVER['HTTP_REFERER'])) {
         $url = $_SERVER['HTTP_REFERER'];
     } else {
@@ -29,13 +46,23 @@ function previous_url() {
     return $url;
 }
 
-function current_url() {
+/**
+ * Get the current URL of the web page.
+ *
+ * @return string The current URL as a string.
+ */
+function current_url(): string {
     $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
     return $current_url;
 }
 
-function redirect($target_url) {
-
+/**
+ * Perform an HTTP redirect to the specified URL.
+ *
+ * @param string $target_url The URL to which the redirect should occur.
+ * @return void
+ */
+function redirect(string $target_url): void {
     $str = substr($target_url, 0, 4);
     if ($str != 'http') {
         $target_url = BASE_URL . $target_url;
@@ -45,8 +72,16 @@ function redirect($target_url) {
     die();
 }
 
-function anchor($target_url, $text, $attributes = null, $additional_code = null) {
-
+/**
+ * Generate an HTML anchor (link) element.
+ *
+ * @param string $target_url The URL to link to.
+ * @param mixed $text The link text or boolean value to indicate no link.
+ * @param array|null $attributes (Optional) An associative array of HTML attributes for the anchor element.
+ * @param string|null $additional_code (Optional) Additional HTML code to append to the anchor element.
+ * @return string The HTML anchor element as a string.
+ */
+function anchor(string $target_url, $text, ?array $attributes = null, ?string $additional_code = null): string {
     $str = substr($target_url, 0, 4);
     if ($str != 'http') {
         $target_url = BASE_URL . $target_url;
@@ -132,7 +167,13 @@ function url_title($value, $transliteration = true) {
     return $slug;
 }
 
-function return_file_info($file_string) {
+/**
+ * Extract file name and extension from a given file path.
+ *
+ * @param string $file_string The file path from which to extract information.
+ * @return array An associative array containing the 'file_name' and 'file_extension'.
+ */
+function return_file_info(string $file_string): array {
     // Get the file extension
     $file_extension = pathinfo($file_string, PATHINFO_EXTENSION);
     // Get the file name without the extension
@@ -141,7 +182,14 @@ function return_file_info($file_string) {
     return array("file_name" => $file_name, "file_extension" => "." . $file_extension);
 }
 
-function api_auth() {
+/**
+ * Authenticate API requests and validate access based on API rules.
+ *
+ * This function validates API requests and ensures access based on defined API rules in 'api.json' files.
+ *
+ * @return void
+ */
+function api_auth(): void {
     //find out where the api.json file lives
     $validation_complete = false;
     $target_url = str_replace(BASE_URL, '', current_url());
@@ -216,7 +264,14 @@ function api_auth() {
     }
 }
 
-function make_rand_str($length = 32, $uppercase = false) {
+/**
+ * Generate a random string of characters.
+ *
+ * @param int $length (Optional) The length of the random string. Default is 32.
+ * @param bool $uppercase (Optional) Whether to use uppercase characters. Default is false.
+ * @return string The randomly generated string.
+ */
+function make_rand_str(int $length = 32, bool $uppercase = false): string {
     $characters = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
     $charactersLength = strlen($characters);
     $randomString = '';
@@ -228,15 +283,60 @@ function make_rand_str($length = 32, $uppercase = false) {
     return $uppercase ? strtoupper($randomString) : $randomString;
 }
 
+/**
+ * Safely escape and format a string for various output contexts.
+ *
+ * @param string $input The string to be escaped.
+ * @param string $encoding (Optional) The character encoding to use for escaping. Defaults to 'UTF-8'.
+ * @param string $output_format (Optional) The desired output format: 'html' (default), 'xml', 'json', 'javascript', or 'attribute'.
+ * 
+ * @return string The escaped and formatted string ready for safe inclusion in the specified context.
+ * @throws Exception if an unsupported output format is provided.
+ */
+function esc(string $input, string $encoding = 'UTF-8', string $output_format = 'html'): string {
+    $flags = ENT_QUOTES;
+    
+    if ($output_format === 'xml') {
+        $flags = ENT_XML1;
+    } elseif ($output_format === 'json') {
+        // Customize JSON escaping as needed
+        $input = json_encode($input, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        $flags = ENT_NOQUOTES;
+    } elseif ($output_format === 'javascript') {
+        // JavaScript-encode the input
+        $input = json_encode($input, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    } elseif ($output_format === 'attribute') {
+        // Escape for HTML attributes
+        $flags = ENT_QUOTES;
+    } else {
+        // Dynamically choose the right function
+        $input = ($output_format === 'html') ? htmlspecialchars($input, $flags, $encoding) : htmlentities($input, $flags, $encoding);
+        return $input;
+    }
+    
+    return htmlspecialchars($input, $flags, $encoding);
+}
 
-function json($data, $kill_script = null) {
-    echo '<pre>' . json_encode($data, JSON_PRETTY_PRINT) . '</pre>';
+/**
+ * Encode data as JSON and optionally display it with preformatted HTML.
+ *
+ * @param mixed $data The data to be encoded as JSON.
+ * @param bool|null $kill_script (Optional) If true, terminate the script after displaying the JSON. Default is null.
+ * @return void
+ */
+function json($data, ?bool $kill_script = null): void {
+    echo '<pre>' . json_encode($data, JSON_PRETTY_PRINT) . '</pre';
 
     if (isset($kill_script)) {
         die();
     }
 }
 
-function ip_address() {
+/**
+ * Get the client's IP address.
+ *
+ * @return string The client's IP address.
+ */
+function ip_address(): string {
     return $_SERVER['REMOTE_ADDR'];
 }
