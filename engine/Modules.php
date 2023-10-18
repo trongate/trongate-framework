@@ -1,7 +1,20 @@
 <?php
+/**
+ * Class Modules - Handles serving controller content from a given view file.
+ */
 class Modules {
 
-    public static function run($moduleControllerAction, $first_value=null, $second_value=null, $third_value=null) {
+    /**
+     * Run a module's controller action.
+     *
+     * @param string $moduleControllerAction The format is "Module/Controller/Action".
+     * @param mixed $first_value (Optional) First parameter for the action.
+     * @param mixed $second_value (Optional) Second parameter for the action.
+     * @param mixed $third_value (Optional) Third parameter for the action.
+     * 
+     * @return mixed The result of the controller action.
+     */
+    public static function run(string $moduleControllerAction, $first_value = null, $second_value = null, $third_value = null) {
         $debris = explode('/', $moduleControllerAction);
         $target_module = $debris[0];
         $target_controller = ucfirst($target_module);

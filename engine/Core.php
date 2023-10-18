@@ -1,4 +1,8 @@
 <?php
+/**
+ * Class Core
+ * Manages the serving of assets for the Trongate framework.
+ */
 class Core {
 
     protected $current_module = DEFAULT_MODULE;
@@ -6,7 +10,13 @@ class Core {
     protected $current_method = DEFAULT_METHOD;
     protected $current_value = '';
 
-    public function __construct() {
+    /**
+     * Constructor for the Core class.
+     * Depending on the URL, serves either vendor assets, controller content, or module assets.
+     *
+     * @return void
+     */
+    public function __construct(): void
         if (strpos(ASSUMED_URL, '/vendor/')) {
             $this->serve_vendor_asset();
         } elseif(strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER) === false) {
@@ -16,7 +26,12 @@ class Core {
         }
     }
 
-    private function serve_vendor_asset() {
+    /**
+     * Serve vendor assets.
+     *
+     * @return void
+     */
+    private function serve_vendor_asset(): void
         $vendor_file_path = explode('/vendor/', ASSUMED_URL)[1];
         $vendor_file_path = '../vendor/'.$vendor_file_path;
         if (file_exists($vendor_file_path)) {
@@ -35,8 +50,12 @@ class Core {
         }
     }
 
-    private function serve_module_asset() {
-
+    /**
+     * Serve module assets.
+     *
+     * @return void
+     */
+    private function serve_module_asset(): void
         $url_segments = SEGMENTS;
 
         foreach ($url_segments as $url_segment_key => $url_segment_value) {
@@ -95,8 +114,14 @@ class Core {
 
     }
 
-    private function serve_child_module_asset($asset_path, $file_name) {
-
+    /**
+     * Serve child module assets.
+     *
+     * @param string $asset_path The path to the asset.
+     * @param string $file_name The name of the file.
+     * @return void
+     */
+    private function serve_child_module_asset(string $asset_path, string $file_name): void
         $start = '/modules/';
         $end = '/assets/';
 
@@ -140,7 +165,13 @@ class Core {
         }
     }
 
-    private function attempt_sql_transfer($controller_path) {
+    /**
+     * Attempt SQL transfer.
+     *
+     * @param string $controller_path The path to the controller.
+     * @return void
+     */
+    private function attempt_sql_transfer(string $controller_path): void
         $ditch = 'controllers/'.$this->current_controller.'.php';
         $dir_path = str_replace($ditch, '', $controller_path);
 
@@ -157,8 +188,12 @@ class Core {
 
     }
 
-    private function serve_controller() {
-
+    /**
+     * Serve controller class.
+     *
+     * @return void
+     */
+    private function serve_controller(): void
         $segments = SEGMENTS;
 
         if (isset($segments[1])) {
@@ -246,7 +281,13 @@ class Core {
         }
     }
 
-    private function attempt_init_child_controller($controller_path) {
+    /**
+     * Attempt initialization of child controller.
+     *
+     * @param string $controller_path The path to the controller.
+     * @return string The path to the controller after initialization.
+     */
+    private function attempt_init_child_controller(string $controller_path): string
         $bits = explode('-', $this->current_controller);
 
         if (count($bits)==2) {
@@ -278,7 +319,12 @@ class Core {
         $this->draw_error_page();
     }
 
-    private function draw_error_page() {
+    /**
+     * Draw an error page.
+     *
+     * @return void
+     */
+    private function draw_error_page(): void
         load('error_404');
         die(); //end of the line (all possible scenarios tried)
     }
