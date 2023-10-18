@@ -13,13 +13,11 @@ class Core {
     /**
      * Constructor for the Core class.
      * Depending on the URL, serves either vendor assets, controller content, or module assets.
-     *
-     * @return void
      */
-    public function __construct(): void
+    public function __construct() {
         if (strpos(ASSUMED_URL, '/vendor/')) {
             $this->serve_vendor_asset();
-        } elseif(strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER) === false) {
+        } elseif (strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER) === false) {
             $this->serve_controller();
         } else {
             $this->serve_module_asset();
@@ -31,7 +29,7 @@ class Core {
      *
      * @return void
      */
-    private function serve_vendor_asset(): void
+    private function serve_vendor_asset(): void {
         $vendor_file_path = explode('/vendor/', ASSUMED_URL)[1];
         $vendor_file_path = '../vendor/'.$vendor_file_path;
         if (file_exists($vendor_file_path)) {
@@ -55,7 +53,7 @@ class Core {
      *
      * @return void
      */
-    private function serve_module_asset(): void
+    private function serve_module_asset(): void {
         $url_segments = SEGMENTS;
 
         foreach ($url_segments as $url_segment_key => $url_segment_value) {
@@ -121,7 +119,7 @@ class Core {
      * @param string $file_name The name of the file.
      * @return void
      */
-    private function serve_child_module_asset(string $asset_path, string $file_name): void
+    private function serve_child_module_asset(string $asset_path, string $file_name): void {
         $start = '/modules/';
         $end = '/assets/';
 
@@ -171,7 +169,7 @@ class Core {
      * @param string $controller_path The path to the controller.
      * @return void
      */
-    private function attempt_sql_transfer(string $controller_path): void
+    private function attempt_sql_transfer(string $controller_path): void {
         $ditch = 'controllers/'.$this->current_controller.'.php';
         $dir_path = str_replace($ditch, '', $controller_path);
 
@@ -193,7 +191,7 @@ class Core {
      *
      * @return void
      */
-    private function serve_controller(): void
+    private function serve_controller(): void {
         $segments = SEGMENTS;
 
         if (isset($segments[1])) {
@@ -287,7 +285,7 @@ class Core {
      * @param string $controller_path The path to the controller.
      * @return string The path to the controller after initialization.
      */
-    private function attempt_init_child_controller(string $controller_path): string
+    private function attempt_init_child_controller(string $controller_path): string {
         $bits = explode('-', $this->current_controller);
 
         if (count($bits)==2) {
@@ -324,7 +322,7 @@ class Core {
      *
      * @return void
      */
-    private function draw_error_page(): void
+    private function draw_error_page(): void {
         load('error_404');
         die(); //end of the line (all possible scenarios tried)
     }
