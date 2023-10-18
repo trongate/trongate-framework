@@ -54,12 +54,25 @@ function tgpClickNewTextBlock() {
 }
 
 window.addEventListener("mousedown", (ev) => {
-
   // Attempt open toolbar or img modal (headline, text, button, divider toolbars are available)
   let clickedEl = ev.target;
   if (!trongatePagesObj.defaultActiveElParent.contains(clickedEl)) {
     return; // outside of editor area
   } else {
+
+    if(typeof excludeFromClicks === 'object') {
+      const excludeFromClicksLen = excludeFromClicks.length;
+      if(excludeFromClicksLen>0) {
+        // Are we inside one of the excluded elements?
+        for (var i = 0; i < excludeFromClicks.length; i++) {
+          const excludedContainerEl = clickedEl.closest(excludeFromClicks[i])
+          if(excludedContainerEl) {
+            return;
+          } 
+        }
+      }
+    }
+
     tgpHandleElementClick(clickedEl)
   }
 });
@@ -337,41 +350,6 @@ function tgpReset(restoreItems) {
   }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function tgpGetStoredRange() {
   return trongatePagesObj.storedRange || null;

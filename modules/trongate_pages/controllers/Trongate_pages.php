@@ -13,7 +13,12 @@ class Trongate_pages extends Trongate {
     private $max_height = 3200; // set maximum allowed height for image uploads
     private $sample_text = 'Lorem ipsum, dolor sit amet, consectetur adipisicing elit. Sit sint perferendis a totam repellendus vitae architecto sunt obcaecati doloribus deserunt, unde, molestiae maxime. Enim adipisci officiis sit. Quasi, aliquam, facilis. Lorem ipsum, dolor sit amet, consectetur adipisicing elit. Sit sint perferendis a totam repellendus vitae architecto sunt obcaecati doloribus deserunt, unde, molestiae maxime. Enim adipisci officiis sit. Quasi, aliquam, facilis.Lorem ipsum, dolor sit amet, consectetur adipisicing elit. Sit sint perferendis a totam repellendus vitae architecto sunt obcaecati doloribus deserunt, unde, molestiae maxime. Enim adipisci officiis sit. Quasi, aliquam, facilis.Lorem ipsum, dolor sit amet, consectetur adipisicing elit.';
 
-    function attempt_display() {
+    /**
+     * Attempt to display a page based on the URL segment.
+     *
+     * @return void
+     */
+    function attempt_display(): void {
 
         $this_current_url = rtrim(current_url(), '/');
         $url_bits = explode('/', $this_current_url);
@@ -118,7 +123,16 @@ class Trongate_pages extends Trongate {
         return $unique_url_string;
     }
 
-    function _got_matches($temp_url_string, $all_website_pages, $record_id) {
+    /**
+     * Check if there are any matches for a given temporary URL string.
+     *
+     * @param string $temp_url_string The temporary URL string to check for matches.
+     * @param array $all_website_pages An array of all website pages.
+     * @param int $record_id The record ID to exclude from matching.
+     *
+     * @return bool True if matches are found, false otherwise.
+     */
+    function _got_matches(string $temp_url_string, array $all_website_pages, int $record_id): bool {
         //fetch all url_strings that match our temp_url_string
         $matches = [];
         foreach($all_website_pages as $website_page) {
@@ -136,7 +150,6 @@ class Trongate_pages extends Trongate {
             return false;
         }
     }
-
 
     /**
      * Retrieve suggestions for records based on the provided id.
@@ -169,7 +182,6 @@ class Trongate_pages extends Trongate {
         return $rows;
     }
 
-
     /**
      * View pages in 'Category Builder' mode/
      *
@@ -186,7 +198,6 @@ class Trongate_pages extends Trongate {
         $data['view_file'] = 'category_builder';
         $this->template('admin', $data);
     }
-
 
     /**
      * View pages in 'List View' mode/
@@ -601,28 +612,12 @@ class Trongate_pages extends Trongate {
         }
     }
 
-    //this gets called from the navigation builder at navigation_menus/build/1
-    function submit_create_page() {
-        $posted_data = file_get_contents('php://input');
-        $posted_data_decoded = json_decode($posted_data);
-
-        $page_title = $posted_data_decoded->pageTitle ?? '';
-
-        $data['page_title'] = $page_title;
-        $data['meta_keywords'] = '';
-        $data['meta_description'] = '';
-        $data['page_body'] = '<h1>'.$page_title.'</h1>';
-        $data['date_created'] = time();
-        $data['last_updated'] = time();
-        $data['published'] = 1;
-        $data['created_by'] = 1;
-        $data['url_string'] = $this->_make_url_str($page_title);
-        $update_id = $this->model->insert($data, 'trongate_pages');
-        http_response_code(200);
-        echo $update_id;
-    }
-
-    function submit_delete() {
+    /**
+     * Submit a request to delete a record.
+     *
+     * @return void
+     */
+    function submit_delete(): void {
         $this->module('trongate_security');
         $this->trongate_security->_make_sure_allowed();
 
@@ -1141,9 +1136,12 @@ class Trongate_pages extends Trongate {
         http_response_code(406); // Not acceptable
     }
 
-
-
-    function _get_limit() {
+    /**
+     * Get the limit for the number of records per page.
+     *
+     * @return int The limit for the number of records per page.
+     */
+    function _get_limit(): int {
         if (isset($_SESSION['selected_per_page'])) {
             $limit = $this->per_page_options[$_SESSION['selected_per_page']];
         } else {
@@ -1153,7 +1151,12 @@ class Trongate_pages extends Trongate {
         return $limit;
     }
 
-    function _get_offset() {
+    /**
+     * Get the offset for pagination based on the current page number.
+     *
+     * @return int The offset for pagination.
+     */
+    function _get_offset(): int {
         $page_num = (int) segment(3);
 
         if ($page_num>1) {
@@ -1165,12 +1168,24 @@ class Trongate_pages extends Trongate {
         return $offset;
     }
 
-    function _get_selected_per_page() {
+    /**
+     * Get the number of records selected per page.
+     *
+     * @return int The number of records selected per page.
+     */
+    function _get_selected_per_page(): int {
         $selected_per_page = (isset($_SESSION['selected_per_page'])) ? $_SESSION['selected_per_page'] : 1;
         return $selected_per_page;
     }
 
-    function set_per_page($selected_index) {
+    /**
+     * Set the number of items per page based on the selected index.
+     *
+     * @param int $selected_index The selected index for the number of items per page.
+     *
+     * @return void
+     */
+    function set_per_page(int $selected_index): void {
         $this->module('trongate_security');
         $this->trongate_security->_make_sure_allowed();
 
@@ -1237,7 +1252,14 @@ class Trongate_pages extends Trongate {
         return $rows;
     }
 
-    function _get_data_from_db($update_id) {
+    /**
+     * Get data from the database for a specific record.
+     *
+     * @param int $update_id The ID of the record to retrieve.
+     *
+     * @return array An array containing the record data if found, or displays error page and terminates the script.
+     */
+    function _get_data_from_db(int $update_id): array {
         $record_obj = $this->model->get_where($update_id, 'trongate_pages');
 
         if ($record_obj == false) {
@@ -1249,7 +1271,12 @@ class Trongate_pages extends Trongate {
         }
     }
 
-    function _get_data_from_post() {
+    /**
+     * Get data from POST request.
+     *
+     * @return array An array containing data from the POST request with specific keys and sanitized values.
+     */
+    function _get_data_from_post(): array {
         $data['page_title'] = post('page_title', true);
         $data['meta_keywords'] = post('meta_keywords', true);
         $data['meta_description'] = post('meta_description', true);
@@ -1283,7 +1310,6 @@ class Trongate_pages extends Trongate {
             return true;
         }
     }
-
 
     /**
      * Prepare the file name for uploading.
@@ -1445,8 +1471,7 @@ class Trongate_pages extends Trongate {
 
         $posted_data = file_get_contents('php://input');
         $child_nodes = json_decode($posted_data);
-// echo '-----';
-// json($child_nodes); die();
+
         $sql = '';
         foreach ($child_nodes as $child_node) {
             $id = $this->_prep_id($child_node->id);
@@ -1519,4 +1544,4 @@ class Trongate_pages extends Trongate {
         return $input;
     }
 
-  } //end of the class 
+} //end of the class 

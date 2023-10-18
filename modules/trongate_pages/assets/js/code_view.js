@@ -1,4 +1,5 @@
 function tgpOpenCodeViewModal() {
+    console.log('hello you');
     tgpReset(['selectedRange', 'codeviews', 'customModals', 'toolbars', 'activeEl']);
     tgpRemoveContentEditables();
 
@@ -25,8 +26,6 @@ function tgpOpenCodeViewModal() {
 
     // Create the form element with action and method attributes
     const formElement = document.createElement("form");
-    formElement.setAttribute("action", "http://localhost/tronpress/trongate_pages/submit_delete/4");
-    formElement.setAttribute("method", "post");
 
     // Create the modal body element with style and content
     const modalBody = document.createElement("div");
