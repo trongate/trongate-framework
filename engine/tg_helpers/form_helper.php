@@ -86,14 +86,25 @@ function form_open_upload(string $location, ?array $attributes = null, ?string $
  *
  * @return string The HTML closing tag for the form.
  */
-function form_close() {
-    $csrf_token = password_hash(session_id(), PASSWORD_BCRYPT, array(
-        'cost' => 11
-    ));
+/**
+ * Generate the closing tag for an HTML form, including CSRF token and inline validation errors (if any).
+ *
+ * @return string The HTML closing tag for the form.
+ */
+function form_close(): string {
+    // 1. Generate the CSRF token
+    $csrf_token = bin2hex(random_bytes(32));
 
-    $html = '<input type="hidden" name="csrf_token" value="' . $csrf_token . '">';
+    // 2. Set the token as a session variable
+    $_SESSION['csrf_token'] = $csrf_token;
+
+    // 3. Create the hidden form field for CSRF token
+    $html = '<input type="hidden" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
+
+    // 4. Add the closing form tag
     $html .= '</form>';
 
+    // 5. Include inline validation errors (if any)
     if (isset($_SESSION['form_submission_errors'])) {
         $errors_json = json_encode($_SESSION['form_submission_errors']);
         $inline_validation_js = highlight_validation_errors($errors_json);

@@ -590,12 +590,14 @@ class Validation_helper {
     }
 
     private function csrf_protect() {
-        //make sure they have posted csrf_token
+        // Make sure they have posted csrf_token
         if (!isset($_POST['csrf_token'])) {
             $this->csrf_block_request();
         } else {
-            $result = password_verify(session_id(), $_POST['csrf_token']);
-            if ($result == false) {
+            $posted_csrf_token = $_POST['csrf_token'];
+            $expected_csrf_token = $_SESSION['csrf_token'];
+
+            if (!hash_equals($expected_csrf_token, $posted_csrf_token)) {
                 $this->csrf_block_request();
             }
 

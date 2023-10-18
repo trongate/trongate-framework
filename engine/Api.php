@@ -300,7 +300,7 @@ class Api extends Trongate {
      */
     public function delete(): void {
         require_once('Standard_endpoints.php');
-        $se = a new Standard_endpoints();
+        $se = new Standard_endpoints();
         $se->delete_one();
     }
 
