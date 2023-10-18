@@ -1,5 +1,5 @@
 function tgpOpenCodeViewModal() {
-    console.log('hello you');
+
     tgpReset(['selectedRange', 'codeviews', 'customModals', 'toolbars', 'activeEl']);
     tgpRemoveContentEditables();
 
@@ -94,16 +94,9 @@ function tgpOpenCodeViewModal() {
     modalFooter.appendChild(cancelButton);
     modalFooter.appendChild(updatePageContentBtn);
 
-    // Create the hidden input field with csrf_token value
-    const csrfInput = document.createElement("input");
-    csrfInput.setAttribute("type", "hidden");
-    csrfInput.setAttribute("name", "csrf_token");
-    csrfInput.setAttribute("value", "$2y$11$LMeP4WHpygAeBZz5MbF3PO9IlIAbSx8SPpvLNKcxLcWs2UXa3jRoO");
-
     // Add all the elements to the DOM in the proper order
     formElement.appendChild(modalBody);
     formElement.appendChild(modalFooter);
-    formElement.appendChild(csrfInput);
 
     codeViewModal.appendChild(modalHeading);
     codeViewModal.appendChild(formElement);
