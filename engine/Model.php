@@ -75,7 +75,8 @@ class Model {
     }
 
     private function get_table_from_url() {
-        return $this->current_module;
+        // Use $this->current_module if set, otherwise, use the first URL segment
+        return isset($this->current_module) ? $this->current_module : segment(1);
     }
 
     private function correct_tablename($target_tbl) {
