@@ -448,9 +448,9 @@ function post(string $field_name, ?bool $clean_up = null) {
 
         if (isset($clean_up)) {
             $value = filter_string($value);
-
+            
             if (is_numeric($value)) {
-                $var_type = (is_numeric(strpos($value, '.'))) ? 'double' : 'int';
+                $var_type = (strpos($value, '.') !== false) ? 'double' : 'int';
                 settype($value, $var_type);
             }
         }
@@ -463,13 +463,11 @@ function post(string $field_name, ?bool $clean_up = null) {
  * Filter and sanitize a string.
  *
  * @param string $string The input string to be filtered and sanitized.
- * @param string[] $allowed_tags An optional array of allowed HTML tags.
+ * @param string[] $allowed_tags An optional array of allowed HTML tags (default is an empty array).
  * @return string The filtered and sanitized string.
  */
 function filter_string(string $string, array $allowed_tags = []) {
-    // Potentially suitable for filtering data submitted via textarea.
-
-    // Remove HTML & PHP tags (please read note above for more!)
+    // Remove HTML & PHP tags
     $string = strip_tags($string, implode('', $allowed_tags));
 
     // Apply XSS filtering
