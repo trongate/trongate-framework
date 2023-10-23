@@ -678,13 +678,17 @@ function tgpInterceptAddPageElement(el, newElType) {
     optionRow.appendChild(optionBtn);
     elLocationSelectorDiv.appendChild(optionRow);
 
-    optionRow = document.createElement('div');
-    optionBtn = document.createElement('button');
-    optionBtn.innerHTML = 'Inside The Selected Element';
-    optionBtn.setAttribute('id', 'el-location-btn-inside-selected');
-    optionBtn.setAttribute('onclick', 'tgpChooseImgLocation("' + el + '", "' + optionBtn.id + '")');
-    optionRow.appendChild(optionBtn);
-    elLocationSelectorDiv.appendChild(optionRow);
+    const selectedNode = window.getSelection().anchorNode;
+
+    if (selectedNode.nodeType === Node.TEXT_NODE) {
+      optionRow = document.createElement('div');
+      optionBtn = document.createElement('button');
+      optionBtn.innerHTML = 'Inside The Selected Element';
+      optionBtn.setAttribute('id', 'el-location-btn-inside-selected');
+      optionBtn.setAttribute('onclick', 'tgpChooseImgLocation("' + el + '", "' + optionBtn.id + '")');
+      optionRow.appendChild(optionBtn);
+      elLocationSelectorDiv.appendChild(optionRow);
+    }
 
     optionRow = document.createElement('div');
     optionBtn = document.createElement('button');
