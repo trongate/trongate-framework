@@ -267,6 +267,9 @@ function handlePlusButtonClick() {
     currentFontSize += 0.2;
     activeEl.style.fontSize = `${currentFontSize}em`;
     const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
     selection.removeAllRanges();
   }
 }
@@ -280,6 +283,9 @@ function handleMinusButtonClick() {
     currentFontSize -= 0.2;
     activeEl.style.fontSize = `${currentFontSize}em`;
     const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
     selection.removeAllRanges();
   }
 }

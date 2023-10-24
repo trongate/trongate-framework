@@ -163,15 +163,6 @@ function tgpAfterUploadEventsMobi(response) {
 
 
   return;
-  // setTimeout(() => {
-  //   while (targetModalBody.firstChild) {
-  //     targetModalBody.removeChild(targetModalBody.lastChild);
-  //   }
-  //   tgpTargetSpinBox = 1;
-  //   tgpRebuildAddImageModalBody(targetModalBody);
-  // }, 1300);
-  // return;
-
 }
 
 function tgpDrawImageErrorMobi(status, response) {

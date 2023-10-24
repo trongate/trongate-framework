@@ -420,13 +420,16 @@ function tgpChangeTagType(tagType) {
 
 function tgpAttemptActivateToolBarBtns() {
     //make sure we have a selection that is INSIDE the active element? 
-    let selectedObj = window.getSelection();
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
 
-    if (!selectedObj || selectedObj.rangeCount === 0) {
+    if (!selection || selection.rangeCount === 0) {
       return;
     }
 
-    let selectedRange = selectedObj.getRangeAt(0);
+    let selectedRange = selection.getRangeAt(0);
     var intersectsActiveEl = selectedRange.intersectsNode(trongatePagesObj.activeEl);
 
     if (intersectsActiveEl !== true) {
@@ -537,8 +540,12 @@ function tgpAlignify(alignType) {
     if (clickedEditorBtn.classList.contains('active-editor-btn')) {
 
         //START OF remove align center
-        let selectedObj = window.getSelection();
-        let selectedRange = selectedObj.getRangeAt(0);
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            currentSelectedRange = selection.getRangeAt(0).cloneRange();
+        }
+
+        let selectedRange = selection.getRangeAt(0);
 
         //find italic nodes that intersect the selected range...
         let alignNodes = tgpGetAlignNodes(selectedRange, styleAttr);
@@ -713,8 +720,13 @@ function tgpItalicify() {
     }
 
     if (clickedEditorBtn.classList.contains('active-editor-btn')) {
-        let selectedObj = window.getSelection();
-        let selectedRange = selectedObj.getRangeAt(0);
+
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            currentSelectedRange = selection.getRangeAt(0).cloneRange();
+        }
+
+        let selectedRange = selection.getRangeAt(0);
 
         //find italic nodes that intersect the selected range...
         let italicNodes = trongatePagesObj.activeEl.getElementsByTagName('i');
@@ -741,15 +753,20 @@ function tgpItalicify() {
 }
 
 function tgpAddTags(tagEl) {
-  let selectedObj = window.getSelection();
-  let selectedRange = selectedObj.getRangeAt(0);
+
+  let selection = window.getSelection();
+  if (selection.rangeCount > 0) {
+      currentSelectedRange = selection.getRangeAt(0).cloneRange();
+  }
+
+  let selectedRange = selection.getRangeAt(0);
 
   if (selectedRange.toString().length === 0) {
     let selectableArea = trongatePagesObj.activeEl;
     let newRange = document.createRange();
     newRange.selectNodeContents(selectableArea);
-    selectedObj.removeAllRanges();
-    selectedObj.addRange(newRange);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
     selectedRange = newRange;
   }
 
@@ -798,13 +815,17 @@ function tgpIntersectsRange(selectedRange, els) {
 
 function tgpAttemptActivateToolBarBtns() {
     //make sure we have a selection that is INSIDE the active element? 
-    let selectedObj = window.getSelection();
 
-    if (!selectedObj || selectedObj.rangeCount === 0) {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
+
+    if (!selection || selection.rangeCount === 0) {
       return;
     }
 
-    let selectedRange = selectedObj.getRangeAt(0);
+    let selectedRange = selection.getRangeAt(0);
     var intersectsActiveEl = selectedRange.intersectsNode(trongatePagesObj.activeEl);
 
     if (intersectsActiveEl !== true) {
@@ -865,6 +886,7 @@ function tgpAddTextToolbar(targetEl) {
     tgpBuildLinkifyBtn(divLeft);
     tgpBuildListifyBtns(divLeft);
     tgpBuildPicBtn(divLeft);
+    tgpBuildCleanCodeBtn(divLeft);
     tgpBuildTrashifyBtn(divRight);
 
     editor.setAttribute("id", "trongate-editor");
@@ -886,6 +908,13 @@ function tgpAddTextToolbar(targetEl) {
     tgpInitEditorListeners(editor);
     tgpStartTimer();
   }
+}
+
+function tgpBuildCleanCodeBtn(containerEl) {
+    const cleanCodeBtn = document.createElement("button");
+    cleanCodeBtn.setAttribute("onclick", "tgpCleanCode()");
+    cleanCodeBtn.innerHTML = "<i class='fas fa-shower'></i>";
+    containerEl.appendChild(cleanCodeBtn);  
 }
 
 function tgpFindAncestorHeadline(element) {
@@ -937,7 +966,6 @@ function tgpAttemptActivateItalicBtn(selectedRange) {
 }
 
 
-
 function tgpBoldify() {
     let clickedEditorBtn = document.getElementById('boldify-btn');
 
@@ -946,17 +974,22 @@ function tgpBoldify() {
     }
 
     if (clickedEditorBtn.classList.contains('active-editor-btn')) {
-        let selectedObj = window.getSelection();
-        let selectedRange = selectedObj.getRangeAt(0);
 
-        //find italic nodes that intersect the selected range...
+        let selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            currentSelectedRange = selection.getRangeAt(0).cloneRange();
+        }
+
+        let selectedRange = selection.getRangeAt(0);
+
+        // Find italic nodes that intersect the selected range...
         let boldNodes = trongatePagesObj.activeEl.getElementsByTagName('b');
         let resultObj = tgpIntersectsRange(selectedRange, boldNodes);
 
-        //if we found an intersecting 
+        // If we found an intersecting 
         if (resultObj.tgpIntersectsRange == true) {
 
-            //loop through each of the intersecting nodes and remove the offending tags...
+            // Loop through each of the intersecting nodes and remove the offending tags...
             var tgpIntersectsRangeIndexes = resultObj.tgpIntersectsRangeIndexes;
             for (let i = 0; i < tgpIntersectsRangeIndexes.length; i++) {
                 tgpUnwrapNode(boldNodes[tgpIntersectsRangeIndexes[i]]);
@@ -966,12 +999,13 @@ function tgpBoldify() {
 
         }
 
-        } else {
-            let newTag = document.createElement('b');
-            tgpAddTags(newTag);
-            tgpToggleEditorToolbarBtn('boldify-btn');
-        }
+    } else {
+        let newTag = document.createElement('b');
+        tgpAddTags(newTag);
+        tgpToggleEditorToolbarBtn('boldify-btn');
+    }
 }
+
 
 function tgpToggleEditorToolbarBtn(btnId) {
     let targetBtn = document.getElementById(btnId);

@@ -19,8 +19,12 @@ function tgpOpenLinkModal() {
         return;
     }
 
-    let selectedObj = window.getSelection();
-    let selectedRange = selectedObj.getRangeAt(0);
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
+
+    let selectedRange = selection.getRangeAt(0);
 
     if (clickedEditorBtn.classList.contains('active-editor-btn')) {
 
@@ -110,8 +114,13 @@ function tgpBuildLinkModal() {
     linkFormPara.appendChild(inputField);
 
     //add selected text to form input field
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
+
     const selectedObj = window.getSelection();
-    inputField.value = selectedObj.toString();
+    inputField.value = selection.toString();
 
     formLabel = document.createElement('label');
     formLabel.innerHTML = 'Target URL';

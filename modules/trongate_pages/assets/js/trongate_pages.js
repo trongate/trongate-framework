@@ -107,9 +107,14 @@ function tgpHandleElementClick(clickedEl) {
 }
 
 function tgpClearSelection() {
+  currentSelectedRange = null;
   if (window.getSelection) {
     // Clear the selection using the Selection API
     const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
+
     selection.removeAllRanges();
   } else if (document.selection) {
     // For older browsers (IE)

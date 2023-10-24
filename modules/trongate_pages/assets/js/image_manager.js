@@ -780,6 +780,8 @@ function tgpAddChoosePicBtns(targetModalBody) {
 
     addPicToPageBtn.addEventListener('click', (ev) => {
 
+        tgpRestoreSelection();
+
         const showcaseImg = document.querySelector('#tgp-media-manager .tgp-showcase-img-div img');
         trongatePagesObj.targetNewElLocation = 'default';
 
@@ -997,6 +999,7 @@ function tgpDestroyImgModalAddImg(imgPath, targetModalBody) {
 
     const activeEl = trongatePagesObj.activeEl;
     tgpUnhighlightEl(activeEl);
+    currentSelectedRange = null;
 }
 
 function tgpInsertImage(imgPath, delayTime = 1300) {
@@ -1351,10 +1354,15 @@ function tgpAddSubmitImgChangesBtn() {
 }
 
 function tgpAddPageElementInner(elType) {
-  //remember the selected range
-  trongatePagesObj.storedRange = window.getSelection().getRangeAt(0);
-  tgpReset(['toolbars']);
-  tgpAddPageElement(elType);
+    //remember the selected range
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
+
+    trongatePagesObj.storedRange = selection.getRangeAt(0);
+    tgpReset(['toolbars']);
+    tgpAddPageElement(elType);
 }
 
 function tgpImgUpdateAhoy(closeTgModal = true) {

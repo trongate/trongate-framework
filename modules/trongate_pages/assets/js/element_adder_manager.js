@@ -1,3 +1,15 @@
+// Define a global variable to store the current selection range.
+let currentSelectedRange = null;
+
+// Function to restore the saved selection.
+function tgpRestoreSelection() {
+    if (currentSelectedRange) {
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(currentSelectedRange);
+    }
+}
+
 function tgpDeletePage() {
   tgpReset(['selectedRange', 'codeviews', 'customModals', 'toolbars', 'activeEl']);
 
@@ -294,37 +306,35 @@ function tgpInsertElement(newEl) {
   const { targetNewElLocation, defaultActiveElParent, activeElParent, activeEl } = trongatePagesObj;
 
   switch (targetNewElLocation) {
-    case 'page-top':
-      defaultActiveElParent.prepend(newEl);
-      break;
-    case 'above-selected':
-      activeElParent.insertBefore(newEl, activeEl);
-      break;
-    case 'inside-selected':
-      const range = tgpGetStoredRange();
-      if (range) {
-        // Split the text node at the selected position
-        const selectedNode = window.getSelection().anchorNode;
-        const selectedOffset = window.getSelection().anchorOffset;
-        const newNode = selectedNode.splitText(selectedOffset);
-
-        //extract the image from within the img container div
-        const newImg = newEl.querySelector('img');
-
-        // Insert the image node in between the split text nodes
-        selectedNode.parentNode.insertBefore(newImg, newNode);
-      } else {
-        // Add to bottom of page
-        defaultActiveElParent.appendChild(newEl);
-      }
-      trongatePagesObj.storedRange = null;
-      break;
-    case 'below-selected':
-      tgpInsertAfter(newEl, activeEl);
-      break;
-    default:
-      defaultActiveElParent.appendChild(newEl);
+      case 'page-top':
+          defaultActiveElParent.prepend(newEl);
+          break;
+      case 'above-selected':
+          activeElParent.insertBefore(newEl, activeEl);
+          break;
+      case 'inside-selected':
+          const range = tgpGetStoredRange();
+          const selection = window.getSelection();
+          if (range && selection.rangeCount > 0) {
+              currentSelectedRange = selection.getRangeAt(0).cloneRange();
+              const selectedNode = window.getSelection().anchorNode;
+              const selectedOffset = window.getSelection().anchorOffset;
+              const newNode = selectedNode.splitText(selectedOffset);
+              const newImg = newEl.querySelector('img');
+              selectedNode.parentNode.insertBefore(newImg, newNode);
+          } else {
+              defaultActiveElParent.appendChild(newEl);
+              trongatePagesObj.storedRange = null;
+          }
+          break;
+      case 'below-selected':
+          tgpInsertAfter(newEl, activeEl);
+          break;
+      default:
+          defaultActiveElParent.appendChild(newEl);
   }
+
+
 
 }
 
@@ -678,7 +688,12 @@ function tgpInterceptAddPageElement(el, newElType) {
     optionRow.appendChild(optionBtn);
     elLocationSelectorDiv.appendChild(optionRow);
 
-    const selectedNode = window.getSelection().anchorNode;
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
+    
+    const selectedNode = selection.anchorNode;
 
     if (selectedNode.nodeType === Node.TEXT_NODE) {
       optionRow = document.createElement('div');

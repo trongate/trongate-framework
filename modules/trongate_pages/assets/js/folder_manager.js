@@ -57,6 +57,9 @@ function tgpMakeDirEditable(ev) {
     const textNode = elementNameDiv.firstChild;
     const range = document.createRange();
     const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        currentSelectedRange = selection.getRangeAt(0).cloneRange();
+    }
 
     range.setStart(textNode, 0);
     range.setEnd(textNode, textNode.length);
