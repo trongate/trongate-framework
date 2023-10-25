@@ -1356,10 +1356,6 @@ function tgpAddSubmitImgChangesBtn() {
 function tgpAddPageElementInner(elType) {
     //remember the selected range
     const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-        currentSelectedRange = selection.getRangeAt(0).cloneRange();
-    }
-
     trongatePagesObj.storedRange = selection.getRangeAt(0);
     tgpReset(['toolbars']);
     tgpAddPageElement(elType);

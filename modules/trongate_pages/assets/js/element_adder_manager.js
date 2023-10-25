@@ -316,7 +316,6 @@ function tgpInsertElement(newEl) {
           const range = tgpGetStoredRange();
           const selection = window.getSelection();
           if (range && selection.rangeCount > 0) {
-              currentSelectedRange = selection.getRangeAt(0).cloneRange();
               const selectedNode = window.getSelection().anchorNode;
               const selectedOffset = window.getSelection().anchorOffset;
               const newNode = selectedNode.splitText(selectedOffset);
@@ -688,11 +687,7 @@ function tgpInterceptAddPageElement(el, newElType) {
     optionRow.appendChild(optionBtn);
     elLocationSelectorDiv.appendChild(optionRow);
 
-    const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-      currentSelectedRange = selection.getRangeAt(0).cloneRange();
-    }
-    
+    const selection = window.getSelection();    
     const selectedNode = selection.anchorNode;
 
     if (selectedNode.nodeType === Node.TEXT_NODE) {

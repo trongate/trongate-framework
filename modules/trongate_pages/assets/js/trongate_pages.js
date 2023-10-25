@@ -111,10 +111,6 @@ function tgpClearSelection() {
   if (window.getSelection) {
     // Clear the selection using the Selection API
     const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-        currentSelectedRange = selection.getRangeAt(0).cloneRange();
-    }
-
     selection.removeAllRanges();
   } else if (document.selection) {
     // For older browsers (IE)
@@ -355,6 +351,41 @@ function tgpReset(restoreItems) {
   }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function tgpGetStoredRange() {
   return trongatePagesObj.storedRange || null;
