@@ -851,6 +851,7 @@ class Standard_endpoints extends Trongate {
             //user code segment authorization (only for Trongate API paths!)
             if (isset($endpoint_auth_rules['userCodeSegment'])) {
                 $target_value = segment($endpoint_auth_rules['userCodeSegment']);
+                settype($target_value, 'int');
                 if ($trongate_user_code === $target_value) {
                     return $token; //match for trongate_user_code on target segment
                 }
