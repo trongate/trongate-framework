@@ -1,7 +1,13 @@
 <?php
 class Trongate_security extends Trongate {
 
-    function _make_sure_allowed($scenario='admin panel') {
+    /**
+     * Ensures the user is allowed access for the specified scenario.
+     *
+     * @param string $scenario The scenario for access control. Default is 'admin panel'.
+     * @return string Returns a (trongate) token or initializes the 'not allowed' procedure.
+     */
+    function _make_sure_allowed(string $scenario = 'admin panel'): string {
         //returns EITHER (trongate)token OR initialises 'not allowed' procedure
 
         switch ($scenario) {
@@ -19,3 +25,5 @@ class Trongate_security extends Trongate {
     }
 
 }
+
+
