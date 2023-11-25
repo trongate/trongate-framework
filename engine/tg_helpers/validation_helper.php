@@ -65,6 +65,9 @@ class Validation_helper {
             case 'valid_datepicker_eu':
                 $this->valid_datepicker_eu($validation_data);
                 break;
+            case 'valid_datepicker_uk':
+                $this->valid_datepicker_eu($validation_data);
+                break;
             case 'valid_datetimepicker_us':
                 $this->valid_datetimepicker_us($validation_data);
                 break;

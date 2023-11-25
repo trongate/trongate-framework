@@ -242,7 +242,26 @@ class Core {
             }
         }
 
-        if (!file_exists($controller_path)) {
+        if(segment(1) === 'dateformat') {
+
+            if (!defined('DEFAULT_DATE_FORMAT')) {
+                define('DEFAULT_DATE_FORMAT', 'mm/dd/yyyy');
+            }
+
+            if (!defined('DEFAULT_LOCALE_STR')) {
+                define('DEFAULT_LOCALE_STR', 'en-US');
+            }
+
+            $date_prefs = [
+                'default_date_format' => DEFAULT_DATE_FORMAT,
+                'default_locale_str' => DEFAULT_LOCALE_STR,
+            ];
+
+            http_response_code(200);
+            echo json_encode($date_prefs);
+            die();
+
+        } elseif(!file_exists($controller_path)) {
             $controller_path = $this->attempt_init_child_controller($controller_path);
         }
 
