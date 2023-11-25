@@ -48,6 +48,7 @@
 }
 
 .datepicker-calendar .popup-arrow, .datetime-picker-calendar .popup-arrow {
+    color: var(--primary);
     background-color: #fff;
     height: 24px;
     width: 24px;
@@ -55,7 +56,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: SteelBlue;
+}
+
+.datepicker-calendar .popup-arrow:hover, .datetime-picker-calendar .popup-arrow:hover {
+    color: var(--primary-dark);
 }
 
 .datepicker-calendar .flip-arrow, .datetime-picker-calendar .flip-arrow {
@@ -292,10 +296,14 @@ input[type=range]:focus::-ms-fill-upper {
     width: 250px;
 }
 
+tr.timepicker-btns:hover, tr:nth-child(odd):hover {
+    background-color: transparent;
+}
+
 .timepicker-btns button {
     margin: 0;
-    background-color: #fff;
-    color: #333;
+    border-radius: 0;
+    text-transform: uppercase;
 }
 
 .inner-timepicker button {
@@ -306,4 +314,3 @@ input[type=range]:focus::-ms-fill-upper {
     background-color: #ee5116 !important;
     color: #fff;
 }
-

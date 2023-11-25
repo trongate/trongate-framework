@@ -1,1263 +1,1201 @@
-// DATE/TIME PICKER SETTINGS START : PLEASE FEEL FREE TO CHANGE THE SETTINGS BELOW THIS LINE:
-var weekStartsOn = 1; // 0 = Sunday, 1 = Monday
+let trongateDateTimeObj = {
+    weekStartsOn: 0,
+    activePopUp: {},
+    activeType: '',
+    datePickerCalendar: {},
+    assumedDate: new Date(),
+    currentHour: 0,
+    currentMinute: 0,
+    todayDate: new Date(),
+    parsedInputDate: null,
+    thisDateFormat: '',
+    thisLocaleString: '',
+    originalInputValue: '',
+    datePickerTblTopRow: {},
+    dayNames: [],
+    monthNames: []
+};
 
-// the localeString spezifies the locale used to parse the date and to output the date
-var localeString = 'en-US'; //details:  https://www.w3schools.com/jsref/jsref_tolocalestring.asp
+// *** Trongate Time Date Initialisation START ***
+async function tgdtEstablishTrongateBaseUrl() {
+    return new Promise((resolve) => {
 
-var dateFormatObj = {
-    dateStyle: 'long'
+        // Get the current full URL
+        const currentUrl = window.location.href;
+
+        // Check if 'localhost' is present in the URL
+        const isLocalhost = currentUrl.includes('://localhost');
+
+        // Split the string by '://'
+        const parts = currentUrl.split('://');
+
+        // Extract the protocol
+        const protocol = parts[0];
+
+        // Extract the path part after '://'
+        const pathAfterProtocol = parts[1];
+
+        // Split the path part by '/'
+        const pathParts = pathAfterProtocol.split('/');
+
+        // Determine the number of segments to join based on isLocalhost
+        const segmentsToJoin = isLocalhost ? 2 : 1;
+
+        // Take the protocol and join it with everything up to and including the specified number of forward slashes
+        tgdtBaseUrl = protocol + '://' + pathParts.slice(0, segmentsToJoin).join('/') + '/';
+        resolve(tgdtBaseUrl);
+    });
 }
 
-//please change these settings to suit your language
-var dayNames = [
-    "Sunday",
-    "Monday", 
-    "Tuesday", 
-    "Wednesday", 
-    "Thursday", 
-    "Friday", 
-    "Saturday"
-];
+async function tgdtFetchDefaultDateFormats(tgdtBaseUrl) {
+    return new Promise((resolve) => {
+        const targetUrl = `${tgdtBaseUrl}dateformat`;
+        const http = new XMLHttpRequest();
 
-var monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-];
+        // Handle errors
+        http.onerror = function () {
+            console.error('Error fetching data from:', targetUrl);
+            resolve('{"default_date_format":"mm/dd/yyyy","default_locale_str":"en-US"}');
+        };
 
-var unavailableBefore;
-var unavailableAfter;
+        http.open('get', targetUrl);
+        http.setRequestHeader('Content-type', 'application/json');
+        http.send();
 
-
-
-// DATE/TIME PICKER SETTINGS END : DO NOT EDIT BELOW THIS LINE!!!
-
-var pathArray = window.location.pathname.split( '/' );
-var segment3 = pathArray[3];
-var datePickerFields = _('.date-picker');
-var timePickerFields = _('.time-picker');
-var dateTimePickerFields = _('.datetime-picker');
-var dateRangePickerFields = _('.date-range');
-var targetInputValue = ''; //the value of the form input that has been clicked
-var targetInputValueSm  = ''; //alt version of targetInputValue (with time removed)
-var boxDayNumLZ, boxDayNum, boxYearNum;
-
-if ((datePickerFields.length>0) || (timePickerFields.length>0) || (dateTimePickerFields.length>0) || (dateRangePickerFields.length>0) ) {
-
-    //initialize date/time picker vars
-    var assumedDate = new Date;
-    var todayDate = new Date;
-    var activeEl;
-    var activeType;
-    var activePopUp;
-    var datePickerCanvas = 'large';
-    var datePickerTblTopRow = buildTopRow(); //top row never changes so do this once & early for better performance
-
-    //timePicker settings
-    var currentHour = assumedDate.getHours();
-    currentHour = addZeroBefore(currentHour);
-    var currentMinute = assumedDate.getMinutes();
-    currentMinute = addZeroBefore(currentMinute);
-    var clickedTimePickerEl;
-
-    //check for date/time picker fields;
-    //date-picker, time-picker, datetime-picker, date-range, time-range
-    if (datePickerFields.length>0) {
-        initDatePickers();
-        disableDatePickerInputs('date-picker');
-        listenForOffsideClicks('date-picker', 'datepicker-calendar');
-    }
-    
-    if (timePickerFields.length>0) {
-        initTimePickers();
-        listenForOffsideClicks('time-picker', 'timepicker-popup');
-    }
-
-    if (dateTimePickerFields.length>0) {
-        initDateTimePickers();
-        listenForOffsideClicks('datetime-picker', 'datetime-picker-calendar');
-    }
-
-    if (dateRangePickerFields.length>0) {
-        initDateRangePickers();
-        listenForOffsideClicks('date-range', 'datepicker-calendar');
-    }
-
-}
-
-/* 
- * retrive the date format string from the locale
- * the format pieces are YYYY MM DD and the delimeter
- */ 
-function getDateFormatStringFromLocale (locale) {
-    const formatObj = new Intl.DateTimeFormat(locale).formatToParts(new Date());
-
-    return formatObj
-        .map(obj => {
-            switch (obj.type) {
-                case "day":
-                    return "DD";
-                case "month":
-                    return "MM";
-                case "year":
-                    return "YYYY";
-                default:
-                    return obj.value;
+        http.onload = function () {
+            if (http.status === 200) {
+                resolve(http.responseText);
+            } else {
+                console.error('Unexpected HTTP status:', http.status);
+                resolve('{"default_date_format":"mm/dd/yyyy","default_locale_str":"en-US"}');
             }
-        })
-        .join("");
+        };
+    });
 }
 
-/*
- * parse a Date obj from input using the locale
- * given in the global variable localeString.
- * returns a date obj or 'Invalid Date' like date.parse
- */
-function parseDate (input) {
-    var parsedDate = 'Invalid Date';
-    if (input !== '') {
-        var format = getDateFormatStringFromLocale(localeString);
-        var input_parts = input.match(/(\d+)/g);
+trongateDateTimeObj.convertToDateTimeStr = function() {
+    // Takes a date object and converts to full date time string (e.g., 24/11/2023, 16:32:02)
+    const date = trongateDateTimeObj.assumedDate;
+    const localeString = trongateDateTimeObj.thisLocaleString;
+    const formattedDateTime = date.toLocaleString(localeString);
+    return formattedDateTime;
+}
+
+trongateDateTimeObj.extractHoursAndMinutes = function(dateTimeString) {
+    try {
+        const hourStartIndex = dateTimeString.length - 8; // Start index of hours in the string (8 characters back from the end)
+        const minuteStartIndex = dateTimeString.length - 5; // Start index of minutes in the string (three characters after hours)
+
+        const hours = parseInt(dateTimeString.substring(hourStartIndex, hourStartIndex + 2));
+        const minutes = parseInt(dateTimeString.substring(minuteStartIndex, minuteStartIndex + 2));
+
+        if (!isNaN(hours) && !isNaN(minutes)) {
+            return { hours, minutes };
+        }
+    } catch (error) {
+        // Handle any parsing errors
+        console.log('Error occurred while extracting hours and minutes');
+    }
+
+    // Default to current time's hour and minute values if extraction fails
+    return { hours: new Date().getHours(), minutes: new Date().getMinutes() };
+};
+
+trongateDateTimeObj.convertLongStrToDateObject = function(dateTimeString) {
+    if (!dateTimeString) {
+        return new Date(); // Return default value for empty input
+    }
+
+    const parsedDate = trongateDateTimeObj.parseDateFromInput(dateTimeString);
+
+    if (parsedDate instanceof Date && !isNaN(parsedDate.getTime())) {
+        const { hours, minutes } = trongateDateTimeObj.extractHoursAndMinutes(dateTimeString);
+        parsedDate.setHours(hours);
+        parsedDate.setMinutes(minutes);
+        return parsedDate;
+    } else {
+        return new Date(); // Return default value if parsing fails
+    }
+};
+
+async function tgdtConvertDefaultDateStrToObj(defaultDateFormatsStr) {
+    return new Promise((resolve) => {
         try {
-            var i = 0;
-            var format_pos = {};
-            format.replace(/(YYYY|DD|MM)/g, function (part) { format_pos[part] = i++; });
-            var year = parseInt(input_parts[format_pos['YYYY']]);
-            var month = parseInt(input_parts[format_pos['MM']]);
-            var day = parseInt(input_parts[format_pos['DD']]);
-            parsedDate = new Date(year, month - 1, day);
+            const defaultDatePrefs = JSON.parse(defaultDateFormatsStr);
+            const { default_date_format, default_locale_str } = defaultDatePrefs;
+
+            // Check if the string meets the specified conditions
+            const isValidDateFormat =
+                default_date_format.length === 10 &&
+                (default_date_format.substring(0, 2) === 'dd' || default_date_format.substring(0, 2) === 'mm') &&
+                ((default_date_format.substring(0, 2) === 'dd' && default_date_format.substring(3, 5) === 'mm') ||
+                    (default_date_format.substring(0, 2) === 'mm' && default_date_format.substring(3, 5) === 'dd')) &&
+                default_date_format.substring(6) === 'yyyy';
+
+            const defaultDateFormat = isValidDateFormat ? default_date_format : 'mm/dd/yyyy';
+            const defaultLocaleString = isValidDateFormat ? default_locale_str : 'en-US';
+
+            const defaultDateFormatsObj = {
+                defaultDateFormat,
+                defaultLocaleString
+            };
+
+            resolve(defaultDateFormatsObj);
         } catch (error) {
-            // in this case we return 'Invalid Date'
-        }
-    }
-    return parsedDate
-}
+            console.error('Error parsing JSON:', error);
 
-/*
- * parse a Date obj with date and time from input using the locale
- * given in the global variable localeString.
- * returns a date obj or 'Invalid Date' like date.parse
- */
-function parseDateTime(input) {
-    var parsedDate = 'Invalid Date';
-    if (input !== '') {
-        var inputParts = [];
-        if (input.includes(" at ")) {
-            inputParts = input.split('at');
-        } else {
-            inputParts[0] = input.substring(0,10);
-            inputParts[1] = input.substring(11);
-        }
-        parsedDate = parseDate(inputParts[0].trim());
-        if (parsedDate == 'Invalid Date') {
-            return parsedDate;
-        }
-        var timeStr = inputParts[1].trim();
-        var hour = 0;
-        var min = 0;
-        try {
-            hour = parseInt(timeStr.substring(0, 2));
-            min = parseInt(timeStr.substring(3, 5));
-        } catch (error) {
-            hour = 0;
-            min = 0;
-        }
-        parsedDate.setHours(hour);
-        parsedDate.setMinutes(min);
-        parsedDate.setSeconds(0);
-        parsedDate.setMilliseconds(0);
-    }
-    return parsedDate;
-}
+            const defaultDateFormatsObj = {
+                defaultDateFormat: 'mm/dd/yyyy',
+                defaultLocaleString: 'en-US'
+            };
 
-function formatDateObj(dateObj, outputType) {
-    //outputType can be time, date or timedate
-
-    var options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    if ((outputType == 'date') || (outputType == 'datetime')) {
-        var output = dateObj.toLocaleString(localeString, options);
-        if (outputType == 'date') {
-            return output;
-        }
-    }
-    var outputMinutes = dateObj.getMinutes();
-    outputMinutes = addZeroBefore(outputMinutes);
-    var outputHours = dateObj.getHours();
-    outputHours = addZeroBefore(outputHours);
-    var time = outputHours + ':' + outputMinutes;
-
-    if (outputType == 'time') {
-        return time;
-    } else {
-        //this MUST be a datetime outputType!
-        if (localeString == 'en-GB') {
-            output += ' at ' + time;
-        } else {
-            output += ' ' + time;
-        }
-        return output;
-    }
-}
-
-function createClassFromDate(dateObj, type) {
-    //type can be 'before' or 'after'
-    var className = type + '-';
-    var dateStr = formatDateObj(dateObj, 'date');
-    className+= dateStr;
-    className = className.replace(/\//g, '-');
-    return className;
-}
-
-function initDateRangePickers() {
-    //init in the past or in the future declarations
-    initInThePastDeclarations();
-    initInTheFutureDeclarations();
-    initDateRanges();
-}
-
-function initDateRanges() {
-
-    var dateRangeInputFields = document.getElementsByClassName('date-range');
-
-    for (var i = 0; i < dateRangeInputFields.length; i++) {
-        var result = estPartner(dateRangeInputFields[i]);
-        var elType = result.elType; //1st or 2nd (for the clicked form input)
-        var partnerEl = result.partnerEl; //the partner form input element
-
-        var thisValue = dateRangeInputFields[i].value;
-
-        if (thisValue.length == 10) {
-            parseDate(thisValue);
-            adjustPartnerClass(elType, partnerEl, thisDate);
-        }
-
-    }
-
-}
-
-function adjustPartnerClass(elType, partnerEl, dateObj) {
-
-    if (elType == '1st') {
-        //make sure selectable date is BEFORE whatever value the partner el has
-        customClassRemove(partnerEl, 'after-');
-        var newClassName = createClassFromDate(dateObj, 'after');
-        partnerEl.classList.remove('enforce-after');
-        partnerEl.classList.add('enforce-after');
-        partnerEl.classList.add(newClassName);
-
-    } else {
-        //make sure selectable date is AFTER whatever value the partner el has
-        customClassRemove(partnerEl, 'before-');
-        var newClassName = createClassFromDate(dateObj, 'before');
-        partnerEl.classList.remove('enforce-before');
-        partnerEl.classList.add('enforce-before');
-        partnerEl.classList.add(newClassName);
-    }
-
-}
-
-function initInThePastDeclarations() {
-    var inThePastEls = document.getElementsByClassName('in-the-past');
-
-    if (inThePastEls.length>0) {
-
-        var dateStr = formatDateObj(todayDate, 'date');
-        dateStr = dateStr.replace(/\//g, '-');
-        var newClassName = 'before-' + dateStr;
-
-        for (var i = 0; i < inThePastEls.length; i++) {
-            inThePastEls[i].classList.add('enforce-before');
-            inThePastEls[i].classList.add(newClassName);
-        }
-
-        for (var i = 0; i < inThePastEls.length; i++) {
-            inThePastEls[i].classList.remove('in-the-past');
-        }
-
-    }
-
-}
-
-function initInTheFutureDeclarations() {
-    var inTheFutureEls = document.getElementsByClassName('in-the-future');
-
-    if (inTheFutureEls.length>0) {
-
-        var dateStr = formatDateObj(todayDate, 'date');
-        dateStr = dateStr.replace(/\//g, '-');
-        var newClassName = 'after-' + dateStr;
-
-        for (var i = 0; i < inTheFutureEls.length; i++) {
-            inTheFutureEls[i].classList.add('enforce-after');
-            inTheFutureEls[i].classList.add(newClassName);
-        }
-
-        for (var i = 0; i < inTheFutureEls.length; i++) {
-            inTheFutureEls[i].classList.remove('in-the-future');
-        }
-
-    }
-
-}
-
-function estPartner(el) {
-    for (var i = 0; i < dateRangePickerFields.length; i++) {
-        if (dateRangePickerFields[i] == el) {
-            var elPos = i+1;
-            var elType = (elPos % 2  == 0) ? "2nd" : "1st";
-            
-            if (elType == '1st') {
-                var partnerIndex = elPos;
-            } else {
-                var partnerIndex = i-1;
-            }
-
-            var params = {
-                elType,
-                partnerEl: dateRangePickerFields[partnerIndex]
-            }
-
-            return params;
-        }
-    }
-}
-
-function initDatePickers() {
-
-    initInThePastDeclarations();
-    initInTheFutureDeclarations();
-
-    //listen for a datePicker input field getting clicked
-    for (var i = 0; i < datePickerFields.length; i++) {
-        datePickerFields[i].addEventListener("click", (ev) => {
-
-            targetInputValue = ev.target.value;
-            targetInputValueSm = targetInputValue;
-
-            //build a datePickerCalendar and then add it to the page * (taking canvas size into account)
-            activeEl = ev.target;
-            var elClasses = activeEl.classList;
-
-            if (activeEl.classList.contains('date-range')) {
-                activeType = 'date-range-calendar';
-            } else {
-                activeType = 'datepicker-calendar';
-            }
-
-            assumedDate = getDateFromInput();
-
-            if (assumedDate == 'Invalid Date') {
-                assumedDate = new Date;
-            }
-
-            buildDatePickerCalendar();
-        });
-    }
-
-}
-
-function enforceBeforeVibes() {
-    //get a list of all of the classes that belong to the active element
-    var elClasses = activeEl.classList;
-    for (var i = 0; i < elClasses.length; i++) {
-        if (elClasses[i].length == 17) {
-            var strStart = elClasses[i].substring(0, 7);
-            if (strStart == 'before-') {
-                unavailableAfter = createDateFromClassName(elClasses[i]);
-            }
-        }
-
-    }
-}
-
-function enforceAfterVibes() {
-    //get a list of all of the classes that belong to the active element
-    var elClasses = activeEl.classList;
-    for (var i = 0; i < elClasses.length; i++) {
-        if (elClasses[i].length == 16) {
-            var strStart = elClasses[i].substring(0, 6);
-            if (strStart == 'after-') {
-                unavailableBefore = createDateFromClassName(elClasses[i]);
-            }
-        }
-
-    }
-}
-
-function createDateFromClassName(className) {
-    //type can be 'before' or 'after'
-    var classStr = className.replace('before-', '');
-    classStr = className.replace('after-', '');
-    return parseDate(classStr);
-}
-
-function buildDatePickerCalendar() {
-
-    destroyEls(activeType);
-    unavailableBefore = false;
-    unavailableAfter = false;
-
-    if (activeEl.classList.contains('enforce-before')) {
-        enforceBeforeVibes();
-    }
-
-    if (activeEl.classList.contains('enforce-after')) {
-        enforceAfterVibes();
-    }
-
-    var datePickerCalendar = document.createElement("div");
-    datePickerCalendar.setAttribute("class", "datepicker-calendar");
-
-    if (datePickerCanvas == 'large') {
-        activeEl.parentNode.insertBefore(datePickerCalendar, activeEl.nextSibling);
-    } else {
-        //create an overlay
-    }
-
-    var datePickerHead = buildDatePickerHead();
-    datePickerCalendar.appendChild(datePickerHead);
-
-    //build and populate calendar table
-    var datePickerTbl = buildAndPopulateDatePickerTbl();
-    datePickerCalendar.appendChild(datePickerTbl);
-    activePopUp = datePickerCalendar;
-
-}
-
-function buildDatePickerHead() {
-
-    var datePickerHead = document.createElement("div");
-    datePickerHead.setAttribute("class", "datepicker-head");
-
-    var datePickerHeadLeft = document.createElement("div");
-    datePickerHead.appendChild(datePickerHeadLeft);
-
-    var datePickerArrowDivLeft = document.createElement("div");
-    datePickerArrowDivLeft.setAttribute("onclick", "changeMonth('down')");
-    datePickerArrowDivLeft.setAttribute("class", "popup-arrow");
-
-    var flipArrowSpan = document.createElement("span");
-    flipArrowSpan.setAttribute("class", "flip-arrow");
-    var datePickerNavArrowLeft = document.createTextNode("▸");
-    flipArrowSpan.appendChild(datePickerNavArrowLeft);
-
-    datePickerArrowDivLeft.appendChild(flipArrowSpan);
-    datePickerHeadLeft.appendChild(datePickerArrowDivLeft);
-
-    var datePickerHeadCenter = document.createElement("div");
-
-    //javascript get month and year from date object
-
-    var currentMonthNum = assumedDate.getMonth(); //getMonth() returns month from 0-11 not 1-12
-    var currentMonth = monthNames[currentMonthNum];
-    var currentYear = assumedDate.getFullYear();
-
-    var datePickerHeadline = document.createTextNode(currentMonth + " " + currentYear);
-    datePickerHeadCenter.appendChild(datePickerHeadline);
-    
-    datePickerHead.appendChild(datePickerHeadCenter);
-
-    var datePickerHeadRight = document.createElement("div");
-    var datePickerArrowDivRight = document.createElement("div");
-    datePickerArrowDivRight.setAttribute("onclick", "changeMonth('up')");
-    datePickerArrowDivRight.setAttribute("class", "popup-arrow");
-
-    var datePickerNavArrowRight = document.createTextNode("▸");
-    datePickerArrowDivRight.appendChild(datePickerNavArrowRight);
-    datePickerHeadRight.appendChild(datePickerArrowDivRight);
-
-    datePickerHead.appendChild(datePickerHeadRight);
-    return datePickerHead;
-}
-
-function buildAndPopulateDatePickerTbl() {
-
-    var datePickerTbl = document.createElement("table");
-    datePickerTbl.appendChild(datePickerTblTopRow);
-
-    var monthStartDayNum = getMonthStartDayNum();
-    var numDaysInMonth = getNumDaysInMonth();
-    var numWeeksThisMonth = Math.ceil(numDaysInMonth/7);
-
-    if ((monthStartDayNum>weekStartsOn) && (numWeeksThisMonth<5)) {
-        numWeeksThisMonth = 5;
-    }
-
-    if ((numDaysInMonth>29) && (monthStartDayNum>=6)) {
-        numWeeksThisMonth++;
-    }
-
-    if (weekStartsOn == 1) {
-        var boxCounter = 0;
-    } else {
-        var boxCounter = -1;
-    }
-    
-    var dayCounter = 0;
-
-    var i = 1;
-    var isCurrentDay = false;
-    var isAvailable = false;
-    
-    var selectedDate = parseDate(targetInputValueSm);
-    if (selectedDate == 'Invalid Date') {
-        selectedDate = new Date();
-    }
-    var selectedDateStr = selectedDate.getFullYear();
-    selectedDateStr += "-"+addZeroBefore(selectedDate.getMonth()+1);
-    selectedDateStr += "-"+addZeroBefore(selectedDate.getDate());
-  
-    do {
-        //create a week row
-        calendarWeekRow = document.createElement("tr");
-        calendarWeekRow.setAttribute("class", "tg-datepicker-row");
-
-        for (var colNum = 0; colNum < 7; colNum++) {
-            boxCounter++; 
-            var calendarTblTd = document.createElement("td");
-
-            if ((boxCounter<monthStartDayNum) || (dayCounter>=numDaysInMonth)) {
-                calendarTblTd.setAttribute("class", "empty-day");
-                var boxDayNum = ' ';
-            } else {
-                dayCounter++;
-                var boxDayNum = dayCounter;
-
-                //test to see if this box is clickable (available)
-                isAvailable = testForIsAvailable(dayCounter);
-
-                if (isAvailable == false) {
-                    calendarTblTd.setAttribute("class", "unavailable-day");
-                } else {
-
-                    if (isCurrentDay !== true) {
-                        isCurrentDay = testForCurrentDay(dayCounter);
-                    }
-                    
-                    if (isCurrentDay == true) {
-                        calendarTblTd.setAttribute("class", "day-cell current-day");
-                        isCurrentDay = false;
-                    } else {
-                        calendarTblTd.setAttribute("class", "day-cell");
-                    }
-
-                    if (targetInputValue !== '') {
-                        boxDayNumLZ = ("0" + boxDayNum).slice(-2);
-                        boxMonthNum = ("0" + (assumedDate.getMonth() + 1)).slice(-2);
-                        boxYearNum = assumedDate.getFullYear();
-                        var unseenBoxValue = boxYearNum + '-' + boxMonthNum + '-' + boxDayNumLZ;
-                        if (unseenBoxValue == selectedDateStr) {
-                            calendarTblTd.classList.add("selected-day-cell");
-                        }
-                    }
-
-                    calendarTblTd.setAttribute("onclick", "clickDay('" + boxDayNum + "')")
-
-                }
-
-
-            }
-
-            var calendarTblTdTxt = document.createTextNode(boxDayNum);
-            calendarTblTd.appendChild(calendarTblTdTxt);
-            calendarWeekRow.appendChild(calendarTblTd);
-        }
-
-        datePickerTbl.appendChild(calendarWeekRow);
-
-      i++;
-    }
-    while (i <= numWeeksThisMonth);  
-
-    return datePickerTbl;
-
-}
-
-function buildTopRow() {
-
-    if (weekStartsOn == 1) {
-        var dayZero = dayNames[0];
-        dayNames.shift();
-        dayNames.push(dayZero);
-    }
-
-    datePickerTblTopRow = document.createElement("tr");
-    datePickerTblTopRow.setAttribute("class", "tg-datepicker-row");
-
-    for (var i = 0; i <= 6; i++) {
-        var dayLabel = dayNames[i].substring(0, 2);
-        var calendarTblTh = document.createElement("th");
-        var calendarTblThTxt = document.createTextNode(dayLabel);
-        calendarTblTh.appendChild(calendarTblThTxt);
-        datePickerTblTopRow.appendChild(calendarTblTh);
-    }
-
-    return datePickerTblTopRow;
-
-}
-
-function getMonthStartDayNum() {
-    var y = assumedDate.getFullYear(); 
-    var m = assumedDate.getMonth();
-    var firstDay = new Date(y, m, 1); 
-    var monthStartDayNum = firstDay.getDay();
-
-    if (monthStartDayNum == 0) {
-        monthStartDayNum = 7;
-    }
-
-    return monthStartDayNum;
-}
-
-function getNumDaysInMonth() {
-    var theMonth = assumedDate.getMonth()+1; // Here January is 0 based
-    var theYear = assumedDate.getFullYear();
-    return new Date(theYear, theMonth, 0).getDate();
-}
-
-function testForIsAvailable(dayCounter) {
-
-    //turn the day (to be tested) into a date object
-    var boxDate = new Date(assumedDate.getFullYear(), assumedDate.getMonth(), dayCounter);
-
-    if(typeof unavailableBefore == 'object') {
-
-        if (boxDate<=unavailableBefore) {
-            return false;
-        }
-
-    }
-
-    if (typeof unavailableAfter == 'object') {
-
-        if (boxDate>=unavailableAfter) {
-            return false;
-        }
-
-    }
-
-    return true;
-}
-
-function testForCurrentDay(dayCounter) {
-
-    var todayStr = todayDate.getDate() + ' ' + todayDate.getMonth() + ' ' + todayDate.getFullYear();
-    var assumedDateStr = dayCounter + ' ' + assumedDate.getMonth() + ' ' + assumedDate.getFullYear();
-
-    if (todayStr == assumedDateStr) {
-        return true;
-    } else {
-        return false;
-    }
-
-}
-
-function changeMonth(direction) {
-
-    var m = assumedDate.getMonth();
-
-    if (direction == 'down') {
-        var newM = m-1;
-        assumedDate.setMonth(newM);
-    } else {
-        var newM = m+1;
-        assumedDate.setMonth(newM);
-    }
-
-    refreshDatePickerHead();
-
-    if (activeType == 'datetime-picker-calendar') {
-        var calendarTbl = document.querySelector(".datetime-picker-calendar table:nth-child(2)");
-        calendarTbl.remove();
-        var datePickerTbl = buildAndPopulateDatePickerTbl();
-        var targetElement = document.querySelector(".datepicker-head");
-        targetElement.insertAdjacentElement("afterend", datePickerTbl);
-    } else {
-        var datePickerCalendar = activePopUp;
-        var childNodes = datePickerCalendar.childNodes;
-        childNodes[1].remove(); //remove the table with the days    
-        //build and populate calendar table   
-        var datePickerTbl = buildAndPopulateDatePickerTbl();
-        datePickerCalendar.appendChild(datePickerTbl); 
-    }
-}
-
-function refreshDatePickerHead() {
-    var baseElement = document.querySelector(".datepicker-head");
-    var targetDiv = baseElement.querySelector("div:nth-child(2)");
-    var currentMonthNum = assumedDate.getMonth(); // getMonth() returns month from 0-11 not 1-12
-    var currentMonth = monthNames[currentMonthNum];
-    var currentYear = assumedDate.getFullYear();
-    var datePickerHeadline = currentMonth + ' ' + currentYear;
-    targetDiv.innerHTML = datePickerHeadline;
-}
-
-function clickDay(dayNum) {
-
-    highlightClickedDayCell(dayNum);
-    assumedDate.setDate(dayNum);
-
-    if ((activeType == 'datepicker-calendar') || (activeType == 'date-range-calendar')) {
-        var niceDate = formatDateObj(assumedDate, 'date');
-    } else {
-        var niceDate = formatDateObj(assumedDate, 'datetime');
-    }
-
-    //update the textfield so that it has the nice date
-    activeEl.value = niceDate;
-
-    if (activeType == 'date-range-calendar') {
-        //get the partner date and target pos (1st or 2nd)
-        var result = estPartner(activeEl);
-        var elType = result.elType; //1st or 2nd (for the clicked form input)
-        var partnerEl = result.partnerEl; //the partner form input element
-        adjustPartnerClass(elType, partnerEl, assumedDate);
-    }
-
-    if (activeType !== 'datetime-picker-calendar') {
-        activePopUp.remove();
-    }
-
-}
-
-function customClassRemove(targetEl, strStart) {
-    var elClasses = targetEl.classList;
-    var targetIndex = strStart.length;
-
-    for (var i = 0; i < elClasses.length; i++) {
-
-        if (elClasses[i].length>targetIndex) {
-            var classStart = elClasses[i].substring(0, targetIndex);
-
-            if (classStart == strStart) {
-                elClasses.remove(elClasses[i]);
-            }
-        }
-        
-    }
-}
-
-function highlightClickedDayCell(dayNum) {
-    var tblCells = document.getElementsByClassName("day-cell");
-
-    for (var i = 0; i < tblCells.length; i++) {
-        if (tblCells[i].innerHTML == dayNum) {
-            tblCells[i].classList.add("selected-day-cell");
-        } else {
-            tblCells[i].classList.remove("selected-day-cell");
-        }
-    }
-}
-
-function disableDatePickerInputs(className) {
-
-    //make the input fields (for datePickers) 'disabled'
-    var datePickerInputs = document.getElementsByClassName(className);
-    var originalValue;
-    for (var i = 0; i < datePickerInputs.length; i++) {
-
-        // javascript get character that was pressed
-     
-        var originalValue = '';
-        datePickerInputs[i].addEventListener("focus", (ev) => {
-            originalValue = ev.target.value;
-        });
-        
-        datePickerInputs[i].addEventListener("blur", (ev) => {
-            if (parseDate(ev.target.value) == 'Invalid Date') {
-                ev.target.value = originalValue;
-            }  
-        });
-        
-
-        datePickerInputs[i].addEventListener("keyup", (ev) => {
-            var isNumber = /^[0-9]$/i.test(ev.key);
-            if ((ev.key == 'Backspace') || (ev.key == 'Delete')) {
-                if (ev.target.value.length == 0) {
-                    originalValue = ev.target.value;
-                } else {
-                    ev.target.value = originalValue;    
-                }
-            } else if (isNumber !== true) {
-                ev.target.value = originalValue;
-            } else {
-                //attempt to extract the year from the form input field
-                var extractedYear = attemptExtractYear(ev.target.value);
-
-                if (extractedYear !== false) {
-                    //we have a valid year in the form input field
-                    assumedDate.setYear(extractedYear);
-                    activePopUp.remove();
-                }
-            }
-            
-        });
-
-    }
-
-}
-
-function attemptExtractYear(text) {
-    var score = 0;
-    var extractedYear = '';
-
-    for (var x = 0; x < text.length; x++) {
-        var c = text.charAt(x);
-        var isNumber = /^[0-9]$/i.test(c);
-
-        if (isNumber == true) {
-            score++;
-            extractedYear+= c;
-        } else {
-            score = 0;
-            extractedYear = '';
-        }
-
-        if (score == 4) {
-            return extractedYear;
-        }
-
-    }
-
-    return false;
-}
-
-function getDateFromInput() {
-    value = activeEl.value;
-    return parseDate(value);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function destroyEls(className) {
-    var targetEls = document.getElementsByClassName(className);
-    for (var i = 0; i < targetEls.length; i++) {
-        targetEls[i].remove();
-    }
-
-    if ((className == 'timepicker-popup') || (className == 'datetime-picker-calendar')) {
-        activeTimePickerInputs();
-    }
-}
-
-function childOf(node, ancestor) {
-    var child = node;
-    while (child !== null) {
-        if (child === ancestor) return true;
-        child = child.parentNode;
-    }
-    return false;   
-}
-
-function listenForOffsideClicks(inputClass, popUpClass) {
-    body.addEventListener("click", (ev) => {
-        //is the clickedTimePickerEl on or within one of our target classes?
-        var offSide = isOffside(ev.target, inputClass, popUpClass);
-        if (offSide == true) {
-            destroyEls(popUpClass);
+            resolve(defaultDateFormatsObj);
         }
     });
 }
 
-function isOffside(clickedTimePickerEl, inputClass, popUpClass) {
+async function tgdtEstablishDayNames() {
+    return new Promise((resolve) => {
+        const date = new Date();
+        const dayNames = [];
 
-    var offSide = true;
+        // Set the day to the appropriate starting day (Sunday or Monday)
+        date.setDate(date.getDate() - date.getDay() + trongateDateTimeObj.weekStartsOn);
 
-    if ((clickedTimePickerEl.classList.contains(inputClass)) || (clickedTimePickerEl.classList.contains(popUpClass)))  {
-        offSide = false;
+        for (let i = 0; i < 7; i++) {
+            dayNames.push(date.toLocaleDateString(trongateDateTimeObj.thisLocaleString, { weekday: 'long' }));
+            date.setDate(date.getDate() + 1);
+        }
+
+        trongateDateTimeObj.dayNames = dayNames;
+        resolve();
+    });
+}
+
+async function tgdtEstablishMonthNames() {
+    return new Promise((resolve) => {
+        const date = new Date();
+        const monthNames = [];
+
+        for (let i = 0; i < 12; i++) {
+            monthNames.push(date.toLocaleDateString(trongateDateTimeObj.thisLocaleString, { month: 'long' }));
+            date.setMonth(date.getMonth() + 1);
+        }
+
+        trongateDateTimeObj.monthNames = monthNames;
+        resolve(trongateDateTimeObj.monthNames);
+    });
+
+}
+
+async function tgdtEstablishDatePickerTblTopRow() {
+    return new Promise((resolve) => {
+        // Adjust day names order based on weekStartsOn
+        const adjustedDayNames = [...trongateDateTimeObj.dayNames];
+
+        trongateDateTimeObj.datePickerTblTopRow = document.createElement("tr");
+        trongateDateTimeObj.datePickerTblTopRow.setAttribute("class", "tg-datepicker-row");
+
+        // Build top row with adjusted day names
+        adjustedDayNames.forEach((dayLabel) => {
+            const abbreviatedDay = dayLabel.substring(0, 2);
+            const calendarTblTh = document.createElement("th");
+            const calendarTblThTxt = document.createTextNode(abbreviatedDay);
+            calendarTblTh.appendChild(calendarTblThTxt);
+            trongateDateTimeObj.datePickerTblTopRow.appendChild(calendarTblTh);
+        });
+
+        resolve();
+    });
+}
+
+trongateDateTimeObj.removeClassFromElement = function(className) {
+  const elements = document.querySelectorAll(`.${className}`);
+
+  elements.forEach(element => {
+    element.classList.remove(className);
+  });
+}
+// *** Trongate Time Date Initialisation FINISH ***
+//--------------------------------------------------
+
+// *** Trongate Time Utility Functions START ***
+
+trongateDateTimeObj.gotActivePopup = function(targetEl) {
+  // Is there a pop-up (such as a date-picker) that relates to this element on the page?
+  const targetInputClass = trongateDateTimeObj.findTargetClass(targetEl, 'tgtd-input-code-');
+
+  if (!targetInputClass) {
+    return false;
+  }
+
+  const excludePopupClass = targetInputClass.replace('-input-', '-popup-');
+  const existingPopupEl = document.getElementsByClassName(excludePopupClass);
+
+  return existingPopupEl.length > 0;
+}
+
+trongateDateTimeObj.findTargetClass = function(element, startsWith) {
+  const classes = element.classList;
+
+  for (let i = 0; i < classes.length; i++) {
+    const currentClass = classes[i];
+    if (currentClass.startsWith(startsWith)) {
+      return currentClass;
+    }
+  }
+
+  return null;
+}
+
+trongateDateTimeObj.generateElementCodes = function() {
+    const randStr = trongateDateTimeObj.generateRandomString();
+    const inputCode = 'tgtd-input-code-' + randStr;
+    const popupCode = inputCode.replace('-input-', '-popup-');
+
+    const elementCodes = {
+        inputCode,
+        popupCode
+    }
+
+    return elementCodes;
+}
+
+trongateDateTimeObj.generateRandomString = function() {
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = '';
+
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    randomString += characters.charAt(randomIndex);
+  }
+
+  return randomString;
+}
+
+trongateDateTimeObj.destroyElements = function(className, exclusionClass = '') {
+  const targetEls = document.getElementsByClassName(className);
+  
+  for (let i = targetEls.length - 1; i >= 0; i--) {
+    const currentElement = targetEls[i];
+
+    // Check if exclusionClass is provided and if the current element has the exclusionClass
+    if (exclusionClass !== '' && currentElement.classList.contains(exclusionClass)) {
+      continue;
+    }
+
+    const targetPopupClass = trongateDateTimeObj.findTargetClass(currentElement, 'tgtd-popup-code-');
+    const inputClass = targetPopupClass.replace('-popup-', '-input-');
+    trongateDateTimeObj.removeClassFromElement(inputClass);
+    currentElement.remove();
+  }
+
+  // Let's also remove any overlays that might be on the page.
+  const timeDateOverlays = document.querySelectorAll('.trongate-time-date-overlay');
+  for (let  j = timeDateOverlays.length - 1; j >= 0; j--) {
+      timeDateOverlays[j].remove();
+  }
+};
+
+trongateDateTimeObj.parseDateFromInput = function(inputValue) {
+    // Accepts a date string in either UK (dd-mm-yyyy) or US (mm/dd/yyyy) format.
+    // Returns a JavaScript Date object parsed from the input value, or null if parsing fails.
+
+    const mmIndex = trongateDateTimeObj.thisDateFormat.indexOf('mm');
+
+    let extractedDay;
+    let extractedMonth;
+    let extractedYear = inputValue.substring(6, 10);
+
+    if (mmIndex === 3) {
+        // Assume UK date format (e.g., 25-12-2045)
+        extractedDay = inputValue.substring(0, 2);
+        extractedMonth = inputValue.substring(3, 5);
     } else {
-        //let's check to see if is child of one of the target classes
-        var targetAncestors = getTargetAncestors(inputClass, popUpClass);
+        // Assume (default) US date format (e.g., 12/25/2045)
+        extractedDay = inputValue.substring(3, 5);
+        extractedMonth = inputValue.substring(0, 2);
+    }
 
-        for (var i = 0; i < targetAncestors.length; i++) {
-            
-            var isChildOf = childOf(clickedTimePickerEl, targetAncestors[i]);
+    try {
+        // Attempt to create a Date object from extracted values
+        const parsedDate = new Date(parseInt(extractedYear), parseInt(extractedMonth) - 1, parseInt(extractedDay));
 
-            if (isChildOf == true) {
-                offSide = false;
+        // Check if the parsed date is valid
+        if (isNaN(parsedDate.getTime())) {
+            return null; // Return null if the date is invalid
+        }
+
+        return parsedDate; // Return the valid date
+    } catch (error) {
+        return null; // Return null on error
+    }
+}
+
+trongateDateTimeObj.buildDatePickerHead = function() {
+    const datePickerHead = document.createElement("div");
+    datePickerHead.classList.add("datepicker-head");
+
+    const datePickerHeadLeft = document.createElement("div");
+    datePickerHead.appendChild(datePickerHeadLeft);
+
+    const datePickerArrowDivLeft = document.createElement("div");
+    datePickerArrowDivLeft.addEventListener("click", () => trongateDateTimeObj.changeMonth('down'));
+    datePickerArrowDivLeft.classList.add("popup-arrow");
+
+    const flipArrowSpanLeft = document.createElement("span");
+    flipArrowSpanLeft.classList.add("flip-arrow");
+    flipArrowSpanLeft.appendChild(document.createTextNode("▸"));
+    datePickerArrowDivLeft.appendChild(flipArrowSpanLeft);
+    datePickerHeadLeft.appendChild(datePickerArrowDivLeft);
+
+    const datePickerHeadCenter = document.createElement("div");
+    const datePickerHeadlineText = trongateDateTimeObj.getCalendarHeadText();
+    datePickerHeadCenter.appendChild(document.createTextNode(datePickerHeadlineText));
+    datePickerHead.appendChild(datePickerHeadCenter);
+
+    const datePickerHeadRight = document.createElement("div");
+    const datePickerArrowDivRight = document.createElement("div");
+    datePickerArrowDivRight.addEventListener("click", () => trongateDateTimeObj.changeMonth('up'));
+    datePickerArrowDivRight.classList.add("popup-arrow");
+
+    const datePickerNavArrowRight = document.createTextNode("▸");
+    datePickerArrowDivRight.appendChild(datePickerNavArrowRight);
+    datePickerHeadRight.appendChild(datePickerArrowDivRight);
+    datePickerHead.appendChild(datePickerHeadRight);
+
+    return datePickerHead;
+};
+
+trongateDateTimeObj.getCalendarHeadText = function() {
+    return new Intl.DateTimeFormat(trongateDateTimeObj.thisLocaleString, { month: 'long', year: 'numeric' }).format(trongateDateTimeObj.assumedDate);
+};
+
+trongateDateTimeObj.buildAndPopulateDatePickerTbl = function() {
+
+    let monthStartDayNum = trongateDateTimeObj.getMonthStartDayNum();
+
+    if(trongateDateTimeObj.weekStartsOn === 0) {
+        monthStartDayNum++;
+    }
+
+    const numDaysInMonth = trongateDateTimeObj.getNumDaysInMonth();
+
+    // Calculate the number of days needed to complete the first week
+    const remainingDaysInFirstWeek = 7 - (monthStartDayNum - 1);
+
+    // Calculate the total number of weeks needed
+    const totalDaysAfterFirstWeek = numDaysInMonth - remainingDaysInFirstWeek;
+    const numWeeksThisMonth = 1 + Math.ceil(totalDaysAfterFirstWeek / 7); 
+    const dayNames = trongateDateTimeObj.dayNames;  
+    
+    let datePickerTbl = document.createElement("table");
+    datePickerTbl.appendChild(trongateDateTimeObj.datePickerTblTopRow);
+
+    // The following variables help to determine 'current-day' class usage.
+    const assumedYear = trongateDateTimeObj.assumedDate.getFullYear();
+    const assumedMonth = trongateDateTimeObj.assumedDate.getMonth(); 
+
+    const nowYear = trongateDateTimeObj.todayDate.getFullYear();
+    const nowMonth = trongateDateTimeObj.todayDate.getMonth(); 
+    const nowDay = trongateDateTimeObj.todayDate.getDate(); // This returns the day number (1-31)
+    const checkForNowDay = (assumedYear === nowYear && assumedMonth === nowMonth) ? true : false;
+
+    // The following variables help to determine 'selected-day-cell' class usage.
+    let parsedDay = 0;
+    let checkForSelectedDay = false;
+    if(trongateDateTimeObj.parsedInputDate !== null) {
+        const parsedYear = trongateDateTimeObj.parsedInputDate.getFullYear();
+        const parsedMonth = trongateDateTimeObj.parsedInputDate.getMonth(); 
+
+        parsedDay = trongateDateTimeObj.parsedInputDate.getDate();  
+
+        if((assumedYear === parsedYear) && (assumedMonth === parsedMonth)) {
+            checkForSelectedDay = true;
+        } 
+    }
+
+    let boxCounter = 0;
+    let dayCounter = 0;
+
+    for (let tblRowIndex = 0; tblRowIndex < numWeeksThisMonth; tblRowIndex++) {
+        
+        // Create a table row.
+        const calendarTblRow = document.createElement('tr');
+        datePickerTbl.appendChild(calendarTblRow);
+
+        for (let dayCellIndex = 0; dayCellIndex < dayNames.length; dayCellIndex++) {
+            boxCounter++;
+            const calendarTblTd = document.createElement("td");
+
+            if (boxCounter < monthStartDayNum || dayCounter >= numDaysInMonth) {
+                calendarTblTd.classList.add('empty-day');
+                calendarTblTd.innerHTML = '&nbsp;';
+            } else {
+                dayCounter++;
+                calendarTblTd.innerHTML = dayCounter;
+                calendarTblTd.addEventListener("click", (ev) => trongateDateTimeObj.clickDay(ev.target));
             }
 
+            const isCurrentDay = checkForNowDay && dayCounter === nowDay;
+            if (isCurrentDay) {
+                calendarTblTd.classList.add('current-day');
+            }
+
+            const isSelectedDay = checkForSelectedDay && dayCounter === parsedDay;
+            if (isSelectedDay) {
+                calendarTblTd.classList.add('selected-day-cell');
+            }
+
+            calendarTblRow.appendChild(calendarTblTd);
         }
 
     }
 
-    return offSide;
-
+    trongateDateTimeObj.removeEmptyRows(datePickerTbl);
+    return datePickerTbl;
 }
 
-function getTargetAncestors(inputClass, popUpClass) {
-    var targetAncestors = [];
-    var targetInputs = document.getElementsByClassName(inputClass);
-    for (var i = 0; i < targetInputs.length; i++) {
-        targetAncestors.push(targetInputs[i]);
+trongateDateTimeObj.estMonthType = function() {
+    const assumedYear = trongateDateTimeObj.assumedDate.getFullYear();
+    const assumedMonth = trongateDateTimeObj.assumedDate.getMonth(); 
+
+    const nowYear = trongateDateTimeObj.todayDate.getFullYear();
+    const nowMonth = trongateDateTimeObj.todayDate.getMonth(); 
+
+    // Getting date representations for the start of the month using assumedMonth and assumedYear
+    const startOfMonthAssumed = new Date(assumedYear, assumedMonth, 1);
+
+    // Getting date representations for the start of the month using nowMonth and nowYear
+    const startOfMonthNow = new Date(nowYear, nowMonth, 1);
+
+    let monthType;
+
+    if (startOfMonthNow < startOfMonthAssumed) {
+        monthType = 'futureMonth';
+    } else if (startOfMonthNow > startOfMonthAssumed) {
+        monthType = 'pastMonth';
+    } else {
+        monthType = 'currentMonth';
     }
 
-    var targetPopUps = document.getElementsByClassName(popUpClass);
-    for (var i = 0; i < targetPopUps.length; i++) {
-        targetAncestors.push(targetPopUps[i]);
-    }
-    return targetAncestors;
+    return monthType;
 }
 
+trongateDateTimeObj.makeAllCellsUnavailable = function(datePickerTbl) {
+    const tableCells = datePickerTbl.querySelectorAll('td');
+    for (let  i = 0; i < tableCells.length; i++) {
+        tableCells[i].classList.add('unavailable-day');
+    }
+}
 
+trongateDateTimeObj.enforceInTheFuture = function(datePickerInput, datePickerTbl) {
+    if (datePickerInput.classList.contains('in-the-future')) {
+        const monthType = trongateDateTimeObj.estMonthType();
 
+        if (monthType === 'pastMonth') {
+            // Make all table cells unavailable
+            trongateDateTimeObj.makeAllCellsUnavailable(datePickerTbl);
+        } else if (monthType === 'currentMonth') {
+            const tableCells = datePickerTbl.querySelectorAll('td');
+            const today = new Date();
 
+            tableCells.forEach(cell => {
+                const cellContent = parseInt(cell.textContent);
 
+                if (!isNaN(cellContent) && cellContent > 0) {
+                    const cellDate = new Date(today.getFullYear(), today.getMonth(), cellContent);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//time pickers
-function initTimePickers() {
-    //listen for a time-picker input field getting clicked
-
-    for (var i = 0; i < timePickerFields.length; i++) {
-
-        var timePickerVal = timePickerFields[i].value;
-
-        if (timePickerVal.length == 8) {
-            timePickerFields[i].value = timePickerVal.substring(0, timePickerVal.length-3); 
+                    if (cellDate <= today || cell.classList.contains('current-day')) {
+                        cell.classList.add('unavailable-day');
+                    }
+                }
+            });
         }
-
-        timePickerFields[i].addEventListener("click", (ev) => {
-            clickedTimePickerEl = ev.target;
-            activeType = 'timepicker-popup';
-            buildTimePickerPopUp(clickedTimePickerEl, false);
-        });
     }
+
+    return datePickerTbl;
 }
 
-function addZeroBefore(n) {
+trongateDateTimeObj.enforceInThePast = function(datePickerInput, datePickerTbl) {
+    if (datePickerInput.classList.contains('in-the-past')) {
+        const monthType = trongateDateTimeObj.estMonthType();
+
+        if (monthType === 'futureMonth') {
+            // Make all table cells unavailable
+            trongateDateTimeObj.makeAllCellsUnavailable(datePickerTbl);
+        } else if (monthType === 'currentMonth') {
+            const tableCells = datePickerTbl.querySelectorAll('td');
+            const today = new Date();
+
+            tableCells.forEach(cell => {
+                const cellContent = parseInt(cell.textContent);
+
+                if (!isNaN(cellContent) && cellContent > 0) {
+                    const cellDate = new Date(today.getFullYear(), today.getMonth(), cellContent);
+
+                    if (cellDate >= today || cell.classList.contains('current-day')) {
+                        cell.classList.add('unavailable-day');
+                    }
+                }
+            });
+        }
+    }
+
+    return datePickerTbl;
+}
+
+trongateDateTimeObj.getMonthStartDayNum = function() {
+    const y = trongateDateTimeObj.assumedDate.getFullYear(); 
+    const m = trongateDateTimeObj.assumedDate.getMonth();
+    const firstDay = new Date(y, m, 1); 
+    let monthStartDayNum = firstDay.getDay();
+
+    if (monthStartDayNum === 0) {
+        monthStartDayNum = 7;
+    }
+
+    return monthStartDayNum;
+};
+
+trongateDateTimeObj.getNumDaysInMonth = function() {
+    const theMonth = trongateDateTimeObj.assumedDate.getMonth(); // Corrected to be 0-based
+    const theYear = trongateDateTimeObj.assumedDate.getFullYear();
+    return new Date(theYear, theMonth + 1, 0).getDate();
+};
+
+trongateDateTimeObj.addZeroBefore = function(n) {
     return (n < 10 ? '0' : '') + n;
 }
 
-function buildTimePickerPopUp(clickedTimePickerEl, parentCalendar) {
+trongateDateTimeObj.testForIsAvailable = function(dayCounter) {
+    // Turn the day (to be tested) into a date object
+    const boxDate = new Date(trongateDateTimeObj.assumedDate.getFullYear(), trongateDateTimeObj.assumedDate.getMonth(), dayCounter);
 
-    if (parentCalendar == true) {
-        clickedTimePickerEl = parentCalendar;
+    if (typeof unavailableBefore === 'object' && boxDate <= unavailableBefore) {
+        return false;
     }
 
-    destroyEls("timepicker-popup");
-    var timePicker = document.createElement("div");
+    if (typeof unavailableAfter === 'object' && boxDate >= unavailableAfter) {
+        return false;
+    }
+
+    return true;
+};
+
+trongateDateTimeObj.testForCurrentDay = function(dayCounter) {
+    const todayStr = `${trongateDateTimeObj.todayDate.getDate()} ${trongateDateTimeObj.todayDate.getMonth()} ${trongateDateTimeObj.todayDate.getFullYear()}`;
+    const assumedDateStr = `${dayCounter} ${trongateDateTimeObj.assumedDate.getMonth()} ${trongateDateTimeObj.assumedDate.getFullYear()}`;
+
+    return todayStr === assumedDateStr;
+};
+
+trongateDateTimeObj.removeEmptyRows = function(targetTable) {
+    const rows = targetTable.getElementsByTagName("tr");
+
+    for (let i = rows.length - 1; i >= 0; i--) {
+        const cells = rows[i].getElementsByTagName("td");
+        const headerCells = rows[i].getElementsByTagName("th");
+
+        // Skip rows with <th> elements
+        if (headerCells.length > 0) {
+            continue;
+        }
+
+        let isEmptyRow = true;
+
+        for (let j = 0; j < cells.length; j++) {
+            const cellContent = cells[j].textContent.trim();
+            if (!cells[j].classList.contains("empty-day") || cellContent !== '' && cellContent !== ' ') {
+                // If a non-empty or non-"empty-day" cell is found, it's not an empty row
+                isEmptyRow = false;
+                break;
+            }
+        }
+
+        if (isEmptyRow) {            
+            // Remove the empty row
+            targetTable.deleteRow(i);
+        }
+    }
+}
+
+trongateDateTimeObj.changeMonth = function(direction) {
+
+    const currentMonth = trongateDateTimeObj.assumedDate.getMonth();
+
+    if (direction === 'down') {
+        const newMonth = currentMonth - 1;
+        trongateDateTimeObj.assumedDate.setMonth(newMonth);
+    } else {
+        const newMonth = currentMonth + 1;
+        trongateDateTimeObj.assumedDate.setMonth(newMonth);
+    }
+
+    trongateDateTimeObj.refreshDatePickerHead();
+
+    let datePickerTbl;
+
+    if (trongateDateTimeObj.activeType === 'datetime-picker-calendar') {
+        const calendarTbl = document.querySelector(".datetime-picker-calendar table:nth-child(2)");
+        calendarTbl.remove();
+        datePickerTbl = trongateDateTimeObj.buildAndPopulateDatePickerTbl();
+        const targetElement = document.querySelector(".datepicker-head");
+        targetElement.insertAdjacentElement("afterend", datePickerTbl);
+    } else {
+        trongateDateTimeObj.datePickerCalendar = trongateDateTimeObj.activePopUp;
+        const childNodes = trongateDateTimeObj.datePickerCalendar.childNodes;
+        childNodes[1].remove(); // remove the table with the days    
+        // build and populate calendar table   
+        datePickerTbl = trongateDateTimeObj.buildAndPopulateDatePickerTbl();
+        trongateDateTimeObj.datePickerCalendar.appendChild(datePickerTbl); 
+    }
+
+    datePickerTbl = trongateDateTimeObj.enforceInTheFuture(trongateDateTimeObj.activeEl, datePickerTbl);
+    datePickerTbl = trongateDateTimeObj.enforceInThePast(trongateDateTimeObj.activeEl, datePickerTbl);
+
+};
+
+trongateDateTimeObj.refreshDatePickerHead = function() {
+    const baseElement = document.querySelector(".datepicker-head");
+    const targetDiv = baseElement.querySelector("div:nth-child(2)");
+    const datePickerHeadlineText = trongateDateTimeObj.getCalendarHeadText();
+    targetDiv.innerHTML = datePickerHeadlineText;
+};
+
+trongateDateTimeObj.formatDateObj = function(dateObj, outputType) {
+    const date_format = trongateDateTimeObj.thisDateFormat;
+    const day = dateObj.getDate();
+    const month = dateObj.getMonth() + 1; // Months are zero-based
+    const year = dateObj.getFullYear();
+
+    const formatted_date = date_format
+        .replace('dd', String(day).padStart(2, '0'))
+        .replace('mm', String(month).padStart(2, '0'))
+        .replace('yyyy', String(year));
+
+    if (outputType === 'date') {
+        return formatted_date;
+    } else if (outputType === 'time') {
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    } else {
+        // Output for 'datetime'
+        const localizedDateTime = trongateDateTimeObj.convertToDateTimeStr()
+        return localizedDateTime;
+    }
+};
+
+// *** Trongate Time Utility Functions FINISH ***
+//--------------------------------------------------
+
+trongateDateTimeObj.clickDay = function(clickedEl) {
+
+    const dayCell = clickedEl.closest('td');
+
+    // Stop if cell contains a class of 'unavailable-day'.
+    if(dayCell.classList.contains('unavailable-day')) {
+        return;
+    }
+
+    const dayNum = dayCell.innerText;
+    trongateDateTimeObj.assumedDate.setDate(dayNum);
+
+    let niceDate;
+    if (trongateDateTimeObj.activeType === 'datepicker-calendar' || trongateDateTimeObj.activeType === 'date-range-calendar') {
+        niceDate = trongateDateTimeObj.formatDateObj(trongateDateTimeObj.assumedDate, 'date');
+    } else {
+        niceDate = trongateDateTimeObj.formatDateObj(trongateDateTimeObj.assumedDate, 'datetime');
+    }
+
+    //update the textfield so that it has the nice date
+    const activeEl = trongateDateTimeObj.activeEl;
+    activeEl.value = niceDate;
+
+    if(trongateDateTimeObj.activeType === 'datepicker-calendar') {
+        trongateDateTimeObj.destroyElements('datepicker-calendar');
+    }
+
+}
+
+trongateDateTimeObj.syncOtherDateTimeProperties = function() {
+    const assumedDate = trongateDateTimeObj.assumedDate;
+    let currentHour = assumedDate.getHours();
+    let currentMinute = assumedDate.getMinutes();
+    trongateDateTimeObj.currentHour = trongateDateTimeObj.addZeroBefore(currentHour);
+    trongateDateTimeObj.currentMinute = trongateDateTimeObj.addZeroBefore(currentMinute);  
+}
+
+trongateDateTimeObj.buildPopupCalendar = function(formInputEl, calendarParams={}) {
+
+    const elementCodes = trongateDateTimeObj.generateElementCodes();
+
+    let popupCalendarClass = 'datepicker-calendar'
+    if(calendarParams.type === 'datetime-picker') {
+        popupCalendarClass = 'datetime-picker-calendar'
+    }
+
+    // Destroy any existing pop-up calendars.
+    trongateDateTimeObj.destroyElements(popupCalendarClass);
+
+    // Get the value from the form input field.
+    const datePickerValue = formInputEl.value;
+    formInputEl.classList.add(elementCodes.inputCode);
+
+    // Is this a valid date value inside the form input field?
+    const parsedDate = trongateDateTimeObj.parseDateFromInput(datePickerValue);
+
+    // Set trongateDateTimeObj.assumedDate, based on extracted input value.
+    if (parsedDate === null) {
+        trongateDateTimeObj.assumedDate = new Date();
+    } else {
+        trongateDateTimeObj.assumedDate = parsedDate;
+        trongateDateTimeObj.parsedInputDate = trongateDateTimeObj.parseDateFromInput(datePickerValue);
+    }
+
+    trongateDateTimeObj.datePickerCalendar = document.createElement("div");
+    trongateDateTimeObj.datePickerCalendar.setAttribute("class", popupCalendarClass + ' ' + elementCodes.popupCode);
+
+    const datePickerHead = trongateDateTimeObj.buildDatePickerHead();
+    trongateDateTimeObj.datePickerCalendar.appendChild(datePickerHead);
+
+    //build and populate calendar table
+    let datePickerTbl = trongateDateTimeObj.buildAndPopulateDatePickerTbl();
+    datePickerTbl = trongateDateTimeObj.enforceInTheFuture(formInputEl, datePickerTbl);
+    datePickerTbl = trongateDateTimeObj.enforceInThePast(formInputEl, datePickerTbl);
+    trongateDateTimeObj.datePickerCalendar.appendChild(datePickerTbl);
+
+    trongateDateTimeObj.activePopUp = trongateDateTimeObj.datePickerCalendar;
+
+    const activeEl = trongateDateTimeObj.activeEl;
+    const isMobileDevice = trongateDateTimeObj.isMobileDevice();
+
+    if (isMobileDevice === true) {
+        trongateDateTimeObj.createOverlayWithElement(trongateDateTimeObj.datePickerCalendar);
+    } else {
+        activeEl.parentNode.insertBefore(trongateDateTimeObj.datePickerCalendar, activeEl.nextSibling);
+    }
+
+    if(popupCalendarClass === 'datetime-picker-calendar') {
+        trongateDateTimeObj.buildTimePickerPopUp(formInputEl, trongateDateTimeObj.datePickerCalendar);
+    }
+
+}
+
+trongateDateTimeObj.createOverlayWithElement = function(targetElement) {
+    setTimeout(() => {
+
+        // Do we have any existing overlays?
+        const existingOverlay = document.querySelector('.trongate-time-date-overlay');
+        if(existingOverlay) {
+            return;
+        }
+
+        // Create the overlay element
+        const overlay = document.createElement('div');
+        overlay.setAttribute('class', 'trongate-time-date-overlay');
+
+        // Style the overlay
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.833)'; // Adjust the alpha value for transparency
+
+        // Add the overlay to the page body
+        document.body.appendChild(overlay);
+
+        // Style the popup
+        targetElement.style.position = 'fixed';
+        targetElement.style.top = '50%';
+        targetElement.style.left = '50%';
+        targetElement.style.transform = 'translate(-50%, -50%)';
+        document.body.appendChild(targetElement);
+
+    }, 3);
+}
+
+trongateDateTimeObj.isMobileDevice = function() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0;
+}
+
+trongateDateTimeObj.listenForDatePickerClicks = function(datePickerFields) {
+    for (let i = 0; i < datePickerFields.length; i++) {
+        const targetDatePickerInput = datePickerFields[i].closest('.date-picker');
+        trongateDateTimeObj.listenForDatePickerClick(targetDatePickerInput);
+    }
+};
+
+trongateDateTimeObj.listenForDatePickerClick = function(targetDatePickerInput) {
+    targetDatePickerInput.addEventListener('click', (ev) => {
+        trongateDateTimeObj.activeEl = ev.target;
+        trongateDateTimeObj.activeType = 'datepicker-calendar';
+        trongateDateTimeObj.originalInputValue = targetDatePickerInput.value;
+        const gotActivePopup = trongateDateTimeObj.gotActivePopup(targetDatePickerInput);
+        if(gotActivePopup === true) {
+            return;
+        } else {
+            trongateDateTimeObj.buildPopupCalendar(targetDatePickerInput);
+        }
+    });
+}
+
+trongateDateTimeObj.listenForTimePickerClicks = function(timePickerFields) {
+    for (let i = 0; i < timePickerFields.length; i++) {
+        const targetTimePickerInput = timePickerFields[i].closest('.time-picker');
+        trongateDateTimeObj.listenForTimePickerClick(targetTimePickerInput);
+    }
+};
+
+trongateDateTimeObj.listenForDateTimePickerClicks = function(dateTimePickerFields) {
+    for (let i = 0; i < dateTimePickerFields.length; i++) {
+        const targetDateTimePickerInput = dateTimePickerFields[i].closest('.datetime-picker');
+        trongateDateTimeObj.listenForDateTimePickerClick(targetDateTimePickerInput);
+    }
+};
+
+trongateDateTimeObj.listenForDateTimePickerClick = function(targetDateTimePickerInput) {
+    targetDateTimePickerInput.addEventListener('click', (ev) => {
+        trongateDateTimeObj.activeEl = ev.target;
+        trongateDateTimeObj.activeType = 'datetime-picker-calendar';
+        trongateDateTimeObj.originalInputValue = targetDateTimePickerInput.value;
+        const gotActivePopup = trongateDateTimeObj.gotActivePopup(targetDateTimePickerInput);
+        if(gotActivePopup === true) {
+            return;
+        } else {
+
+            const calendarParams = {
+                type: 'datetime-picker'
+            }
+
+            trongateDateTimeObj.buildPopupCalendar(targetDateTimePickerInput, calendarParams);
+        }
+    });
+}
+
+trongateDateTimeObj.listenForTimePickerClick = function(targetTimePickerInput) {
+
+    targetTimePickerInput.readOnly = true;
+
+    targetTimePickerInput.addEventListener('click', (ev) => {
+        trongateDateTimeObj.activeEl = ev.target;
+        trongateDateTimeObj.activeType = 'timepicker-popup';
+        trongateDateTimeObj.originalInputValue = targetTimePickerInput.value;
+        const gotActivePopup = trongateDateTimeObj.gotActivePopup(targetTimePickerInput);
+        if(gotActivePopup === true) {
+            return;
+        } else {
+            trongateDateTimeObj.buildTimePickerPopUp(targetTimePickerInput);
+        }
+    });
+}
+
+trongateDateTimeObj.buildTimePickerPopUp = function(clickedTimePickerEl, parentCalendar=null) {
+
+    let gotParentCalendar = !!parentCalendar;
+
+    if(gotParentCalendar === true) {
+        const inputValue = clickedTimePickerEl.value.trim(); // Trim to handle empty or whitespace strings
+        if (inputValue) {
+            trongateDateTimeObj.assumedDate = trongateDateTimeObj.convertLongStrToDateObject(inputValue);
+
+            if (trongateDateTimeObj.assumedDate !== null) {
+                const extractedTime = trongateDateTimeObj.extractHoursAndMinutes(inputValue);
+
+                if (extractedTime !== null) {
+                    const { hours, minutes } = extractedTime;
+
+                    if (hours !== undefined && minutes !== undefined) {
+                        trongateDateTimeObj.assumedDate.setHours(hours);
+                        trongateDateTimeObj.assumedDate.setMinutes(minutes);
+                    }
+                }
+            }
+        }
+        
+        trongateDateTimeObj.syncOtherDateTimeProperties();
+    }
+
+    const elementCodes = trongateDateTimeObj.generateElementCodes();
+    clickedTimePickerEl.classList.add(elementCodes.inputCode);
+
+    // Destroy any existing time pickers.
+    trongateDateTimeObj.destroyElements('timepicker-popup');
+
+    const timePicker = document.createElement("div");
     timePicker.setAttribute("class", "timepicker-popup");
+    timePicker.classList.add(elementCodes.popupCode);
 
-    //build the timePicker table
-    var timePickerTbl = document.createElement("table");
-    var timePickerTblTopTr = document.createElement("tr");
-    timePickerTbl.appendChild(timePickerTblTopTr);
-    var timePickerTblTopTh = document.createElement("th");
-    timePickerTblTopTh.setAttribute("colspan", "2");
-    var tblHeadline = document.createTextNode('Choose Time');
-    timePickerTblTopTh.appendChild(tblHeadline);
-    timePickerTblTopTr.appendChild(timePickerTblTopTh);
-    timePickerTbl.appendChild(timePickerTblTopTr);
-    
-    //first row
-    var tblRow = document.createElement("tr");
-    var tblCell = document.createElement("td");
-    var tblCellTxt = document.createTextNode('Time');
-    tblCell.appendChild(tblCellTxt);
-    tblRow.appendChild(tblCell);
-
-    tblCell = document.createElement("td");
-    var timeValue = formatDateObj(assumedDate, 'time');
-    tblCellTxt = document.createTextNode(timeValue);
-    tblCell.appendChild(tblCellTxt);
-    tblRow.appendChild(tblCell);
-
-    timePickerTbl.appendChild(tblRow);
-
-    //second row
-    tblRow = document.createElement("tr");
-    tblCell = document.createElement("td");
-    tblCellTxt = document.createTextNode('Hour');
-    tblCell.appendChild(tblCellTxt);
-    tblRow.appendChild(tblCell);
-
-    tblCell = document.createElement("td");
-    var formInput = document.createElement("input");
-    formInput.setAttribute("type", "range");
-    formInput.setAttribute("min", "0");
-    formInput.setAttribute("max", "23");
-    formInput.setAttribute("oninput", "updateHour(this.value)");
-    formInput.setAttribute("onchange", "updateHour(this.value)");
-    formInput.setAttribute("value", currentHour);
-
-    tblCell.appendChild(formInput);
-    tblRow.appendChild(tblCell);
-    timePickerTbl.appendChild(tblRow);
-
-    //third row
-    tblRow = document.createElement("tr");
-    tblCell = document.createElement("td");
-    tblCellTxt = document.createTextNode('Minute');
-    tblCell.appendChild(tblCellTxt);
-    tblRow.appendChild(tblCell);
-
-    tblCell = document.createElement("td");
-    formInput = document.createElement("input");
-    formInput.setAttribute("type", "range");
-    formInput.setAttribute("min", "0");
-    formInput.setAttribute("max", "59");
-    formInput.setAttribute("oninput", "updateMinute(this.value)");
-    formInput.setAttribute("onchange", "updateMinute(this.value)");
-    formInput.setAttribute("value", currentMinute);
-    tblCell.appendChild(formInput);
-    tblRow.appendChild(tblCell);
-    timePickerTbl.appendChild(tblRow);
-
-    //timePicker buttons row
-    tblRow = document.createElement("tr");
-    tblRow.setAttribute("class", "timepicker-btns");
-    tblCell = document.createElement("td");
-    var timePickerBtn1 = document.createElement("button");
-    timePickerBtn1.setAttribute("type", "button");
-    var btn1Txt = document.createTextNode("Now");
-    timePickerBtn1.setAttribute("onclick", "setToNow()")
-
-    timePickerBtn1.appendChild(btn1Txt);
-    tblCell.appendChild(timePickerBtn1);
-    tblRow.appendChild(tblCell);
-
-    tblCell = document.createElement("td");
-    var timePickerBtn2 = document.createElement("button");
-    timePickerBtn2.setAttribute("type", "button");
-    timePickerBtn2.setAttribute("onclick", "closeTimePicker()")
-    var btn2Txt = document.createTextNode("Done");
-    timePickerBtn2.appendChild(btn2Txt);
-    tblCell.appendChild(timePickerBtn2);
-    tblCell.setAttribute("style", "text-align: right;");
-    tblRow.appendChild(tblCell);
-
-    timePickerTbl.appendChild(tblRow);
+    const timePickerTbl = document.createElement("table");
     timePicker.appendChild(timePickerTbl);
-    clickedTimePickerEl.parentNode.insertBefore(timePicker, clickedTimePickerEl.nextSibling);
 
-    if (parentCalendar !== false) {
-        parentCalendar.appendChild(timePickerTbl);
+    const timeHeadline = document.createElement("th");
+    timeHeadline.setAttribute("colspan", "2");
+
+    const timeTopText = gotParentCalendar === true ? 'Time' : 'Choose Time';
+
+    timeHeadline.appendChild(document.createTextNode(timeTopText));
+    const topTr = document.createElement("tr");
+    topTr.appendChild(timeHeadline);
+    timePickerTbl.appendChild(topTr);
+
+    const rows = [
+        ['Time', trongateDateTimeObj.formatDateObj(trongateDateTimeObj.assumedDate, 'time')],
+        ['Hour', trongateDateTimeObj.createRangeInput(0, 23, trongateDateTimeObj.currentHour, 'updateHour')],
+        ['Minute', trongateDateTimeObj.createRangeInput(0, 59, trongateDateTimeObj.currentMinute, 'updateMinute')]
+    ];
+
+    rows.forEach(rowData => {
+        const row = document.createElement("tr");
+        rowData.forEach(data => {
+            const cell = document.createElement("td");
+            cell.innerHTML = data;
+            row.appendChild(cell);
+        });
+        timePickerTbl.appendChild(row);
+    });
+
+    const btnRow = document.createElement("tr");
+    btnRow.setAttribute("class", "timepicker-btns");
+
+    const btnNow = document.createElement('button');
+    btnNow.setAttribute('type', 'button');
+    btnNow.appendChild(document.createTextNode('Now'));
+    btnNow.setAttribute('class', 'alt');
+    btnNow.setAttribute('onclick', 'trongateDateTimeObj.setToNow()');
+
+    const btnDone = document.createElement('button');
+    btnDone.setAttribute('type', 'button');
+    btnDone.appendChild(document.createTextNode('Done'));
+    btnDone.setAttribute('onclick', 'trongateDateTimeObj.closeTimePicker()');
+
+    const cellNow = document.createElement("td");
+    cellNow.appendChild(btnNow);
+    btnRow.appendChild(cellNow);
+
+    const cellDone = document.createElement("td");
+    cellDone.setAttribute("style", "text-align: right;");
+    cellDone.appendChild(btnDone);
+    btnRow.appendChild(cellDone);
+
+    timePickerTbl.appendChild(btnRow);
+
+    const activeEl = trongateDateTimeObj.activeEl;
+    const isMobileDevice = trongateDateTimeObj.isMobileDevice();
+
+    if (isMobileDevice === true) {
+        trongateDateTimeObj.createOverlayWithElement(timePicker);
+    } else {
+        clickedTimePickerEl.parentNode.insertBefore(timePicker, clickedTimePickerEl.nextSibling);
+    }
+
+    if(gotParentCalendar === true) {
         parentCalendar.appendChild(timePickerTbl);
         timePickerTbl.classList.add("inner-timepicker");
         timePickerTbl.style.borderCollapse = 'collapse';
-        var btnRow = document.querySelector("table.inner-timepicker > tr.timepicker-btns");
-        btnRow.classList.remove("timepicker-btns");
     }
 
-    if ((clickedTimePickerEl.value !== '') && (parentCalendar == false)) {
-        var timeInputValue = clickedTimePickerEl.value;
-        var bits = timeInputValue.split(":");
+}
 
-        if (bits.length == 2) {
-            currentHour = bits[0];
-            currentMinute = bits[1];
-            assumedDate.setHours(currentHour, currentMinute);
-            var hourSlider = document.querySelector(".timepicker-popup > table > tr:nth-child(3) > td:nth-child(2) > input[type=range]");
-            var minuteSlider = document.querySelector(".timepicker-popup > table > tr:nth-child(4) > td:nth-child(2) > input[type=range]");
-            updateTimePickerSliders(hourSlider, minuteSlider);
-            updateTimePicker();
-        }
+trongateDateTimeObj.createRangeInput = function(min, max, value, onchangeFunction) {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'range');
+    input.setAttribute('min', min);
+    input.setAttribute('max', max);
+    input.setAttribute('oninput', `trongateDateTimeObj.${onchangeFunction}(this.value)`);
+    input.setAttribute('onchange', `trongateDateTimeObj.${onchangeFunction}(this.value)`);
+    input.setAttribute('value', value);
+    return input.outerHTML;
+}
+
+trongateDateTimeObj.closeTimePicker = function() {
+    if (trongateDateTimeObj.activeType == 'datetime-picker-calendar') {
+        trongateDateTimeObj.destroyElements("datetime-picker-calendar");
+    } else {
+        trongateDateTimeObj.destroyElements("timepicker-popup");
     }
-
-    disableTimePickerInputs('time-picker');
 }
 
-function updateHour(newHour) {
-    currentHour = addZeroBefore(newHour);
-    updateTimePicker();
+trongateDateTimeObj.setToNow = function() {
+    trongateDateTimeObj.assumedDate = new Date();
+    trongateDateTimeObj.syncOtherDateTimeProperties();
+
+    let currentHour = trongateDateTimeObj.assumedDate.getHours();
+    let currentMinute = trongateDateTimeObj.assumedDate.getMinutes();
+    currentHour = trongateDateTimeObj.addZeroBefore(currentHour);
+    currentMinute = trongateDateTimeObj.addZeroBefore(currentMinute);
+    trongateDateTimeObj.assumedDate.setHours(currentHour, currentMinute);
+
+    let hourSlider, minuteSlider;
+
+    if (trongateDateTimeObj.activeType == 'datetime-picker-calendar') {
+        hourSlider = document.querySelector(".inner-timepicker > tr:nth-child(3) > td:nth-child(2) > input[type=range]");
+        minuteSlider = document.querySelector(".inner-timepicker > tr:nth-child(4) > td:nth-child(2) > input[type=range]");
+
+        trongateDateTimeObj.refreshDatePickerHead();
+        const calendarTbl = document.querySelector(".datetime-picker-calendar table:nth-child(2)");
+        calendarTbl.remove();
+        const datePickerTbl = trongateDateTimeObj.buildAndPopulateDatePickerTbl();
+        const targetElement = document.querySelector(".datepicker-head");
+        targetElement.insertAdjacentElement("afterend", datePickerTbl);
+    } else {
+        hourSlider = document.querySelector(".timepicker-popup > table > tr:nth-child(3) > td:nth-child(2) > input[type=range]");
+        minuteSlider = document.querySelector(".timepicker-popup > table > tr:nth-child(4) > td:nth-child(2) > input[type=range]");
+    }
+    
+    trongateDateTimeObj.updateTimePickerSliders(hourSlider, minuteSlider);
+    trongateDateTimeObj.updateTimePicker();
 }
 
-function updateMinute(newMinute) {
-    currentMinute = addZeroBefore(newMinute);
-    updateTimePicker();
+trongateDateTimeObj.updateTimePickerSliders = function(hourSlider, minuteSlider) {
+    hourSlider.value = trongateDateTimeObj.currentHour;
+    minuteSlider.value = trongateDateTimeObj.currentMinute;
 }
 
-function updateTimePicker() {
-
-    assumedDate.setHours(currentHour, currentMinute);
+trongateDateTimeObj.updateTimePicker = function() {
+    trongateDateTimeObj.assumedDate.setHours(trongateDateTimeObj.currentHour, trongateDateTimeObj.currentMinute);
 
     if (activeType == 'datetime-picker-calendar') {
-        var timeGuideCell = document.querySelector(".inner-timepicker > tr:nth-child(2) > td:nth-child(2)");
-        var cellInnerHTML = activeEl.value;
-        
-        //format the date and time, then add to the calendar.
-        var niceDate = formatDateObj(assumedDate, 'datetime');
-    
-        //update the textfield so that it has the nice date
+        const timeGuideCell = document.querySelector(".inner-timepicker > tr:nth-child(2) > td:nth-child(2)");
+        const cellInnerHTML = activeEl.value;
+
+        // Format the date and time, then add to the calendar.
+        const niceDate = formatDateObj(trongateDateTimeObj.assumedDate, 'datetime');
+
+        // Update the textfield so that it has the nice date.
         activeEl.value = niceDate;
 
-        //get a nice time and update the time guide
-        var timeValue = formatDateObj(assumedDate, 'time');
-        var timeGuideCell = document.querySelector(".inner-timepicker > tr:nth-child(2) > td:nth-child(2)");
+        // Get a nice time and update the time guide.
+        const timeValue = formatDateObj(trongateDateTimeObj.assumedDate, 'time');
         timeGuideCell.innerHTML = timeValue;
-
 
     } else {
-        var timeValue = formatDateObj(assumedDate, 'time');
-        var timeGuideCell = document.querySelector(".timepicker-popup > table > tr:nth-child(2) > td:nth-child(2)");
+        const timeValue = formatDateObj(trongateDateTimeObj.assumedDate, 'time');
+        const timeGuideCell = document.querySelector(".timepicker-popup > table > tr:nth-child(2) > td:nth-child(2)");
         timeGuideCell.innerHTML = timeValue;
+        clickedTimePickerEl.value = timeValue;
+    }
+}
+
+trongateDateTimeObj.addZeroBefore = function(n) {
+    return (n < 10 ? '0' : '') + n;
+}
+
+trongateDateTimeObj.updateHour = function(newHour) {
+    trongateDateTimeObj.currentHour = trongateDateTimeObj.addZeroBefore(newHour);
+    trongateDateTimeObj.updateTimePicker();
+}
+
+trongateDateTimeObj.updateMinute = function(newMinute) {
+    trongateDateTimeObj.currentMinute = trongateDateTimeObj.addZeroBefore(newMinute);
+    trongateDateTimeObj.updateTimePicker();
+}
+
+trongateDateTimeObj.updateTimePicker = function() {
+    const { currentHour, currentMinute, activeType, assumedDate } = trongateDateTimeObj;
+
+    trongateDateTimeObj.assumedDate.setHours(currentHour, currentMinute);
+
+    if (activeType === 'datetime-picker-calendar') {
+        const timeGuideCell = document.querySelector(".inner-timepicker > tr:nth-child(2) > td:nth-child(2)");
+        const cellInnerHTML = trongateDateTimeObj.activeEl.value;
+        
+        const niceDate = trongateDateTimeObj.formatDateObj(assumedDate, 'datetime');
+        trongateDateTimeObj.activeEl.value = niceDate;
+
+        const timeValue = trongateDateTimeObj.formatDateObj(assumedDate, 'time');
+        timeGuideCell.innerHTML = timeValue;
+    } else {
+        const timeValue = trongateDateTimeObj.formatDateObj(assumedDate, 'time');
+        const timeGuideCell = document.querySelector(".timepicker-popup > table > tr:nth-child(2) > td:nth-child(2)");
+        timeGuideCell.innerHTML = timeValue;
+
+        const popupEl = timeGuideCell.closest('.timepicker-popup');
+        const targetPopupClass = trongateDateTimeObj.findTargetClass(popupEl, 'tgtd-popup-code-');
+        const inputClass = targetPopupClass.replace('-popup-', '-input-');
+        const clickedTimePickerEl = document.getElementsByClassName(inputClass)[0];
         clickedTimePickerEl.value = timeValue; 
     }
 }
 
-function setToNow() {
-    //create a new time object to represent 'now' (assumedDate!==now)
-    assumedDate = new Date;
+//--------------------------------------------------
+// Invoke initialisation of defaults then wait for clicks...
+async function tgdtInitializeDateTimeConfigurations() {
+    try {
+        const tgdtBaseUrl = await tgdtEstablishTrongateBaseUrl();
+        const defaultDateFormatsStr = await tgdtFetchDefaultDateFormats(tgdtBaseUrl);
+        const defaultDateFormatsObj = await tgdtConvertDefaultDateStrToObj(defaultDateFormatsStr);
 
-    currentHour = assumedDate.getHours();
-    currentMinute = assumedDate.getMinutes();
-    currentHour = addZeroBefore(currentHour);
-    currentMinute = addZeroBefore(currentMinute);
-    assumedDate.setHours(currentHour, currentMinute);
+        // Set trongateDateTimeObj.thisDateFormat to whatever the default is.
+        trongateDateTimeObj.thisDateFormat = defaultDateFormatsObj.defaultDateFormat;
 
-    if (activeType == 'datetime-picker-calendar') {
-        var hourSlider = document.querySelector(".inner-timepicker > tr:nth-child(3) > td:nth-child(2) > input[type=range]");
-        var minuteSlider = document.querySelector(".inner-timepicker > tr:nth-child(4) > td:nth-child(2) > input[type=range]");
-        refreshDatePickerHead();
-        var calendarTbl = document.querySelector(".datetime-picker-calendar table:nth-child(2)");
-        calendarTbl.remove();
-        var datePickerTbl = buildAndPopulateDatePickerTbl();
-        var targetElement = document.querySelector(".datepicker-head");
-        targetElement.insertAdjacentElement("afterend", datePickerTbl);
-    } else {
-        var hourSlider = document.querySelector(".timepicker-popup > table > tr:nth-child(3) > td:nth-child(2) > input[type=range]");
-        var minuteSlider = document.querySelector(".timepicker-popup > table > tr:nth-child(4) > td:nth-child(2) > input[type=range]");
-    }
-    
-    updateTimePickerSliders(hourSlider, minuteSlider);
-    updateTimePicker();
-}
+        // Set trongateDateTimeObj.thisLocaleString to whatever the default is.
+        trongateDateTimeObj.thisLocaleString = defaultDateFormatsObj.defaultLocaleString;
 
-function updateTimePickerSliders(hourSlider, minuteSlider) {
-    hourSlider.value = currentHour;
-    minuteSlider.value = currentMinute;
-}
-
-function closeTimePicker() {
-    if (activeType == 'datetime-picker-calendar') {
-        destroyEls("datetime-picker-calendar");
-    } else {
-        destroyEls("timepicker-popup");
+        // Now that we know the date formats, we can...
+        await tgdtEstablishDayNames();
+        await tgdtEstablishMonthNames();
+        await tgdtEstablishDatePickerTblTopRow();
+        trongateDateTimeObj.currentHour = trongateDateTimeObj.assumedDate.getHours();
+        trongateDateTimeObj.currentMinute = trongateDateTimeObj.assumedDate.getMinutes();
+    } catch (error) {
+        console.error(error);
     }
 }
 
-function disableTimePickerInputs() {
-    for (var i = 0; i < timePickerFields.length; i++) {
-        timePickerFields[i].disabled = true;
-    }
-}
+window.addEventListener('click', (event) => {
+    // Remove any unintended or unwanted date/time related popups.
 
-function activeTimePickerInputs() {
-    //gets called after timePicker/datetime-picker-calendar removed
-    setTimeout(() => {
-        for (var i = 0; i < timePickerFields.length; i++) {
-            timePickerFields[i].disabled = false;
-        }
-    }, 700);
-}
+    const popupPairs = {
+        'datepicker-calendar': 'date-picker',
+        'timepicker-popup': 'time-picker',
+        'datetime-picker-calendar': 'datetime-picker'
+    };
 
-function buildDateTimePickerCalendar() {
-    destroyEls(activeType);
-    var dateTimePickerCalendar = document.createElement("div");
-    dateTimePickerCalendar.setAttribute("class", "datetime-picker-calendar");
+    const clickedEl = event.target;
 
-    if (datePickerCanvas == 'large') {
-        activeEl.parentNode.insertBefore(dateTimePickerCalendar, activeEl.nextSibling);
-    }
+    for (const [popupClass, inputClass] of Object.entries(popupPairs)) {
+        const targetPopupClass = '.' + popupClass;
+        const targetPopups = document.querySelectorAll(targetPopupClass);
 
-    var dateTimePickerHead = buildDatePickerHead();
-    dateTimePickerCalendar.appendChild(dateTimePickerHead);
+        if (targetPopups.length > 0) {
+            const containingPopup = clickedEl.closest(targetPopupClass);
 
-    //build and populate calendar table
-    var datePickerTbl = buildAndPopulateDatePickerTbl();
-    dateTimePickerCalendar.appendChild(datePickerTbl);
-    activePopUp = dateTimePickerCalendar;  
-    buildTimePickerPopUp(activeEl, dateTimePickerCalendar);
-}
+            if (!containingPopup) {
+                const associatedInputClass = '.' + inputClass;
+                const associatedInputEl = clickedEl.closest(associatedInputClass);
 
-function initDateTimePickers() {
+                let excludePopupClass = '';
 
-    initInThePastDeclarations();
-    initInTheFutureDeclarations();
+                if (associatedInputEl) {
+                    const targetInputClass = trongateDateTimeObj.findTargetClass(associatedInputEl, 'tgtd-input-code-');
+                    excludePopupClass = targetInputClass.replace('-input-', '-popup-');
+                }
 
-    //listen for a datetimePicker input field getting clicked
-    for (var i = 0; i < dateTimePickerFields.length; i++) {
-        dateTimePickerFields[i].addEventListener("click", (ev) => {
-            //build a datePickerCalendar and then add it to the page * (taking canvas size into account)
-            activeEl = ev.target;
-            activeType = 'datetime-picker-calendar';
-            targetInputValue = activeEl.value;
-            targetInputValueSm = targetInputValue.substring(0,10);
-
-            unavailableBefore = '';
-            unavailableAfter = '';
-
-            assumedDate = parseDateTime(targetInputValue);
-            if (assumedDate == 'Invalid Date') {
-                assumedDate = new Date;
+                trongateDateTimeObj.destroyElements(popupClass, excludePopupClass);
             }
-            clickedTimePickerEl = ev.target;
-            buildDateTimePickerCalendar();
-        });
+        }
     }
+});
 
-}
+document.addEventListener('DOMContentLoaded', () => {
+    tgdtInitializeDateTimeConfigurations();
+});
+
+window.addEventListener('load', (event) => {
+    const fieldTypes = {
+        'date-picker': 'listenForDatePickerClicks',
+        'time-picker': 'listenForTimePickerClicks',
+        'datetime-picker': 'listenForDateTimePickerClicks'
+    };
+
+    for (const fieldType in fieldTypes) {
+        const fields = document.querySelectorAll('.' + fieldType);
+        if (fields.length > 0) {
+            const methodName = fieldTypes[fieldType];
+            trongateDateTimeObj[methodName](fields);
+        }
+    }
+});
