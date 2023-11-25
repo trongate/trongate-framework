@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="<?= BASE_URL ?>css/trongate.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>css/trongate-datetime.css">
-    <link rel="stylesheet" href="<?= THEME_DIR ?>css/admin.css">
     <?= $additional_includes_top ?>
     <title>Admin</title>
 </head>
