@@ -17,7 +17,7 @@ $attr['class'] = 'button alt';
     <table id="results-tbl">
         <thead>
             <tr>
-                <th colspan="5">
+                <th colspan="6">
                     <div>
                         <div><?php
                         echo '<form>';
@@ -33,6 +33,7 @@ $attr['class'] = 'button alt';
                 </th>
             </tr>
             <tr>
+                <th class="text-center">ID</th>
                 <th class="text-center">Published</th>
                 <th>Page Title</th>
                 <th>Author</th>
@@ -48,6 +49,7 @@ $attr['class'] = 'button alt';
                 $published_icon = '<i class="fa '.$published_icon_str.'" id="published-icon-'.$row->id.'"></i>';
             ?>
             <tr>
+                <td class="text-center"><?= $row->id ?></td>
                 <td class="text-center"><?= $published_icon ?></td>
                 <td class="double-decker">
                     <div><span class="fake-link" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')"><?= $row->page_title ?></span></div>
