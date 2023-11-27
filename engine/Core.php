@@ -245,11 +245,11 @@ class Core {
         if(segment(1) === 'dateformat') {
 
             if (!defined('DEFAULT_DATE_FORMAT')) {
-                define('DEFAULT_DATE_FORMAT', 'mm/dd/yyyy');
+                get_default_date_format();
             }
 
             if (!defined('DEFAULT_LOCALE_STR')) {
-                define('DEFAULT_LOCALE_STR', 'en-US');
+                get_default_locale_str();
             }
 
             $date_prefs = [
