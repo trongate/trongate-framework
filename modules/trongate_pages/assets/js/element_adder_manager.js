@@ -106,7 +106,7 @@ function tgpOpenCreatePageEl() {
       closeModalBtn.setAttribute('class', 'alt');
       closeModalBtn.setAttribute('type', 'button');
       closeModalBtn.innerText = 'Cancel';
-      closeModalBtn.setAttribute('onclick', 'tgpCloseAndDestroyModal(\'' + modalId + '\', false)');
+      closeModalBtn.setAttribute('onclick', 'tgpCloseAndDestroyModal(\'' + modalId + '\')');
       closePara.appendChild(closeModalBtn);
   }
 
