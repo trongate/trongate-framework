@@ -87,70 +87,29 @@ function tgpOpenCreatePageEl() {
     headlinePara.style.marginTop = 0;
     modalBody.appendChild(headlinePara);
 
-    // Your existing elementOptions array (guaranteed to exist)
-    const elementOptions = [
-      { imageSrc: 'trongate_pages_module/images/headline.png', label: 'Headline', type: 'Headline' },
-      { imageSrc: 'trongate_pages_module/images/text.png', label: 'Text Block', type: 'Text Block' },
-      { imageSrc: 'trongate_pages_module/images/divider.png', label: 'Divider', type: 'Divider' },
-      { imageSrc: 'trongate_pages_module/images/video.png', label: 'YouTube Video', type: 'YouTube Video' },
-      { imageSrc: 'trongate_pages_module/images/image.png', label: 'Image', type: 'Image' },
-      { imageSrc: 'trongate_pages_module/images/button.png', label: 'Button(s)', type: 'Button' }
-    ];
+  const targetUrl = trongatePagesObj.baseUrl + 'tgp_element_adder';
+  
+  const http = new XMLHttpRequest();
+  http.open('get', targetUrl);
+  http.setRequestHeader('Content-type', 'application/json');
+  http.send();
+  http.onload = function() {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = http.responseText;
+    modalBody.appendChild(tempDiv.firstChild);
 
-    /*
-      To add custom options to Trongate Pages, declare the trongatePagesObj.additionalOptions array within any JavaScript file
-      located in a 'public/trongate_pages_extra/js' directory. Trongate Pages will automatically detect and read those files if they exist.
+      const closePara = document.createElement('p');
+      modalBody.appendChild(closePara);
 
-      Example:
-      trongatePagesObj.additionalOptions = [
-        { onClick: 'initAddItem()', imageSrc: 'items_module/images/item.png', label: 'Add Item', type: 'Item' },
-        { onClick: 'initUpdateNav()', imageSrc: 'nav_module/images/nav.png', label: 'Update Nav', type: 'Nav' },
-        { onClick: 'initUpdateCategories()', imageSrc: 'categories_module/images/category.png', label: 'Update Categories', type: 'Category' }
-      ];
-    */
+      // Add a cancel button
+      const closeModalBtn = document.createElement('button');
+      closeModalBtn.setAttribute('class', 'alt');
+      closeModalBtn.setAttribute('type', 'button');
+      closeModalBtn.innerText = 'Cancel';
+      closeModalBtn.setAttribute('onclick', 'tgpCloseAndDestroyModal(\'' + modalId + '\', false)');
+      closePara.appendChild(closeModalBtn);
+  }
 
-    // Concatenate the two arrays (only if trongatePagesObj.additionalOptions exists)
-    const allOptions = trongatePagesObj.additionalOptions ? elementOptions.concat(trongatePagesObj.additionalOptions) : elementOptions;
-
-    // Rest of your code remains the same
-    let pageElOptionsGrid = document.createElement('div');
-    pageElOptionsGrid.setAttribute('id', 'page-el-options-grid');
-    modalBody.appendChild(pageElOptionsGrid);
-
-    allOptions.forEach(option => {
-      let gridBox = document.createElement('div');
-      let upperDiv = document.createElement('div');
-      let upperDivPic = document.createElement('img');
-      upperDivPic.setAttribute('src', trongatePagesObj.baseUrl + option.imageSrc);
-      upperDiv.appendChild(upperDivPic);
-      gridBox.appendChild(upperDiv);
-
-      let lowerDiv = document.createElement('div');
-      lowerDiv.innerHTML = option.label;
-      gridBox.appendChild(lowerDiv);
-
-      pageElOptionsGrid.appendChild(gridBox);
-     
-      // Check if the option is in the elementOptions array before setting the attribute
-      if (elementOptions.includes(option)) {
-        gridBox.setAttribute('onclick', `tgpAddPageElement('${option.type}')`);
-      } else {
-        gridBox.setAttribute('onclick', option.onClick);
-      }
-
-    });
-
-
-    const closePara = document.createElement('p');
-    modalBody.appendChild(closePara);
-
-    // Add a cancel button
-    const closeModalBtn = document.createElement('button');
-    closeModalBtn.setAttribute('class', 'alt');
-    closeModalBtn.setAttribute('type', 'button');
-    closeModalBtn.innerText = 'Cancel';
-    closeModalBtn.setAttribute('onclick', 'tgpCloseAndDestroyModal(\'' + modalId + '\', false)');
-    closePara.appendChild(closeModalBtn);
 }
 
 function tgpBuildCustomModal(modalId, options = {}) {

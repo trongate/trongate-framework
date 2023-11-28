@@ -75,6 +75,7 @@ const tgpModals = [
           'tgp-intercept-add-el',
           'tgp-link-modal',
           'tgp-media-manager',
+          'tgp-modal',
           'tgp-mobi-options',
           'tgp-settings-modal',
           'tgp-video-overlay',

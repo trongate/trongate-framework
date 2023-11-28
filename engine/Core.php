@@ -195,45 +195,38 @@ class Core {
         $segments = SEGMENTS;
 
         if (isset($segments[1])) {
-            $module_with_no_params = $segments[1];
-            $module_with_no_params = explode('?',$segments[1])[0];
+            $module_with_no_params = explode('?', $segments[1])[0];
             $this->current_module = strtolower($module_with_no_params);
             $this->current_controller = ucfirst($this->current_module);
 
-            if (defined('TRONGATE_PAGES_TRIGGER')) {
-                if($segments[1] === TRONGATE_PAGES_TRIGGER) {
-                    $this->current_module = 'trongate_pages';
-                    $this->current_controller = 'Trongate_pages';
-                }
+            if (defined('TRONGATE_PAGES_TRIGGER') && $segments[1] === TRONGATE_PAGES_TRIGGER) {
+                $this->current_module = 'trongate_pages';
+                $this->current_controller = 'Trongate_pages';
             }
-
         }
 
         if (isset($segments[2])) {
-            $method_with_no_params = $segments[2];
-            $method_with_no_params = explode('?',$segments[2])[0];
+            $method_with_no_params = explode('?', $segments[2])[0];
             $this->current_method = strtolower($method_with_no_params);
-            //make sure not private
-            $str = substr($this->current_method, 0, 1);
-            if ($str === '_') {
+
+            if (substr($this->current_method, 0, 1) === '_') {
                 $this->draw_error_page();
             }
         }
 
         if (isset($segments[3])) {
-            $value_with_no_params = $segments[3];
-            $value_with_no_params = explode('?',$segments[3])[0];
-            $this->current_value = $value_with_no_params;
+            $this->current_value = explode('?', $segments[3])[0];
         }
 
-        $controller_path = '../modules/'.$this->current_module.'/controllers/'.$this->current_controller.'.php';
+        $controller_path = '../modules/' . $this->current_module . '/controllers/' . $this->current_controller . '.php';
 
         if ($controller_path === '../modules/api/controllers/Api.php') {
-            //API intercept, since segment(1) is 'api/'
             $controller_path = '../engine/Api.php';
             require_once $controller_path;
+
             $target_method = $this->current_method;
             $this->current_controller = new $this->current_controller($this->current_module);
+
             if (method_exists($this->current_controller, $this->current_method)) {
                 $this->current_controller->$target_method($this->current_value);
                 return;
@@ -242,60 +235,97 @@ class Core {
             }
         }
 
-        if(segment(1) === 'dateformat') {
+        switch (segment(1)) {
+            case 'dateformat':
+                $this->draw_date_format();
+                break;
 
-            if (!defined('DEFAULT_DATE_FORMAT')) {
-                get_default_date_format();
-            }
+            case 'tgp_element_adder':
+                $this->draw_element_adder();
+                break;
 
-            if (!defined('DEFAULT_LOCALE_STR')) {
-                get_default_locale_str();
-            }
+            default:
+                if (!file_exists($controller_path)) {
+                    $controller_path = $this->attempt_init_child_controller($controller_path);
+                }
 
-            $date_prefs = [
-                'default_date_format' => DEFAULT_DATE_FORMAT,
-                'default_locale_str' => DEFAULT_LOCALE_STR,
-            ];
+                require_once $controller_path;
 
-            http_response_code(200);
-            echo json_encode($date_prefs);
+                if (strtolower(ENV) == 'dev') {
+                    $this->attempt_sql_transfer($controller_path);
+                }
+
+                $this->invoke_controller_method();
+                break;
+        }
+    }
+
+    private function draw_date_format(): void {
+        if (!defined('DEFAULT_DATE_FORMAT')) {
+            get_default_date_format();
+        }
+
+        if (!defined('DEFAULT_LOCALE_STR')) {
+            get_default_locale_str();
+        }
+
+        $date_prefs = [
+            'default_date_format' => DEFAULT_DATE_FORMAT,
+            'default_locale_str' => DEFAULT_LOCALE_STR,
+        ];
+
+        http_response_code(200);
+        echo json_encode($date_prefs);
+        die();
+    }
+
+    private function draw_element_adder(): void {
+        http_response_code(200);
+        $view_file_path = realpath(APPPATH . 'engine/views/element_adder.php');
+
+        if ($view_file_path && file_exists($view_file_path)) {
+            $file_content = file_get_contents($view_file_path);
+            $file_content = str_replace('[BASE_URL]', BASE_URL, $file_content);
+            echo $file_content;
             die();
-
-        } elseif(!file_exists($controller_path)) {
-            $controller_path = $this->attempt_init_child_controller($controller_path);
+        } else {
+            http_response_code(404);
+            echo 'Cannot find ' . $view_file_path;
+            die();
         }
+    }
 
-        require_once $controller_path;
 
-        if (strtolower(ENV) == 'dev') {
-            $this->attempt_sql_transfer($controller_path);
-        }
-
+    private function invoke_controller_method(): void {
         if (method_exists($this->current_controller, $this->current_method)) {
             $target_method = $this->current_method;
             $this->current_controller = new $this->current_controller($this->current_module);
             $this->current_controller->$target_method($this->current_value);
         } else {
-            //method does not exist - attempt invoke standard endpoint
-            $this->current_controller = 'Standard_endpoints';
-            $controller_path = '../engine/Standard_endpoints.php';
-            require_once $controller_path;
-            $se = new Standard_endpoints();
-            $endpoint_index = $se->attempt_find_endpoint_index();
+            $this->handle_standard_endpoints();
+        }
+    }
 
-            if ($endpoint_index !== '') {
-                $target_method = $this->current_method;
-                if(is_numeric($target_method)) {
-                    $se->attempt_serve_standard_endpoint($endpoint_index);
-                } else {
-                    $se->$target_method($this->current_value);
-                }
+    private function handle_standard_endpoints(): void {
+        $this->current_controller = 'Standard_endpoints';
+        $controller_path = '../engine/Standard_endpoints.php';
+        require_once $controller_path;
 
-                return;
+        $se = new Standard_endpoints();
+        $endpoint_index = $se->attempt_find_endpoint_index();
+
+        if ($endpoint_index !== '') {
+            $target_method = $this->current_method;
+            if (is_numeric($target_method)) {
+                $se->attempt_serve_standard_endpoint($endpoint_index);
+            } else {
+                $se->$target_method($this->current_value);
             }
 
-            $this->draw_error_page();
+            return;
         }
+
+        $this->draw_error_page();
     }
 
     /**

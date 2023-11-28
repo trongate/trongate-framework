@@ -367,7 +367,7 @@
     color: #eee !important;
 }
 
-#tgp-media-manager>div.modal-body {
+#tgp-media-manager > div.modal-body {
     min-height: 450px;
 }
 
@@ -731,6 +731,7 @@
 #tgp-link-modal,
 #tgp-media-manager,
 #tgp-mobi-options,
+#tgp-modal,
 #tgp-settings-modal,
 #tgp-video-overlay,
 #tgp-youtube-modal {
@@ -750,6 +751,7 @@
 #tgp-link-modal .modal-body h2,
 #tgp-media-manager .modal-body h2,
 #tgp-mobi-options .modal-body h2,
+#tgp-modal .modal-body h2,
 #tgp-settings-modal .modal-body h2,
 #tgp-video-overlay .modal-body h2,
 #tgp-youtube-modal .modal-body h2 {
@@ -768,6 +770,7 @@
 #tgp-link-modal .modal-heading,
 #tgp-media-manager .modal-heading,
 #tgp-mobi-options .modal-heading,
+#tgp-modal .modal-heading,
 #tgp-video-overlay .modal-heading,
 #tgp-youtube-modal .modal-heading {
     background-color: #4682b4;
@@ -788,6 +791,7 @@
 #tgp-link-modal button,
 #tgp-media-manager button,
 #tgp-mobi-options button,
+#tgp-modal button,
 #tgp-settings-modal button,
 #tgp-video-overlay button,
 #tgp-youtube-modal button {
@@ -810,6 +814,7 @@
 #tgp-link-modal button:hover,
 #tgp-media-manager button:hover,
 #tgp-mobi-options button:hover,
+#tgp-modal button:hover,
 #tgp-settings-modal button:hover,
 #tgp-video-overlay button:hover,
 #tgp-youtube-modal button:hover {
@@ -830,6 +835,7 @@
 #tgp-link-modal button.alt,
 #tgp-media-manager button.alt,
 #tgp-mobi-options button.alt,
+#tgp-modal button.alt,
 #tgp-settings-modal button.alt,
 #tgp-video-overlay button.alt,
 #tgp-youtube-modal button.alt {
@@ -852,6 +858,7 @@
 #tgp-link-modal button.alt:hover,
 #tgp-media-manager button.alt:hover,
 #tgp-mobi-options button.alt:hover,
+#tgp-modal button.alt:hover,
 #tgp-settings-modal button.alt:hover,
 #tgp-video-overlay button.alt:hover,
 #tgp-youtube-modal button.alt:hover {
@@ -967,6 +974,7 @@
     #button-modal .modal-footer,
     #tgp-delete-page-modal .modal-footer,
     #tgp-link-modal .modal-footer,
+    #tgp-modal .modal-footer,
     #tgp-settings-modal .modal-footer,
     #tgp-media-manager .modal-footer,
     #tgp-youtube-modal .modal-footer {
