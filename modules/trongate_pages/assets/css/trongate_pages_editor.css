@@ -798,7 +798,7 @@
     transition: .3s;
     background-color: #4682b4;
     color: #eee !important;
-    border: 1px #333 solid !important;
+    border: 1px var(--primary-dark) solid !important;
     font-weight: normal;
 }
 
