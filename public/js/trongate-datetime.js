@@ -437,13 +437,16 @@ trongateDateTimeObj.buildAndPopulateDatePickerTbl = function() {
                 calendarTblTd.addEventListener("click", (ev) => trongateDateTimeObj.clickDay(ev.target));
             }
 
+            // Check if the calendarTblTd does not contain the 'empty-day' class
+            const isNotEmptyDay = !calendarTblTd.classList.contains('empty-day');
             const isCurrentDay = checkForNowDay && dayCounter === nowDay;
-            if (isCurrentDay) {
+            if (isCurrentDay && isNotEmptyDay) {
                 calendarTblTd.classList.add('current-day');
             }
 
             const isSelectedDay = checkForSelectedDay && dayCounter === parsedDay;
-            if (isSelectedDay) {
+
+            if (isSelectedDay && isNotEmptyDay) {
                 calendarTblTd.classList.add('selected-day-cell');
             }
 
