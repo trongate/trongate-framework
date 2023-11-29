@@ -73,32 +73,42 @@ async function tgdtFetchDefaultDateFormats(tgdtBaseUrl) {
     });
 }
 
-trongateDateTimeObj.convertToDateTimeStr = function() {
-    // Takes a date object and converts to full date time string (e.g., 24/11/2023, 16:32:02)
-    const date = trongateDateTimeObj.assumedDate;
-    const localeString = trongateDateTimeObj.thisLocaleString;
-    const formattedDateTime = date.toLocaleString(localeString);
-    return formattedDateTime;
-}
+trongateDateTimeObj.convertDateObjectToLongStr = function() {
+    const dateObject = trongateDateTimeObj.assumedDate;
 
-trongateDateTimeObj.extractHoursAndMinutes = function(dateTimeString) {
-    try {
-        const hourStartIndex = dateTimeString.length - 8; // Start index of hours in the string (8 characters back from the end)
-        const minuteStartIndex = dateTimeString.length - 5; // Start index of minutes in the string (three characters after hours)
-
-        const hours = parseInt(dateTimeString.substring(hourStartIndex, hourStartIndex + 2));
-        const minutes = parseInt(dateTimeString.substring(minuteStartIndex, minuteStartIndex + 2));
-
-        if (!isNaN(hours) && !isNaN(minutes)) {
-            return { hours, minutes };
-        }
-    } catch (error) {
-        // Handle any parsing errors
-        console.log('Error occurred while extracting hours and minutes');
+    if (!(dateObject instanceof Date) || isNaN(dateObject.getTime())) {
+        return ''; // Return empty string if not a valid date object
     }
 
-    // Default to current time's hour and minute values if extraction fails
-    return { hours: new Date().getHours(), minutes: new Date().getMinutes() };
+    const day = String(dateObject.getDate()).padStart(2, '0');
+    const month = String(dateObject.getMonth() + 1).padStart(2, '0'); // Month is zero-indexed
+    const year = dateObject.getFullYear();
+
+    const hours = String(dateObject.getHours()).padStart(2, '0');
+    const minutes = String(dateObject.getMinutes()).padStart(2, '0');
+
+    const delimiter = trongateDateTimeObj.thisDateFormat.includes('/') ? '/' : '-'; // Determine the delimiter based on the date format
+
+    let formattedDateStr = '';
+    
+    switch (trongateDateTimeObj.thisDateFormat) {
+        case 'dd/mm/yyyy':
+            formattedDateStr = `${day}${delimiter}${month}${delimiter}${year}`;
+            break;
+        case 'dd-mm-yyyy':
+            formattedDateStr = `${day}-${month}-${year}`;
+            break;
+        case 'mm/dd/yyyy':
+            formattedDateStr = `${month}${delimiter}${day}${delimiter}${year}`;
+            break;
+        case 'mm-dd-yyyy':
+            formattedDateStr = `${month}-${day}-${year}`;
+            break;
+        default:
+            return ''; // Invalid format
+    }
+
+    return `${formattedDateStr}, ${hours}:${minutes}`;
 };
 
 trongateDateTimeObj.convertLongStrToDateObject = function(dateTimeString) {
@@ -109,9 +119,6 @@ trongateDateTimeObj.convertLongStrToDateObject = function(dateTimeString) {
     const parsedDate = trongateDateTimeObj.parseDateFromInput(dateTimeString);
 
     if (parsedDate instanceof Date && !isNaN(parsedDate.getTime())) {
-        const { hours, minutes } = trongateDateTimeObj.extractHoursAndMinutes(dateTimeString);
-        parsedDate.setHours(hours);
-        parsedDate.setMinutes(minutes);
         return parsedDate;
     } else {
         return new Date(); // Return default value if parsing fails
@@ -298,7 +305,7 @@ trongateDateTimeObj.destroyElements = function(className, exclusionClass = '') {
 };
 
 trongateDateTimeObj.parseDateFromInput = function(inputValue) {
-    // Accepts a date string in either UK (dd-mm-yyyy) or US (mm/dd/yyyy) format.
+    // Accepts a date string in either UK (dd-mm-yyyy) or US (mm/dd/yyyy) format with optional time (hh:mm)
     // Returns a JavaScript Date object parsed from the input value, or null if parsing fails.
 
     const mmIndex = trongateDateTimeObj.thisDateFormat.indexOf('mm');
@@ -306,6 +313,26 @@ trongateDateTimeObj.parseDateFromInput = function(inputValue) {
     let extractedDay;
     let extractedMonth;
     let extractedYear = inputValue.substring(6, 10);
+
+    let hasTime = false;
+    let extractedHours = 0;
+    let extractedMinutes = 0;
+
+    const timeIndex = inputValue.indexOf(', ');
+
+    if (timeIndex !== -1) {
+        const timeString = inputValue.substring(timeIndex + 2); // Extract the time string after ', '
+        const timeComponents = timeString.split(':');
+        if (timeComponents.length === 2) {
+            const parsedHours = parseInt(timeComponents[0]);
+            const parsedMinutes = parseInt(timeComponents[1]);
+            if (!isNaN(parsedHours) && !isNaN(parsedMinutes)) {
+                extractedHours = parsedHours;
+                extractedMinutes = parsedMinutes;
+                hasTime = true;
+            }
+        }
+    }
 
     if (mmIndex === 3) {
         // Assume UK date format (e.g., 25-12-2045)
@@ -319,7 +346,7 @@ trongateDateTimeObj.parseDateFromInput = function(inputValue) {
 
     try {
         // Attempt to create a Date object from extracted values
-        const parsedDate = new Date(parseInt(extractedYear), parseInt(extractedMonth) - 1, parseInt(extractedDay));
+        const parsedDate = new Date(parseInt(extractedYear), parseInt(extractedMonth) - 1, parseInt(extractedDay), extractedHours, extractedMinutes);
 
         // Check if the parsed date is valid
         if (isNaN(parsedDate.getTime())) {
@@ -330,7 +357,7 @@ trongateDateTimeObj.parseDateFromInput = function(inputValue) {
     } catch (error) {
         return null; // Return null on error
     }
-}
+};
 
 trongateDateTimeObj.buildDatePickerHead = function() {
     const datePickerHead = document.createElement("div");
@@ -685,7 +712,7 @@ trongateDateTimeObj.formatDateObj = function(dateObj, outputType) {
         return `${hours}:${minutes}`;
     } else {
         // Output for 'datetime'
-        const localizedDateTime = trongateDateTimeObj.convertToDateTimeStr()
+        const localizedDateTime = trongateDateTimeObj.convertDateObjectToLongStr();
         return localizedDateTime;
     }
 };
@@ -709,6 +736,7 @@ trongateDateTimeObj.clickDay = function(clickedEl) {
     if (trongateDateTimeObj.activeType === 'datepicker-calendar' || trongateDateTimeObj.activeType === 'date-range-calendar') {
         niceDate = trongateDateTimeObj.formatDateObj(trongateDateTimeObj.assumedDate, 'date');
     } else {
+        // For example, when trongateDateTimeObj.activeType is 'datetime-picker-calendar'
         niceDate = trongateDateTimeObj.formatDateObj(trongateDateTimeObj.assumedDate, 'datetime');
     }
 
@@ -903,19 +931,6 @@ trongateDateTimeObj.buildTimePickerPopUp = function(clickedTimePickerEl, parentC
         const inputValue = clickedTimePickerEl.value.trim(); // Trim to handle empty or whitespace strings
         if (inputValue) {
             trongateDateTimeObj.assumedDate = trongateDateTimeObj.convertLongStrToDateObject(inputValue);
-
-            if (trongateDateTimeObj.assumedDate !== null) {
-                const extractedTime = trongateDateTimeObj.extractHoursAndMinutes(inputValue);
-
-                if (extractedTime !== null) {
-                    const { hours, minutes } = extractedTime;
-
-                    if (hours !== undefined && minutes !== undefined) {
-                        trongateDateTimeObj.assumedDate.setHours(hours);
-                        trongateDateTimeObj.assumedDate.setMinutes(minutes);
-                    }
-                }
-            }
         }
         
         trongateDateTimeObj.syncOtherDateTimeProperties();
@@ -1106,6 +1121,7 @@ trongateDateTimeObj.updateTimePicker = function() {
         const cellInnerHTML = trongateDateTimeObj.activeEl.value;
         
         const niceDate = trongateDateTimeObj.formatDateObj(assumedDate, 'datetime');
+
         trongateDateTimeObj.activeEl.value = niceDate;
 
         const timeValue = trongateDateTimeObj.formatDateObj(assumedDate, 'time');
