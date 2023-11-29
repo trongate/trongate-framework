@@ -16,22 +16,54 @@ function get_default_locale_str() {
 }
 
 function format_date_str($stored_date_str) {
-    // Function to format a date string ($stored_date_str) expected in 'yyyy-mm-dd' format
-    get_default_date_format(); // Ensuring DEFAULT_DATE_FORMAT is set
-    
-    // Constructing DateTime object from the provided date string
-    $date = DateTime::createFromFormat('Y-m-d', $stored_date_str);
-    if ($date === false) {
-        throw new Exception('Invalid date format');
+    try {
+        // Function to format a date string ($stored_date_str) expected in 'yyyy-mm-dd' format
+        get_default_date_format(); // Ensuring DEFAULT_DATE_FORMAT is set
+        
+        // Constructing DateTime object from the provided date string
+        $date = DateTime::createFromFormat('Y-m-d', $stored_date_str);
+        if ($date === false) {
+            throw new Exception('Invalid date format');
+        }
+
+        // Extracting day, month, and year components from the DateTime object
+        $day = $date->format('d');
+        $month = $date->format('m');
+        $year = $date->format('Y');
+
+        // Retaining separators in DEFAULT_DATE_FORMAT and replacing placeholders
+        $formatted_date = str_replace(['mm', 'dd', 'yyyy'], [$month, $day, $year], DEFAULT_DATE_FORMAT);
+
+        return $formatted_date;
+    } catch (Exception $e) {
+        return $stored_date_str;
     }
+}
 
-    // Extracting day, month, and year components from the DateTime object
-    $day = $date->format('d');
-    $month = $date->format('m');
-    $year = $date->format('Y');
+function format_datetime_str($stored_datetime_str) {
+    try {
+        // Function to format a date-time string ($stored_datetime_str) expected in 'yyyy-mm-dd HH:ii:ss' format
+        get_default_date_format(); // Ensuring DEFAULT_DATE_FORMAT is set
+        
+        // Constructing DateTime object from the provided date-time string
+        $date_time = DateTime::createFromFormat('Y-m-d H:i:s', $stored_datetime_str);
 
-    // Retaining separators in DEFAULT_DATE_FORMAT and replacing placeholders
-    $formatted_date = str_replace(['mm', 'dd', 'yyyy'], [$month, $day, $year], DEFAULT_DATE_FORMAT);
+        // Check if the DateTime object was created successfully
+        if ($date_time === false) {
+            throw new Exception('Invalid date-time format');
+        }
 
-    return $formatted_date;
+        // Format date according to DEFAULT_DATE_FORMAT
+        $formatted_date = $date_time->format(str_replace(['mm', 'dd', 'yyyy'], ['m', 'd', 'Y'], DEFAULT_DATE_FORMAT));
+
+        // Format time in 24-hour clock format
+        $formatted_time = $date_time->format('H:i');
+
+        // Combine date and time based on DEFAULT_DATE_FORMAT
+        $formatted_datetime = $formatted_date . ', ' . $formatted_time;
+
+        return $formatted_datetime;
+    } catch (Exception $e) {
+        return $stored_datetime_str; // Return the original string in case of error
+    }
 }
