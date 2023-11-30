@@ -67,3 +67,28 @@ function format_datetime_str($stored_datetime_str) {
         return $stored_datetime_str; // Return the original string in case of error
     }
 }
+
+function format_time_str($stored_time_str) {
+    try {
+        // Function to format a time string ($stored_time_str) expected in 'HH:ii' format
+        $time_parts = explode(':', $stored_time_str);
+    
+        $hours = (int)$time_parts[0];
+        $minutes = (int)$time_parts[1];
+    
+        $formatted_time = '';
+    
+        if (count($time_parts) >= 2) {
+            if ($hours > 12) {
+                $formatted_time = sprintf('%02d:%02d', $hours, $minutes);
+            } else {
+                $formatted_time = date('h:i', strtotime($stored_time_str));
+            }
+        }
+        
+        return $formatted_time;
+
+    } catch (Exception $e) {
+        return $stored_time_str; // Return the original string in case of error
+    }
+}

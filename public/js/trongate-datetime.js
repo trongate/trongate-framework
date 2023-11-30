@@ -125,6 +125,32 @@ trongateDateTimeObj.convertLongStrToDateObject = function(dateTimeString) {
     }
 };
 
+trongateDateTimeObj.convertTimeStrToDateObject = function(timeString) {
+    if (!timeString) {
+        return new Date(); // Return default value for empty input
+    }
+
+    const currentTime = new Date(); // Get current date-time
+
+    // Extract current day, month, and year
+    const currentYear = currentTime.getFullYear();
+    const currentMonth = currentTime.getMonth();
+    const currentDay = currentTime.getDate();
+
+    // Extract hours and minutes from the time string
+    const [hours, minutes] = timeString.split(':').map(num => parseInt(num));
+
+    // Create a new Date object by assuming the current date along with the provided time
+    const dateObjectWithTime = new Date(currentYear, currentMonth, currentDay, hours, minutes);
+
+    // Check if the created date object is valid
+    if (dateObjectWithTime instanceof Date && !isNaN(dateObjectWithTime.getTime())) {
+        return dateObjectWithTime;
+    } else {
+        return new Date(); // Return default value if creation fails
+    }
+};
+
 async function tgdtConvertDefaultDateStrToObj(defaultDateFormatsStr) {
     return new Promise((resolve) => {
         try {
@@ -307,7 +333,6 @@ trongateDateTimeObj.destroyElements = function(className, exclusionClass = '') {
 trongateDateTimeObj.parseDateFromInput = function(inputValue) {
     // Accepts a date string in either UK (dd-mm-yyyy) or US (mm/dd/yyyy) format with optional time (hh:mm)
     // Returns a JavaScript Date object parsed from the input value, or null if parsing fails.
-
     const mmIndex = trongateDateTimeObj.thisDateFormat.indexOf('mm');
 
     let extractedDay;
@@ -907,7 +932,6 @@ trongateDateTimeObj.listenForDateTimePickerClick = function(targetDateTimePicker
 }
 
 trongateDateTimeObj.listenForTimePickerClick = function(targetTimePickerInput) {
-
     targetTimePickerInput.readOnly = true;
 
     targetTimePickerInput.addEventListener('click', (ev) => {
@@ -923,25 +947,30 @@ trongateDateTimeObj.listenForTimePickerClick = function(targetTimePickerInput) {
     });
 }
 
-trongateDateTimeObj.buildTimePickerPopUp = function(clickedTimePickerEl, parentCalendar=null) {
+trongateDateTimeObj.buildTimePickerPopUp = function(clickedTimePickerEl, parentCalendar = null) {
+    const hasParentCalendar = !!parentCalendar;
+    const inputValue = clickedTimePickerEl.value.trim();
 
-    let gotParentCalendar = !!parentCalendar;
-
-    if(gotParentCalendar === true) {
-        const inputValue = clickedTimePickerEl.value.trim(); // Trim to handle empty or whitespace strings
+    // Update assumedDate based on input type
+    if (hasParentCalendar) {
         if (inputValue) {
             trongateDateTimeObj.assumedDate = trongateDateTimeObj.convertLongStrToDateObject(inputValue);
         }
-        
+        trongateDateTimeObj.syncOtherDateTimeProperties();
+    } else if (inputValue) {
+        // For simple time-picker inputs
+        trongateDateTimeObj.assumedDate = trongateDateTimeObj.convertTimeStrToDateObject(inputValue);
         trongateDateTimeObj.syncOtherDateTimeProperties();
     }
 
+    // Generate element codes
     const elementCodes = trongateDateTimeObj.generateElementCodes();
     clickedTimePickerEl.classList.add(elementCodes.inputCode);
 
-    // Destroy any existing time pickers.
+    // Destroy existing time pickers
     trongateDateTimeObj.destroyElements('timepicker-popup');
 
+    // Create time picker elements
     const timePicker = document.createElement("div");
     timePicker.setAttribute("class", "timepicker-popup");
     timePicker.classList.add(elementCodes.popupCode);
@@ -949,22 +978,23 @@ trongateDateTimeObj.buildTimePickerPopUp = function(clickedTimePickerEl, parentC
     const timePickerTbl = document.createElement("table");
     timePicker.appendChild(timePickerTbl);
 
+    // Create table header
     const timeHeadline = document.createElement("th");
     timeHeadline.setAttribute("colspan", "2");
-
-    const timeTopText = gotParentCalendar === true ? 'Time' : 'Choose Time';
-
+    const timeTopText = hasParentCalendar ? 'Time' : 'Choose Time';
     timeHeadline.appendChild(document.createTextNode(timeTopText));
     const topTr = document.createElement("tr");
     topTr.appendChild(timeHeadline);
     timePickerTbl.appendChild(topTr);
 
+    // Rows data for time picker table
     const rows = [
         ['Time', trongateDateTimeObj.formatDateObj(trongateDateTimeObj.assumedDate, 'time')],
         ['Hour', trongateDateTimeObj.createRangeInput(0, 23, trongateDateTimeObj.currentHour, 'updateHour')],
         ['Minute', trongateDateTimeObj.createRangeInput(0, 59, trongateDateTimeObj.currentMinute, 'updateMinute')]
     ];
 
+    // Create table rows
     rows.forEach(rowData => {
         const row = document.createElement("tr");
         rowData.forEach(data => {
@@ -975,15 +1005,18 @@ trongateDateTimeObj.buildTimePickerPopUp = function(clickedTimePickerEl, parentC
         timePickerTbl.appendChild(row);
     });
 
+    // Create buttons row
     const btnRow = document.createElement("tr");
     btnRow.setAttribute("class", "timepicker-btns");
 
+    // Create 'Now' button
     const btnNow = document.createElement('button');
     btnNow.setAttribute('type', 'button');
     btnNow.appendChild(document.createTextNode('Now'));
     btnNow.setAttribute('class', 'alt');
     btnNow.setAttribute('onclick', 'trongateDateTimeObj.setToNow()');
 
+    // Create 'Done' button
     const btnDone = document.createElement('button');
     btnDone.setAttribute('type', 'button');
     btnDone.appendChild(document.createTextNode('Done'));
@@ -1000,21 +1033,20 @@ trongateDateTimeObj.buildTimePickerPopUp = function(clickedTimePickerEl, parentC
 
     timePickerTbl.appendChild(btnRow);
 
-    const activeEl = trongateDateTimeObj.activeEl;
+    // Handle mobile or desktop display
     const isMobileDevice = trongateDateTimeObj.isMobileDevice();
-
-    if (isMobileDevice === true) {
+    if (isMobileDevice) {
         trongateDateTimeObj.createOverlayWithElement(timePicker);
     } else {
         clickedTimePickerEl.parentNode.insertBefore(timePicker, clickedTimePickerEl.nextSibling);
     }
 
-    if(gotParentCalendar === true) {
+    // Append to parent calendar if exists
+    if (hasParentCalendar) {
         parentCalendar.appendChild(timePickerTbl);
         timePickerTbl.classList.add("inner-timepicker");
         timePickerTbl.style.borderCollapse = 'collapse';
     }
-
 }
 
 trongateDateTimeObj.createRangeInput = function(min, max, value, onchangeFunction) {
