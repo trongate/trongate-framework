@@ -140,7 +140,8 @@ function format_time_str(string $stored_time_str): string {
  * @param string $input_str A string representing a date or date-time.
  * @return DateTime|null Returns a DateTime object if successful, otherwise returns null.
  */
-function convert_to_date_obj(string $input_str): ?DateTime {
+function parse_date(string $input_str): ?DateTime {
+
     get_default_date_format();
     $possible_formats = ['d/m/Y', 'd-m-Y', 'm/d/Y', 'm-d-Y'];
     $default_date_format = DEFAULT_DATE_FORMAT;
@@ -168,14 +169,14 @@ function convert_to_date_obj(string $input_str): ?DateTime {
 }
 
 /**
- * Converts a string representation of time to a DateTime object.
+ * Converts a string representation of time into a DateTime object.
  * 
- * Accepts time strings in the format 'HH:mm'.
+ * Accepts time strings in the 'HH:mm' format.
  * 
  * @param string $input_time_str A string representing time in 'HH:mm' format.
  * @return DateTime|null Returns a DateTime object if successful, otherwise returns null.
  */
-function convert_time_str(string $input_time_str): ?DateTime {
+function parse_time(string $input_time_str): ?DateTime {
     $time_pattern = '/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/';
 
     if (preg_match($time_pattern, $input_time_str)) {
