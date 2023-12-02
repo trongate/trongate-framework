@@ -357,46 +357,6 @@ class Validation_helper {
     }
 
     /**
-     * Validates the datetimepicker input.
-     *
-     * @param array $validation_data The validation data containing key, label, and posted value.
-     * @return bool Returns true if the input is a valid date and time, otherwise adds an error message and returns false.
-     */
-    private function valid_datetimepickerY(array $validation_data): bool {
-        extract($validation_data);
-
-        if ($posted_value !== '') {
-            try {
-                $datetime_format = DEFAULT_DATE_FORMAT;
-                $parsed_datetime = parse_date($posted_value, $datetime_format);
-
-                if (!$parsed_datetime) {
-                    throw new Exception('Invalid date and time format');
-                }
-
-                // Separating date and time parts
-                $datetime_parts = preg_split('/[\s,]+/', $posted_value);
-                $date_part = $datetime_parts[0] ?? '';
-                $time_part = $datetime_parts[1] ?? '';
-
-                $date_result = parse_date($date_part, $datetime_format);
-                $time_result = parse_time($time_part);
-
-                if (!$date_result || !$time_result) {
-                    throw new Exception('Invalid date or time format');
-                }
-
-                return true; // Valid date and time
-            } catch (Exception $e) {
-                $this->form_submission_errors[$key][] = 'The '.$label.' field must be a valid date and time in the format '.$datetime_format.'.';
-                return false;
-            }
-        }
-
-        return false; // Empty $posted_value
-    }
-
-    /**
      * Alias of valid_datetimepicker().
      *
      * @param array $validation_data The validation data containing key, label, and posted value.
