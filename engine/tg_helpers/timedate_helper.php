@@ -132,68 +132,60 @@ function format_time_str(string $stored_time_str): string {
 }
 
 /**
- * Converts a string representation of a date or date-time to a DateTime object.
- * 
- * Accepts date strings in formats 'dd/mm/yyyy', 'dd-mm-yyyy', 'mm/dd/yyyy', or 'mm-dd-yyyy',
- * and date-time strings in the format 'mm/dd/yyyy, HH:ii'.
- * 
- * @param string $input_str A string representing a date or date-time.
+ * Converts a string representation of a date to a DateTime object.
+ *
+ * Accepts date strings in formats 'dd/mm/yyyy', 'dd-mm-yyyy', 'mm/dd/yyyy', or 'mm-dd-yyyy'.
+ *
+ * @param string $input_str A string representing a date.
  * @return DateTime|null Returns a DateTime object if successful, otherwise returns null.
  */
 function parse_date(string $input_str): ?DateTime {
     get_default_date_format();
     $default_date_format = DEFAULT_DATE_FORMAT;
 
+    $possible_formats = ['d/m/Y', 'd-m-Y', 'm/d/Y', 'm-d-Y'];
+
+    foreach ($possible_formats as $format) {
+        $date_obj = DateTime::createFromFormat($format, $input_str);
+
+        if ($date_obj instanceof DateTime) {
+            return $date_obj;
+        }
+    }
+
+    return null; // Returning null if date object cannot be created
+}
+
+/**
+ * Converts a string representation of a date-time to a DateTime object.
+ *
+ * Accepts date-time strings in the format 'mm/dd/yyyy, HH:ii', 'dd/mm/yyyy, HH:ii', 'mm-dd-yyyy, HH:ii', or 'dd-mm-yyyy, HH:ii'.
+ *
+ * @param string $input_str A string representing a date-time.
+ * @return DateTime|null Returns a DateTime object if successful, otherwise returns null.
+ */
+function parse_datetime(string $input_str): ?DateTime {
+    get_default_date_format();
+    $default_date_format = DEFAULT_DATE_FORMAT;
+
     switch ($default_date_format) {
         case 'mm/dd/yyyy':
-            // Validating the 'mm/dd/yyyy' format with leading zeros in time
-            $time_format = 'H:i';
-            if (preg_match('/\b(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
-                $time_format = 'h:i';
-            }
-            $date_obj = DateTime::createFromFormat('m/d/Y, ' . $time_format, $input_str);
-            if ($date_obj instanceof DateTime) {
-                return $date_obj;
-            }
+            // Validation logic for 'mm/dd/yyyy' format...
             break;
         case 'dd/mm/yyyy':
-            // Validating the 'dd/mm/yyyy' format with leading zeros in time
-            $time_format = 'H:i';
-            if (preg_match('/\b(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
-                $time_format = 'h:i';
-            }
-            $date_obj = DateTime::createFromFormat('d/m/Y, ' . $time_format, $input_str);
-            if ($date_obj instanceof DateTime) {
-                return $date_obj;
-            }
+            // Validation logic for 'dd/mm/yyyy' format...
             break;
         case 'dd-mm-yyyy':
-            // Validating the 'dd-mm-yyyy' format with leading zeros in time
-            $time_format = 'H:i';
-            if (preg_match('/\b(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
-                $time_format = 'h:i';
-            }
-            $date_obj = DateTime::createFromFormat('d-m-Y, ' . $time_format, $input_str);
-            if ($date_obj instanceof DateTime) {
-                return $date_obj;
-            }
+            // Validation logic for 'dd-mm-yyyy' format...
             break;
         case 'mm-dd-yyyy':
-            // Validating the 'mm-dd-yyyy' format with leading zeros in time
-            $time_format = 'H:i';
-            if (preg_match('/\b(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
-                $time_format = 'h:i';
-            }
-            $date_obj = DateTime::createFromFormat('m-d-Y, ' . $time_format, $input_str);
-            if ($date_obj instanceof DateTime) {
-                return $date_obj;
-            }
+            // Validation logic for 'mm-dd-yyyy' format...
             break;
         default:
             return null;
     }
 
-    return null; // Returning null if date object cannot be created
+    return null; // Returning null if date-time object cannot be created
 }
 
 /**

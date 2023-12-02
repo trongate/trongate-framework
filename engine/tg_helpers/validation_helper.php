@@ -335,7 +335,7 @@ class Validation_helper {
         extract($validation_data);
         
         if ($posted_value !== '') {
-            $parsed_datetime = parse_date($posted_value);
+            $parsed_datetime = parse_datetime($posted_value);
 
             if ($parsed_datetime instanceof DateTime) {
                 return true;
