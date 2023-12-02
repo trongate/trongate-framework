@@ -146,11 +146,11 @@ function parse_date(string $input_str): ?DateTime {
     $possible_formats = ['d/m/Y', 'd-m-Y', 'm/d/Y', 'm-d-Y'];
     $default_date_format = DEFAULT_DATE_FORMAT;
 
-    // Pattern to match date-time string 'mm/dd/yyyy, HH:ii'
+    // Pattern to match date-time string 'dd-mm-yyyy, HH:ii'
     $datetime_pattern = '/^(\d{2}[\/-]\d{2}[\/-]\d{4}),\s(\d{2}:\d{2})$/';
 
     if (preg_match($datetime_pattern, $input_str, $matches)) {
-        $date_time = DateTime::createFromFormat('m/d/Y, H:i', $input_str);
+        $date_time = DateTime::createFromFormat('d-m-Y, H:i', $input_str);
 
         if ($date_time instanceof DateTime) {
             return $date_time;
@@ -181,8 +181,10 @@ function parse_time(string $input_time_str): ?DateTime {
 
     if (preg_match($time_pattern, $input_time_str)) {
         $time_obj = DateTime::createFromFormat('H:i', $input_time_str);
-        return $time_obj !== false ? $time_obj : null;
+        if ($time_obj !== false) {
+            return $time_obj;
+        }
     }
 
-    return null; // Returning null if time object cannot be created
+    return null; // Returning null if time object cannot be created or pattern doesn't match
 }
