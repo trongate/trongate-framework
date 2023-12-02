@@ -170,16 +170,44 @@ function parse_datetime(string $input_str): ?DateTime {
 
     switch ($default_date_format) {
         case 'mm/dd/yyyy':
-            // Validation logic for 'mm/dd/yyyy' format...
+            $time_format = 'H:i';
+            if (preg_match('/\b(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
+                $time_format = 'h:i';
+            }
+            $date_obj = DateTime::createFromFormat('m/d/Y, ' . $time_format, $input_str);
+            if ($date_obj instanceof DateTime) {
+                return $date_obj;
+            }
             break;
         case 'dd/mm/yyyy':
-            // Validation logic for 'dd/mm/yyyy' format...
+            $time_format = 'H:i';
+            if (preg_match('/\b(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
+                $time_format = 'h:i';
+            }
+            $date_obj = DateTime::createFromFormat('d/m/Y, ' . $time_format, $input_str);
+            if ($date_obj instanceof DateTime) {
+                return $date_obj;
+            }
             break;
         case 'dd-mm-yyyy':
-            // Validation logic for 'dd-mm-yyyy' format...
+            $time_format = 'H:i';
+            if (preg_match('/\b(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
+                $time_format = 'h:i';
+            }
+            $date_obj = DateTime::createFromFormat('d-m-Y, ' . $time_format, $input_str);
+            if ($date_obj instanceof DateTime) {
+                return $date_obj;
+            }
             break;
         case 'mm-dd-yyyy':
-            // Validation logic for 'mm-dd-yyyy' format...
+            $time_format = 'H:i';
+            if (preg_match('/\b(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
+                $time_format = 'h:i';
+            }
+            $date_obj = DateTime::createFromFormat('m-d-Y, ' . $time_format, $input_str);
+            if ($date_obj instanceof DateTime) {
+                return $date_obj;
+            }
             break;
         default:
             return null;
