@@ -144,28 +144,53 @@ function parse_date(string $input_str): ?DateTime {
     get_default_date_format();
     $default_date_format = DEFAULT_DATE_FORMAT;
 
-    if ($default_date_format === 'mm/dd/yyyy') {
-        $date_time_parts = explode(', ', $input_str);
-        $date_part = $date_time_parts[0] ?? '';
-        $time_part = $date_time_parts[1] ?? '';
-
-        // Validating the 'mm/dd/yyyy' format
-        $date_obj = DateTime::createFromFormat('m/d/Y', $date_part);
-
-        if ($date_obj instanceof DateTime) {
-            return $date_obj;
-        }
-    } else {
-        // Handling other date formats
-        $possible_formats = ['d/m/Y', 'd-m-Y', 'm/d/Y', 'm-d-Y'];
-
-        foreach ($possible_formats as $format) {
-            $date_obj = DateTime::createFromFormat($format, $input_str);
-
+    switch ($default_date_format) {
+        case 'mm/dd/yyyy':
+            // Validating the 'mm/dd/yyyy' format with leading zeros in time
+            $time_format = 'H:i';
+            if (preg_match('/\b(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
+                $time_format = 'h:i';
+            }
+            $date_obj = DateTime::createFromFormat('m/d/Y, ' . $time_format, $input_str);
             if ($date_obj instanceof DateTime) {
                 return $date_obj;
             }
-        }
+            break;
+        case 'dd/mm/yyyy':
+            // Validating the 'dd/mm/yyyy' format with leading zeros in time
+            $time_format = 'H:i';
+            if (preg_match('/\b(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
+                $time_format = 'h:i';
+            }
+            $date_obj = DateTime::createFromFormat('d/m/Y, ' . $time_format, $input_str);
+            if ($date_obj instanceof DateTime) {
+                return $date_obj;
+            }
+            break;
+        case 'dd-mm-yyyy':
+            // Validating the 'dd-mm-yyyy' format with leading zeros in time
+            $time_format = 'H:i';
+            if (preg_match('/\b(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
+                $time_format = 'h:i';
+            }
+            $date_obj = DateTime::createFromFormat('d-m-Y, ' . $time_format, $input_str);
+            if ($date_obj instanceof DateTime) {
+                return $date_obj;
+            }
+            break;
+        case 'mm-dd-yyyy':
+            // Validating the 'mm-dd-yyyy' format with leading zeros in time
+            $time_format = 'H:i';
+            if (preg_match('/\b(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
+                $time_format = 'h:i';
+            }
+            $date_obj = DateTime::createFromFormat('m-d-Y, ' . $time_format, $input_str);
+            if ($date_obj instanceof DateTime) {
+                return $date_obj;
+            }
+            break;
+        default:
+            return null;
     }
 
     return null; // Returning null if date object cannot be created
