@@ -333,18 +333,24 @@ class Validation_helper {
     private function valid_datetimepicker(array $validation_data): bool {
         extract($validation_data);
         if ($posted_value !== '') {
-            $result = parse_date($posted_value);
+            // Parsing the datetime value
+            $parsed_datetime = parse_date($posted_value);
 
             // Extracting date and time components
             $date_time_parts = explode(', ', $posted_value);
             $date_part = $date_time_parts[0] ?? '';
             $time_part = $date_time_parts[1] ?? '';
 
-            // Validating date and time parts separately
+            // Validating date and time parts separately with the respective formats
             $date_result = parse_date($date_part);
             $time_result = parse_time($time_part);
 
-            if ($result instanceof DateTime && $date_result instanceof DateTime && $time_result instanceof DateTime) {
+            // Checking if all components are valid
+            if (
+                $parsed_datetime instanceof DateTime &&
+                $date_result instanceof DateTime &&
+                $time_result instanceof DateTime
+            ) {
                 return true;
             } else {
                 $this->form_submission_errors[$key][] = 'The '.$label.' field must be a valid date and time in the format '.DEFAULT_DATE_FORMAT.', HH:ii.';
@@ -353,7 +359,6 @@ class Validation_helper {
         }
 
         return false; // Return false when $posted_value is empty
-
     }
 
     /**

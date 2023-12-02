@@ -141,21 +141,24 @@ function format_time_str(string $stored_time_str): string {
  * @return DateTime|null Returns a DateTime object if successful, otherwise returns null.
  */
 function parse_date(string $input_str): ?DateTime {
-
     get_default_date_format();
-    $possible_formats = ['d/m/Y', 'd-m-Y', 'm/d/Y', 'm-d-Y'];
     $default_date_format = DEFAULT_DATE_FORMAT;
 
-    // Pattern to match date-time string 'dd-mm-yyyy, HH:ii'
-    $datetime_pattern = '/^(\d{2}[\/-]\d{2}[\/-]\d{4}),\s(\d{2}:\d{2})$/';
+    if ($default_date_format === 'mm/dd/yyyy') {
+        $date_time_parts = explode(', ', $input_str);
+        $date_part = $date_time_parts[0] ?? '';
+        $time_part = $date_time_parts[1] ?? '';
 
-    if (preg_match($datetime_pattern, $input_str, $matches)) {
-        $date_time = DateTime::createFromFormat('d-m-Y, H:i', $input_str);
+        // Validating the 'mm/dd/yyyy' format
+        $date_obj = DateTime::createFromFormat('m/d/Y', $date_part);
 
-        if ($date_time instanceof DateTime) {
-            return $date_time;
+        if ($date_obj instanceof DateTime) {
+            return $date_obj;
         }
     } else {
+        // Handling other date formats
+        $possible_formats = ['d/m/Y', 'd-m-Y', 'm/d/Y', 'm-d-Y'];
+
         foreach ($possible_formats as $format) {
             $date_obj = DateTime::createFromFormat($format, $input_str);
 
