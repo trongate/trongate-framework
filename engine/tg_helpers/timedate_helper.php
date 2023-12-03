@@ -30,6 +30,220 @@ function get_default_locale_str(): void {
 }
 
 /**
+ * Attempts to create a DateTime object from provided date and time components.
+ *
+ * @param array $day_vars An array containing 'day', 'month', 'year', 'hours', and 'minutes'.
+ *
+ * @return DateTime|false Returns a DateTime object if successful, otherwise returns false.
+ */
+function create_date_from_array(array $day_vars) {
+    $required_keys = ['day', 'month', 'year', 'hours', 'minutes'];
+
+    // Ensure all required keys are present in the array
+    if (count(array_intersect_key(array_flip($required_keys), $day_vars)) !== count($required_keys)) {
+        return false; // Missing required keys, unable to create a date object
+    }
+
+    // Convert day, month, and year strings to integers
+    $day = intval($day_vars['day']);
+    $month = intval($day_vars['month']);
+    $year = intval($day_vars['year']);
+    $hours = intval($day_vars['hours']);
+    $minutes = intval($day_vars['minutes']);
+
+    // Check if the provided values are valid for a date
+    if (!checkdate($month, $day, $year)) {
+        return false; // Invalid date, unable to create a date object
+    }
+
+    // Check if the provided values are valid for time
+    if ($hours < 0 || $hours > 23 || $minutes < 0 || $minutes > 59) {
+        return false; // Invalid time, unable to create a date object
+    }
+
+    // Create the date string with zero-padded values for consistency
+    $date_str = sprintf('%04d-%02d-%02d %02d:%02d:00', $year, $month, $day, $hours, $minutes);
+
+    // Attempt to create a DateTime object
+    $date_object = DateTime::createFromFormat('Y-m-d H:i:s', $date_str);
+
+    if ($date_object === false) {
+        return false; // Unable to create a date object
+    }
+
+    return $date_object; // Return the DateTime object
+}
+
+/**
+ * Converts a time string into a date object or returns false.
+ *
+ * @param string $time_str The time string to parse (format: "HH:MM").
+ *
+ * @return \DateTime|false Returns a \DateTime object representing the parsed time or false if invalid.
+ */
+function parse_time(string $time_str): \DateTime|false {
+    $time_bits = explode(':', $time_str);
+
+    if (count($time_bits) === 2 && strlen($time_str) === 5) {
+        $hour_str = trim($time_bits[0]);
+        $minute_str = trim($time_bits[1]);
+
+        if (is_numeric($hour_str) && is_numeric($minute_str)) {
+            $hour_value = intval($hour_str);
+            $minute_value = intval($minute_str);
+
+            if ($hour_value < 0 || $hour_value > 23 || $minute_value < 0 || $minute_value > 59) {
+                return false; // Invalid time components
+            }
+
+            // Use the current date components
+            $day_vars = [
+                'hours' => $hour_value,
+                'minutes' => $minute_value,
+                'day' => intval(date('d')),
+                'month' => intval(date('m')),
+                'year' => intval(date('Y')),
+            ];
+
+            // Attempt to create a date object from the time components
+            return create_date_from_array($day_vars);
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Converts a date string into a date object or returns false.
+ *
+ * @param string $date_str The date string to parse (format: "mm/dd/yyyy" or "mm-dd-yyyy").
+ *
+ * @return \DateTime|false Returns a \DateTime object representing the parsed date or false if invalid.
+ */
+function parse_date(string $date_str): \DateTime|false {
+    get_default_date_format();
+    if(strlen($date_str) === 10) {
+
+        if (strpos($date_str, '-') !== false) {
+            $delimiter = '-';
+        } else {
+            $delimiter = '/';
+        }
+
+        $date_bits = explode($delimiter, $date_str);
+        if(count($date_bits) === 3) {
+            
+            $day_vars['hours'] = date('G');
+            $day_vars['minutes'] = date('i');
+            $day_vars['year'] = $date_bits[2];
+
+            if((DEFAULT_DATE_FORMAT === 'mm/dd/yyyy') || (DEFAULT_DATE_FORMAT === 'mm-dd-yyyy')) {
+                $day_vars['month'] = $date_bits[0];
+                $day_vars['day'] = $date_bits[1];
+            } else {
+                $day_vars['day'] = $date_bits[0];
+                $day_vars['month'] = $date_bits[1];             
+            }
+            
+            // Attempt to create a date object from the date components
+            return create_date_from_array($day_vars);           
+
+        }
+
+    }
+    return false;
+}
+
+/**
+ * Parses a datetime string into a date object or returns false.
+ *
+ * @param string $datetime_str The datetime string to parse (format: "mm/dd/yyyy HH:MM" or "mm-dd-yyyy HH:MM").
+ *
+ * @return \DateTime|false Returns a \DateTime object representing the parsed datetime or false if invalid.
+ */
+function parse_datetime(string $datetime_str): \DateTime|false {
+    get_default_date_format();
+
+    if(strlen($datetime_str) === 17) {
+
+        if (strpos($datetime_str, '-') !== false) {
+            $delimiter = '-';
+        } else {
+            $delimiter = '/';
+        }
+
+        // Extract the $date_str from the $datetime_str.
+        $datetime_bits = explode(',', $datetime_str);
+        if(count($datetime_bits) !== 2) {
+            return false; // Invalid datetime string.
+        }
+
+        $date_str = trim($datetime_bits[0]);
+        $time_str = trim($datetime_bits[1]);
+        $time_obj = parse_time($time_str);
+
+        if($time_obj === false) {
+            return false; // Could not extract valid time data.
+        }
+
+        $date_bits = explode($delimiter, $date_str);
+        if(count($date_bits) === 3) {
+
+            $day_vars['hours'] = $time_obj->format('G');
+            $day_vars['minutes'] = $time_obj->format('i');
+            $day_vars['year'] = $date_bits[2];
+
+            if((DEFAULT_DATE_FORMAT === 'mm/dd/yyyy') || (DEFAULT_DATE_FORMAT === 'mm-dd-yyyy')) {
+                $day_vars['month'] = $date_bits[0];
+                $day_vars['day'] = $date_bits[1];
+            } else {
+                $day_vars['day'] = $date_bits[0];
+                $day_vars['month'] = $date_bits[1];             
+            }
+            
+            // Attempt to create a date object from the date components
+            return create_date_from_array($day_vars);           
+
+        }
+
+    }
+    return false;
+}
+
+/**
+ * Formats a time string.
+ *
+ * Accepts a time string ($stored_time_str) expected in 'HH:ii' format and formats it
+ * according to the 'h:i' or 'HH:ii' format based on the provided time.
+ *
+ * @param string $stored_time_str The time string to be formatted (expected format: 'HH:ii').
+ * @return string The formatted time string as per the 'h:i' or 'HH:ii' format or the original string if an error occurs.
+ */
+function format_time_str(string $stored_time_str): string {
+    try {
+        $time_parts = explode(':', $stored_time_str);
+    
+        $hours = (int)$time_parts[0];
+        $minutes = (int)$time_parts[1];
+    
+        $formatted_time = '';
+    
+        if (count($time_parts) >= 2) {
+            if ($hours > 12) {
+                $formatted_time = sprintf('%02d:%02d', $hours, $minutes);
+            } else {
+                $formatted_time = date('h:i', strtotime($stored_time_str));
+            }
+        }
+        
+        return $formatted_time;
+
+    } catch (Exception $e) {
+        return $stored_time_str; // Return the original string in case of error
+    }
+}
+
+/**
  * Formats a date string.
  *
  * Accepts a date string ($stored_date_str) expected in 'yyyy-mm-dd' format and formats it
@@ -96,143 +310,4 @@ function format_datetime_str(string $stored_datetime_str): string {
     } catch (Exception $e) {
         return $stored_datetime_str; // Return the original string in case of error
     }
-}
-
-/**
- * Formats a time string.
- *
- * Accepts a time string ($stored_time_str) expected in 'HH:ii' format and formats it
- * according to the 'h:i' or 'HH:ii' format based on the provided time.
- *
- * @param string $stored_time_str The time string to be formatted (expected format: 'HH:ii').
- * @return string The formatted time string as per the 'h:i' or 'HH:ii' format or the original string if an error occurs.
- */
-function format_time_str(string $stored_time_str): string {
-    try {
-        $time_parts = explode(':', $stored_time_str);
-    
-        $hours = (int)$time_parts[0];
-        $minutes = (int)$time_parts[1];
-    
-        $formatted_time = '';
-    
-        if (count($time_parts) >= 2) {
-            if ($hours > 12) {
-                $formatted_time = sprintf('%02d:%02d', $hours, $minutes);
-            } else {
-                $formatted_time = date('h:i', strtotime($stored_time_str));
-            }
-        }
-        
-        return $formatted_time;
-
-    } catch (Exception $e) {
-        return $stored_time_str; // Return the original string in case of error
-    }
-}
-
-/**
- * Converts a string representation of a date to a DateTime object.
- *
- * Accepts date strings in formats 'dd/mm/yyyy', 'dd-mm-yyyy', 'mm/dd/yyyy', or 'mm-dd-yyyy'.
- *
- * @param string $input_str A string representing a date.
- * @return DateTime|null Returns a DateTime object if successful, otherwise returns null.
- */
-function parse_date(string $input_str): ?DateTime {
-    get_default_date_format();
-    $default_date_format = DEFAULT_DATE_FORMAT;
-
-    $possible_formats = ['d/m/Y', 'd-m-Y', 'm/d/Y', 'm-d-Y'];
-
-    foreach ($possible_formats as $format) {
-        $date_obj = DateTime::createFromFormat($format, $input_str);
-
-        if ($date_obj instanceof DateTime) {
-            return $date_obj;
-        }
-    }
-
-    return null; // Returning null if date object cannot be created
-}
-
-/**
- * Converts a string representation of a date-time to a DateTime object.
- *
- * Accepts date-time strings in the format 'mm/dd/yyyy, HH:ii', 'dd/mm/yyyy, HH:ii', 'mm-dd-yyyy, HH:ii', or 'dd-mm-yyyy, HH:ii'.
- *
- * @param string $input_str A string representing a date-time.
- * @return DateTime|null Returns a DateTime object if successful, otherwise returns null.
- */
-function parse_datetime(string $input_str): ?DateTime {
-    get_default_date_format();
-    $default_date_format = DEFAULT_DATE_FORMAT;
-
-    switch ($default_date_format) {
-        case 'mm/dd/yyyy':
-            $time_format = 'H:i';
-            if (preg_match('/\b(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
-                $time_format = 'h:i';
-            }
-            $date_obj = DateTime::createFromFormat('m/d/Y, ' . $time_format, $input_str);
-            if ($date_obj instanceof DateTime) {
-                return $date_obj;
-            }
-            break;
-        case 'dd/mm/yyyy':
-            $time_format = 'H:i';
-            if (preg_match('/\b(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
-                $time_format = 'h:i';
-            }
-            $date_obj = DateTime::createFromFormat('d/m/Y, ' . $time_format, $input_str);
-            if ($date_obj instanceof DateTime) {
-                return $date_obj;
-            }
-            break;
-        case 'dd-mm-yyyy':
-            $time_format = 'H:i';
-            if (preg_match('/\b(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
-                $time_format = 'h:i';
-            }
-            $date_obj = DateTime::createFromFormat('d-m-Y, ' . $time_format, $input_str);
-            if ($date_obj instanceof DateTime) {
-                return $date_obj;
-            }
-            break;
-        case 'mm-dd-yyyy':
-            $time_format = 'H:i';
-            if (preg_match('/\b(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4},\s(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\b/', $input_str)) {
-                $time_format = 'h:i';
-            }
-            $date_obj = DateTime::createFromFormat('m-d-Y, ' . $time_format, $input_str);
-            if ($date_obj instanceof DateTime) {
-                return $date_obj;
-            }
-            break;
-        default:
-            return null;
-    }
-
-    return null; // Returning null if date-time object cannot be created
-}
-
-/**
- * Converts a string representation of time into a DateTime object.
- * 
- * Accepts time strings in the 'HH:mm' format.
- * 
- * @param string $input_time_str A string representing time in 'HH:mm' format.
- * @return DateTime|null Returns a DateTime object if successful, otherwise returns null.
- */
-function parse_time(string $input_time_str): ?DateTime {
-    $time_pattern = '/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/';
-
-    if (preg_match($time_pattern, $input_time_str)) {
-        $time_obj = DateTime::createFromFormat('H:i', $input_time_str);
-        if ($time_obj !== false) {
-            return $time_obj;
-        }
-    }
-
-    return null; // Returning null if time object cannot be created or pattern doesn't match
 }
