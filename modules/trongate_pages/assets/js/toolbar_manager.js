@@ -1,4 +1,5 @@
 let tgpEditorTimer; // Variable to store the timer
+let removeUponScrollAllowed = true;
 
 function tgpAddHeadlineToolbar(targetEl) {
   const headlineElement = tgpFindAncestorHeadline(targetEl);
@@ -636,82 +637,6 @@ function tgpAttemptActivateLinkifyBtn(selectedRange) {
 
 }
 
-
-
-
-
-
-
-
-
-window.addEventListener("mouseup", (ev) => {
-    //NEVER SET THE ACTIVE EL UPON MOUSE UP!!!!
-    //attempt to set buttons to 'active' IF toolbar open 
-    //for example, if user has clicked on italic text, 'italic' button become 'active'
-    let activeToolBar = document.getElementById('trongate-editor');
-    if (activeToolBar) {
-        tgpAttemptActivateToolBarBtns();
-    }
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function tgpItalicify() {
     let clickedEditorBtn = document.getElementById('italicify-btn');
 
@@ -812,7 +737,6 @@ function tgpIntersectsRange(selectedRange, els) {
     return result;
 }
 
-
 function tgpAttemptActivateToolBarBtns() {
     //make sure we have a selection that is INSIDE the active element? 
 
@@ -886,7 +810,6 @@ function tgpAddTextToolbar(targetEl) {
     tgpBuildLinkifyBtn(divLeft);
     tgpBuildListifyBtns(divLeft);
     tgpBuildPicBtn(divLeft);
-    tgpBuildCleanCodeBtn(divLeft);
     tgpBuildTrashifyBtn(divRight);
 
     editor.setAttribute("id", "trongate-editor");
@@ -908,13 +831,6 @@ function tgpAddTextToolbar(targetEl) {
     tgpInitEditorListeners(editor);
     tgpStartTimer();
   }
-}
-
-function tgpBuildCleanCodeBtn(containerEl) {
-    const cleanCodeBtn = document.createElement("button");
-    cleanCodeBtn.setAttribute("onclick", "tgpCleanCode()");
-    cleanCodeBtn.innerHTML = "<i class='fas fa-shower'></i>";
-    containerEl.appendChild(cleanCodeBtn);  
 }
 
 function tgpFindAncestorHeadline(element) {
@@ -1012,13 +928,15 @@ function tgpToggleEditorToolbarBtn(btnId) {
     targetBtn.classList.toggle('active-editor-btn');
 }
 
-
-
-
-
-let removeUponScrollAllowed = true;
-
-
+window.addEventListener("mouseup", (ev) => {
+    //NEVER SET THE ACTIVE EL UPON MOUSE UP!!!!
+    //attempt to set buttons to 'active' IF toolbar open 
+    //for example, if user has clicked on italic text, 'italic' button become 'active'
+    let activeToolBar = document.getElementById('trongate-editor');
+    if (activeToolBar) {
+        tgpAttemptActivateToolBarBtns();
+    }
+})
 
 window.addEventListener('scroll', tgpHandleScroll);
 
