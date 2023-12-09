@@ -1,4 +1,5 @@
 <?php
+
 /**
  * IMPORTANT NOTE REGARDING STRIP_TAGS():
  *
@@ -51,19 +52,19 @@ function form_open(string $location, ?array $attributes = null, ?string $additio
 
     if (isset($attributes)) {
         foreach ($attributes as $key => $value) {
-            $extra.= ' '.$key.'="'.$value.'"';
+            $extra .= ' ' . $key . '="' . $value . '"';
         }
     }
 
     if (filter_var($location, FILTER_VALIDATE_URL) === FALSE) {
-        $location = BASE_URL.$location;
+        $location = BASE_URL . $location;
     }
 
     if (isset($additional_code)) {
-        $extra.= ' '.$additional_code;
+        $extra .= ' ' . $additional_code;
     }
 
-    $html = '<form action="'.$location.'" method="'.$method.'"'.$extra.'>';
+    $html = '<form action="' . $location . '" method="' . $method . '"' . $extra . '>';
     return $html;
 }
 
@@ -93,18 +94,17 @@ function form_open_upload(string $location, ?array $attributes = null, ?string $
  */
 function form_close(): string {
     // 1. Generate the CSRF token
-    $csrf_token = bin2hex(random_bytes(32));
+    if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
 
-    // 2. Set the token as a session variable
-    $_SESSION['csrf_token'] = $csrf_token;
-
-    // 3. Create the hidden form field for CSRF token
+    // 2. Create the hidden form field for CSRF token
     $html = '<input type="hidden" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
 
-    // 4. Add the closing form tag
+    // 3. Add the closing form tag
     $html .= '</form>';
 
-    // 5. Include inline validation errors (if any)
+    // 4. Include inline validation errors (if any)
     if (isset($_SESSION['form_submission_errors'])) {
         $errors_json = json_encode($_SESSION['form_submission_errors']);
         $inline_validation_js = highlight_validation_errors($errors_json);
@@ -448,7 +448,7 @@ function post(string $field_name, ?bool $clean_up = null) {
 
         if (isset($clean_up)) {
             $value = filter_string($value);
-            
+
             if (is_numeric($value)) {
                 $var_type = (strpos($value, '.') !== false) ? 'double' : 'int';
                 settype($value, $var_type);
