@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Truncates a string to a specified maximum length.
  *
@@ -86,7 +87,7 @@ function url_title($value, $transliteration = true) {
  */
 function out(string $input, string $encoding = 'UTF-8', string $output_format = 'html'): string {
     $flags = ENT_QUOTES;
-    
+
     if ($output_format === 'xml') {
         $flags = ENT_XML1;
     } elseif ($output_format === 'json') {
@@ -104,7 +105,7 @@ function out(string $input, string $encoding = 'UTF-8', string $output_format = 
         $input = ($output_format === 'html') ? htmlspecialchars($input, $flags, $encoding) : htmlentities($input, $flags, $encoding);
         return $input;
     }
-    
+
     return htmlspecialchars($input, $flags, $encoding);
 }
 

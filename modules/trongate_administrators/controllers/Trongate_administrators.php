@@ -20,14 +20,14 @@ class Trongate_administrators extends Trongate {
                 die();
             }
 
-            $data['form_location'] = BASE_URL.$this->secret_login_segment.'/submit_login';
+            $data['form_location'] = BASE_URL . $this->secret_login_segment . '/submit_login';
         } else {
-            $data['form_location'] = BASE_URL.'trongate_administrators/submit_login';
+            $data['form_location'] = BASE_URL . 'trongate_administrators/submit_login';
         }
 
         $data['username'] = post('username');
         $data['view_module'] = 'trongate_administrators';
-        $data['view_file'] = 'login_form'; 
+        $data['view_file'] = 'login_form';
         $this->load_template($data);
     }
 
@@ -46,7 +46,7 @@ class Trongate_administrators extends Trongate {
             }
         }
 
-        $submit = post('submit'); 
+        $submit = post('submit');
 
         if ($submit == 'Submit') {
             $this->validation_helper->set_rules('username', 'username', 'required|callback_login_check');
@@ -58,7 +58,7 @@ class Trongate_administrators extends Trongate {
             } else {
                 $this->login();
             }
-        } elseif($submit == 'Cancel') {
+        } elseif ($submit == 'Cancel') {
             redirect(BASE_URL);
         }
     }
@@ -98,11 +98,10 @@ class Trongate_administrators extends Trongate {
                 }
 
                 redirect('trongate_administrators/manage');
-
             } else {
                 $this->create();
             }
-        } elseif($submit == 'Cancel') {
+        } elseif ($submit == 'Cancel') {
             redirect('trongate_administrators/manage');
         }
     }
@@ -153,7 +152,7 @@ class Trongate_administrators extends Trongate {
      * @return void
      */
     function load_template(array $data): void {
-        $file_path = APPPATH.'modules/trongate_administrators/views/tg_admin_template.php';
+        $file_path = APPPATH . 'modules/trongate_administrators/views/tg_admin_template.php';
         require_once($file_path);
     }
 
@@ -165,7 +164,7 @@ class Trongate_administrators extends Trongate {
     function account(): void {
         $token = $this->_make_sure_allowed();
         $update_id = $this->_get_my_id($token);
-        redirect('trongate_administrators/create/'.$update_id);
+        redirect('trongate_administrators/create/' . $update_id);
     }
 
     /**
@@ -193,7 +192,6 @@ class Trongate_administrators extends Trongate {
             if ($data['my_admin_id'] == $update_id) {
                 $data['headline'] = str_replace('Record', 'Your Account', $data['headline']);
             }
-
         } else {
             $data['headline'] = 'Create Record';
         }
@@ -284,7 +282,7 @@ class Trongate_administrators extends Trongate {
                 $rows = $this->model->query($sql, 'object');
 
                 if ($rows == false) {
-                    redirect(BASE_URL.'trongate_administrators/missing_tbl_msg');
+                    redirect(BASE_URL . 'trongate_administrators/missing_tbl_msg');
                 } else {
                     $token_params['user_id'] = $rows[0]->trongate_user_id;
 
@@ -292,20 +290,17 @@ class Trongate_administrators extends Trongate {
                     $this->_delete_tokens_for_user($token_params['user_id']);
 
                     //now generate the new token
-                    $token_params['expiry_date'] = 86400+time();
+                    $token_params['expiry_date'] = 86400 + time();
                     $this->module('trongate_tokens');
                     $_SESSION['trongatetoken'] = $this->trongate_tokens->_generate_token($token_params);
                     return $_SESSION['trongatetoken'];
                 }
-
             } else {
                 redirect('trongate_administrators/login');
             }
-
         } else {
             return $token;
         }
-
     }
 
     /**
@@ -318,7 +313,6 @@ class Trongate_administrators extends Trongate {
         $result_obj = $this->model->get_where($update_id);
         if (gettype($result_obj) == 'object') {
             $data = (array) $result_obj;
-
         } else {
             $data = false;
         }
@@ -352,12 +346,12 @@ class Trongate_administrators extends Trongate {
         $remember = post('remember');
         if (($remember === '1') || ($remember === 1)) {
             //set a cookie and remember for 30 days
-            $token_data['expiry_date'] = time() + (86400*30);
+            $token_data['expiry_date'] = time() + (86400 * 30);
             $token = $this->trongate_tokens->_generate_token($token_data);
-            setcookie('trongatetoken', $token, $token_data['expiry_date'], '/');            
+            setcookie('trongatetoken', $token, $token_data['expiry_date'], '/');
         } else {
             //user did not select 'remember me' checkbox
-            $_SESSION['trongatetoken'] = $this->trongate_tokens->_generate_token($token_data);            
+            $_SESSION['trongatetoken'] = $this->trongate_tokens->_generate_token($token_data);
         }
 
         redirect($this->dashboard_home);
@@ -402,7 +396,7 @@ class Trongate_administrators extends Trongate {
     function _delete_expired_tokens(): void {
         $params['nowtime'] = time();
         $sql = 'delete from trongate_tokens where expiry_date<:nowtime';
-        $this->model->query_bind($sql, $params);        
+        $this->model->query_bind($sql, $params);
     }
 
     /**
@@ -466,7 +460,7 @@ class Trongate_administrators extends Trongate {
     function login_check(string $submitted_username): string|bool {
         $submitted_password = post('password');
         $error_msg = 'You did not enter a correct username and/or or password.';
-    
+
         $result = $this->model->get_one_where('username', $submitted_username, 'trongate_administrators');
         if (gettype($result) == 'object') {
             $hashed_password = $result->password;
@@ -478,5 +472,4 @@ class Trongate_administrators extends Trongate {
 
         return $error_msg;
     }
-
 }

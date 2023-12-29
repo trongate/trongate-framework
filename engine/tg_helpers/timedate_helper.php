@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Initializes the default date format constant if not already defined.
  *
@@ -122,7 +123,7 @@ function parse_time(string $time_str): \DateTime|false {
  */
 function parse_date(string $date_str): \DateTime|false {
     get_default_date_format();
-    if(strlen($date_str) === 10) {
+    if (strlen($date_str) === 10) {
 
         if (strpos($date_str, '-') !== false) {
             $delimiter = '-';
@@ -131,25 +132,23 @@ function parse_date(string $date_str): \DateTime|false {
         }
 
         $date_bits = explode($delimiter, $date_str);
-        if(count($date_bits) === 3) {
-            
+        if (count($date_bits) === 3) {
+
             $day_vars['hours'] = date('G');
             $day_vars['minutes'] = date('i');
             $day_vars['year'] = $date_bits[2];
 
-            if((DEFAULT_DATE_FORMAT === 'mm/dd/yyyy') || (DEFAULT_DATE_FORMAT === 'mm-dd-yyyy')) {
+            if ((DEFAULT_DATE_FORMAT === 'mm/dd/yyyy') || (DEFAULT_DATE_FORMAT === 'mm-dd-yyyy')) {
                 $day_vars['month'] = $date_bits[0];
                 $day_vars['day'] = $date_bits[1];
             } else {
                 $day_vars['day'] = $date_bits[0];
-                $day_vars['month'] = $date_bits[1];             
+                $day_vars['month'] = $date_bits[1];
             }
-            
+
             // Attempt to create a date object from the date components
-            return create_date_from_array($day_vars);           
-
+            return create_date_from_array($day_vars);
         }
-
     }
     return false;
 }
@@ -164,7 +163,7 @@ function parse_date(string $date_str): \DateTime|false {
 function parse_datetime(string $datetime_str): \DateTime|false {
     get_default_date_format();
 
-    if(strlen($datetime_str) === 17) {
+    if (strlen($datetime_str) === 17) {
 
         if (strpos($datetime_str, '-') !== false) {
             $delimiter = '-';
@@ -174,7 +173,7 @@ function parse_datetime(string $datetime_str): \DateTime|false {
 
         // Extract the $date_str from the $datetime_str.
         $datetime_bits = explode(',', $datetime_str);
-        if(count($datetime_bits) !== 2) {
+        if (count($datetime_bits) !== 2) {
             return false; // Invalid datetime string.
         }
 
@@ -182,30 +181,28 @@ function parse_datetime(string $datetime_str): \DateTime|false {
         $time_str = trim($datetime_bits[1]);
         $time_obj = parse_time($time_str);
 
-        if($time_obj === false) {
+        if ($time_obj === false) {
             return false; // Could not extract valid time data.
         }
 
         $date_bits = explode($delimiter, $date_str);
-        if(count($date_bits) === 3) {
+        if (count($date_bits) === 3) {
 
             $day_vars['hours'] = $time_obj->format('G');
             $day_vars['minutes'] = $time_obj->format('i');
             $day_vars['year'] = $date_bits[2];
 
-            if((DEFAULT_DATE_FORMAT === 'mm/dd/yyyy') || (DEFAULT_DATE_FORMAT === 'mm-dd-yyyy')) {
+            if ((DEFAULT_DATE_FORMAT === 'mm/dd/yyyy') || (DEFAULT_DATE_FORMAT === 'mm-dd-yyyy')) {
                 $day_vars['month'] = $date_bits[0];
                 $day_vars['day'] = $date_bits[1];
             } else {
                 $day_vars['day'] = $date_bits[0];
-                $day_vars['month'] = $date_bits[1];             
+                $day_vars['month'] = $date_bits[1];
             }
-            
+
             // Attempt to create a date object from the date components
-            return create_date_from_array($day_vars);           
-
+            return create_date_from_array($day_vars);
         }
-
     }
     return false;
 }
@@ -222,12 +219,12 @@ function parse_datetime(string $datetime_str): \DateTime|false {
 function format_time_str(string $stored_time_str): string {
     try {
         $time_parts = explode(':', $stored_time_str);
-    
+
         $hours = (int)$time_parts[0];
         $minutes = (int)$time_parts[1];
-    
+
         $formatted_time = '';
-    
+
         if (count($time_parts) >= 2) {
             if ($hours > 12) {
                 $formatted_time = sprintf('%02d:%02d', $hours, $minutes);
@@ -235,9 +232,8 @@ function format_time_str(string $stored_time_str): string {
                 $formatted_time = date('h:i', strtotime($stored_time_str));
             }
         }
-        
-        return $formatted_time;
 
+        return $formatted_time;
     } catch (Exception $e) {
         return $stored_time_str; // Return the original string in case of error
     }
@@ -255,7 +251,7 @@ function format_time_str(string $stored_time_str): string {
 function format_date_str(string $stored_date_str): string {
     try {
         get_default_date_format(); // Ensuring DEFAULT_DATE_FORMAT is set
-        
+
         // Constructing DateTime object from the provided date string
         $date = DateTime::createFromFormat('Y-m-d', $stored_date_str);
         if ($date === false) {
@@ -288,7 +284,7 @@ function format_date_str(string $stored_date_str): string {
 function format_datetime_str(string $stored_datetime_str): string {
     try {
         get_default_date_format(); // Ensuring DEFAULT_DATE_FORMAT is set
-        
+
         // Constructing DateTime object from the provided date-time string
         $date_time = DateTime::createFromFormat('Y-m-d H:i:s', $stored_datetime_str);
 

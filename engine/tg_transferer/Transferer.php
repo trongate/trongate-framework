@@ -1,12 +1,11 @@
 <?php
-class Transferer
-{
+class Transferer {
     function __construct() {
         if (ENV != 'dev') {
             die();
         }
     }
-   
+
     public function process_post() {
 
         $posted_data = file_get_contents('php://input');
@@ -20,7 +19,7 @@ class Transferer
             readFile($data->controllerPath);
             die();
         }
-        
+
         if ((isset($data->targetFile)) && ($data->action == 'deleteFile')) {
 
             $result = $this->delete_file($data->targetFile);
@@ -42,7 +41,6 @@ class Transferer
             $this->get_finish_location($data->sampleFile);
             die();
         }
-        
     }
 
     public function check_sql($file_contents) {
@@ -79,7 +77,7 @@ class Transferer
 
         $rand_str = make_rand_str(32);
         $sql = str_replace('Tz8tehsWsTPUHEtzfbYjXzaKNqLmfAUz', $rand_str, $sql);
-        
+
         require_once $model_file;
         $model = new Model;
         $model->exec($sql);
@@ -91,7 +89,8 @@ class Transferer
             unlink($filepath);
         } else {
             http_response_code(403);
-            echo $filepath; die();
+            echo $filepath;
+            die();
         }
     }
 
@@ -103,21 +102,19 @@ class Transferer
         unset($bits[3]);
 
         $files = array();
-        $dir_path = $bits[0].'/'.$bits[1].'/'.$bits[2].'/';
+        $dir_path = $bits[0] . '/' . $bits[1] . '/' . $bits[2] . '/';
 
         if (file_exists($dir_path)) {
             $files = array();
-            foreach (glob($dir_path."*.sql") as $file) {
+            foreach (glob($dir_path . "*.sql") as $file) {
                 $files[] = $file;
             }
         }
 
-        if (count($files)>0) {
+        if (count($files) > 0) {
             echo 'current_url';
         } else {
             echo BASE_URL;
         }
-
     }
-
 }

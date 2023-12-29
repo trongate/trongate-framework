@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Encode data as JSON and optionally display it with preformatted HTML.
  *

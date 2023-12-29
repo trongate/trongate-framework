@@ -4,10 +4,8 @@
     "request_type": "POST",
     "description": "Create New Image Folder",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Rename Image Folder": {
@@ -15,10 +13,8 @@
     "request_type": "POST",
     "description": "Rename Existing Image Folder",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Upload Image": {
@@ -32,20 +28,16 @@
         "label": "ID"
       }
     ],
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Fetch Uploaded Images": {
     "url_segments": "trongate_pages/fetch_uploaded_images",
     "request_type": "POST",
     "description": "Fetch Uploaded Images",
-    "authorization":{
-      "roles": [
-        "admin"
-      ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Delete Image": {
@@ -59,10 +51,8 @@
         "label": "ID"
       }
     ],
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Delete Folder": {
@@ -70,10 +60,8 @@
     "request_type": "DELETE",
     "description": "Delete Folder From Server",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Check YouTube Video ID": {
@@ -81,10 +69,8 @@
     "request_type": "POST",
     "description": "Check to see if a submitted YouTube video ID or URL is valid",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Get": {
@@ -92,10 +78,8 @@
     "request_type": "GET",
     "description": "Fetch rows from table",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Get By Post": {
@@ -103,10 +87,8 @@
     "request_type": "POST",
     "description": "Fetch rows from table using POST request.",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Find One": {
@@ -119,10 +101,8 @@
         "label": "ID"
       }
     ],
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Exists": {
@@ -147,10 +127,8 @@
     "request_type": "POST",
     "description": "Count number of records using POST request",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Insert Batch": {
@@ -159,15 +137,13 @@
     "description": "Insert multiple records",
     "enableParams": true
   },
-    "Remember Positions": {
+  "Remember Positions": {
     "url_segments": "trongate_pages/remember_positions",
     "request_type": "POST",
     "description": "Remember positions of some child nodes",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Create": {
@@ -175,10 +151,8 @@
     "request_type": "POST",
     "description": "Insert database record",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     },
     "beforeHook": "_pre_create"
   },
@@ -193,10 +167,8 @@
         "label": "ID"
       }
     ],
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     },
     "beforeHook": "_pre_update"
   },
@@ -216,10 +188,8 @@
         "label": "ID"
       }
     ],
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     },
     "beforeHook": "_make_sure_delete_allowed"
   }

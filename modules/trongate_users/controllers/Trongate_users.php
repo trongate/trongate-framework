@@ -13,5 +13,4 @@ class Trongate_users extends Trongate {
         $trongate_user_id = $this->model->insert($params, 'trongate_users');
         return $trongate_user_id;
     }
-
 }

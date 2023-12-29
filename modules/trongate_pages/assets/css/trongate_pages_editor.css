@@ -1,100 +1,100 @@
 .modal {
-    color: #333 !important;
+  color: #333 !important;
 }
 
 #trongate-pages-dock {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #000000;
-    color: #eee;
-    position: fixed;
-    width: 100%;
-    z-index: 9997;
-    cursor: pointer;
-    max-width: 100vw;
-    transition: 2.3s;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #000000;
+  color: #eee;
+  position: fixed;
+  width: 100%;
+  z-index: 9997;
+  cursor: pointer;
+  max-width: 100vw;
+  transition: 2.3s;
 }
 
-#trongate-pages-dock>div {
-    display: flex;
-    flex-direction: row;
-    margin: 12px;
+#trongate-pages-dock > div {
+  display: flex;
+  flex-direction: row;
+  margin: 12px;
 }
 
-#trongate-pages-dock>div>div {
-    margin: 0 6px;
+#trongate-pages-dock > div > div {
+  margin: 0 6px;
 }
 
 #trongate-pages-dock button {
-    margin: 0;
-    font-size: 1em;
-    max-width: 4em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
+  margin: 0;
+  font-size: 1em;
+  max-width: 4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
 }
 
 #trongate-pages-dock #tgp-create-page-el-btn {
-    background-color: steelblue;
-    border: 1px #38678f solid;
+  background-color: steelblue;
+  border: 1px #38678f solid;
 }
 
 #trongate-pages-dock button .fa {
-    font-size: 1.6em;
+  font-size: 1.6em;
 }
 
 #trongate-pages-dock #tgp-go-back-el,
 #tgp-mobi-options-grid #tgp-go-back-el-mobi {
-    background-color: #8f3867;
-    border: 1px #8f3867 solid;
+  background-color: #8f3867;
+  border: 1px #8f3867 solid;
 }
 
 #trongate-pages-dock #tgp-go-back-el:hover,
 #tgp-mobi-options-grid #tgp-go-back-el-mobi:hover {
-    background-color: #af5385;
+  background-color: #af5385;
 }
 
 #trongate-pages-dock #tgp-save-page-btn,
 #tgp-mobi-options-grid #tgp-save-page-btn-mobi,
 .tgp-trongate-pages-success {
-    background-color: #3c8f38 !important;
-    border: 1px #3c8f38 solid !important;
+  background-color: #3c8f38 !important;
+  border: 1px #3c8f38 solid !important;
 }
 
 #trongate-pages-dock #tgp-save-page-btn:hover,
 #tgp-mobi-options-grid #tgp-save-page-btn-mobi:hover,
 .tgp-trongate-pages-success:hover {
-    background-color: #4bb446 !important;
-    border: 1px #4bb446 solid !important;
+  background-color: #4bb446 !important;
+  border: 1px #4bb446 solid !important;
 }
 
 #trongate-pages-dock #tgp-settings-btn,
 #tgp-mobi-options-grid #tgp-settings-btn-mobi {
-    background-color: #bb9849;
-    border: 1px #bb9849 solid;
+  background-color: #bb9849;
+  border: 1px #bb9849 solid;
 }
 
 #trongate-pages-dock #tgp-settings-btn:hover,
 #tgp-mobi-options-grid #tgp-settings-btn-mobi:hover {
-    background-color: #edc66d;
-    border: 1px #edc66d solid;
+  background-color: #edc66d;
+  border: 1px #edc66d solid;
 }
 
 #tgp-code-view-btn,
 #tgp-code-view-btn-mobi {
-    background-color: #cc4400;
-    border: 1px #cc4400 solid;
-    color: #fff;
+  background-color: #cc4400;
+  border: 1px #cc4400 solid;
+  color: #fff;
 }
 
 #tgp-code-view-btn:hover,
 #tgp-code-view-btn-mobi:hover {
-    background-color: #ff7936;
-    color: #fff;
-    border: 1px #ff7936 solid;
+  background-color: #ff7936;
+  color: #fff;
+  border: 1px #ff7936 solid;
 }
 
 #trongate-pages-dock #tgp-delete-page-btn,
@@ -102,8 +102,8 @@
 #tgp-choose-another-image-btn,
 #tgp-confirm-delete-btn,
 .tgp-trongate-pages-danger {
-    background-color: #cc0000 !important;
-    border: 1px #cc0000 solid !important;
+  background-color: #cc0000 !important;
+  border: 1px #cc0000 solid !important;
 }
 
 #trongate-pages-dock #tgp-delete-page-btn:hover,
@@ -111,612 +111,612 @@
 #tgp-choose-another-image-btn:hover,
 #tgp-confirm-delete-btn:hover,
 .tgp-trongate-pages-danger:hover {
-    background-color: #ff0000 !important;
-    border: 1px #ff0000 solid !important;
+  background-color: #ff0000 !important;
+  border: 1px #ff0000 solid !important;
 }
 
 .dock-icon {
-    border: 2px #ddd solid;
-    font-size: 1px;
-    width: 24px;
-    height: 24px;
-    display: grid;
-    grid-template-columns: 2fr 3fr;
-    grid-gap: 0;
-    margin: 12px;
+  border: 2px #ddd solid;
+  font-size: 1px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  grid-gap: 0;
+  margin: 12px;
 }
 
-.dock-icon>div:nth-child(1) {
-    background-color: #ddd;
+.dock-icon > div:nth-child(1) {
+  background-color: #ddd;
 }
 
 .dock-to-top {
-    transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 
 .dock-to-right {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
 .dock-to-btm {
-    transform: rotate(-90deg);
+  transform: rotate(-90deg);
 }
 
 .dock-active,
 .dock-icon:hover {
-    border: 2px #88bfed solid;
+  border: 2px #88bfed solid;
 }
 
-.dock-active>div:nth-child(1) {
-    background-color: #88bfed;
+.dock-active > div:nth-child(1) {
+  background-color: #88bfed;
 }
 
 .dock-left {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column !important;
-    max-width: min-content !important;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column !important;
+  max-width: min-content !important;
 }
 
 .dock-right {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column !important;
-    max-width: min-content !important;
-    right: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column !important;
+  max-width: min-content !important;
+  right: 0;
 }
 
 .dock-left #toolbar-lhs,
 .dock-left #toolbar-rhs,
 .dock-right #toolbar-lhs,
 .dock-right #toolbar-rhs {
-    flex-direction: column;
+  flex-direction: column;
 }
 
 .dock-left #toolbar-lhs,
-.dock-left #toolbar-rhs>div,
+.dock-left #toolbar-rhs > div,
 .dock-right #toolbar-lhs,
-.dock-right #toolbar-rhs>div {
-    margin-bottom: 12px;
+.dock-right #toolbar-rhs > div {
+  margin-bottom: 12px;
 }
 
-.dock-left #toolbar-lhs>div,
-.dock-right #toolbar-lhs>div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 !important;
-    margin: 0 !important;
+.dock-left #toolbar-lhs > div,
+.dock-right #toolbar-lhs > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .dock-left #toolbar-lhs button,
 .dock-right #toolbar-lhs button {
-    margin: 12px 0;
-    width: 100% !important;
+  margin: 12px 0;
+  width: 100% !important;
 }
 
 .dock-btm {
-    bottom: 0 !important;
+  bottom: 0 !important;
 }
 
 #trongate-pages-dock-mobi .round-button {
-    background-color: #eee;
-    color: #000;
-    margin: 0 1em;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  background-color: #eee;
+  color: #000;
+  margin: 0 1em;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #trongate-pages-dock-mobi .round-button:hover {
-    background-color: #fff;
-    border: 1px #fff solid;
+  background-color: #fff;
+  border: 1px #fff solid;
 }
 
 #tgp-mobi-options-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 1em;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 1em;
 }
 
 #tgp-mobi-options-grid .tgp-close-button-container {
-    grid-column: 1/3;
-    margin-top: 0;
-    top: -2em;
-    left: 1.6em;
-    position: relative;
+  grid-column: 1/3;
+  margin-top: 0;
+  top: -2em;
+  left: 1.6em;
+  position: relative;
 }
 
 #tgp-mobi-options-grid button {
-    margin-top: 0;
-    font-size: 2em;
-    width: 100%;
+  margin-top: 0;
+  font-size: 2em;
+  width: 100%;
 }
 
 .tgp-close-button-container {
-    text-align: right;
+  text-align: right;
 }
 
 .tgp-close-cross {
-    margin: 12px 6px;
-    font-weight: bold;
-    font-size: 27px;
+  margin: 12px 6px;
+  font-weight: bold;
+  font-size: 27px;
 }
 
 .tgp-close-cross:hover {
-    cursor: pointer;
-    color: steelblue;
+  cursor: pointer;
+  color: steelblue;
 }
 
 #page-el-options-grid {
-    display: grid;
-    grid-gap: 1em;
-    grid-template-columns: repeat(3, 1fr);
-    margin: 1em;
+  display: grid;
+  grid-gap: 1em;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 1em;
 }
 
-#page-el-options-grid>div {
-    border: 3px #666 solid;
-    min-height: 100px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-around;
-    border-radius: 12px;
-    cursor: pointer;
+#page-el-options-grid > div {
+  border: 3px #666 solid;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  border-radius: 12px;
+  cursor: pointer;
 }
 
-#page-el-options-grid>div img {
-    position: relative;
-    max-height: 64px;
+#page-el-options-grid > div img {
+  position: relative;
+  max-height: 64px;
 }
 
-#page-el-options-grid>div>div:nth-child(2) {
-    text-align: center;
+#page-el-options-grid > div > div:nth-child(2) {
+  text-align: center;
 }
 
 #trongate-editor {
-    background-color: #d8dbf2;
-    border: 3px solid #989787;
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: space-between;
-    padding: 4px;
-    width: 96%;
-    margin: 0 auto;
-    max-width: 820px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    -webkit-box-shadow: 2px 3px 13px 0px rgba(0, 0, 0, 0.75);
-    -moz-box-shadow: 2px 3px 13px 0px rgba(0, 0, 0, 0.75);
-    box-shadow: 2px 3px 13px 0px rgba(0, 0, 0, 0.75);
-    z-index: 9998;
+  background-color: #d8dbf2;
+  border: 3px solid #989787;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  padding: 4px;
+  width: 96%;
+  margin: 0 auto;
+  max-width: 820px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  -webkit-box-shadow: 2px 3px 13px 0px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 2px 3px 13px 0px rgba(0, 0, 0, 0.75);
+  box-shadow: 2px 3px 13px 0px rgba(0, 0, 0, 0.75);
+  z-index: 9998;
 }
 
 #trongate-editor button,
 #code-btn {
-    font-family: Georgia;
-    font-size: 21px;
-    margin-right: 4px;
-    min-width: 2em;
-    font-weight: bold;
-    margin-top: 0;
-    background-color: #eee;
-    color: #444;
-    padding: 5px;
-    border: 1px #333 solid;
-    border-radius: 4px;
+  font-family: Georgia;
+  font-size: 21px;
+  margin-right: 4px;
+  min-width: 2em;
+  font-weight: bold;
+  margin-top: 0;
+  background-color: #eee;
+  color: #444;
+  padding: 5px;
+  border: 1px #333 solid;
+  border-radius: 4px;
 }
 
 #code-btn {
-    font-weight: 100 !important;
+  font-weight: 100 !important;
 }
 
 #trongate-editor button {
-    height: 38px;
-    margin-right: 4px;
+  height: 38px;
+  margin-right: 4px;
 }
 
 #trongate-editor button:hover {
-    background-color: #fff !important;
-    color: #4682b4 !important;
+  background-color: #fff !important;
+  color: #4682b4 !important;
 }
 
 #trongate-editor-toolbar {
-    display: flex;
-    flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 #trongate-editor-toolbar button {
-    width: max-content;
-    margin-top: 1px;
-    margin-bottom: 1px;
+  width: max-content;
+  margin-top: 1px;
+  margin-bottom: 1px;
 }
 
 #trongate-editor-toolbar select {
-    margin-top: 3px;
+  margin-top: 3px;
 }
 
 #tgp-heading-select {
-    width: max-content;
-    background-color: #eee;
-    color: #444;
-    border: 1px #333 solid;
-    margin-right: 4px;
-    padding-top: 0;
-    padding-bottom: 0;
-    height: 38px;
-    top: -2px;
-    position: relative;
+  width: max-content;
+  background-color: #eee;
+  color: #444;
+  border: 1px #333 solid;
+  margin-right: 4px;
+  padding-top: 0;
+  padding-bottom: 0;
+  height: 38px;
+  top: -2px;
+  position: relative;
 }
 
 #tgp-heading-select:hover {
-    background-color: #fff;
+  background-color: #fff;
 }
 
 .active-editor-btn {
-    background-color: #4682b4 !important;
-    color: #eee !important;
+  background-color: #4682b4 !important;
+  color: #eee !important;
 }
 
 #tgp-media-manager > div.modal-body {
-    min-height: 450px;
+  min-height: 450px;
 }
 
 #tgp-media-manager > div.modal-body > p > button > i {
-    font-size: 1.33em;
+  font-size: 1.33em;
 }
 
 #tgp-media-manager > div.modal-body > p > button:nth-child(1) > i {
-    top: -2px;
-    position: relative;
+  top: -2px;
+  position: relative;
 }
 
 .tgp-showcase-img-div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    max-width: 600px;
-    max-height: 340px;
-    margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  max-width: 600px;
+  max-height: 340px;
+  margin: 0 auto;
 }
 
 .tgp-showcase-img-div img {
-    max-width: 100%;
-    max-height: 340px;
+  max-width: 100%;
+  max-height: 340px;
 }
 
 .force-flex-para {
-    display: flex;
-    align-items: stretch;
-    justify-content: flex-start;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
 .force-flex-para button {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .tgp-uploaded-images-grid {
-    display: grid;
-    grid-gap: 1em;
-    max-height: 50vh;
-    overflow: auto;
-    padding-right: 1em;
+  display: grid;
+  grid-gap: 1em;
+  max-height: 50vh;
+  overflow: auto;
+  padding-right: 1em;
 }
 
 .tgp-uploaded-images-grid > div {
-    border: 3px #ccc solid;
-    height: 140px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: space-around;
-    border-radius: 12px;
+  border: 3px #ccc solid;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-around;
+  border-radius: 12px;
 }
 
 .tgp-uploaded-images-grid > div > div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 90%;
-    margin:  0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  margin: 0 auto;
 }
 
 .tgp-uploaded-images-grid > div > div:nth-child(1) {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 .tgp-uploaded-images-grid > div > div:nth-child(2) {
-    margin-bottom: 7px;
+  margin-bottom: 7px;
 }
 
 .tgp-preview-box.active {
-    z-index: 1;
-    position: fixed;
+  z-index: 1;
+  position: fixed;
 }
 
 .tgp-preview-box.fall {
-    transition: transform 1s ease-in;
+  transition: transform 1s ease-in;
 }
 
 .modal-body-as-flex {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tg-showcase-preview {
-    position: relative;
+  position: relative;
 }
 
 .spin-clockwise {
-    animation: spin 1s ease-in-out 2;
+  animation: spin 1s ease-in-out 2;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
+  0% {
+    transform: rotate(0deg);
+  }
 
-    100% {
-        transform: rotate(720deg);
-    }
+  100% {
+    transform: rotate(720deg);
+  }
 }
 
 .pulse {
-    animation: pulse 1s ease-in-out;
+  animation: pulse 1s ease-in-out;
 }
 
 @keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
+  0% {
+    transform: scale(1);
+  }
 
-    50% {
-        transform: scale(1.2);
-    }
+  50% {
+    transform: scale(1.2);
+  }
 
-    100% {
-        transform: scale(1);
-    }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .blinking-border {
-    border-color: white;
-    animation: blinkyBorder 1s infinite;
+  border-color: white;
+  animation: blinkyBorder 1s infinite;
 }
 
 @keyframes blinkyBorder {
-    0% {
-        border-color: #10a37f;
-    }
+  0% {
+    border-color: #10a37f;
+  }
 
-    50% {
-        border-color: white;
-    }
+  50% {
+    border-color: white;
+  }
 
-    100% {
-        border-color: #10a37f;
-    }
+  100% {
+    border-color: #10a37f;
+  }
 }
 
-.tgp-uploaded-images-grid>div img {
-    max-width: 72%;
-    max-height: 100px;
+.tgp-uploaded-images-grid > div img {
+  max-width: 72%;
+  max-height: 100px;
 }
 
-.tgp-uploaded-images-grid>div:hover {
-    border: 3px steelblue solid;
-    cursor: pointer;
+.tgp-uploaded-images-grid > div:hover {
+  border: 3px steelblue solid;
+  cursor: pointer;
 }
 
 #drop-zone {
-    min-height: 240px;
-    border: 3px #4682b4 dashed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #eee;
+  min-height: 240px;
+  border: 3px #4682b4 dashed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #eee;
 }
 
 #drop-zone img {
-    max-width: 70%;
-    height: auto;
-    margin: 33px auto;
+  max-width: 70%;
+  height: auto;
+  margin: 33px auto;
 }
 
-#tgp-image-modal>div>p.text-left {
-    text-align: left;
+#tgp-image-modal > div > p.text-left {
+  text-align: left;
 }
 
 #tgp-image-properties {
-    text-align: left;
+  text-align: left;
 }
 
 #progress-bar {
-    display: block;
-    margin: 0 auto;
+  display: block;
+  margin: 0 auto;
 }
 
 #upload-status {
-    text-align: left;
-    font-weight: bold;
-    font-size: 1.2em;
+  text-align: left;
+  font-weight: bold;
+  font-size: 1.2em;
 }
 
 #tgp-media-manager #tgp-create-new-folder-form,
 #tgp-media-manager #tg-conf-delete-img-form {
-    margin-top: 12px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 
 #tgp-media-manager input[type="text"] {
-    border: 1px solid #ccc;
-    padding: 0.5em;
-    font-size: 1em;
-    box-sizing: border-box;
-    text-transform: uppercase;
-    font-weight: bold;
+  border: 1px solid #ccc;
+  padding: 0.5em;
+  font-size: 1em;
+  box-sizing: border-box;
+  text-transform: uppercase;
+  font-weight: bold;
 }
 
 #tgp-media-manager #tgp-create-folder-now-btn,
 #tgp-media-manager #tg-delete-img-now-btn {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .tgp-neutral {
-    background-color: #282b32 !important;
-    border: 1px #282b32 solid;
-    color: #eee !important;
+  background-color: #282b32 !important;
+  border: 1px #282b32 solid;
+  color: #eee !important;
 }
 
 .tgp-neutral:hover {
-    background-color: #000;
-    border: 1px #000 solid;
-    color: #cc4400 !important;
+  background-color: #000;
+  border: 1px #000 solid;
+  color: #cc4400 !important;
 }
 
 .active-code-btn-img {
-    background-color: #cc4400 !important;
-    border: 1px #cc4400 solid;
-    color: #eee !important;
+  background-color: #cc4400 !important;
+  border: 1px #cc4400 solid;
+  color: #eee !important;
 }
 
 .active-code-btn-img:hover {
-    background-color: #f36721 !important;
-    border: 1px #cc4400 solid;
-    color: #fff !important;
+  background-color: #f36721 !important;
+  border: 1px #cc4400 solid;
+  color: #fff !important;
 }
 
 .page-content img {
-    cursor: pointer !important;
+  cursor: pointer !important;
 }
 
 .tgp-hide-element {
-    display: none !important;
+  display: none !important;
 }
 
 .tgp-fake-link {
-    color: steelblue;
-    text-decoration: underline;
-    cursor: pointer;
+  color: steelblue;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .tgp-fake-link:hover {
-    color: #2b4f6c;
+  color: #2b4f6c;
 }
 
 .circ {
-    opacity: 0;
-    stroke-dasharray: 130;
-    stroke-dashoffset: 130;
-    -webkit-transition: all 1s;
-    -moz-transition: all 1s;
-    -ms-transition: all 1s;
-    -o-transition: all 1s;
-    transition: all 1s;
+  opacity: 0;
+  stroke-dasharray: 130;
+  stroke-dashoffset: 130;
+  -webkit-transition: all 1s;
+  -moz-transition: all 1s;
+  -ms-transition: all 1s;
+  -o-transition: all 1s;
+  transition: all 1s;
 }
 
 .tick {
-    stroke-dasharray: 50;
-    stroke-dashoffset: 50;
-    -webkit-transition: stroke-dashoffset 1s 0.5s ease-out;
-    -moz-transition: stroke-dashoffset 1s 0.5s ease-out;
-    -ms-transition: stroke-dashoffset 1s 0.5s ease-out;
-    -o-transition: stroke-dashoffset 1s 0.5s ease-out;
-    transition: stroke-dashoffset 1s 0.5s ease-out;
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  -webkit-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -moz-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -ms-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -o-transition: stroke-dashoffset 1s 0.5s ease-out;
+  transition: stroke-dashoffset 1s 0.5s ease-out;
 }
 
 .tick2 {
-    stroke-dasharray: 50;
-    stroke-dashoffset: 50;
-    -webkit-transition: stroke-dashoffset 1s 0.7s ease-out;
-    -moz-transition: stroke-dashoffset 1s 0.7s ease-out;
-    -ms-transition: stroke-dashoffset 1s 0.7s ease-out;
-    -o-transition: stroke-dashoffset 1s 0.7s ease-out;
-    transition: stroke-dashoffset 1s 0.7s ease-out;
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  -webkit-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -moz-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -ms-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -o-transition: stroke-dashoffset 1s 0.7s ease-out;
+  transition: stroke-dashoffset 1s 0.7s ease-out;
 }
 
-.drawn+svg .path {
-    opacity: 1;
-    stroke-dashoffset: 0;
+.drawn + svg .path {
+  opacity: 1;
+  stroke-dashoffset: 0;
 }
 
-#tgp-settings-modal>div.modal-heading {
-    background-color: #d5b367;
-    border: 1px #d5b367 solid;
-    color: #fff;
+#tgp-settings-modal > div.modal-heading {
+  background-color: #d5b367;
+  border: 1px #d5b367 solid;
+  color: #fff;
 }
 
-#tgp-code-view-modal>div.modal-heading {
-    background-color: #cc4400;
-    border: 1px #cc4400 solid;
-    color: #fff;
+#tgp-code-view-modal > div.modal-heading {
+  background-color: #cc4400;
+  border: 1px #cc4400 solid;
+  color: #fff;
 }
 
 #tgp-code-view-modal .modal-body #content-as-code,
 #tgp-code-view {
-    background-color: #282b32 !important;
-    color: #eee !important;
-    font-family: "Courier New", Courier, monospace !important;
-    font-size: 19px !important;
+  background-color: #282b32 !important;
+  color: #eee !important;
+  font-family: "Courier New", Courier, monospace !important;
+  font-size: 19px !important;
 }
 
 #content-as-code {
-    transition: 0.3s;
-    max-height: 50vh;
+  transition: 0.3s;
+  max-height: 50vh;
 }
 
 #tgp-code-view-modal {
-    max-width: 96%;
-    width: 1100px;
+  max-width: 96%;
+  width: 1100px;
 }
 
 .el-location-selector {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
-    margin-bottom: 33px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 33px;
 }
 
-.el-location-selector>div {
-    width: 70%;
-    text-align: center;
+.el-location-selector > div {
+  width: 70%;
+  text-align: center;
 }
 
-.el-location-selector>div button {
-    width: 100%;
+.el-location-selector > div button {
+  width: 100%;
 }
 
 #tgp-camera-modal .modal-body {
-    min-height: 7em;
-    overflow: auto;
+  min-height: 7em;
+  overflow: auto;
 }
 
 #trongate-pages-dock-mobi {
-    border-top: 3px steelblue solid;
-    background-color: #222;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    flex-direction: row;
-    padding: .6em 0;
-    justify-content: space-between;
-    display: none;
+  border-top: 3px steelblue solid;
+  background-color: #222;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  flex-direction: row;
+  padding: 0.6em 0;
+  justify-content: space-between;
+  display: none;
 }
 
 #tgp-button-modal,
@@ -735,8 +735,8 @@
 #tgp-settings-modal,
 #tgp-video-overlay,
 #tgp-youtube-modal {
-    font-family: Tahoma, Geneva, sans-serif !important;
-    font-size: 1rem;
+  font-family: Tahoma, Geneva, sans-serif !important;
+  font-size: 1rem;
 }
 
 #tgp-button-modal .modal-body h2,
@@ -755,9 +755,9 @@
 #tgp-settings-modal .modal-body h2,
 #tgp-video-overlay .modal-body h2,
 #tgp-youtube-modal .modal-body h2 {
-    margin-top: 7px;
-    font-size: 24px;
-    font-weight: bold !important;
+  margin-top: 7px;
+  font-size: 24px;
+  font-weight: bold !important;
 }
 
 #tgp-button-modal .modal-heading,
@@ -773,10 +773,10 @@
 #tgp-modal .modal-heading,
 #tgp-video-overlay .modal-heading,
 #tgp-youtube-modal .modal-heading {
-    background-color: #4682b4;
-    border: 1px #4682b4 solid !important;
-    color: #eee !important;
-    font-weight: normal;
+  background-color: #4682b4;
+  border: 1px #4682b4 solid !important;
+  color: #eee !important;
+  font-weight: normal;
 }
 
 #tgp-button-modal button,
@@ -795,11 +795,11 @@
 #tgp-settings-modal button,
 #tgp-video-overlay button,
 #tgp-youtube-modal button {
-    transition: .3s;
-    background-color: #4682b4;
-    color: #eee !important;
-    border: 1px var(--primary-dark) solid !important;
-    font-weight: normal;
+  transition: 0.3s;
+  background-color: #4682b4;
+  color: #eee !important;
+  border: 1px var(--primary-dark) solid !important;
+  font-weight: normal;
 }
 
 #tgp-button-modal button:hover,
@@ -818,9 +818,9 @@
 #tgp-settings-modal button:hover,
 #tgp-video-overlay button:hover,
 #tgp-youtube-modal button:hover {
-    color: #fff !important;
-    border: 1px #294d6b solid !important;
-    background-color: #38678f;
+  color: #fff !important;
+  border: 1px #294d6b solid !important;
+  background-color: #38678f;
 }
 
 #tgp-button-modal button.alt,
@@ -839,11 +839,11 @@
 #tgp-settings-modal button.alt,
 #tgp-video-overlay button.alt,
 #tgp-youtube-modal button.alt {
-    transition: .3s;
-    background-color: #fff;
-    color: #333 !important;
-    border: 1px #4682b4 solid !important;
-    font-weight: normal;
+  transition: 0.3s;
+  background-color: #fff;
+  color: #333 !important;
+  border: 1px #4682b4 solid !important;
+  font-weight: normal;
 }
 
 #tgp-button-modal button.alt:hover,
@@ -862,161 +862,161 @@
 #tgp-settings-modal button.alt:hover,
 #tgp-video-overlay button.alt:hover,
 #tgp-youtube-modal button.alt:hover {
-    color: #4682b4 !important;
-    border: 1px #4682b4 solid !important;
-    background-color: #fff;
+  color: #4682b4 !important;
+  border: 1px #4682b4 solid !important;
+  background-color: #fff;
 }
 
 .active-el-highlight {
-    background-color: #fff1d2 !important;
-    border:  3px #38678f dashed !important;
-    color: #38678f !important;
+  background-color: #fff1d2 !important;
+  border: 3px #38678f dashed !important;
+  color: #38678f !important;
 }
 
 .tgp-preview-box-edit-mode {
-    border: 3px #0000ff solid !important;
-    background-color: #0000ff55 !important;
+  border: 3px #0000ff solid !important;
+  background-color: #0000ff55 !important;
 }
 
 .tgp-preview-box-edit-mode .tgp-preview-element-name {
-    background-color: #f5f5fe !important;
-    padding-left: 7px;
-    padding-right: 7px;
-    text-align: left !important;
-    justify-content: center;
-    width: max-content;
+  background-color: #f5f5fe !important;
+  padding-left: 7px;
+  padding-right: 7px;
+  text-align: left !important;
+  justify-content: center;
+  width: max-content;
 }
 
 .tgp-delete-dir-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 19px !important;
-    width:  33px !important;
-    height: 33px !important;
-    border-radius: 8px !important;
-    padding:  0 !important;
-    margin:  0 !important;
-    background-color: #cc0000 !important;
-    border: 1px #cc0000 solid !important;
-    position: absolute !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px !important;
+  width: 33px !important;
+  height: 33px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background-color: #cc0000 !important;
+  border: 1px #cc0000 solid !important;
+  position: absolute !important;
 }
 
 .tgp-delete-dir-btn:hover {
-    background-color: #ff0000 !important;
-    border: 1px #ff0000 solid !important;
+  background-color: #ff0000 !important;
+  border: 1px #ff0000 solid !important;
 }
 
 .tgp-grey-label {
-    color: #333;
-    font-weight: bold;
-    font-family: "Lucida Console", monospace;
-    background-color: #eee;
-    border:  1px #ccc solid;
-    padding:  3px 10px;
+  color: #333;
+  font-weight: bold;
+  font-family: "Lucida Console", monospace;
+  background-color: #eee;
+  border: 1px #ccc solid;
+  padding: 3px 10px;
 }
 
 @media (min-width: 1px) {
-    #trongate-pages-dock>div:nth-child(2) {
-        display: none;
-    }
+  #trongate-pages-dock > div:nth-child(2) {
+    display: none;
+  }
 
-    .tgp-uploaded-images-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+  .tgp-uploaded-images-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-    #page-el-options-grid>div>div:nth-child(2),
-    #tgp-link-modal>div.modal-body>p:nth-child(1) {
-        display: none;
-    }
+  #page-el-options-grid > div > div:nth-child(2),
+  #tgp-link-modal > div.modal-body > p:nth-child(1) {
+    display: none;
+  }
 
-    #page-el-options-grid>div img {
-        top: 0;
-        max-width: 64px;
-    }
+  #page-el-options-grid > div img {
+    top: 0;
+    max-width: 64px;
+  }
 }
 
 @media (min-width: 500px) {
-    #tgp-mobi-options-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+  #tgp-mobi-options-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 
-    #tgp-mobi-options-grid .tgp-close-button-container {
-        grid-column: 1/4;
-    }
+  #tgp-mobi-options-grid .tgp-close-button-container {
+    grid-column: 1/4;
+  }
 }
 
 @media (min-width: 760px) {
-    #trongate-pages-dock>div:nth-child(2) {
-        display: flex;
-    }
+  #trongate-pages-dock > div:nth-child(2) {
+    display: flex;
+  }
 
-    .tgp-uploaded-images-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
+  .tgp-uploaded-images-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 
-    #page-el-options-grid>div {
-        min-height: 160px;
-    }
+  #page-el-options-grid > div {
+    min-height: 160px;
+  }
 
-    #page-el-options-grid>div>div:nth-child(2) {
-        display: block;
-    }
+  #page-el-options-grid > div > div:nth-child(2) {
+    display: block;
+  }
 
-    #page-el-options-grid>div img {
-        top: 16px;
-        max-width: 100%;
-    }
+  #page-el-options-grid > div img {
+    top: 16px;
+    max-width: 100%;
+  }
 
-    #headline-suggest-modal .modal-footer,
-    #tgp-code-view-modal .modal-footer,
-    #tgp-image-modal .modal-footer,
-    #button-modal .modal-footer,
-    #tgp-delete-page-modal .modal-footer,
-    #tgp-link-modal .modal-footer,
-    #tgp-modal .modal-footer,
-    #tgp-settings-modal .modal-footer,
-    #tgp-media-manager .modal-footer,
-    #tgp-youtube-modal .modal-footer {
-        flex-direction: row;
-        justify-content: flex-end;
-    }
+  #headline-suggest-modal .modal-footer,
+  #tgp-code-view-modal .modal-footer,
+  #tgp-image-modal .modal-footer,
+  #button-modal .modal-footer,
+  #tgp-delete-page-modal .modal-footer,
+  #tgp-link-modal .modal-footer,
+  #tgp-modal .modal-footer,
+  #tgp-settings-modal .modal-footer,
+  #tgp-media-manager .modal-footer,
+  #tgp-youtube-modal .modal-footer {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
 }
 
 @media (min-width: 1100px) {
-    .tgp-uploaded-images-grid {
-        grid-template-columns: repeat(5, 1fr);
-    }
+  .tgp-uploaded-images-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }
 
 @media (max-width: 1300px) {
-    #trongate-pages-dock {
-        display: none;
-    }
+  #trongate-pages-dock {
+    display: none;
+  }
 
-    #trongate-pages-dock-mobi {
-        display: flex;
-    }
+  #trongate-pages-dock-mobi {
+    display: flex;
+  }
 }
 
 @media (min-width: 1300px) {
-    .tgp-uploaded-images-grid {
-        grid-template-columns: repeat(6, 1fr);
-    }
+  .tgp-uploaded-images-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
 
-    #tgp-link-modal>div.modal-body>p:nth-child(1) {
-        display: block;
-    }
+  #tgp-link-modal > div.modal-body > p:nth-child(1) {
+    display: block;
+  }
 }
 
 @media (min-width: 1400px) {
-    .tgp-uploaded-images-grid {
-        grid-template-columns: repeat(8, 1fr);
-    }
+  .tgp-uploaded-images-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
 }
 
 @media (min-width: 1540px) {
-    .tgp-uploaded-images-grid {
-        grid-template-columns: repeat(10, 1fr);
-    }
+  .tgp-uploaded-images-grid {
+    grid-template-columns: repeat(10, 1fr);
+  }
 }

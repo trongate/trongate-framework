@@ -21,7 +21,7 @@
         echo form_number('last_updated', $last_updated, array("placeholder" => "Enter Last Updated"));
         echo '<div>';
         echo 'Published ';
-        echo form_checkbox('published', 1, $checked=$published);
+        echo form_checkbox('published', 1, $checked = $published);
         echo '</div>';
         echo form_label('Created By <span>(optional)</span>');
         echo form_number('created_by', $created_by, array("placeholder" => "Enter Created By"));

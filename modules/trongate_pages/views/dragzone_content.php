@@ -1,4 +1,4 @@
-<?php 
+<?php
 function draw_child_nodes($parent_page_id, $all_pages) {
 
     $child_nodes = [];
@@ -18,12 +18,11 @@ function draw_child_nodes($parent_page_id, $all_pages) {
 
     //now that we've gather our child nodes, let's display them
     foreach ($child_nodes as $child_node) {
-        echo '<div id="record-id-'.$child_node['id'].'" class="node" draggable="true">';
+        echo '<div id="record-id-' . $child_node['id'] . '" class="node" draggable="true">';
         echo $child_node['page_title'];
         draw_child_nodes($child_node['id'], $all_pages); //draw child nodes for THIS node
         echo '</div>';
     }
-
 }
 
 draw_child_nodes(0, $all_pages);

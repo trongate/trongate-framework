@@ -46,7 +46,6 @@ class Validation_helper {
         }
 
         $_SESSION['form_submission_errors'] = $this->form_submission_errors;
-
     }
 
     /**
@@ -105,7 +104,6 @@ class Validation_helper {
                 $this->run_special_test($validation_data);
                 break;
         }
-
     }
 
     /**
@@ -126,13 +124,12 @@ class Validation_helper {
             $this->process_validation_array($validation_array);
         }
 
-        if (count($this->form_submission_errors)>0) {
+        if (count($this->form_submission_errors) > 0) {
             $_SESSION['form_submission_errors'] = $this->form_submission_errors;
             return false;
         } else {
             return true;
         }
-
     }
 
     /**
@@ -143,7 +140,7 @@ class Validation_helper {
      */
     private function process_validation_array(array $validation_array): void {
 
-        foreach($validation_array as $key => $value) {
+        foreach ($validation_array as $key => $value) {
 
             if (isset($value['label'])) {
                 $label = $value['label'];
@@ -169,9 +166,7 @@ class Validation_helper {
                 $validation_data['test_to_run'] = $test_to_run;
                 $this->run_validation_test($validation_data);
             }
-
         }
-
     }
 
     /**
@@ -182,7 +177,7 @@ class Validation_helper {
      */
     private function build_rules_str(array $value): string {
         $rules_str = '';
-        
+
         foreach ($value as $k => $v) {
             if ($k !== 'label') {
                 $rules_str .= $k . (is_bool($v) ? '|' : '[' . $v . ']|');
@@ -215,7 +210,7 @@ class Validation_helper {
         $posted_value = trim($validation_data['posted_value']);
 
         if ($posted_value == '') {
-            $this->form_submission_errors[$key][] = 'The '.$label.' field is required.';  
+            $this->form_submission_errors[$key][] = 'The ' . $label . ' field is required.';
         }
     }
 
@@ -229,7 +224,7 @@ class Validation_helper {
     private function check_for_numeric(array $validation_data): void {
         extract($validation_data);
         if ((!is_numeric($posted_value)) && ($posted_value !== '')) {
-            $this->form_submission_errors[$key][] = 'The '.$label.' field must be numeric.';
+            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be numeric.';
         }
     }
 
@@ -247,11 +242,9 @@ class Validation_helper {
             $result = ctype_digit(strval($posted_value));
 
             if ($result == false) {
-                $this->form_submission_errors[$key][] = 'The '.$label.' field must be an integer.';
+                $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be an integer.';
             }
-
         }
-
     }
 
     /**
@@ -266,9 +259,8 @@ class Validation_helper {
         if ($posted_value !== '') {
 
             if ((float) $posted_value == floor($posted_value)) {
-                $this->form_submission_errors[$key][] = 'The '.$label.' field must contain a number with a decimal.';
+                $this->form_submission_errors[$key][] = 'The ' . $label . ' field must contain a number with a decimal.';
             }
-
         }
     }
 
@@ -292,11 +284,11 @@ class Validation_helper {
                     throw new Exception('Invalid date format'); // Triggering catch block if parsing fails
                 }
             } catch (Exception $e) {
-                $this->form_submission_errors[$key][] = 'The '.$label.' field must be a valid date in the format '.DEFAULT_DATE_FORMAT.'.';
+                $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a valid date in the format ' . DEFAULT_DATE_FORMAT . '.';
                 return false;
             }
         }
-        
+
         return false; // Return false when $posted_value is empty
     }
 
@@ -333,14 +325,14 @@ class Validation_helper {
      */
     private function valid_datetimepicker(array $validation_data): bool {
         extract($validation_data);
-        
+
         if ($posted_value !== '') {
             $parsed_datetime = parse_datetime($posted_value);
 
             if ($parsed_datetime instanceof DateTime) {
                 return true;
             } else {
-                $this->form_submission_errors[$key][] = 'The '.$label.' field must be a valid date and time in the format '.DEFAULT_DATE_FORMAT.', HH:ii.';
+                $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a valid date and time in the format ' . DEFAULT_DATE_FORMAT . ', HH:ii.';
                 return false;
             }
         }
@@ -384,7 +376,7 @@ class Validation_helper {
                 return true;
             }
 
-            $this->form_submission_errors[$key][] = 'The '.$label.' field must contain a valid time value.';
+            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must contain a valid time value.';
             return false;
         }
 
@@ -415,7 +407,7 @@ class Validation_helper {
 
         if ($got_error) {
             $target_label = $this->posted_fields[$target_field] ?? $target_field;
-            $this->form_submission_errors[$key][] = 'The '.$label.' field does not match the '.$target_label.' field.';
+            $this->form_submission_errors[$key][] = 'The ' . $label . ' field does not match the ' . $target_label . ' field.';
         }
     }
 
@@ -446,7 +438,7 @@ class Validation_helper {
 
         if ($got_error) {
             $target_label = $this->posted_fields[$target_field] ?? $target_field;
-            $this->form_submission_errors[$key][] = 'The '.$label.' field must not match the '.$target_label.' field.';
+            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must not match the ' . $target_label . ' field.';
         }
     }
 
@@ -615,7 +607,6 @@ class Validation_helper {
                     $this->exact_length($key, $label, $posted_value, intval($inner_value));
                     break;
             }
-
         } else {
             $this->attempt_invoke_callback($key, $label, $posted_value, $test_to_run);
         }
@@ -794,7 +785,6 @@ class Validation_helper {
         header("location: " . BASE_URL);
         die();
     }
-    
 }
 
 /**
@@ -823,7 +813,6 @@ function validation_errors(?string $opening_html = null, ?string $closing_html =
             }
 
             return $validation_err_str;
-
         } else {
             // Normal error reporting
             foreach ($form_submission_errors as $key => $form_field_errors) {
@@ -841,7 +830,6 @@ function validation_errors(?string $opening_html = null, ?string $closing_html =
                     $opening_html = '<p style="color: red;">';
                     $closing_html = '</p>';
                 }
-
             }
 
             foreach ($validation_errors as $form_submission_error) {

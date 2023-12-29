@@ -161,10 +161,10 @@ Trongate is also the first PHP framework that has been built with a determinatio
 
 ### :bangbang: Prerequisites
 
-<ul>
-  <li>PHP</li>
-  <li>MariaDB or MySQL</li>
- </ul>
+- PHP 8+
+  - gd module loaded in php.ini (for image uploader)
+  - intl module loaded in php.ini (for url_title() method)
+- MariaDB or MySQL
 
 <!-- Installation -->
 

@@ -111,7 +111,7 @@ class Model {
         return $tables;
     }
 
-    public function get($order_by=null, $target_tbl=null, $limit=null, $offset=null) {
+    public function get($order_by = null, $target_tbl = null, $limit = null, $offset = null) {
 
         $order_by = (!isset($order_by)) ? 'id' : $order_by;
 
@@ -454,7 +454,7 @@ class Model {
         $this->prepare_and_execute($sql, $data);
     }
 
-  
+
 
     public function delete($id, $target_tbl = null) {
 
@@ -519,7 +519,7 @@ class Model {
         $num_rows = $this->count($tablename);
 
         if ($num_rows == 0) {
-            $sql = 'TRUNCATE '.$tablename;
+            $sql = 'TRUNCATE ' . $tablename;
             $this->query($sql);
         }
     }
