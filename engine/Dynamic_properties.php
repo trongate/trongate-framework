@@ -1,10 +1,11 @@
 <?php
+
 /**
  * Trait Dynamic_properties - Provides dynamic property handling methods.
  */
 trait Dynamic_properties {
     private $attributes = [];
-    
+
 
     /**
      * Set a dynamic property.

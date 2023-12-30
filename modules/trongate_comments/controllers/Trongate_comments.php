@@ -25,29 +25,28 @@ class Trongate_comments extends Trongate {
         $all_admins = $this->model->query($sql, 'object');
 
         $admin_users = [];
-        foreach($all_admins as $admin_user) {
+        foreach ($all_admins as $admin_user) {
             $admin_users[$admin_user->id] = $admin_user->username;
         }
 
         $comments = json_decode($body);
         $data = [];
-        foreach ($comments as $key=>$value) {
+        foreach ($comments as $key => $value) {
             $row_data['comment'] = nl2br($value->comment);
 
             if (isset($admin_users[$value->user_id])) {
                 $posted_by = $admin_users[$value->user_id];
             } else {
 
-                if(($value->user_id === 0) && (isset($this->zero_id_username))) {
+                if (($value->user_id === 0) && (isset($this->zero_id_username))) {
                     $posted_by = $this->zero_id_username;
                 } else {
                     $posted_by = 'an unknown user';
                 }
-
             }
 
             $date_created = date('l jS \of F Y \a\t h:i:s A', $value->date_created);
-            $row_data['date_created'] = 'Posted by '.$posted_by.' on '.$date_created;
+            $row_data['date_created'] = 'Posted by ' . $posted_by . ' on ' . $date_created;
             $row_data['user_id'] = $value->user_id;
             $row_data['target_table'] = $value->target_table;
             $row_data['update_id'] = $value->update_id;
@@ -86,5 +85,4 @@ class Trongate_comments extends Trongate {
 
         return $input;
     }
-
 }

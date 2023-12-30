@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class Api - Handles API-related functionalities.
  */
@@ -29,10 +30,10 @@ class Api extends Trongate {
         $endpoints = $this->fetch_endpoints($target_table);
 
         //this is the location for the api.json file that defines the API endpoints
-        $endpoint_settings_location = '/modules/'.$target_table.'/assets/api.json';
+        $endpoint_settings_location = '/modules/' . $target_table . '/assets/api.json';
         $http_status_codes = $this->get_status_codes();
         $columns = $this->get_table_columns($target_table);
-        $view_file = $file_path = APPPATH.'engine/views/api_explorer.php';
+        $view_file = $file_path = APPPATH . 'engine/views/api_explorer.php';
         require_once $view_file;
     }
 
@@ -44,9 +45,10 @@ class Api extends Trongate {
      */
     private function make_sure_table_exists(string $table): void {
         $all_tables = $this->get_all_tables();
-        if(!in_array($table, $all_tables)) {
+        if (!in_array($table, $all_tables)) {
             http_response_code(422);
-            echo 'invalid table name'; die();
+            echo 'invalid table name';
+            die();
         }
     }
 
@@ -58,7 +60,7 @@ class Api extends Trongate {
     private function get_all_tables(): array {
         $tables = [];
         $sql = 'show tables';
-        $column_name = 'Tables_in_'.DATABASE;
+        $column_name = 'Tables_in_' . DATABASE;
         $rows = $this->model->query($sql, 'array');
         foreach ($rows as $row) {
             $tables[] = $row[$column_name];
@@ -95,13 +97,14 @@ class Api extends Trongate {
     private function fetch_endpoints(string $target_table): array {
         if ($target_table === '') {
             http_response_code(422);
-            echo "No target table set"; die();
+            echo "No target table set";
+            die();
         }
 
-        $file_path = APPPATH.'modules/'.$target_table.'/assets/api.json';
+        $file_path = APPPATH . 'modules/' . $target_table . '/assets/api.json';
         $settings = file_get_contents($file_path);
-        $endpoints = json_decode($settings, true);   
-        return $endpoints;    
+        $endpoints = json_decode($settings, true);
+        return $endpoints;
     }
 
     /**
@@ -163,18 +166,18 @@ class Api extends Trongate {
      * @return array|string[]
      */
     private function get_table_columns(string $table, ?bool $simplify_output = null): array {
-        $sql = 'describe '.$table;
+        $sql = 'describe ' . $table;
         $rows = $this->model->query($sql, 'array');
 
-        if(isset($simplify_output)) {
+        if (isset($simplify_output)) {
             $columns = [];
-            foreach($rows as $row) {
+            foreach ($rows as $row) {
                 $columns[] = $row['Field'];
             }
             return $columns;
         } else {
             return $rows;
-        }  
+        }
     }
 
     /**
@@ -185,7 +188,7 @@ class Api extends Trongate {
     public function get(): void {
         $request_type = $_SERVER['REQUEST_METHOD'];
 
-        if($request_type !== 'GET') {
+        if ($request_type !== 'GET') {
             $this->search();
             return;
         }
@@ -193,12 +196,11 @@ class Api extends Trongate {
         require_once('Standard_endpoints.php');
         $se = new Standard_endpoints();
 
-        if(is_numeric(segment(4))) {
+        if (is_numeric(segment(4))) {
             $se->find_one();
         } else {
             $se->get();
         }
-
     }
 
     /**
@@ -232,7 +234,7 @@ class Api extends Trongate {
         $request_type = $_SERVER['REQUEST_METHOD'];
         require_once('Standard_endpoints.php');
         $se = new Standard_endpoints();
-        $se->count();        
+        $se->count();
     }
 
     /**
@@ -257,7 +259,8 @@ class Api extends Trongate {
             http_response_code(400);
             die();
         }
-        echo 'API insert batch'; die();
+        echo 'API insert batch';
+        die();
     }
 
     /**
@@ -320,5 +323,4 @@ class Api extends Trongate {
         $token = $se->make_sure_allowed($target_endpoint, $table_name);
         return $token;
     }
-
 }

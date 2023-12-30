@@ -24,15 +24,15 @@ class Trongate_pages extends Trongate {
         $url_bits = explode('/', $this_current_url);
 
         $target_segment = end($url_bits);
-        if($target_segment === 'edit') {
+        if ($target_segment === 'edit') {
             $num_bits = count($url_bits);
-            $target_segment = $url_bits[$num_bits-2];
+            $target_segment = $url_bits[$num_bits - 2];
         }
 
         $target_segment = str_replace('/', '', $target_segment);
         $record_obj = $this->model->get_one_where('url_string', $target_segment);
 
-        if($record_obj === false) {
+        if ($record_obj === false) {
             $this->template('error_404', []);
             return;
         }
@@ -40,7 +40,7 @@ class Trongate_pages extends Trongate {
         $data = (array) $record_obj;
         $data['targetTable'] = 'trongate_pages';
         $data['recordId'] = $record_obj->id;
-        $data['imgUploadApi'] = BASE_URL.'trongate_pages/submit_image_upload';
+        $data['imgUploadApi'] = BASE_URL . 'trongate_pages/submit_image_upload';
 
         $last_segment = end($url_bits);
 
@@ -49,10 +49,10 @@ class Trongate_pages extends Trongate {
         $token = $this->trongate_tokens->_attempt_get_valid_token(1);
         $data['enable_page_edit'] = false;
 
-        if(($last_segment === 'edit') && ($token !== false)) {
+        if (($last_segment === 'edit') && ($token !== false)) {
             $data['enable_page_edit'] = true;
         } elseif (($last_segment === 'edit') && ($token === false)) {
-            if(strtolower(ENV) === 'dev') {
+            if (strtolower(ENV) === 'dev') {
                 redirect('trongate_pages/manage');
             }
         }
@@ -135,16 +135,16 @@ class Trongate_pages extends Trongate {
     function _got_matches(string $temp_url_string, array $all_website_pages, int $record_id): bool {
         //fetch all url_strings that match our temp_url_string
         $matches = [];
-        foreach($all_website_pages as $website_page) {
+        foreach ($all_website_pages as $website_page) {
             $id = (int) $website_page->id;
             $url_string = trim($website_page->url_string);
-            if(($url_string === $temp_url_string) && ($id !== $record_id)) {
+            if (($url_string === $temp_url_string) && ($id !== $record_id)) {
                 $matches[$id] = $url_string;
             }
         }
 
         $num_matches = count($matches);
-        if($num_matches>0) {
+        if ($num_matches > 0) {
             return true;
         } else {
             return false;
@@ -173,7 +173,7 @@ class Trongate_pages extends Trongate {
         // Add a suggest string to each of the rows
         foreach ($rows as $key => $value) {
             $page_title = $value->page_title;
-            $rows[$key]->suggest_str = $page_title.' (page ID: '.$value->id.')';
+            $rows[$key]->suggest_str = $page_title . ' (page ID: ' . $value->id . ')';
         }
 
         http_response_code(200);
@@ -235,7 +235,7 @@ class Trongate_pages extends Trongate {
         $this->module('trongate_security');
         $token = $this->trongate_security->_make_sure_allowed();
         return $token;
-    }    
+    }
 
     /**
      * Executes a before hook that updates the input data and sets the 'last_updated' parameter to the current time.
@@ -262,7 +262,7 @@ class Trongate_pages extends Trongate {
                 $input['params']['priority'] = 0;
             }
         }
-        
+
         $input['params']['last_updated'] = time();
         return $input;
     }
@@ -288,14 +288,14 @@ class Trongate_pages extends Trongate {
 
         $directory_name = 'modules/trongate_pages/assets/images/uploads';
 
-        if($current_img_dir !== '') {
-            $directory_name.= trim($current_img_dir);
+        if ($current_img_dir !== '') {
+            $directory_name .= trim($current_img_dir);
         }
 
         $directories = $this->_fetch_directories($directory_name, true);
         $images = $this->_get_images_in_directory($directory_name, true);
 
-        if(count($directories)>0) {
+        if (count($directories) > 0) {
             $images = array_merge($directories, $images);
         }
 
@@ -310,7 +310,7 @@ class Trongate_pages extends Trongate {
      *
      * @return array
      */
-    function _fetch_directories(string $directory_name, bool|null $include_el_type=null): array {
+    function _fetch_directories(string $directory_name, bool|null $include_el_type = null): array {
         $directory_path = APPPATH . $directory_name;
         $directories = [];
 
@@ -330,7 +330,7 @@ class Trongate_pages extends Trongate {
 
         if (isset($include_el_type) && (count($directories) > 0)) {
             $found_directories = [];
-            foreach($directories as $directory) {
+            foreach ($directories as $directory) {
                 $row_data['info'] = $directory;
                 $row_data['type'] = 'directory';
                 $found_directories[] = $row_data;
@@ -348,10 +348,10 @@ class Trongate_pages extends Trongate {
      *
      * @return array
      */
-    function _get_images_in_directory(string $directory_name, bool|null $include_el_type=null): array {
+    function _get_images_in_directory(string $directory_name, bool|null $include_el_type = null): array {
         $directory_name = rtrim($directory_name, "/");
         $directory_path = APPPATH . $directory_name;
-        $img_root_url = BASE_URL.'trongate_pages_module/'.$directory_name;
+        $img_root_url = BASE_URL . 'trongate_pages_module/' . $directory_name;
         $ditch = 'trongate_pages_module/modules/trongate_pages/assets/';
         $replace = 'trongate_pages_module/';
         $img_root_url = str_replace($ditch, $replace, $img_root_url);
@@ -366,7 +366,7 @@ class Trongate_pages extends Trongate {
                         'file_name' => $file,
                         'date_uploaded' => filemtime($file_path),
                         'file_size' => filesize($file_path),
-                        'url' => $img_root_url. '/' . $file
+                        'url' => $img_root_url . '/' . $file
                     ];
                 }
             }
@@ -375,12 +375,11 @@ class Trongate_pages extends Trongate {
             usort($images, function ($a, $b) {
                 return strcasecmp($a['file_name'], $b['file_name']);
             });
-
         }
 
         if (isset($include_el_type) && (count($images) > 0)) {
             $found_images = [];
-            foreach($images as $image) {
+            foreach ($images as $image) {
                 $row_data['info'] = $image;
                 $row_data['type'] = 'image';
                 $found_images[] = $row_data;
@@ -389,7 +388,6 @@ class Trongate_pages extends Trongate {
         } else {
             return $images;
         }
-
     }
 
     /**
@@ -401,7 +399,7 @@ class Trongate_pages extends Trongate {
         $token = $this->_make_sure_allowed();
 
         // Check if the image folder exists and is writable
-        $folder_path = APPPATH.'modules/trongate_pages/assets/images/uploads';
+        $folder_path = APPPATH . 'modules/trongate_pages/assets/images/uploads';
         if (!is_writable($folder_path)) {
             $data['view_module'] = 'trongate_pages';
             $this->view('permissions_error', $data);
@@ -411,8 +409,8 @@ class Trongate_pages extends Trongate {
         if (segment(4) !== '') {
             $data['headline'] = 'Search Results';
             $searchphrase = trim($_GET['searchphrase']);
-            $params['page_title'] = '%'.$searchphrase.'%';
-            $params['page_body'] = '%'.$searchphrase.'%';
+            $params['page_title'] = '%' . $searchphrase . '%';
+            $params['page_body'] = '%' . $searchphrase . '%';
             $sql = 'select * from trongate_pages
             WHERE page_title LIKE :page_title
             OR page_body LIKE :page_body
@@ -454,19 +452,19 @@ class Trongate_pages extends Trongate {
         $data = (array) $record_obj;
         $data['targetTable'] = 'trongate_pages';
         $data['recordId'] = $record_obj->id;
-        $data['imgUploadApi'] = BASE_URL.'trongate_pages/submit_image_upload';
+        $data['imgUploadApi'] = BASE_URL . 'trongate_pages/submit_image_upload';
 
-        $last_segment = SEGMENTS[count(SEGMENTS)-1];
+        $last_segment = SEGMENTS[count(SEGMENTS) - 1];
 
         //is this user an 'admin' user?
         $this->module('trongate_tokens');
         $token = $this->trongate_tokens->_attempt_get_valid_token(1);
         $data['enable_page_edit'] = false;
 
-        if(($last_segment === 'edit') && ($token !== false)) {
+        if (($last_segment === 'edit') && ($token !== false)) {
             $data['enable_page_edit'] = true;
         } elseif (($last_segment === 'edit') && ($token === false)) {
-            if(strtolower(ENV) === 'dev') {
+            if (strtolower(ENV) === 'dev') {
                 redirect('trongate_pages/manage');
             }
         }
@@ -475,7 +473,7 @@ class Trongate_pages extends Trongate {
             //page not published
             load('error_404');
 
-            if(strtolower(ENV) === 'dev') {
+            if (strtolower(ENV) === 'dev') {
                 $this->view('not_published_info');
             }
 
@@ -497,28 +495,27 @@ class Trongate_pages extends Trongate {
     function _attempt_enable_page_edit(array $trongate_pages_data): void {
         $enable_page_edit = $trongate_pages_data['enable_page_edit'] ?? false;
 
-        if($enable_page_edit === true) {
+        if ($enable_page_edit === true) {
             $this->module('trongate_tokens');
             $trongate_pages_data['trongate_token'] = $this->trongate_tokens->_attempt_get_valid_token();
 
-            $directory = APPPATH.'public/trongate_pages_extra';
+            $directory = APPPATH . 'public/trongate_pages_extra';
 
             if (is_dir($directory)) {
                 // Set up two additional arrays to be included (one js and one css)
-                $js_directory = $directory.'/js';
+                $js_directory = $directory . '/js';
                 $additional_files_js = $this->_fetch_additional_files($js_directory);
-                
-                if(count($additional_files_js)>0) {
+
+                if (count($additional_files_js) > 0) {
                     $trongate_pages_data['additional_files_js'] = $additional_files_js;
                 }
 
-                $css_directory = $directory.'/css';
+                $css_directory = $directory . '/css';
                 $additional_files_css = $this->_fetch_additional_files($css_directory);
 
-                if(count($additional_files_css)>0) {
+                if (count($additional_files_css) > 0) {
                     $trongate_pages_data['additional_files_css'] = $additional_files_css;
                 }
-
             }
 
             $this->view('enable_page_edit', $trongate_pages_data);
@@ -571,9 +568,9 @@ class Trongate_pages extends Trongate {
         $count = -1;
         foreach ($all_rows as $webpage) {
             $count++;
-            if (($count>=$start_index) && ($count<$end_index)) {
+            if (($count >= $start_index) && ($count < $end_index)) {
                 $webpage->published = ($webpage->published == 1 ? 'yes' : 'no');
-                $webpage->webpage_url = BASE_URL.$webpage_trigger.'/'.$webpage->url_string;
+                $webpage->webpage_url = BASE_URL . $webpage_trigger . '/' . $webpage->url_string;
                 $rows[] = $webpage;
             }
         }
@@ -599,14 +596,14 @@ class Trongate_pages extends Trongate {
             $data['page_title'] = post('page_title', true);
             $data['meta_keywords'] = '';
             $data['meta_description'] = '';
-            $data['page_body'] = '<h1>'.$data['page_title'].'</h1>';
+            $data['page_body'] = '<h1>' . $data['page_title'] . '</h1>';
             $data['date_created'] = time();
             $data['last_updated'] = time();
             $data['published'] = 0;
             $data['created_by'] = $trongate_user_id;
             $data['url_string'] = $this->_make_url_str($data['page_title']);
             $update_id = $this->model->insert($data, 'trongate_pages');
-            redirect('trongate_pages/display/'.$data['url_string'].'/edit');
+            redirect('trongate_pages/display/' . $data['url_string'] . '/edit');
         } else {
             $this->manage();
         }
@@ -624,7 +621,7 @@ class Trongate_pages extends Trongate {
         $submit = post('submit');
         $params['update_id'] = (int) segment(3);
 
-        if (($submit == 'Yes - Delete Now') && ($params['update_id']>0)) {
+        if (($submit == 'Yes - Delete Now') && ($params['update_id'] > 0)) {
             //delete all of the comments associated with this record
             $sql = 'delete from trongate_comments where target_table = :module and update_id = :update_id';
             $params['module'] = 'trongate_pages';
@@ -647,14 +644,14 @@ class Trongate_pages extends Trongate {
      *
      * @return void
      */
-    function submit_create_new_img_folder() : void{
+    function submit_create_new_img_folder(): void {
         api_auth();
-        
+
         $posted_data = file_get_contents('php://input');
         $data = json_decode($posted_data);
 
         $data_type = gettype($data);
-        if($data_type !== 'object') {
+        if ($data_type !== 'object') {
             http_response_code(400);
             echo 'Invalid inbound data.';
             die();
@@ -663,9 +660,9 @@ class Trongate_pages extends Trongate {
         $new_folder_name = $data->newFolderName ?? '';
         $current_img_dir = $data->currentImgDir ?? '';
 
-        if(strlen($current_img_dir)>0) {
+        if (strlen($current_img_dir) > 0) {
             if ($current_img_dir[0] === '/') {
-              $current_img_dir = substr($current_img_dir, 1);
+                $current_img_dir = substr($current_img_dir, 1);
             }
         }
 
@@ -675,9 +672,9 @@ class Trongate_pages extends Trongate {
         $folder_name = strtolower($folder_name);
 
         // Check if the current img dir exists
-        $root_dir_path = APPPATH.'modules/trongate_pages/assets/images/uploads/'.trim($current_img_dir);
+        $root_dir_path = APPPATH . 'modules/trongate_pages/assets/images/uploads/' . trim($current_img_dir);
 
-        if(!is_dir($root_dir_path)) {
+        if (!is_dir($root_dir_path)) {
             http_response_code(400);
             echo 'Invalid root dir!';
             die();
@@ -686,10 +683,10 @@ class Trongate_pages extends Trongate {
         $root_dir_path = rtrim($root_dir_path, "/");
 
         // Make sure new folder does not already exist.
-        $new_folder_path = $root_dir_path.'/'.$folder_name;
+        $new_folder_path = $root_dir_path . '/' . $folder_name;
         $new_folder_path = rtrim($new_folder_path, "/");
 
-        if(is_dir($new_folder_path)) {
+        if (is_dir($new_folder_path)) {
             http_response_code(400);
             echo 'Folder exists!';
             die();
@@ -711,13 +708,11 @@ class Trongate_pages extends Trongate {
             chmod($new_folder_path, 0755);
             http_response_code(200);
             echo $new_folder_path;
-            
         } catch (Exception $e) {
             http_response_code(500);
             echo 'An error occurred: ' . $e->getMessage();
             die();
         }
-
     }
 
     /**
@@ -731,7 +726,7 @@ class Trongate_pages extends Trongate {
         $data = json_decode($posted_data);
 
         $data_type = gettype($data);
-        if($data_type !== 'object') {
+        if ($data_type !== 'object') {
             http_response_code(400);
             echo 'Invalid inbound data.';
             die();
@@ -750,18 +745,18 @@ class Trongate_pages extends Trongate {
             die();
         }
 
-        $old_folder_path = APPPATH.'modules/trongate_pages/assets/images/uploads'.trim($current_img_dir).'/'.$old_folder_name;
-        $new_folder_path = APPPATH.'modules/trongate_pages/assets/images/uploads'.trim($current_img_dir).'/'.$new_folder_name;
+        $old_folder_path = APPPATH . 'modules/trongate_pages/assets/images/uploads' . trim($current_img_dir) . '/' . $old_folder_name;
+        $new_folder_path = APPPATH . 'modules/trongate_pages/assets/images/uploads' . trim($current_img_dir) . '/' . $new_folder_name;
 
         // Check if the old folder exists
-        if(!is_dir($old_folder_path)) {
+        if (!is_dir($old_folder_path)) {
             http_response_code(400);
             echo 'Old folder does not exist!';
             die();
         }
 
         // Make sure new folder does not already exist.
-        if(is_dir($new_folder_path)) {
+        if (is_dir($new_folder_path)) {
             http_response_code(400);
             echo 'New folder already exists!';
             die();
@@ -777,7 +772,6 @@ class Trongate_pages extends Trongate {
                 http_response_code(500);
                 echo 'Failed to rename the folder.';
             }
-            
         } catch (Exception $e) {
             http_response_code(500);
             echo 'An error occurred: ' . $e->getMessage();
@@ -800,8 +794,8 @@ class Trongate_pages extends Trongate {
         //make sure the trongate_pages table exists
         $rows = $this->model->query('show tables', 'array');
         $all_tables = [];
-        foreach($rows as $row_key => $row_value) {
-            foreach($row_value as $key => $table_name) {
+        foreach ($rows as $row_key => $row_value) {
+            foreach ($row_value as $key => $table_name) {
                 $all_tables[] = $table_name;
             }
         }
@@ -834,8 +828,8 @@ class Trongate_pages extends Trongate {
 
         $destination_dir = '../modules/trongate_pages/assets/images/uploads';
 
-        if($current_img_dir !== '') {
-            $destination_dir.= $current_img_dir;
+        if ($current_img_dir !== '') {
+            $destination_dir .= $current_img_dir;
         }
 
         if (!$fileTmpLoc) { // if file not chosen
@@ -858,17 +852,18 @@ class Trongate_pages extends Trongate {
 
         $fileName = $this->prep_file_name($fileName, $destination_dir); // guarantee that file names are not problematic
 
-        if(move_uploaded_file($fileTmpLoc, $destination_dir.'/'.$fileName)){
+        if (move_uploaded_file($fileTmpLoc, $destination_dir . '/' . $fileName)) {
             http_response_code(200);
             $destination_dir = str_replace('../', '/', $destination_dir);
-            $abs_path1 = BASE_URL.'trongate_pages_module/';
-            $replace = $destination_dir.'/'.$fileName;
+            $abs_path1 = BASE_URL . 'trongate_pages_module/';
+            $replace = $destination_dir . '/' . $fileName;
             $picture_path = str_replace('/modules/trongate_pages/assets/', $abs_path1, $replace);
             echo $picture_path;
             die();
         } else {
             http_response_code(400);
-            echo 'Unable to upload to: '.$destination_dir.'/'.$fileName; die();
+            echo 'Unable to upload to: ' . $destination_dir . '/' . $fileName;
+            die();
             echo "move_uploaded_file function failed";
             die();
         }
@@ -890,8 +885,8 @@ class Trongate_pages extends Trongate {
             $directory_name = 'modules/trongate_pages/assets/images/uploads';
             $current_img_dir = $data->currentImgDir ?? '';
 
-            if($current_img_dir !== '') {
-                $directory_name.= $current_img_dir;
+            if ($current_img_dir !== '') {
+                $directory_name .= $current_img_dir;
             }
 
             $directory_path = APPPATH . $directory_name;
@@ -929,12 +924,12 @@ class Trongate_pages extends Trongate {
     function submit_delete_folder(): void {
 
         api_auth();
-        
+
         $posted_data = file_get_contents('php://input');
         $data = json_decode($posted_data);
 
         $data_type = gettype($data);
-        if($data_type !== 'object') {
+        if ($data_type !== 'object') {
             http_response_code(400);
             echo 'Invalid inbound data.';
             die();
@@ -944,23 +939,23 @@ class Trongate_pages extends Trongate {
         $current_img_dir = $data->currentImgDir ?? '';
 
         // Check if the current img dir exists
-        $root_dir_path = APPPATH.'modules/trongate_pages/assets/images/uploads/';
+        $root_dir_path = APPPATH . 'modules/trongate_pages/assets/images/uploads/';
 
-        if($current_img_dir !== '') {
+        if ($current_img_dir !== '') {
             $current_img_dir = ltrim($current_img_dir, '/');
-            $root_dir_path.= $current_img_dir;
+            $root_dir_path .= $current_img_dir;
         }
 
-        if(!is_dir($root_dir_path)) {
+        if (!is_dir($root_dir_path)) {
             http_response_code(400);
             echo 'Invalid root dir!';
             die();
         }
 
         // Make sure folder exists.
-        $target_folder_path = $root_dir_path.'/'.$submitted_folder_name;
+        $target_folder_path = $root_dir_path . '/' . $submitted_folder_name;
 
-        if(!is_dir($target_folder_path)) {
+        if (!is_dir($target_folder_path)) {
             http_response_code(400);
             echo 'Folder does not exist!';
             die();
@@ -1010,10 +1005,10 @@ class Trongate_pages extends Trongate {
     function submit_beautify(): void {
         $posted_data = file_get_contents('php://input');
         $data = json_decode($posted_data);
-            if (isset($data->raw_html)) {
+        if (isset($data->raw_html)) {
             $raw_html = $data->raw_html;
             $nice_html = $this->beautify_html($raw_html, '    ');
-            
+
             http_response_code(200);
             echo $nice_html;
         } else {
@@ -1108,13 +1103,12 @@ class Trongate_pages extends Trongate {
 
             if ($video_id_len !== 11) {
                 http_response_code(406); // Not acceptable
-                die();            
+                die();
             } else {
                 http_response_code(200);
                 echo $matches[1];
                 die();
             }
-
         }
 
         // Check if the video ID is valid
@@ -1124,13 +1118,12 @@ class Trongate_pages extends Trongate {
 
             if ($video_id_len !== 11) {
                 http_response_code(406); // Not acceptable
-                die();            
+                die();
             } else {
                 http_response_code(200);
                 echo $video_id;
                 die();
             }
-
         }
 
         http_response_code(406); // Not acceptable
@@ -1159,8 +1152,8 @@ class Trongate_pages extends Trongate {
     function _get_offset(): int {
         $page_num = (int) segment(3);
 
-        if ($page_num>1) {
-            $offset = ($page_num-1)*$this->_get_limit();
+        if ($page_num > 1) {
+            $offset = ($page_num - 1) * $this->_get_limit();
         } else {
             $offset = 0;
         }
@@ -1209,7 +1202,7 @@ class Trongate_pages extends Trongate {
         $record_obj = $this->model->get_one_where('url_string', $url_string, 'trongate_pages');
 
         if ($record_obj !== false) {
-            $url_string.= make_rand_str(8);
+            $url_string .= make_rand_str(8);
         }
 
         return $url_string;
@@ -1228,7 +1221,7 @@ class Trongate_pages extends Trongate {
             $created_by_values[] = (int) $row->created_by;
         }
 
-        if(count($created_by_values) === 0) {
+        if (count($created_by_values) === 0) {
             return $rows;
         }
 
@@ -1236,13 +1229,13 @@ class Trongate_pages extends Trongate {
         $sql = "SELECT trongate_user_id, username FROM trongate_administrators WHERE trongate_user_id IN (" . implode(",", $created_by_values) . ")";
         $user_rows = $this->model->query($sql, 'object');
         $all_authors = [];
-        foreach($user_rows as $user_row) {
+        foreach ($user_rows as $user_row) {
             $all_authors[$user_row->trongate_user_id] = $user_row->username;
         }
 
-        foreach($rows as $row_key => $row) {
+        foreach ($rows as $row_key => $row) {
             $created_by = $row->created_by;
-            if(isset($all_authors[$created_by])) {
+            if (isset($all_authors[$created_by])) {
                 $rows[$row_key]->author =  $all_authors[$created_by];
             } else {
                 $rows[$row_key]->author = 'Unknown';
@@ -1267,7 +1260,7 @@ class Trongate_pages extends Trongate {
             die();
         } else {
             $data = (array) $record_obj;
-            return $data;        
+            return $data;
         }
     }
 
@@ -1284,7 +1277,7 @@ class Trongate_pages extends Trongate {
         $data['date_created'] = post('date_created', true);
         $data['last_updated'] = post('last_updated', true);
         $data['published'] = post('published', true);
-        $data['created_by'] = post('created_by', true);        
+        $data['created_by'] = post('created_by', true);
         return $data;
     }
 
@@ -1406,7 +1399,7 @@ class Trongate_pages extends Trongate {
     function _pre_create($input) {
 
         $token = (isset($_SERVER['HTTP_TRONGATETOKEN']) ? $_SERVER['HTTP_TRONGATETOKEN'] : false);
-        if($token === false) {
+        if ($token === false) {
             http_response_code(401);
             echo 'Not authorized';
             die();
@@ -1438,13 +1431,12 @@ class Trongate_pages extends Trongate {
                 $input['params']['parent_page_id'] = 0;
 
                 //how many other records exist on this level?
-                $num_siblings = $this->model->count_rows('parent_page_id', 0, 'trongate_pages'); 
+                $num_siblings = $this->model->count_rows('parent_page_id', 0, 'trongate_pages');
                 $input['params']['priority'] = $num_siblings + 1;
             }
 
             return $input;
         }
-
     }
 
     /**
@@ -1485,10 +1477,9 @@ class Trongate_pages extends Trongate {
             $sql .= 'UPDATE trongate_pages SET priority = ' . $priority . ', parent_page_id = ' . $parent_webpage_id . ' WHERE id = ' . $id . ';';
         }
 
-        if($sql !== '') {
+        if ($sql !== '') {
             $this->model->query($sql);
         }
-        
     }
 
     /**
@@ -1508,15 +1499,15 @@ class Trongate_pages extends Trongate {
      * @param bool $return_edit_url should method return the 'edit' URL.
      * @return string|false The page URL for editing the record, or false if the record doesn't exist.
      */
-    function _make_page_url(int $update_id, bool $return_edit_url=true): string|false {
+    function _make_page_url(int $update_id, bool $return_edit_url = true): string|false {
         $record_obj = $this->model->get_where($update_id, 'trongate_pages');
 
         if ($record_obj === false) {
             return false;
         } else {
             $page_url = BASE_URL . 'trongate_pages/display/' . $record_obj->url_string;
-            if($return_edit_url !== false) {
-                $page_url.= '/edit';
+            if ($return_edit_url !== false) {
+                $page_url .= '/edit';
             }
 
             return $page_url;
@@ -1543,5 +1534,4 @@ class Trongate_pages extends Trongate {
 
         return $input;
     }
-
 } //end of the class 

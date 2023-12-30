@@ -432,7 +432,7 @@ class Trongate_tokens extends Trongate {
                             trongate_users 
                     ON  
                             trongate_tokens.user_id = trongate_users.id
-                    '.$where_condition.' 
+                    ' . $where_condition . ' 
                     AND 
                             trongate_users.user_level_id = :user_level_id';
             $sql .= ' AND expiry_date > :nowtime ';
@@ -582,5 +582,4 @@ class Trongate_tokens extends Trongate {
 
         $this->model->query_bind($sql, $data);
     }
-
 }

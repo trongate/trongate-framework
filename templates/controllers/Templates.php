@@ -29,7 +29,7 @@ class Templates extends Trongate {
      */
     function admin(array $data): void {
         $data['additional_includes_top'] = $this->_build_additional_includes($data['additional_includes_top'] ?? []);
-        $data['additional_includes_btm'] = $this->_build_additional_includes($data['additional_includes_btm'] ?? []); 
+        $data['additional_includes_btm'] = $this->_build_additional_includes($data['additional_includes_btm'] ?? []);
         load('admin', $data);
     }
 
@@ -40,7 +40,7 @@ class Templates extends Trongate {
      * @return string CSS include code.
      */
     function _build_css_include_code(string $file): string {
-        $code = '<link rel="stylesheet" href="'.$file.'">';
+        $code = '<link rel="stylesheet" href="' . $file . '">';
         $code = str_replace('""></script>', '"></script>', $code);
         return $code;
     }
@@ -52,9 +52,9 @@ class Templates extends Trongate {
      * @return string JavaScript include code.
      */
     function _build_js_include_code(string $file): string {
-       $code = '<script src="'.$file.'"></script>';
-       $code = str_replace('""></script>', '"></script>', $code);
-       return $code;
+        $code = '<script src="' . $file . '"></script>';
+        $code = str_replace('""></script>', '"></script>', $code);
+        return $code;
     }
 
     /**
@@ -88,5 +88,4 @@ class Templates extends Trongate {
 
         return trim($html) . PHP_EOL;
     }
-
 }
