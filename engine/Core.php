@@ -211,10 +211,7 @@ class Core {
             }
         }
 
-        if (isset($segments[3])) {
-            $no_query_params = explode('?', $segments[3])[0];
-            $this->current_value = !empty($no_query_params) ? $no_query_params : $this->current_value;
-        }
+        $this->current_value = isset($segments[3]) ? $segments[3] : $this->current_value;
 
         $controller_path = '../modules/' . $this->current_module . '/controllers/' . $this->current_controller . '.php';
 
