@@ -88,8 +88,6 @@ function anchor(string $target_url, $text, ?array $attributes = null, ?string $a
         $target_url = BASE_URL . $target_url;
     }
 
-    $target_url = attempt_return_nice_url($target_url);
-
     $text_type = gettype($text);
 
     if ($text_type === 'boolean') {
@@ -98,6 +96,13 @@ function anchor(string $target_url, $text, ?array $attributes = null, ?string $a
 
     $extra = '';
     if (isset($attributes)) {
+
+        if (isset($attributes['rewrite_url'])) {
+            unset($attributes['rewrite_url']);
+        } else {
+            $target_url = attempt_return_nice_url($target_url);
+        }
+
         foreach ($attributes as $key => $value) {
             $extra .= ' ' . $key . '="' . $value . '"';
         }
