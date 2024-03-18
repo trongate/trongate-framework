@@ -44,6 +44,23 @@ function remove_query_string(string $string): string {
 }
 
 /**
+ * Retrieves the last part of a string based on a delimiter.
+ *
+ * @param string $str The input string to retrieve the last part from.
+ * @param string $delimiter The delimiter used to split the string (default: '-').
+ * @return string The last part of the input string.
+ */
+function get_last_part(string $str, string $delimiter = '-'): string {
+    if (strpos($str, $delimiter) !== false) {
+        $parts = explode($delimiter, $str);
+        $last_part = end($parts);
+    } else {
+        $last_part = $str;
+    }
+    return $last_part;
+}
+
+/**
  * Perform an HTTP redirect to the specified URL.
  *
  * @param string $target_url The URL to which the redirect should occur.
