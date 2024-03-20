@@ -85,8 +85,12 @@ function url_title($value, $transliteration = true) {
  * @return string The escaped and formatted string ready for safe inclusion in the specified context.
  * @throws Exception if an unsupported output format is provided.
  */
-function out(string $input, string $encoding = 'UTF-8', string $output_format = 'html'): string {
+function out(?string $input, string $encoding = 'UTF-8', string $output_format = 'html'): string {
     $flags = ENT_QUOTES;
+
+    if ($input === null) {
+        $input = '';
+    }
 
     if ($output_format === 'xml') {
         $flags = ENT_XML1;
