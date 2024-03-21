@@ -13,6 +13,8 @@ class Image {
         IMAGETYPE_JPEG => 'image/jpeg',
         IMAGETYPE_GIF => 'image/gif',
         IMAGETYPE_PNG => 'image/png',
+        IMAGETYPE_WEBP => 'image/webp',
+
     ];
 
     /**
@@ -54,6 +56,8 @@ class Image {
             $this->image = imagecreatefromgif($filename);
         } elseif ($this->imageType == IMAGETYPE_PNG) {
             $this->image = imagecreatefrompng($filename);
+        } elseif ($this->imageType == IMAGETYPE_WEBP) {
+            $this->image = imagecreatefromwebp($filename);
         }
     }
 
@@ -72,6 +76,9 @@ class Image {
                 break;
             case IMAGETYPE_GIF:
                 imagegif($this->image, $filename);
+                break;
+            case IMAGETYPE_WEBP:
+                imagewebp($this->image, $filename);
                 break;
             case IMAGETYPE_PNG:
                 imagesavealpha($this->image, true);
@@ -100,6 +107,9 @@ class Image {
                 break;
             case IMAGETYPE_GIF:
                 imagegif($this->image);
+                break;
+            case IMAGETYPE_WEBP:
+                imagewebp($this->image);
                 break;
             case IMAGETYPE_PNG:
                 imagealphablending($this->image, true);
