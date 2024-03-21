@@ -403,7 +403,6 @@ class Model {
         return $id;
     }
 
-
     public function update($update_id, $data, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
@@ -453,7 +452,6 @@ class Model {
 
         $this->prepare_and_execute($sql, $data);
     }
-
 
 
     public function delete($id, $target_tbl = null) {
