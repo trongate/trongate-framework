@@ -17,7 +17,7 @@ class Template {
         return $view_module;
     }
 
-    static public function display($data=null) {
+    static public function display($data = null) {
 
         if (!isset($data['view_module'])) {
             $data['view_module'] = self::get_view_module();
@@ -27,16 +27,16 @@ class Template {
             $data['view_file'] = 'index';
         }
 
-        $file_path = APPPATH.'modules/'.$data['view_module'].'/views/'.$data['view_file'].'.php';
+        $file_path = APPPATH . 'modules/' . $data['view_module'] . '/views/' . $data['view_file'] . '.php';
         self::attempt_include($file_path, $data);
     }
 
-    static public function partial($file_name, $data=null) {
-        $file_path = APPPATH.'templates/views/'.$file_name.'.php';
+    static public function partial($file_name, $data = null) {
+        $file_path = APPPATH . 'templates/views/' . $file_name . '.php';
         self::attempt_include($file_path, $data);
     }
 
-    static private function attempt_include($file_path, $data=null) {
+    static private function attempt_include($file_path, $data = null) {
 
         if (file_exists($file_path)) {
 
@@ -45,11 +45,8 @@ class Template {
             }
 
             require_once($file_path);
-
         } else {
-            die('<br><b>ERROR:</b> View file does not exist at: '.$file_path);
+            die('<br><b>ERROR:</b> View file does not exist at: ' . $file_path);
         }
-
     }
-
 }

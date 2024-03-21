@@ -75,7 +75,8 @@ class Model {
     }
 
     private function get_table_from_url() {
-        return $this->current_module;
+        // Use $this->current_module if set, otherwise, use the first URL segment
+        return isset($this->current_module) ? $this->current_module : segment(1);
     }
 
     private function correct_tablename($target_tbl) {
@@ -110,7 +111,7 @@ class Model {
         return $tables;
     }
 
-    public function get($order_by=null, $target_tbl=null, $limit=null, $offset=null) {
+    public function get($order_by = null, $target_tbl = null, $limit = null, $offset = null) {
 
         $order_by = (!isset($order_by)) ? 'id' : $order_by;
 
@@ -402,9 +403,7 @@ class Model {
         return $id;
     }
 
-    // If $column null default column is id with the value of $update_id. 
-    // Table required if using $column argument.
-    public function update($update_id, $data, $target_tbl = null, $column = null) {
+    public function update($update_id, $data, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -461,8 +460,7 @@ class Model {
         $this->prepare_and_execute($sql, $data);
     }
 
-    //update a record by a field besides the table.id
-    public function update_custom($update_value, $data, $column, $target_tbl = null){
+    public function update_where($column, $column_value, $data, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -475,9 +473,9 @@ class Model {
         }
 
         $sql = rtrim($sql, ', ');
-        $sql .= " WHERE `$target_tbl`.`$column` = :update_value";
+        $sql .= " WHERE `$target_tbl`.`$column` = :value";
 
-        $data['update_value'] = $update_value;
+        $data['value'] = $column_value;
         $data = $data;
 
         if ($this->debug == true) {
@@ -486,6 +484,8 @@ class Model {
 
         $this->prepare_and_execute($sql, $data);
     }
+
+
 
     public function delete($id, $target_tbl = null) {
 
@@ -550,7 +550,7 @@ class Model {
         $num_rows = $this->count($tablename);
 
         if ($num_rows == 0) {
-            $sql = 'TRUNCATE '.$tablename;
+            $sql = 'TRUNCATE ' . $tablename;
             $this->query($sql);
         }
     }

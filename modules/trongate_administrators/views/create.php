@@ -1,6 +1,6 @@
-<h1><?=$headline ?></h1>
+<h1><?= $headline ?></h1>
 <?= validation_errors('<div class="error">', "</div>") ?>
-<?php   
+<?php
 echo form_open($form_location);
 $input_attr['placeholder'] = 'Enter username here';
 $input_attr['autocomplete'] = 'off';

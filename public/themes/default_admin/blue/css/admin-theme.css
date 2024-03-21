@@ -1,0 +1,113 @@
+:root {
+  --primary: #4682b4;
+  --primary-dark: #427aa8;
+  --primary-darker: #3d719c;
+  --primary-color: #fff;
+  --secondary: #ff0000;
+  --border: #c5c5c5;
+  --alt: #fff;
+}
+
+.alt {
+  border: 1px solid var(--border);
+}
+
+.alt:hover {
+  color: var(--primary-darker);
+}
+
+button,
+.button {
+  background-color: var(--primary);
+  border: 1px solid var(--primary-darker);
+}
+
+button:hover,
+.button:hover {
+  background-color: var(--primary-darker);
+  border: 1px solid var(--primary-darker);
+}
+
+#results-tbl
+  > thead
+  > tr:nth-child(1)
+  > th
+  > div
+  > div:nth-child(1)
+  > form
+  > button.alt {
+  border: 1px solid var(--primary-darker);
+}
+
+#results-tbl > thead input[type="text"] {
+  border: 1px solid var(--primary-darker);
+}
+
+#results-tbl > thead > tr:nth-child(1) > th > div > div:nth-child(2) > select {
+  border: 1px solid var(--primary-darker);
+}
+
+th {
+  background-color: var(--primary-dark);
+  border: 1px solid var(--primary-darker);
+}
+
+thead tr:nth-child(2) th {
+  background-color: var(--primary);
+  border: 1px solid var(--primary-dark);
+}
+
+.card.record-details > div.card-body > div {
+  border-bottom: 1px dotted var(--border);
+}
+
+.datepicker-calendar,
+.datetime-picker-calendar {
+  border: 1px var(--primary-darker) solid;
+  background-color: var(--primary-color);
+}
+
+.datepicker-head {
+  background-color: var(--primary);
+}
+
+.datepicker-calendar .popup-arrow,
+.datetime-picker-calendar .popup-arrow {
+  background-color: var(--primary-color);
+  color: var(--primary);
+}
+
+.datepicker-calendar .current-day,
+.datetime-picker-calendar .current-day {
+  background-color: var(--primary);
+  color: var(--primary-color);
+}
+
+.datepicker-calendar .current-day:hover,
+.datetime-picker-calendar .current-day:hover {
+  background-color: var(--primary-darker);
+}
+
+.timepicker-btns button:hover {
+  background-color: var(--primary);
+  color: var(--primary-color);
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--primary);
+}
+
+input[type="range"]:focus::-webkit-slider-runnable-track {
+  background: var(--primary-dark);
+}
+
+input[type="range"]::-moz-range-track {
+  background: var(--primary);
+}
+
+#slide-nav {
+  background-color: var(--primary-darker);
+  -webkit-box-shadow: 10px 0px 5px -4px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 10px 0px 5px -4px rgba(0, 0, 0, 0.75);
+  box-shadow: 10px 0px 5px -4px rgba(0, 0, 0, 0.75);
+}

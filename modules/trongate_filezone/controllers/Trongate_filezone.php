@@ -1,31 +1,46 @@
 <?php
 class Trongate_filezone extends Trongate {
 
-    function _draw_summary_panel($update_id, $filezone_settings) {
+    /**
+     * Renders the summary panel for a given update ID and Filezone settings.
+     *
+     * @param int $update_id The ID of the update.
+     * @param array $filezone_settings Settings related to the Filezone.
+     * @return void
+     */
+    function _draw_summary_panel(int $update_id, array $filezone_settings): void {
         $this->module('trongate_security');
         $data['token'] = $this->trongate_security->_make_sure_allowed();
         $this->_make_sure_got_sub_folder($update_id, $filezone_settings);
         $data['update_id'] = $update_id;
         $data['target_module'] = $filezone_settings['targetModule'];
-        $data['uploader_url'] = 'trongate_filezone/uploader/'.$data['target_module'].'/'.$update_id;
+        $data['uploader_url'] = 'trongate_filezone/uploader/' . $data['target_module'] . '/' . $update_id;
         $data['pictures'] = $this->_fetch_pictures($update_id, $filezone_settings);
-        $data['target_directory'] = BASE_URL.$data['target_module'].'_pictures/'.$update_id.'/';
+        $data['target_directory'] = BASE_URL . $data['target_module'] . '_pictures/' . $update_id . '/';
 
         if (!isset($filezone_settings['upload_to_module'])) {
             $filezone_settings['upload_to_module'] = false;
         }
 
         if ($filezone_settings['upload_to_module'] == true) {
-            $module_assets_dir = BASE_URL.segment(1).MODULE_ASSETS_TRIGGER;
-            $data['target_directory'] = $module_assets_dir.'/'.$filezone_settings['destination'].'/'.$update_id;
+            $module_assets_dir = BASE_URL . segment(1) . MODULE_ASSETS_TRIGGER;
+            $data['target_directory'] = $module_assets_dir . '/' . $filezone_settings['destination'] . '/' . $update_id;
         } else {
-            $data['target_directory'] = BASE_URL.$data['target_module'].'_pictures/'.$update_id.'/';
+            $data['target_directory'] = BASE_URL . $data['target_module'] . '_pictures/' . $update_id . '/';
         }
 
         $this->view('multi_summary_panel', $data);
     }
 
-    function _make_sure_got_sub_folder($update_id, $filezone_settings, $target_module=null) {
+    /**
+     * Ensures the existence of a subfolder for a given update ID and Filezone settings.
+     *
+     * @param int $update_id The ID of the update.
+     * @param array $filezone_settings Settings related to the Filezone.
+     * @param string|null $target_module (Optional) The target module. Defaults to null.
+     * @return void
+     */
+    function _make_sure_got_sub_folder(int $update_id, array $filezone_settings, ?string $target_module = null): void {
         $destination = $filezone_settings['destination'];
 
         if (!isset($target_module)) {
@@ -37,9 +52,9 @@ class Trongate_filezone extends Trongate {
         }
 
         if ($filezone_settings['upload_to_module'] == true) {
-            $target_dir = APPPATH.'modules/'.$target_module.'/assets/'.$destination.'/'.$update_id;
+            $target_dir = APPPATH . 'modules/' . $target_module . '/assets/' . $destination . '/' . $update_id;
         } else {
-            $target_dir = APPPATH.'public/'.$destination.'/'.$update_id;
+            $target_dir = APPPATH . 'public/' . $destination . '/' . $update_id;
         }
 
         $target_dir = str_replace('\\', '/', $target_dir);
@@ -49,16 +64,23 @@ class Trongate_filezone extends Trongate {
         }
     }
 
-    function _fetch_pictures($update_id, $filezone_settings) {
+    /**
+     * Fetches pictures related to a specific update ID and Filezone settings.
+     *
+     * @param int $update_id The ID of the update.
+     * @param array $filezone_settings Settings related to the Filezone.
+     * @return array Array containing the fetched pictures.
+     */
+    function _fetch_pictures(int $update_id, array $filezone_settings): array {
         $data = [];
         $pictures_directory = $this->_get_pictures_directory($filezone_settings);
 
         if ($filezone_settings['upload_to_module'] == true) {
             $target_module = (isset($filezone_settings['targetModule']) ? $filezone_settings['targetModule'] : segment(1));
-            $module_assets_dir = APPPATH.'modules/'.$target_module.'/assets';
-            $picture_directory_path = $module_assets_dir.'/'.$pictures_directory.'/'.$update_id;
+            $module_assets_dir = APPPATH . 'modules/' . $target_module . '/assets';
+            $picture_directory_path = $module_assets_dir . '/' . $pictures_directory . '/' . $update_id;
         } else {
-            $picture_directory_path = APPPATH.'public/'.$pictures_directory.'/'.$update_id;
+            $picture_directory_path = APPPATH . 'public/' . $pictures_directory . '/' . $update_id;
         }
 
         $picture_directory_path = str_replace('\\', '/', $picture_directory_path);
@@ -70,27 +92,43 @@ class Trongate_filezone extends Trongate {
                     $data[] = $value;
                 }
             }
-
         }
 
         return $data;
     }
 
-    function _get_pictures_directory($filezone_settings) {
+    /**
+     * Retrieves the directory for pictures based on Filezone settings.
+     *
+     * @param array $filezone_settings Settings related to the Filezone.
+     * @return string The directory for pictures.
+     */
+    function _get_pictures_directory(array $filezone_settings): string {
         $target_module = $filezone_settings['targetModule'];
         $directory = $target_module . '_pictures';
         return $directory;
     }
 
-    function _remove_flashdata() {
+    /**
+     * Removes the flash data from the session if it exists.
+     *
+     * @return void
+     */
+    function _remove_flashdata(): void {
         if (isset($_SESSION['flashdata'])) {
             unset($_SESSION['flashdata']);
         }
     }
 
-    function _get_previously_uploaded_files($code) {
+    /**
+     * Retrieves previously uploaded files from the picture gallery.
+     *
+     * @param string $code The code used to identify the resource.
+     * @return array An array containing previously uploaded files.
+     */
+    function _get_previously_uploaded_files(string $code): array {
         $data = [];
-        $pictures_directory = BASE_URL.'module_resources/'.$code.'/picture_gallery';
+        $pictures_directory = BASE_URL . 'module_resources/' . $code . '/picture_gallery';
         $picture_directory_path = str_replace(BASE_URL, './', $pictures_directory);
 
         if (is_dir($picture_directory_path)) {
@@ -104,13 +142,24 @@ class Trongate_filezone extends Trongate {
         return $data;
     }
 
-    function _make_sure_got_dir($target_dir) {
+    /**
+     * Makes sure that a directory exists and creates it if it doesn't.
+     *
+     * @param string $target_dir The target directory path.
+     * @return void
+     */
+    function _make_sure_got_dir(string $target_dir): void {
         if (!file_exists($target_dir)) {
             mkdir($target_dir, 0777, true);
         }
     }
 
-    function uploader() {
+    /**
+     * Handles file uploading process and displays the uploader view.
+     *
+     * @return void
+     */
+    function uploader(): void {
         $this->module('trongate_security');
         $data['token'] = $this->trongate_security->_make_sure_allowed();
         $target_module = segment(3);
@@ -128,12 +177,12 @@ class Trongate_filezone extends Trongate {
 
         if ($settings['upload_to_module'] == true) {
             $target_module = (isset($settings['targetModule']) ? $settings['targetModule'] : segment(1));
-            $picture_directory_path = APPPATH.'modules/'.$target_module.'/assets/'.$destination.'/'.$update_id;
+            $picture_directory_path = APPPATH . 'modules/' . $target_module . '/assets/' . $destination . '/' . $update_id;
             $dir = str_replace('\\', '/', $picture_directory_path);
-            $module_assets_dir = BASE_URL.$target_module.MODULE_ASSETS_TRIGGER;
-            $target_dir = $module_assets_dir.'/'.$destination.'/'.$update_id;
+            $module_assets_dir = BASE_URL . $target_module . MODULE_ASSETS_TRIGGER;
+            $target_dir = $module_assets_dir . '/' . $destination . '/' . $update_id;
         } else {
-            $dir = $destination.'/'.$update_id;
+            $dir = $destination . '/' . $update_id;
             $target_dir = $dir;
         }
 
@@ -154,9 +203,9 @@ class Trongate_filezone extends Trongate {
             }
         }
 
-        $additional_includes_top[] = BASE_URL.'trongate_filezone_module/css/trongate-filezone.css';
+        $additional_includes_top[] = BASE_URL . 'trongate_filezone_module/css/trongate-filezone.css';
         $data['additional_includes_top'] = $additional_includes_top;
-        $additional_includes_btm[] = BASE_URL.'trongate_filezone_module/js/trongate-filezone.js';
+        $additional_includes_btm[] = BASE_URL . 'trongate_filezone_module/js/trongate-filezone.js';
         $data['additional_includes_btm'] = $additional_includes_btm;
         $data['target_module'] = $settings['targetModule'];
         $target_module_desc = str_replace("_", " ", $data['target_module']);
@@ -164,30 +213,39 @@ class Trongate_filezone extends Trongate {
         $data['previous_url'] = BASE_URL . $target_module . '/show/' . $update_id;
         $data['update_id'] = $update_id;
         $data['headline'] = 'Upload Pictures';
-        $data['upload_url'] = BASE_URL.'trongate_filezone/upload/'.$target_module.'/'.$update_id;
-        $data['delete_url'] = BASE_URL.'trongate_filezone/ditch';
+        $data['upload_url'] = BASE_URL . 'trongate_filezone/upload/' . $target_module . '/' . $update_id;
+        $data['delete_url'] = BASE_URL . 'trongate_filezone/ditch';
         $data['previously_uploaded_files'] = $previously_uploaded_files;
         $data['view_file'] = 'uploader';
         $this->template('admin', $data);
     }
 
-    function _get_overlay_id($filename) {
+    /**
+     * Retrieves the overlay ID that corresponds with the provided filename.
+     *
+     * @param string $filename The input filename.
+     * @return string The extracted overlay ID.
+     */
+    function _get_overlay_id(string $filename): string {
         $bits = explode('.', $filename);
-        $last_bit = $bits[count($bits)-1];
-        $ditch = '.'.$last_bit;
-        $replace = '-'.$last_bit;
+        $last_bit = $bits[count($bits) - 1];
+        $ditch = '.' . $last_bit;
+        $replace = '-' . $last_bit;
         $overlay_id = str_replace($ditch, $replace, $filename);
         return $overlay_id;
     }
 
-    function alt() {
-        $data['view_file'] = 'alt';
-        $this->template('public_default', $data);
-    }
-
-    function _get_str_chuck($str, $target_length, $from_start=null) {
+    /**
+     * Retrieves a specified portion of a string.
+     *
+     * @param string $str The input string.
+     * @param int $target_length The length of the desired string portion.
+     * @param bool|null $from_start Determines if the portion is retrieved from the start or the end of the string.
+     * @return string The extracted string portion.
+     */
+    function _get_str_chuck(string $str, int $target_length, ?bool $from_start = null): string {
         $strlen = strlen($str);
-        $start_pos = $strlen-$target_length;
+        $start_pos = $strlen - $target_length;
 
         if (isset($from_start)) {
             $start_pos = 0;
@@ -197,7 +255,13 @@ class Trongate_filezone extends Trongate {
         return $str_chunk;
     }
 
-    function ditch() {
+    /**
+     * Handles the deletion of a specific image file based on the posted data.
+     * Authorizes the API request, retrieves the necessary data, and removes the designated image file.
+     *
+     * @return void
+     */
+    function ditch(): void {
         api_auth();
         $post = file_get_contents('php://input');
         $posted_data = json_decode($post, true);
@@ -211,31 +275,36 @@ class Trongate_filezone extends Trongate {
         $destination = $settings['destination'];
 
         $bits = explode('-', $element_id);
-        $last_bit = '-'.$bits[count($bits)-1];
+        $last_bit = '-' . $bits[count($bits) - 1];
         $last_bit_len = strlen($last_bit);
         $target_len = strlen($element_id) - $last_bit_len;
         $first_chunk = $this->_get_str_chuck($element_id, $target_len, true);
         $correct_last_bit = str_replace('-', '.', $last_bit);
-        $target_image_name = $first_chunk.$correct_last_bit;
+        $target_image_name = $first_chunk . $correct_last_bit;
 
-        if ($settings['upload_to_module'] == true) { 
-            $target_dir = APPPATH.'modules/'.$target_module.'/assets/'.$destination.'/'.$update_id.'/';
+        if ($settings['upload_to_module'] == true) {
+            $target_dir = APPPATH . 'modules/' . $target_module . '/assets/' . $destination . '/' . $update_id . '/';
             $target_dir = str_replace('\\', '/', $target_dir);
         } else {
-            $target_dir = $destination.'/'.$update_id.'/';
+            $target_dir = $destination . '/' . $update_id . '/';
         }
 
-        $target_file = $target_dir.$target_image_name;
+        $target_file = $target_dir . $target_image_name;
 
         if (file_exists($target_file)) {
             unlink($target_file);
             http_response_code(200);
-            echo $element_id;            
+            echo $element_id;
         }
-
     }
 
-    function upload() {
+    /**
+     * Handles the upload functionality including picture removal.
+     * This authorizes the API request then manages either picture deletion or uploading based on the request type.
+     *
+     * @return void
+     */
+    function upload(): void {
         api_auth();
 
         $request_type = $_SERVER['REQUEST_METHOD'];
@@ -247,10 +316,17 @@ class Trongate_filezone extends Trongate {
         } else {
             $this->_do_upload($update_id, $target_module);
         }
-
     }
 
-    function _remove_picture($target_module, $update_id) {
+    /**
+     * Removes a picture based on the provided target module and update ID.
+     * Handles the deletion of the specified picture path.
+     *
+     * @param string $target_module The target module for the picture.
+     * @param int $update_id The ID related to the update of the picture.
+     * @return void
+     */
+    function _remove_picture(string $target_module, int $update_id): void {
         $post = file_get_contents('php://input');
         $decoded = json_decode($post, true);
         $picture_path = file_get_contents("php://input");
@@ -261,12 +337,12 @@ class Trongate_filezone extends Trongate {
 
         if ($filezone_settings['upload_to_module'] == true) {
             $target_module = (isset($filezone_settings['targetModule']) ? $filezone_settings['targetModule'] : segment(1));
-            $ditch = $target_module.MODULE_ASSETS_TRIGGER.'/';
+            $ditch = $target_module . MODULE_ASSETS_TRIGGER . '/';
             $replace = '';
             $picture_path = str_replace($ditch, $replace, $picture_path);
-            $picture_path = APPPATH.'modules/'.$target_module.'/assets/'.$picture_path;
+            $picture_path = APPPATH . 'modules/' . $target_module . '/assets/' . $picture_path;
         } else {
-            $picture_path = APPPATH.'public/'.$picture_path;
+            $picture_path = APPPATH . 'public/' . $picture_path;
         }
 
         $picture_path = str_replace('\\', '/', $picture_path);
@@ -276,13 +352,20 @@ class Trongate_filezone extends Trongate {
             unlink($picture_path);
             $this->_fetch();
         } else {
-            echo 'file does not exist at '.$picture_path; die();
+            echo 'file does not exist at ' . $picture_path;
+            die();
             http_response_code(422);
             echo $picture_path;
         }
     }
 
-    function _fetch() {
+    /**
+     * Fetches pictures based on the provided update ID and Filezone settings.
+     * Outputs the fetched pictures as a JSON response.
+     *
+     * @return void
+     */
+    function _fetch(): void {
         $target_module = segment(3);
         $update_id = segment(4);
 
@@ -300,9 +383,15 @@ class Trongate_filezone extends Trongate {
         echo json_encode($pictures);
     }
 
-    function _prep_file_name($file_name) {
+    /**
+     * Prepares a safe file name by altering the provided file name.
+     *
+     * @param string $file_name The original file name to be processed.
+     * @return string The safe file name after alterations.
+     */
+    function _prep_file_name(string $file_name): string {
         $bits = explode('.', $file_name);
-        $last_bit = '.'.$bits[count($bits)-1];
+        $last_bit = '.' . $bits[count($bits) - 1];
 
         //remove last_bit from the file_name
         $file_name = str_replace($last_bit, '', $file_name);
@@ -311,12 +400,18 @@ class Trongate_filezone extends Trongate {
 
         //get the first 8 chars
         $safe_file_name = substr($safe_file_name, 0, 8);
-        $safe_file_name.= make_rand_str(4);
-        $safe_file_name.= $last_bit;
+        $safe_file_name .= make_rand_str(4);
+        $safe_file_name .= $last_bit;
         return $safe_file_name;
     }
 
-    function _make_sure_image($value) {
+    /**
+     * Ensures that the provided argument is an image.
+     *
+     * @param array $value The value to be checked if it represents an image.
+     * @return void
+     */
+    function _make_sure_image(array $value): void {
         $target_str = 'image/';
         $first_six = substr($value['type'], 0, 6);
 
@@ -325,10 +420,16 @@ class Trongate_filezone extends Trongate {
             echo 'Not an image!';
             die();
         }
-
     }
 
-    function _do_upload($update_id, $target_module) {
+    /**
+     * Handles the file upload process and sets configurations.
+     *
+     * @param int    $update_id      The ID used to identify the update.
+     * @param string $target_module  The module to target for file upload.
+     * @return void
+     */
+    function _do_upload(int $update_id, string $target_module): void {
 
         foreach ($_FILES as $key => $value) {
             $this->_make_sure_image($value);
@@ -360,7 +461,5 @@ class Trongate_filezone extends Trongate {
         }
 
         http_response_code(200);
-
     }
-
 }

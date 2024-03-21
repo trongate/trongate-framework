@@ -7,9 +7,12 @@
    GitHub stars are the metric by which the success of frameworks gets measured. We need 1,200 GitHub stars to make Trongate a top ten PHP framework. If Trongate becomes a top ten PHP framework it will be one of the most electrifying events in the history of PHP! 
   </h3>
 
-  
 <!-- Badges -->
 <p>
+  <a href="https://www.php.net/">
+    <img src="https://img.shields.io/badge/PHP-8%2B-777BB4"
+    alt="PHP8+ required" />
+  </a>
   <a href="https://github.com/trongate/trongate-framework/graphs/contributors">
     <img src="https://img.shields.io/github/contributors/trongate/trongate-framework" alt="contributors" />
   </a>
@@ -32,29 +35,32 @@
   <span> · </span>
     <a href="https://trongate.io/docs_m/contents">Documentation</a>
   <span> · </span>
-    <a href="https://github.com/trongate/trongate-framework/issues/">Report Bug</a>
+    <a href="https://trongate.io/learning-zone">Learning Zone</a>
   <span> · </span>
-    <a href="https://github.com/trongate/trongate-framework/issues/">Request Feature</a>
+    <a href="https://trongate.io/help_bar">Need some help</a>
+  <span> · </span>
+    <a href="https://trongate.io/your_messages/compose">Request a Feature</a>
   </h4>
 </div>
 
 <br />
 
 <!-- Table of Contents -->
+
 # :notebook_with_decorative_cover: Table of Contents
 
 - [About the Project](#star2-about-the-project)
-  * [Features](#dart-features)
+  - [Features](#dart-features)
 - [Getting Started](#toolbox-getting-started)
-  * [Prerequisites](#bangbang-prerequisites)
-  * [Installation](#gear-installation)
+  - [Prerequisites](#bangbang-prerequisites)
+  - [Installation](#gear-installation)
 - [Usage](#eyes-usage)
 - [Contributing](#wave-contributing)
 - [License](#warning-license)
 - [Contact](#handshake-contact)
-  
 
 <!-- About the Project -->
+
 ## :star2: About the Project
 
 <div align="left"> 
@@ -71,6 +77,7 @@ Trongate is also the first PHP framework that has been built with a determinatio
 </div>
 
 <!-- Features -->
+
 ### :dart: Features
 
 <details>
@@ -147,27 +154,32 @@ Trongate is also the first PHP framework that has been built with a determinatio
 </details>
 
 <!-- Getting Started -->
-## 	:toolbox: Getting Started
+
+## :toolbox: Getting Started
 
 <!-- Prerequisites -->
+
 ### :bangbang: Prerequisites
-<ul>
-  <li>PHP</li>
-  <li>MariaDB or MySQL</li>
- </ul>
+
+- PHP 8+
+  - gd module loaded in php.ini (for image uploader)
+  - intl module loaded in php.ini (for url_title() method)
+- MariaDB or MySQL
 
 <!-- Installation -->
+
 ### :gear: Installation
 
 The Trongate PHP framework is available from GitHub at the following URL:
 
-https://github.com/trongate/trongate-framework.  
+https://github.com/trongate/trongate-framework.
 
-However, the fastest and easiest way to get the Trongate PHP framework is by using the Trongate Desktop App.  The Trongate Desktop App is 100% free of charge (it always will be!) and is available for Mac, Windows and Linux. The Trongate Desktop App can be downloaded from: 
+However, the fastest and easiest way to get the Trongate PHP framework is by using the Trongate Desktop App. The Trongate Desktop App is 100% free of charge (it always will be!) and is available for Mac, Windows and Linux. The Trongate Desktop App can be downloaded from:
 
 https://trongate.io/download
 
-There are a wide variety of benefits from using the Trongate Desktop App.  These include:
+There are a wide variety of benefits from using the Trongate Desktop App. These include:
+
 <ul>
   <li>Automatic framework downloads and setups</li>
   <li>Automatic updates whenever new features are added to Trongate</li>
@@ -178,10 +190,8 @@ There are a wide variety of benefits from using the Trongate Desktop App.  These
 
 <p>and much more... !</p>
 
-
-
-
 <!-- Usage -->
+
 ## :eyes: Usage
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=2sAtjYcAD-4" target="_blank">
@@ -189,22 +199,23 @@ There are a wide variety of benefits from using the Trongate Desktop App.  These
 </a>
 
 <!-- Contributing -->
+
 ## :wave: Contributing
 
 <a href="https://github.com/trongate/trongate-framework/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=trongate/trongate-framework" />
 </a>
 
-
 Contributions are always welcome!
 
 <!-- License -->
+
 ## :warning: License
 
 See LICENSE.txt for more information.
 
-
 <!-- Contact -->
+
 ## :handshake: Contact
 
 David Connelly - [@davidjconnelly](https://twitter.com/davidjconnelly) - [Get In Touch](https://trongate.io/your_messages/compose)

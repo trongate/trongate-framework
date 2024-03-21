@@ -4,10 +4,8 @@
     "request_type": "GET",
     "description": "Fetch rows from table",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Search": {
@@ -15,10 +13,8 @@
     "request_type": "POST",
     "description": "Fetch rows from table using POST request.",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Find One": {
@@ -54,10 +50,8 @@
     "request_type": "POST",
     "description": "Count number of records using POST request",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     }
   },
   "Create": {
@@ -65,10 +59,8 @@
     "request_type": "POST",
     "description": "Insert database record",
     "enableParams": true,
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     },
     "beforeHook": "_pre_insert_actions"
   },
@@ -89,10 +81,8 @@
         "label": "ID"
       }
     ],
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     },
     "beforeHook": "_prep_password"
   },
@@ -112,10 +102,8 @@
         "label": "ID"
       }
     ],
-    "authorization":{  
-        "roles": [
-            "admin"
-        ]
+    "authorization": {
+      "roles": ["admin"]
     },
     "beforeHook": "_delete_trongate_user"
   }
