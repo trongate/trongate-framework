@@ -85,16 +85,6 @@ function closeModal() {
   }
 }
 
-function attemptEscCloseModal() {
-  document.onkeydown = function (e) {
-    var modalContainer = _("modal-container");
-
-    if (e.key == "Escape" && !modalContainer) {
-      closeModal();
-    }
-  };
-}
-
 var slideNavLinks = document.querySelector("#slide-nav ul");
 
 if (slideNavLinks !== null) {
@@ -117,4 +107,8 @@ if (slideNavLinks !== null) {
   });
 }
 
-attemptEscCloseModal();
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeModal();
+    }
+});
