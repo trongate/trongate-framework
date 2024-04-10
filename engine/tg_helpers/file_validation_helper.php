@@ -1,107 +1,45 @@
 <?php
-$file_validation_rules = explode('|', $rules);
+// Get file validation rules
+$fileValidationRules = explode('|', $rules);
 
-//figure out which validation tests need to be carried out
-foreach ($file_validation_rules as $file_validation_rule) {
-    $rule_content = $this->_extract_content($file_validation_rule, '[', ']');
-    $file_validation_test = str_replace('[' . $rule_content . ']', '', $file_validation_rule);
-    $file_checks_to_run[$file_validation_test] = $rule_content;
+// Extract rule content and determine which validation tests need to be carried out
+$fileChecksToRun = [];
+foreach ($fileValidationRules as $fileValidationRule) {
+    $ruleContent = _extract_content($fileValidationRule, '[', ']');
+    $fileValidationTest = str_replace('[' . $ruleContent . ']', '', $fileValidationRule);
+    $fileChecksToRun[$fileValidationTest] = $ruleContent;
 }
 
-$target_file = get_target_file();
-$target_file = $_FILES[$target_file];
-$temp_file_name = $target_file['tmp_name'];
-$file_size = $target_file['size'] / 1000; //kilobytes)
+// Get target file and its information
+$targetFileKey = get_target_file();
+$targetFile = $_FILES[$targetFileKey];
+$tempFileName = $targetFile['tmp_name'];
+$fileSize = $targetFile['size'] / 1000; // Convert size to kilobytes
+$fileType = filetype($tempFileName);
 
-$filetype = filetype($temp_file_name);
-
-foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
-    switch ($file_check_key) {
-        case 'allowed_types': //make sure the file is one of the allowed types
-            $result = check_is_allowed_type($target_file['name'], $file_check_value);
-
-            if ($result != '') {
-                $this->form_submission_errors[$key][] = $result;
-            }
-
+// Perform file validation checks
+foreach ($fileChecksToRun as $fileCheckKey => $fileCheckValue) {
+    switch ($fileCheckKey) {
+        case 'allowed_types':
+            validate_allowed_types($targetFile['name'], $fileCheckValue);
             break;
-        case 'max_size': //make sure the file is no greater than this file size 
-            $result = check_file_size($file_size, $file_check_value);
-
-            if ($result != '') {
-                $this->form_submission_errors[$key][] = $result;
-            }
+        case 'max_size':
+            validate_max_size($fileSize, $fileCheckValue);
             break;
         case 'max_height':
-
-            if (!isset($dimension_data)) {
-                $dimension_data = getimagesize($temp_file_name);
-            }
-
-            $image_height = $dimension_data[1];
-
-            if ((!is_numeric($image_height)) || ($image_height > $file_check_value)) {
-                $result = 'The file exceeds the maximum allowed height (' . $file_check_value . ' pixels).';
-                $this->form_submission_errors[$key][] = $result;
-            }
-
+            validate_dimension('height', $tempFileName, $fileCheckValue);
             break;
         case 'max_width':
-
-            if (!isset($dimension_data)) {
-                $dimension_data = getimagesize($temp_file_name);
-            }
-
-            $image_width = $dimension_data[0];
-
-            if ((!is_numeric($image_width)) || ($image_width > $file_check_value)) {
-                $result = 'The file exceeds the maximum allowed width (' . $file_check_value . ' pixels).';
-                $this->form_submission_errors[$key][] = $result;
-            }
-
+            validate_dimension('width', $tempFileName, $fileCheckValue);
             break;
         case 'min_height':
-
-            if (!isset($dimension_data)) {
-                $dimension_data = getimagesize($temp_file_name);
-            }
-
-            $image_height = $dimension_data[1];
-
-            if ((!is_numeric($image_height)) || ($image_height < $file_check_value)) {
-                $result = 'The image height falls below the minimum allowed height (' . $file_check_value . ' pixels).';
-                $this->form_submission_errors[$key][] = $result;
-            }
-
+            validate_dimension('min_height', $tempFileName, $fileCheckValue);
             break;
         case 'min_width':
-
-            if (!isset($dimension_data)) {
-                $dimension_data = getimagesize($temp_file_name);
-            }
-
-            $image_width = $dimension_data[0];
-
-            if ((!is_numeric($image_width)) || ($image_width < $file_check_value)) {
-                $result = 'The image width falls below the minimum allowed width (' . $file_check_value . ' pixels).';
-                $this->form_submission_errors[$key][] = $result;
-            }
-
+            validate_dimension('min_width', $tempFileName, $fileCheckValue);
             break;
         case 'square':
-
-            if (!isset($dimension_data)) {
-                $dimension_data = getimagesize($temp_file_name);
-            }
-
-            $image_width = $dimension_data[0];
-            $image_height = $dimension_data[1];
-
-            if ($image_width !== $image_height) {
-                $result = 'The image width does not match the image height.';
-                $this->form_submission_errors[$key][] = $result;
-            }
-
+            validate_square($tempFileName);
             break;
         default:
             die('ERROR: Invalid validation rule.');
@@ -109,6 +47,53 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
     }
 }
 
+// Function to validate allowed file types
+function validate_allowed_types($fileName, $allowedTypes) {
+    $allowedTypesArr = explode(',', $allowedTypes);
+    $fileExtension = pathinfo($fileName, PATHINFO_EXTENSION);
+    if (!in_array($fileExtension, $allowedTypesArr)) {
+        $result = 'The file type that you submitted is not allowed.';
+        $this->form_submission_errors[$key][] = $result;
+    }
+}
+
+// Function to validate maximum file size
+function validate_max_size($fileSize, $maxSize) {
+    if ($fileSize > $maxSize) {
+        $result = 'The file that you attempted to upload exceeds the maximum allowed file size (' . $maxSize . ' kilobytes).';
+        $this->form_submission_errors[$key][] = $result;
+    }
+}
+
+// Function to validate image dimensions (height or width)
+function validate_dimension($dimensionType, $tempFileName, $limitValue) {
+    $dimensionData = getimagesize($tempFileName);
+    $dimension = ($dimensionType === 'height') ? $dimensionData[1] : $dimensionData[0];
+    $comparison = ($dimensionType === 'min_height' || $dimensionType === 'min_width') ? '<' : '>';
+    if (!is_numeric($dimension) || ($dimension $comparison $limitValue)) {
+        $result = 'The ' . $dimensionType . ' falls ' . (($comparison === '<') ? 'below' : 'exceeds') . ' the allowed limit (' . $limitValue . ' pixels).';
+        $this->form_submission_errors[$key][] = $result;
+    }
+}
+
+// Function to validate square image
+function validate_square($tempFileName) {
+    $dimensionData = getimagesize($tempFileName);
+    $imageWidth = $dimensionData[0];
+    $imageHeight = $dimensionData[1];
+    if ($imageWidth !== $imageHeight) {
+        $result = 'The image width does not match the image height.';
+        $this->form_submission_errors[$key][] = $result;
+    }
+}
+
+/**
+ * Check if the file type is allowed based on the given allowed types.
+ *
+ * @param string $target_file_name The name of the target file.
+ * @param string $file_check_value A comma-separated list of allowed file types.
+ * @return string Returns an error message if the file type is not allowed; otherwise, returns an empty string.
+ */
 function check_is_allowed_type($target_file_name, $file_check_value) {
 
     $allowed_types = explode(',', $file_check_value);
@@ -124,6 +109,13 @@ function check_is_allowed_type($target_file_name, $file_check_value) {
     return $result;
 }
 
+/**
+ * Check if the file size is within the allowed limit.
+ *
+ * @param float $file_size The size of the file in kilobytes.
+ * @param float $file_check_value The maximum allowed file size in kilobytes.
+ * @return string Returns an error message if the file size exceeds the limit; otherwise, returns an empty string.
+ */
 function check_file_size($file_size, $file_check_value) {
 
     if ((!is_numeric($file_check_value)) || ($file_size > $file_check_value)) {
@@ -135,6 +127,11 @@ function check_file_size($file_size, $file_check_value) {
     return $result;
 }
 
+/**
+ * Get the name of the target file from the $_FILES array.
+ *
+ * @return string The name of the target file.
+ */
 function get_target_file() {
     $userfile = array_keys($_FILES)[0];
     return $userfile;
