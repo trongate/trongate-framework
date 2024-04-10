@@ -1,11 +1,27 @@
 <?php
+
+/**
+ * Helper class for file-related operations.
+ */
 class File_helper {
 
-    public function upload($config) {
+    /**
+     * Uploads a file based on the provided configuration.
+     *
+     * This method expects an associative array containing configuration options for the upload process.
+     * The $config array should include the following properties:
+     * - 'destination' (string): The directory where the file will be uploaded.
+     * - 'target_module' (string, optional): The module to which the file will be uploaded. Defaults to the value of segment(1).
+     * - 'upload_to_module' (bool, optional): Indicates whether the file should be uploaded to a module directory. Defaults to false.
+     * - 'make_rand_name' (bool, optional): Indicates whether to generate a random name for the uploaded file. Defaults to false.
+     *
+     * @param array $config An associative array containing configuration options for the upload process.
+     * @return array An array containing information about the uploaded file (file_name, file_path, file_type, file_size).
+     */
+    public function upload(array $config): array {
 
-        //declare all inbound variables
         $destination = $config['destination'] ?? null;
-        $target_module = $config['target_module'] ?? segment(1);
+        $target_module = $config['target_module'] ?? segment(1); // Assuming segment() returns a string
         $upload_to_module = $config['upload_to_module'] ?? false;
         $make_rand_name = $config['make_rand_name'] ?? false;
 
@@ -22,20 +38,20 @@ class File_helper {
 
         //init $new_file_name variable (the name of the uploaded file)
         if ($make_rand_name == true) {
-            $file_name_without_extension = strtolower(make_rand_str(10));
+            $file_name_without_extension = strtolower(make_rand_str(10)); // Assuming make_rand_str() returns a string
 
             //add file extension onto rand file name
-            $file_info = return_file_info($target_file['name']);
+            $file_info = return_file_info($target_file['name']); // Assuming return_file_info() returns an array
             $file_extension = $file_info['file_extension'];
             $new_file_name = $file_name_without_extension . $file_extension;
         } else {
             //get the file name and extension
-            $file_info = return_file_info($target_file['name']);
+            $file_info = return_file_info($target_file['name']); // Assuming return_file_info() returns an array
             $file_name = $file_info['file_name'];
             $file_extension = $file_info['file_extension'];
 
             //remove dangerous characters from the file name
-            $file_name = url_title($file_name);
+            $file_name = url_title($file_name); // Assuming url_title() returns a string
             $file_name_without_extension = str_replace('-', '_', $file_name);
             $new_file_name = $file_name_without_extension . $file_extension;
         }
