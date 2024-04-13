@@ -674,6 +674,8 @@ class Model {
 
             return $query;
         }
+
+        return null;
     }
 
     /**
