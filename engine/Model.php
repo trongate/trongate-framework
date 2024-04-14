@@ -23,9 +23,9 @@ class Model {
      * Constructor for the Model class.
      * 
      * @param string|null $current_module The current module. Default is null.
-     * @return void
+     * @return void (implicit).
      */
-    public function __construct(?string $current_module = null): void {
+    public function __construct(?string $current_module = null) {
 
         if (DATABASE == '') {
             return;
@@ -267,9 +267,9 @@ class Model {
      * @param string $column The column to filter by.
      * @param mixed $value The value to filter.
      * @param string|null $target_tbl The target table name. Default is null.
-     * @return object|null The fetched record as an object, or null if the query fails.
+     * @return object|bool The fetched record as an object, or false if the query fails.
      */
-    public function get_one_where(string $column, $value, ?string $target_tbl = null): ?object {
+    public function get_one_where(string $column, $value, ?string $target_tbl = null): object|bool {
 
         $data[$column] = $value;
 
@@ -626,7 +626,7 @@ class Model {
      * @param string|bool $return_type (Optional) The return type. Can be 'object', 'array', or false (default).
      * @return array|object|null Returns the query result if a return type is specified, null otherwise.
      */
-    public function query(string $sql, $return_type = false): ?array|object {
+    public function query(string $sql, $return_type = false): array|object|null {
 
         $data = [];
 
@@ -656,7 +656,7 @@ class Model {
      * @param string|bool $return_type (Optional) The return type. Can be 'object', 'array', or false (default).
      * @return array|object|null Returns the query result if a return type is specified, null otherwise.
      */
-    public function query_bind(string $sql, array $data, $return_type = false): ?array|object {
+    public function query_bind(string $sql, array $data, $return_type = false): array|object|null {
 
         if ($this->debug == true) {
             $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
@@ -674,6 +674,8 @@ class Model {
 
             return $query;
         }
+
+        return null;
     }
 
     /**
