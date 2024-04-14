@@ -1,9 +1,4 @@
 <?php
-
-/**
- * Class Model
- * Handles database interactions through PDO, providing a structured approach for querying and managing database data.
- */
 class Model {
 
     private $host = HOST;
@@ -19,13 +14,7 @@ class Model {
     private $query_caveat = 'The query shown above is how the query would look <i>before</i> binding.';
     private $current_module;
 
-    /**
-     * Constructor for the Model class.
-     * 
-     * @param string|null $current_module The current module. Default is null.
-     * @return void (implicit).
-     */
-    public function __construct(?string $current_module = null) {
+    public function __construct($current_module = null) {
 
         if (DATABASE == '') {
             return;
@@ -49,13 +38,7 @@ class Model {
         }
     }
 
-    /**
-     * Determines the PDO parameter type for a given value.
-     * 
-     * @param mixed $value The value to determine the parameter type for.
-     * @return int The PDO parameter type.
-     */
-    private function get_param_type($value): int {
+    private function get_param_type($value) {
 
         switch (true) {
             case is_int($value):
@@ -74,14 +57,7 @@ class Model {
         return $type;
     }
 
-    /**
-     * Prepares and executes a SQL statement with data binding.
-     * 
-     * @param string $sql The SQL statement to execute.
-     * @param array $data The data to bind to the SQL statement.
-     * @return bool Returns true on success or false on failure.
-     */
-    function prepare_and_execute(string $sql, array $data): bool {
+    function prepare_and_execute($sql, $data) {
 
         $this->stmt = $this->dbh->prepare($sql);
 
@@ -98,28 +74,22 @@ class Model {
         }
     }
 
-    /**
-     * Retrieves the table name from the URL or uses the current module.
-     * 
-     * This method first checks if the current module is set. If it is, it returns the module name
-     * as the table name. Otherwise, it extracts the table name from the first segment of the URL.
-     * 
-     * @return string The table name.
-     */
-    private function get_table_from_url(): string {
+    private function get_table_from_url() {
         // Use $this->current_module if set, otherwise, use the first URL segment
         return isset($this->current_module) ? $this->current_module : segment(1);
     }
 
-    /**
-     * Adds limit and offset to the SQL query if both are numeric.
-     * 
-     * @param string $sql The SQL query.
-     * @param int|null $limit The limit value.
-     * @param int|null $offset The offset value.
-     * @return string The modified SQL query.
-     */
-    private function add_limit_offset(string $sql, ?int $limit, ?int $offset): string {
+    private function correct_tablename($target_tbl) {
+        $bits = explode('-', $target_tbl);
+        $num_bits = count($bits);
+        if ($num_bits > 1) {
+            $target_tbl = $bits[$num_bits - 1];
+        }
+
+        return $target_tbl;
+    }
+
+    private function add_limit_offset($sql, $limit, $offset) {
 
         if ((is_numeric($limit)) && (is_numeric($offset))) {
             $limit_results = true;
@@ -129,13 +99,7 @@ class Model {
         return $sql;
     }
 
-    /**
-     * Retrieves all tables in the database.
-     * 
-     * @return array The array of table names.
-     */
-    public function get_all_tables(): array {
-        
+    protected function _get_all_tables() {
         $tables = [];
         $sql = 'show tables';
         $column_name = 'Tables_in_' . DATABASE;
@@ -147,16 +111,7 @@ class Model {
         return $tables;
     }
 
-    /**
-     * Retrieves records from a table.
-     * 
-     * @param string|null $order_by The column to order by. Default is null.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @param int|null $limit The limit value. Default is null.
-     * @param int|null $offset The offset value. Default is null.
-     * @return array The array of fetched records.
-     */
-    public function get(?string $order_by = null, ?string $target_tbl = null, ?int $limit = null, ?int $offset = null): array {
+    public function get($order_by = null, $target_tbl = null, $limit = null, $offset = null) {
 
         $order_by = (!isset($order_by)) ? 'id' : $order_by;
 
@@ -183,19 +138,7 @@ class Model {
         return $query;
     }
 
-    /**
-     * Retrieves records from a table based on custom conditions.
-     * 
-     * @param string $column The column to filter by.
-     * @param mixed $value The value to filter.
-     * @param string $operator The comparison operator. Default is '='.
-     * @param string|null $order_by The column to order by. Default is 'id'.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @param int|null $limit The limit value. Default is null.
-     * @param int|null $offset The offset value. Default is null.
-     * @return array|null The array of fetched records, or null if the query fails.
-     */
-    public function get_where_custom(string $column, $value, string $operator = '=', string $order_by = 'id', ?string $target_tbl = null, ?int $limit = null, ?int $offset = null): ?array {
+    public function get_where_custom($column, $value, $operator = '=', $order_by = 'id', $target_tbl = null, $limit = null, $offset = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -232,14 +175,8 @@ class Model {
         }
     }
 
-    /**
-     * Fetches a single record from a table based on the provided ID.
-     * 
-     * @param int $id The ID of the record to fetch.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return object|null The fetched record as an object, or null if the query fails.
-     */
-    public function get_where(int $id, ?string $target_tbl = null): ?object {
+    //fetch a single record
+    public function get_where($id, $target_tbl = null) {
 
         $data['id'] = (int) $id;
 
@@ -261,16 +198,8 @@ class Model {
         }
     }
 
-    /**
-     * Fetches a single record from a table based on the provided column and value.
-     * 
-     * @param string $column The column to filter by.
-     * @param mixed $value The value to filter.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return object|bool The fetched record as an object, or false if the query fails.
-     */
-    public function get_one_where(string $column, $value, ?string $target_tbl = null): object|bool {
-
+    //fetch a single record (alternative version)
+    public function get_one_where($column, $value, $target_tbl = null) {
         $data[$column] = $value;
 
         if (!isset($target_tbl)) {
@@ -291,15 +220,7 @@ class Model {
         }
     }
 
-    /**
-     * Fetches multiple records from a table based on the provided column and value.
-     * 
-     * @param string $column The column to filter by.
-     * @param mixed $value The value to filter.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return array|null The array of fetched records, or null if the query fails.
-     */
-    public function get_many_where(string $column, $value, ?string $target_tbl = null): ?array {
+    public function get_many_where($column, $value, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -313,13 +234,8 @@ class Model {
         return $query;
     }
 
-    /**
-     * Counts the number of rows in a table.
-     * 
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return int|null The number of rows in the table, or null if the query fails.
-     */
-    public function count(?string $target_tbl = null): ?int {
+    public function count($target_tbl = null) {
+        //return number of rows on a table
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -340,34 +256,16 @@ class Model {
         }
     }
 
-    /**
-     * Counts the number of rows in a table based on custom conditions.
-     * 
-     * @param string $column The column to filter by.
-     * @param mixed $value The value to filter.
-     * @param string $operator The comparison operator. Default is '='.
-     * @param string|null $order_by The column to order by. Default is 'id'.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @param int|null $limit The limit value. Default is null.
-     * @param int|null $offset The offset value. Default is null.
-     * @return int The number of rows in the table.
-     */
-    public function count_where(string $column, $value, string $operator = '=', string $order_by = 'id', ?string $target_tbl = null, ?int $limit = null, ?int $offset = null): int {
+    public function count_where($column, $value, $operator = '=', $order_by = 'id', $target_tbl = null, $limit = null, $offset = null) {
+        //return number of rows on table (with query customisation)
 
         $query = $this->get_where_custom($column, $value, $operator, $order_by, $target_tbl, $limit, $offset);
         $num_rows = count($query);
         return $num_rows;
     }
 
-    /**
-     * Counts the number of rows in a table based on a single condition.
-     * 
-     * @param string $column The column to filter by.
-     * @param mixed $value The value to filter.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return int|null The number of rows in the table, or null if the query fails.
-     */
-    public function count_rows(string $column, $value, ?string $target_tbl = null): ?int {
+    public function count_rows($column, $value, $target_tbl = null) {
+        //simplified version of count_where (accepts one condition)
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -388,13 +286,7 @@ class Model {
         }
     }
 
-    /**
-     * Retrieves the maximum value of the 'id' column from a table.
-     * 
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return int|null The maximum value of the 'id' column, or null if the query fails.
-     */
-    public function get_max(?string $target_tbl = null): ?int {
+    public function get_max($target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -416,16 +308,7 @@ class Model {
         }
     }
 
-    /**
-     * Shows the formatted query to be executed.
-     * 
-     * @param string $query The SQL query to be executed.
-     * @param array $data An array containing the query parameters.
-     * @param string|null $caveat Additional information or notes about the query. Default is null.
-     * @return void
-     */
-    public function show_query(string $query, array $data, ?string $caveat = null): void {
-
+    public function show_query($query, $data, $caveat = null) {
         $keys = array();
         $values = $data;
         $named_params = true;
@@ -494,14 +377,7 @@ class Model {
 <?php
     }
 
-    /**
-     * Inserts data into the specified table.
-     * 
-     * @param array $data An associative array containing the data to be inserted.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return int The ID of the newly inserted row.
-     */
-    public function insert(array $data, ?string $target_tbl = null): int {
+    public function insert($data, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -527,15 +403,7 @@ class Model {
         return $id;
     }
 
-    /**
-     * Updates data in the specified table based on the provided ID.
-     * 
-     * @param int $update_id The ID of the row to be updated.
-     * @param array $data An associative array containing the data to be updated.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return void
-     */
-    public function update(int $update_id, array $data, ?string $target_tbl = null): void {
+    public function update($update_id, $data, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -560,16 +428,7 @@ class Model {
         $this->prepare_and_execute($sql, $data);
     }
 
-    /**
-     * Updates data in the specified table based on the provided column and its value.
-     * 
-     * @param string $column The column name to filter the update operation.
-     * @param mixed $column_value The value of the column to filter the update operation.
-     * @param array $data An associative array containing the data to be updated.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return void
-     */
-    public function update_where(string $column, $column_value, array $data, ?string $target_tbl = null): void {
+    public function update_where($column, $column_value, $data, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -594,14 +453,8 @@ class Model {
         $this->prepare_and_execute($sql, $data);
     }
 
-    /**
-     * Deletes a record from the specified table based on the provided ID.
-     * 
-     * @param int $id The ID of the record to be deleted.
-     * @param string|null $target_tbl The target table name. Default is null.
-     * @return void
-     */
-    public function delete(int $id, ?string $target_tbl = null): void {
+
+    public function delete($id, $target_tbl = null) {
 
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
@@ -617,17 +470,9 @@ class Model {
         $this->prepare_and_execute($sql, $data);
     }
 
-    /**
-     * Executes a SQL query with an optional return type.
-     * 
-     * WARNING: Use with caution due to the risk of SQL injection.
-     * 
-     * @param string $sql The SQL query to execute.
-     * @param string|bool $return_type (Optional) The return type. Can be 'object', 'array', or false (default).
-     * @return array|object|null Returns the query result if a return type is specified, null otherwise.
-     */
-    public function query(string $sql, $return_type = false): array|object|null {
+    public function query($sql, $return_type = false) {
 
+        //WARNING: very high risk of SQL injection - use with caution!
         $data = [];
 
         if ($this->debug == true) {
@@ -648,15 +493,7 @@ class Model {
         }
     }
 
-    /**
-     * Executes a prepared SQL query with bound parameters and an optional return type.
-     * 
-     * @param string $sql The SQL query to execute.
-     * @param array $data An associative array of parameter values to bind to the query.
-     * @param string|bool $return_type (Optional) The return type. Can be 'object', 'array', or false (default).
-     * @return array|object|null Returns the query result if a return type is specified, null otherwise.
-     */
-    public function query_bind(string $sql, array $data, $return_type = false): array|object|null {
+    public function query_bind($sql, $data, $return_type = false) {
 
         if ($this->debug == true) {
             $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
@@ -674,18 +511,9 @@ class Model {
 
             return $query;
         }
-
-        return null;
     }
 
-    /**
-     * Attempts to truncate a table if it contains no rows.
-     * 
-     * @param string $tablename The name of the table to truncate.
-     * @return void
-     */
-    public function attempt_truncate(string $tablename): void {
-
+    public function attempt_truncate($tablename) {
         $num_rows = $this->count($tablename);
 
         if ($num_rows == 0) {
@@ -694,16 +522,7 @@ class Model {
         }
     }
 
-    /**
-     * Inserts multiple records into a table in a batch operation.
-     * 
-     * WARNING: Never let your website visitors invoke this method!
-     * 
-     * @param string $table The name of the table to insert records into.
-     * @param array[] $records An array containing the records to be inserted. Each record should be an associative array.
-     * @return int The number of records inserted.
-     */
-    public function insert_batch(string $table, array $records): int {
+    public function insert_batch($table, array $records) {
 
         //WARNING:  Never let your website visitors invoke this method!
         $fields = array_keys($records[0]);
@@ -726,16 +545,7 @@ class Model {
         return $count;
     }
 
-    /**
-     * Executes a SQL statement if the environment is in development mode.
-     * 
-     * If the environment is not in 'dev' mode, a message indicating the feature is disabled is echoed.
-     * 
-     * @param string $sql The SQL statement to execute.
-     * @return void
-     */
-    public function exec(string $sql): void {
-
+    public function exec($sql) {
         if (ENV == 'dev') {
             //this gets used on auto module table setups
             $stmt = $this->dbh->prepare($sql);
