@@ -1,7 +1,7 @@
 <?php
 $routes = [
     'tg-admin' => 'trongate_administrators/login',
-    'trongate-pages' => 'trongate_pages/index',
-    'tg-admin/submit_login' => 'trongate_administrators/submit_login'
+    'tg-admin/submit_login' => 'trongate_administrators/submit_login',
+    'trongate-pages' => 'trongate_pages/index'
 ];
 define('CUSTOM_ROUTES', $routes);
