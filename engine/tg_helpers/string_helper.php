@@ -52,18 +52,16 @@ function nice_price(float $num, ?string $currency_symbol = null): string|float {
 }
 
 /**
- * Accepts a string, converts it to lowercase, replaces all non-alphanumeric characters with a dash,
- * and trims any leading or trailing dashes.
- * 
- * @author Special thanks to framex who posted this fix on the help-bar
- * @see https://trongate.io/help_bar/thread/h7W9QyPcsx69
- * 
- * @param string value The string to be converted.
- * @param bool transliteration If you want to transliterate the string, set this to true.
- * 
- * @return string The slugified version of the string.
+ * Converts a string into a URL-friendly slug format.
+ *
+ * This function will transliterate the string if the 'intl' extension is loaded and transliteration is set to true.
+ * It then converts any non-alphanumeric characters to dashes, trims them from the start and end, and converts everything to lowercase.
+ *
+ * @param string $value The string to be converted into a slug.
+ * @param bool $transliteration Whether to transliterate characters to ASCII.
+ * @return string The slugified version of the input string.
  */
-function url_title($value, $transliteration = true) {
+function url_title(string $value, bool $transliteration = true): string {
     if (extension_loaded('intl') && $transliteration === true) {
         $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII');
         $value = $transliterator->transliterate($value);
