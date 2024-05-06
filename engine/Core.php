@@ -13,7 +13,11 @@ class Core {
 
     /**
      * Constructor for the Core class.
-     * Depending on the URL, serves either vendor assets, controller content, or module assets.
+     *
+     * This constructor checks the requested URL and serves the appropriate asset based on the URL path.
+     * If the URL contains '/vendor/', it serves a vendor asset.
+     * If the URL does not contain the module assets trigger, it serves a controller asset.
+     * Otherwise, it serves a module asset.
      */
     public function __construct() {
         if (strpos(ASSUMED_URL, '/vendor/')) {
@@ -26,7 +30,13 @@ class Core {
     }
 
     /**
-     * Serve vendor assets.
+     * Serves a vendor asset.
+     *
+     * This function serves a vendor asset based on the URL path.
+     * It extracts the vendor file path from the URL and constructs the absolute path to the vendor file.
+     * If the vendor file exists, it determines the content type based on the file extension (CSS or plain text).
+     * It sends the appropriate content type header and echoes the contents of the vendor file.
+     * If the vendor file does not exist, it terminates execution with an error message.
      *
      * @return void
      */
@@ -50,7 +60,14 @@ class Core {
     }
 
     /**
-     * Serve module assets.
+     * Serves a module asset.
+     *
+     * This function serves a module asset based on the URL path.
+     * It parses the URL segments to extract the target module, directory, and file name of the asset.
+     * It constructs the absolute path to the module asset and checks if the asset file exists.
+     * If the asset file exists, it determines the content type based on the file extension and MIME type.
+     * It sends the appropriate content type header and echoes the contents of the asset file.
+     * If the asset file does not exist, it attempts to serve a child module asset or terminates execution.
      *
      * @return void
      */
@@ -112,10 +129,15 @@ class Core {
     }
 
     /**
-     * Serve child module assets.
+     * Serves a child module asset if available.
      *
-     * @param string $asset_path The path to the asset.
-     * @param string $file_name The name of the file.
+     * This function attempts to serve a child module asset when the requested module asset is not found.
+     * It extracts the parent and child module names from the asset path and constructs the path to the child module asset.
+     * If the child module asset exists, it determines the content type based on the file extension and MIME type.
+     * It sends the appropriate content type header and echoes the contents of the child module asset.
+     *
+     * @param string $asset_path The absolute path to the module asset.
+     * @param string $file_name The name of the asset file.
      * @return void
      */
     private function serve_child_module_asset(string $asset_path, string $file_name): void {
@@ -162,9 +184,13 @@ class Core {
     }
 
     /**
-     * Attempt SQL transfer.
+     * Attempts SQL transfer.
      *
-     * @param string $controller_path The path to the controller.
+     * This function attempts to transfer SQL files associated with the current controller.
+     * It extracts the directory path based on the provided controller path and searches for SQL files within that directory.
+     * If SQL files are found, it includes the transferer script to initiate the transfer process.
+     *
+     * @param string $controller_path The path to the current controller file.
      * @return void
      */
     private function attempt_sql_transfer(string $controller_path): void {
@@ -184,7 +210,14 @@ class Core {
     }
 
     /**
-     * Serve controller class.
+     * Serves the controller.
+     *
+     * This function handles the serving of the controller based on the URL segments.
+     * It determines the current module, controller, and method from the URL segments.
+     * If the controller is for the API module, it loads the appropriate API controller.
+     * Otherwise, it checks if the controller file exists and loads it.
+     * If in development mode, it attempts to transfer SQL files associated with the controller.
+     * It then invokes the controller method based on the URL segments.
      *
      * @return void
      */
@@ -255,6 +288,15 @@ class Core {
         }
     }
 
+    /**
+     * Draws the date format preferences.
+     *
+     * This function retrieves the default date format and locale string if not already defined.
+     * It then constructs an array containing the default date format and locale string.
+     * Finally, it outputs the date preferences as JSON and terminates the script.
+     *
+     * @return void
+     */
     private function draw_date_format(): void {
         if (!defined('DEFAULT_DATE_FORMAT')) {
             get_default_date_format();
@@ -274,6 +316,17 @@ class Core {
         die();
     }
 
+    /**
+     * Draws the element adder view.
+     *
+     * This function sets the HTTP response code to 200 (OK) and retrieves the path to the
+     * element adder view file. If the view file exists, its content is read, and any placeholders
+     * are replaced with actual values. Finally, the content of the view file is echoed, and the
+     * script terminates. If the view file is not found, it sets the HTTP response code to 404 (Not Found)
+     * and outputs an error message before terminating the script.
+     *
+     * @return void
+     */
     private function draw_element_adder(): void {
         http_response_code(200);
         $view_file_path = realpath(APPPATH . 'engine/views/element_adder.php');
@@ -291,6 +344,16 @@ class Core {
     }
 
 
+    /**
+     * Invokes the controller method.
+     *
+     * This function checks if the current controller class has the specified method.
+     * If the method exists, it instantiates the controller class and calls the method
+     * with the provided value as an argument. If the method does not exist, it falls back
+     * to handling standard endpoints.
+     *
+     * @return void
+     */
     private function invoke_controller_method(): void {
         if (method_exists($this->current_controller, $this->current_method)) {
             $target_method = $this->current_method;
@@ -301,6 +364,16 @@ class Core {
         }
     }
 
+    /**
+     * Handles standard endpoints.
+     *
+     * This function sets the current controller to 'Standard_endpoints' and includes
+     * the corresponding file. It then attempts to find the index of the endpoint being
+     * accessed. If found, it calls the corresponding method in the Standard_endpoints class
+     * based on the endpoint index. If not found, it draws the error page.
+     *
+     * @return void
+     */
     private function handle_standard_endpoints(): void {
         $this->current_controller = 'Standard_endpoints';
         $controller_path = '../engine/Standard_endpoints.php';
@@ -324,10 +397,18 @@ class Core {
     }
 
     /**
-     * Attempt initialization of child controller.
+     * Attempts to initialize a child controller based on the current controller name.
      *
-     * @param string $controller_path The path to the controller.
-     * @return string The path to the controller after initialization.
+     * This function checks if the current controller name consists of two parts separated by a hyphen.
+     * If it does, it assumes it's a child controller and attempts to find and initialize the corresponding
+     * controller file. If found, it returns the path to the controller file. If not found, it proceeds
+     * to check if a custom 404 intercept is declared. If so, it sets the current module, controller, and
+     * method based on the intercept and attempts to find and initialize the corresponding controller file.
+     * If found, it returns the path to the controller file. If none of the above conditions are met,
+     * it draws the error page.
+     *
+     * @param string $controller_path The path to the controller file to be initialized.
+     * @return string The path to the initialized controller file.
      */
     private function attempt_init_child_controller(string $controller_path): string {
         $bits = explode('-', $this->current_controller);
@@ -362,9 +443,10 @@ class Core {
     }
 
     /**
-     * Draw an error page.
+     * Draws the error page.
      *
-     * @return void
+     * This function loads the 'error_404' view and terminates the script execution, indicating the end
+     * of all possible scenarios being tried.
      */
     private function draw_error_page(): void {
         load('error_404');

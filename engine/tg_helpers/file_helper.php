@@ -1,6 +1,18 @@
 <?php
 class File_helper {
 
+    /**
+     * File Upload Function
+     *
+     * This function handles file uploads based on provided configurations.
+     *
+     * @param array $config An array containing configuration parameters.
+     *                      - 'destination' (string): The destination directory for the uploaded file.
+     *                      - 'target_module' (string, optional): The target module for the upload.
+     *                      - 'upload_to_module' (bool, optional): Flag indicating whether to upload to a module directory.
+     *                      - 'make_rand_name' (bool, optional): Flag indicating whether to generate a random name for the uploaded file.
+     * @return array|void An array containing file information on successful upload or void on failure.
+     */
     public function upload($config) {
 
         //declare all inbound variables

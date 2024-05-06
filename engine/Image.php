@@ -1,4 +1,8 @@
 <?php
+
+/**
+ * Class Image
+ */
 class Image {
     /** @var resource $image */
     private $image;
@@ -34,6 +38,12 @@ class Image {
         }
     }
 
+    /**
+     * Checks if file exists
+     *
+     * @param string $path
+     * @throws NotFoundException
+     */
     private function checkFileExists($path) {
         if (!file_exists($path)) {
             throw new NotFoundException("$path does not exist");
@@ -42,6 +52,8 @@ class Image {
 
 
     /**
+     * Loads image from file
+     *
      * @param string $filename
      * @throws NotFoundException
      */
@@ -63,9 +75,11 @@ class Image {
 
 
     /**
-     *  @param string $filename
-     *  @param int $compression
-     *  @param string $permissions
+     * Saves image to file
+     *
+     * @param string|null $filename
+     * @param int $compression
+     * @param string|null $permissions
      */
     public function save($filename = null, $compression = 100, $permissions = null) {
         $filename = ($filename) ?: $this->fileName;
@@ -93,6 +107,8 @@ class Image {
 
 
     /**
+     * Outputs image content
+     *
      * @param bool $return either output directly
      * @return null|string image contents  (optional)
      */
@@ -124,6 +140,8 @@ class Image {
     }
 
     /**
+     * Gets the width of the image
+     *
      * @return int
      */
     public function getWidth() {
@@ -131,13 +149,18 @@ class Image {
     }
 
     /**
+     * Gets the height of the image
+     *
      * @return int
      */
     public function getHeight() {
         return imagesy($this->image);
     }
 
+
     /**
+     * Resizes image to specified height
+     *
      * @param int $height
      */
     public function resizeToHeight($height) {
@@ -147,6 +170,8 @@ class Image {
     }
 
     /**
+     * Resizes image to specified width
+     *
      * @param int $width
      */
     public function resizeToWidth($width) {
@@ -156,6 +181,8 @@ class Image {
     }
 
     /**
+     * Scales image by a percentage
+     *
      * @param int $scale %
      */
     public function scale($scale) {
@@ -165,6 +192,8 @@ class Image {
     }
 
     /**
+     * Resizes and crops image
+     *
      * @param int $width
      * @param int $height
      */
@@ -188,9 +217,10 @@ class Image {
 
 
     /**
-     *  Now with added Transparency resizing feature
-     *  @param int $width
-     *  @param int $height
+     * Resizes image
+     *
+     * @param int $width
+     * @param int $height
      */
     public function resize($width, $height) {
         $newImage = imagecreatetruecolor((int)$width, (int)$height);
@@ -220,6 +250,8 @@ class Image {
     }
 
     /**
+     * Prepares image with existing transparency index
+     *
      * @param $resource
      * @param $index
      */
@@ -238,6 +270,8 @@ class Image {
     }
 
     /**
+     * Prepares transparent PNG image
+     *
      * @param $resource
      */
     private function prepTransparentPng($resource) {
@@ -256,6 +290,8 @@ class Image {
 
 
     /**
+     * Crops image
+     *
      * @param int $width
      * @param int $height
      * @param string $trim
@@ -283,6 +319,8 @@ class Image {
     }
 
     /**
+     * Gets the image type
+     *
      * @return mixed
      */
     public function getImageType() {
@@ -290,6 +328,8 @@ class Image {
     }
 
     /**
+     * Gets the header of the image
+     *
      * @return mixed
      * @throws NothingLoadedException
      */
@@ -301,7 +341,7 @@ class Image {
     }
 
     /**
-     *  Frees up memory
+     * Destroys the image
      */
     public function destroy() {
         imagedestroy($this->image);

@@ -9,7 +9,12 @@ class Api extends Trongate {
     }
 
     /**
-     * Display the API explorer for development.
+     * Provides an API explorer for the specified table.
+     *
+     * This function checks if the environment is set to 'dev', and if not, returns a forbidden status code.
+     * It then generates a new golden token, fetches the endpoints for the specified table,
+     * retrieves the location of the API settings file, retrieves HTTP status codes,
+     * fetches table columns, and finally includes the API explorer view file for rendering.
      *
      * @return void
      */
@@ -38,9 +43,13 @@ class Api extends Trongate {
     }
 
     /**
-     * Ensure that a table exists.
+     * Ensures that the specified table exists in the database.
      *
-     * @param string $table The name of the table to check.
+     * This function checks if the specified table exists in the database.
+     * If the table does not exist, it returns a 422 Unprocessable Entity status code
+     * and outputs 'invalid table name'.
+     *
+     * @param string $table The name of the table to check for existence.
      * @return void
      */
     private function make_sure_table_exists(string $table): void {
@@ -53,9 +62,12 @@ class Api extends Trongate {
     }
 
     /**
-     * Return an array of all tables in the database.
+     * Retrieves a list of all tables in the database.
      *
-     * @return array
+     * This function executes a SQL query to retrieve a list of all tables in the database.
+     * It then extracts the table names from the query result and returns them as an array.
+     *
+     * @return array An array containing the names of all tables in the database.
      */
     private function get_all_tables(): array {
         $tables = [];
@@ -70,9 +82,15 @@ class Api extends Trongate {
     }
 
     /**
-     * Generate a special token for temporarily bypassing token auth rules.
+     * Generates a new golden token.
      *
-     * @return string
+     * This function generates a new golden token for bypassing authentication rules.
+     * It sets the user_id to 0 and the code to 'aaa', then deletes any existing tokens
+     * with the same user_id and code from the database. After that, it sets the expiry
+     * date of the new token to two hours from the current time and generates the token.
+     * Finally, it returns the generated golden token.
+     *
+     * @return string The generated golden token.
      */
     private function generate_new_golden_token(): string {
         $token_data['user_id'] = 0;
@@ -89,10 +107,15 @@ class Api extends Trongate {
     }
 
     /**
-     * Fetch API endpoints for a specific table.
+     * Fetches API endpoints for the specified table.
      *
-     * @param string $target_table The name of the target table.
-     * @return array
+     * This function retrieves the API endpoints defined in the 'api.json' file
+     * located in the assets directory of the specified table module.
+     * If the target table is empty, it returns a 422 Unprocessable Entity status code
+     * and outputs 'No target table set'.
+     *
+     * @param string $target_table The name of the target table for which endpoints are to be fetched.
+     * @return array An array containing the API endpoints for the specified table.
      */
     private function fetch_endpoints(string $target_table): array {
         if ($target_table === '') {
@@ -108,9 +131,12 @@ class Api extends Trongate {
     }
 
     /**
-     * Get HTTP status codes and their descriptions.
+     * Retrieves HTTP status codes and their corresponding descriptions.
      *
-     * @return array
+     * This function returns an associative array containing HTTP status codes as keys
+     * and their corresponding descriptions as values.
+     *
+     * @return array An associative array containing HTTP status codes and descriptions.
      */
     private function get_status_codes(): array {
         $http_status_codes = array(
@@ -159,11 +185,15 @@ class Api extends Trongate {
     }
 
     /**
-     * Get columns of a table.
+     * Retrieves the columns of a specified database table.
      *
-     * @param string $table The name of the table.
-     * @param bool|null $simplify_output Whether to simplify the output.
-     * @return array|string[]
+     * This function executes a 'DESCRIBE' SQL query to fetch the columns of the specified database table.
+     * If the $simplify_output parameter is set to true, it returns an array containing only the names of the columns.
+     * Otherwise, it returns an array containing the complete rows describing each column.
+     *
+     * @param string $table The name of the database table.
+     * @param bool|null $simplify_output Optional. If set to true, only column names are returned. Default is null.
+     * @return array An array containing either column names or complete column descriptions, depending on the $simplify_output parameter.
      */
     private function get_table_columns(string $table, ?bool $simplify_output = null): array {
         $sql = 'describe ' . $table;
@@ -181,7 +211,13 @@ class Api extends Trongate {
     }
 
     /**
-     * Handle GET requests for API endpoints.
+     * Handles GET requests.
+     *
+     * This function first checks if the request method is 'GET'.
+     * If it's not, it delegates the request to the 'search' method and returns.
+     * Otherwise, it requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * If the fourth segment of the URI is numeric, it calls the 'find_one' method of the 'Standard_endpoints' class.
+     * Otherwise, it calls the 'get' method of the 'Standard_endpoints' class.
      *
      * @return void
      */
@@ -204,7 +240,10 @@ class Api extends Trongate {
     }
 
     /**
-     * Handle search by POST requests for API endpoints.
+     * Handles search requests.
+     *
+     * This function requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * It then calls the 'search' method of the 'Standard_endpoints' class to handle the search request.
      *
      * @return void
      */
@@ -215,7 +254,10 @@ class Api extends Trongate {
     }
 
     /**
-     * Check if an API endpoint exists using a GET request.
+     * Handles requests to check if a resource exists.
+     *
+     * This function requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * It then calls the 'exists' method of the 'Standard_endpoints' class to handle the request to check if a resource exists.
      *
      * @return void
      */
@@ -226,7 +268,11 @@ class Api extends Trongate {
     }
 
     /**
-     * Handle GET requests to count items via an API endpoint.
+     * Handles requests to count resources.
+     *
+     * This function first checks the request method.
+     * It requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * It then calls the 'count' method of the 'Standard_endpoints' class to handle the request to count resources.
      *
      * @return void
      */
@@ -238,7 +284,10 @@ class Api extends Trongate {
     }
 
     /**
-     * Handle POST requests for creating items via an API endpoint.
+     * Handles requests to create a new resource (record).
+     *
+     * This function requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * It then calls the 'create' method of the 'Standard_endpoints' class to handle the request to create a new resource.
      *
      * @return void
      */
@@ -249,7 +298,11 @@ class Api extends Trongate {
     }
 
     /**
-     * Handle POST requests to insert items via an API endpoint.
+     * Handles requests to insert data into the database.
+     *
+     * This function first checks the request method.
+     * If the request method is 'GET', it returns a 400 Bad Request status code and terminates.
+     * Otherwise, it echoes 'API insert batch' and terminates.
      *
      * @return void
      */
@@ -264,7 +317,10 @@ class Api extends Trongate {
     }
 
     /**
-     * Handle POST requests for batch insert via an API endpoint.
+     * Handles batch insert requests.
+     *
+     * This function requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * It then calls the 'insert' method of the 'Standard_endpoints' class to handle the batch insert request.
      *
      * @return void
      */
@@ -275,7 +331,10 @@ class Api extends Trongate {
     }
 
     /**
-     * Handle POST or PUT requests to update items via an API endpoint.
+     * Handles requests to update existing resources.
+     *
+     * This function requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * It then calls the 'update' method of the 'Standard_endpoints' class to handle the request to update existing resources.
      *
      * @return void
      */
@@ -286,7 +345,10 @@ class Api extends Trongate {
     }
 
     /**
-     * Handle POST or DELETE requests to delete items via an API endpoint.
+     * Handles requests to delete existing resources.
+     *
+     * This function requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * It then calls the 'destroy' method of the 'Standard_endpoints' class to handle the request to delete existing resources.
      *
      * @return void
      */
@@ -297,7 +359,10 @@ class Api extends Trongate {
     }
 
     /**
-     * Handle POST or DELETE requests for deleting one record via an API endpoint.
+     * Handles requests to delete a single resource (record).
+     *
+     * This function requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * It then calls the 'delete_one' method of the 'Standard_endpoints' class to handle the request to delete a single resource.
      *
      * @return void
      */
@@ -308,10 +373,15 @@ class Api extends Trongate {
     }
 
     /**
-     * Validate a token for an API endpoint.
+     * Validates the token for endpoint access.
      *
-     * @param array $token_validation_data Data for token validation.
-     * @return mixed
+     * This function retrieves all the rules for the specified endpoint from the module endpoints data.
+     * It determines the table name based on the segment of the URI.
+     * It then requires the 'Standard_endpoints.php' file and creates an instance of the 'Standard_endpoints' class.
+     * It calls the 'make_sure_allowed' method of the 'Standard_endpoints' class to validate the token against the endpoint rules.
+     *
+     * @param array $token_validation_data An array containing data required for token validation, including module endpoints and endpoint name.
+     * @return mixed The validated token, if validation succeeds.
      */
     public function validate_token(array $token_validation_data) {
         //get an array of ALL the rules for this endpoint

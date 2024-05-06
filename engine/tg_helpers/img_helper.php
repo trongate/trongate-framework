@@ -1,6 +1,26 @@
 <?php
 class Img_helper {
 
+    /**
+     * Uploads a file with specified options.
+     *
+     * @param array $data An associative array containing upload parameters:
+     *                    - 'destination': The directory path where the file will be uploaded.
+     *                    - 'max_width': Maximum width of the uploaded image (default: 450).
+     *                    - 'max_height': Maximum height of the uploaded image (default: 450).
+     *                    - 'thumbnail_dir': The directory path where thumbnails will be saved.
+     *                    - 'thumbnail_max_width': Maximum width of the thumbnail (default: 0).
+     *                    - 'thumbnail_max_height': Maximum height of the thumbnail (default: 0).
+     *                    - 'upload_to_module': Flag to upload to a module directory (default: false).
+     *                    - 'make_rand_name': Flag to generate a random name for the uploaded file (default: false).
+     * @return array An associative array containing information about the uploaded file:
+     *               - 'file_name': The name of the uploaded file.
+     *               - 'file_path': The full path to the uploaded file.
+     *               - 'file_type': The MIME type of the uploaded file.
+     *               - 'file_size': The size of the uploaded file.
+     *               - 'thumbnail_path': The path to the thumbnail if generated, otherwise not set.
+     * @throws Exception If an error occurs during file upload.
+     */
     public function upload($data) {
 
         //declare all inbound variables
@@ -111,6 +131,21 @@ class Img_helper {
         }
     }
 
+
+    /**
+     * Saves an image file with specified options.
+     *
+     * @param array $data An associative array containing save parameters:
+     *                    - 'new_file_path': The path where the file will be saved.
+     *                    - 'compression': Compression level for the saved image (default: 100).
+     *                    - 'permissions': Permissions for the saved file (default: 775).
+     *                    - 'max_width': Maximum width of the image (default: 0).
+     *                    - 'max_height': Maximum height of the image (default: 0).
+     *                    - 'tmp_file_width': Width of the temporary image file (default: 0).
+     *                    - 'tmp_file_height': Height of the temporary image file (default: 0).
+     *                    - 'image': The Image object representing the image to be saved.
+     * @throws Exception If an error occurs during image saving.
+     */
     private function save_that_pic($data) {
         $new_file_path = $data['new_file_path'] ?? '';
         $compression = $data['compression'] ?? 100;

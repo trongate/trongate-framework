@@ -1,10 +1,40 @@
 <?php
+
+/**
+ * Pagination Class
+ *
+ * This class provides pagination functionality for displaying paginated data.
+ *
+ */
 class Pagination {
 
+    /**
+     * Default limit for pagination
+     *
+     * @var int
+     */
     static public $default_limit = 10;
+
+    /**
+     * HTML output for pagination
+     *
+     * @var string
+     */
     static private $pagination_html;
+
+    /**
+     * Array to hold pagination links
+     *
+     * @var array
+     */
     static private $pagination_links = [];
 
+
+    /**
+     * Assume the page number segment in the URL
+     *
+     * @return int
+     */
     static protected function assume_page_num_segment() {
         $page_num_segment = 3; //our default assumption
 
@@ -32,6 +62,13 @@ class Pagination {
         return $page_num_segment;
     }
 
+
+    /**
+     * Display pagination
+     *
+     * @param mixed $data
+     * @return void
+     */
     static public function display($data = null) {
 
         if (!isset($data)) {
@@ -185,6 +222,14 @@ class Pagination {
         self::draw_pagination($pagination_data);
     }
 
+
+    /**
+     * Get page number from URL segment
+     *
+     * @param int $page_num_segment
+     * @param array $segments
+     * @return int
+     */
     static public function get_page_num($page_num_segment, $segments) {
         $page_num = 1;
 
@@ -198,6 +243,13 @@ class Pagination {
         return $page_num;
     }
 
+
+    /**
+     * Draw pagination
+     *
+     * @param array $pagination_data
+     * @return void
+     */
     static public function draw_pagination($pagination_data) {
 
         extract($pagination_data);
@@ -268,6 +320,14 @@ class Pagination {
         echo $html;
     }
 
+
+    /**
+     * Attempt to build pagination link
+     *
+     * @param mixed $value
+     * @param array $pagination_data
+     * @return string
+     */
     static public function attempt_build_link($value, $pagination_data) {
 
         extract($pagination_data);
@@ -293,6 +353,12 @@ class Pagination {
         return $html;
     }
 
+
+    /**
+     * Get default pagination settings
+     *
+     * @return array
+     */
     static public function get_settings_default() {
 
         $settings['pagination_open'] = '<div class="pagination">';
@@ -322,6 +388,16 @@ class Pagination {
         return $settings;
     }
 
+
+    /**
+     * Generate showing statement for pagination
+     *
+     * @param int $limit
+     * @param int $current_page
+     * @param int $total_rows
+     * @param string|null $record_name_plural
+     * @return string
+     */
     static public function get_showing_statement($limit, $current_page, $total_rows, $record_name_plural = null) {
 
         $offset = ($current_page * $limit) - $limit;
@@ -342,6 +418,12 @@ class Pagination {
         return $showing_statement;
     }
 
+
+    /**
+     * Get sample CSS for pagination
+     *
+     * @return string
+     */
     static public function get_sample_css() {
         $css = '
 <style>

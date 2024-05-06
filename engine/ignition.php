@@ -21,6 +21,14 @@ spl_autoload_register(function ($class_name) {
     return false;
 });
 
+
+/**
+ * Load a template view file.
+ *
+ * @param string $template_file The name of the template file.
+ * @param mixed|null $data Optional data to pass to the view.
+ * @return void
+ */
 function load($template_file, $data = null) {
     //load template view file
     if (isset(THEMES[$template_file])) {
@@ -44,6 +52,12 @@ function load($template_file, $data = null) {
     }
 }
 
+/**
+ * Get segments from the URL.
+ *
+ * @param bool|null $ignore_custom_routes Flag to ignore custom routes.
+ * @return array An array containing URL segments.
+ */
 function get_segments($ignore_custom_routes = null) {
 
     //figure out how many segments need to be ditched
@@ -79,6 +93,13 @@ function get_segments($ignore_custom_routes = null) {
     return $data;
 }
 
+
+/**
+ * Attempt to add custom routes to the URL.
+ *
+ * @param string $target_url The URL to modify.
+ * @return string The modified URL.
+ */
 function attempt_add_custom_routes($target_url) {
     //takes a nice URL and returns the assumed_url
     $target_url = rtrim($target_url, '/');
@@ -116,6 +137,13 @@ function attempt_add_custom_routes($target_url) {
     return $target_url;
 }
 
+
+/**
+ * Attempt to return a nice URL.
+ *
+ * @param string $target_url The URL to modify.
+ * @return string The modified URL.
+ */
 function attempt_return_nice_url($target_url) {
     //takes an assumed_url and returns the nice_url
 

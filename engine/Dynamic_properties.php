@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Trait Dynamic_properties - Provides dynamic property handling methods.
+ * Trait Dynamic_properties
+ *
+ * This trait provides functionality for dynamically setting and getting properties.
  */
 trait Dynamic_properties {
     private $attributes = [];
@@ -20,6 +22,9 @@ trait Dynamic_properties {
 
     /**
      * Get a dynamic property.
+     *
+     * If the property is 'model', it initializes and returns a Model object if not already set.
+     * Otherwise, it creates an instance of the class corresponding to the property name if not set.
      *
      * @param string $key The property key.
      * @return mixed The value of the property.

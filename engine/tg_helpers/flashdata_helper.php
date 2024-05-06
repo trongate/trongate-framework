@@ -1,8 +1,21 @@
 <?php
+
+/**
+ * Set flash data to be used for displaying messages across requests.
+ *
+ * @param string $msg The message to be stored as flash data.
+ */
 function set_flashdata($msg) {
     $_SESSION['flashdata'] = $msg;
 }
 
+
+/**
+ * Display flash data message and optionally wrap it with HTML.
+ *
+ * @param string|null $opening_html Optional. Opening HTML tags to wrap around the flash data message.
+ * @param string|null $closing_html Optional. Closing HTML tags to wrap around the flash data message.
+ */
 function flashdata($opening_html = null, $closing_html = null) {
 
     if (isset($_SESSION['flashdata'])) {

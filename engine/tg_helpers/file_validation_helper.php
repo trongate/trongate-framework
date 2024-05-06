@@ -109,6 +109,15 @@ foreach ($file_checks_to_run as $file_check_key => $file_check_value) {
     }
 }
 
+/**
+ * Check if File Type is Allowed
+ *
+ * This function checks if the file type of the given file name is allowed based on provided allowed types.
+ *
+ * @param string $target_file_name The name of the target file.
+ * @param string $file_check_value A comma-separated list of allowed file types.
+ * @return string An error message if the file type is not allowed, otherwise an empty string.
+ */
 function check_is_allowed_type($target_file_name, $file_check_value) {
 
     $allowed_types = explode(',', $file_check_value);
@@ -124,6 +133,13 @@ function check_is_allowed_type($target_file_name, $file_check_value) {
     return $result;
 }
 
+/**
+ * Check if the file size exceeds the specified limit.
+ *
+ * @param int $file_size The size of the file to be checked.
+ * @param int $file_check_value The maximum allowed file size in kilobytes.
+ * @return string Returns an error message if the file size exceeds the limit, otherwise returns an empty string.
+ */
 function check_file_size($file_size, $file_check_value) {
 
     if ((!is_numeric($file_check_value)) || ($file_size > $file_check_value)) {
@@ -135,6 +151,11 @@ function check_file_size($file_size, $file_check_value) {
     return $result;
 }
 
+/**
+ * Retrieve the name of the target file from the uploaded files array.
+ *
+ * @return string The name of the target file.
+ */
 function get_target_file() {
     $userfile = array_keys($_FILES)[0];
     return $userfile;
