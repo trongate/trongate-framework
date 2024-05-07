@@ -83,16 +83,6 @@ function form_close(): string {
 }
 
 /**
- * Build and return an output string from a file.
- *
- * @return string The output string generated from the specified file.
- */
-function build_output_str() {
-    $output_str = file_get_contents(APPPATH . 'engine/views/highlight_errors.txt');
-    return $output_str;
-}
-
-/**
  * Highlight validation errors using provided JSON data.
  *
  * @param string $errors_json JSON data containing validation errors.
@@ -100,7 +90,7 @@ function build_output_str() {
  */
 function highlight_validation_errors($errors_json) {
     $code = '<div class="inline-validation-builder">';
-    $output_str = build_output_str();
+    $output_str = file_get_contents(APPPATH . 'engine/views/highlight_errors.txt');
     $code .= '<script>let validationErrorsJson  = ' . json_encode($errors_json) . '</script>';
     $code .= '<script>';
     $code .= $output_str;
