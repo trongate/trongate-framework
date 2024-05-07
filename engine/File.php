@@ -1,5 +1,5 @@
 <?php
-class File_helper {
+class File {
 
     public function upload($config) {
 

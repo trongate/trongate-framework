@@ -8,6 +8,8 @@ require_once '../config/themes.php';
 
 spl_autoload_register(function ($class_name) {
 
+    $class_name = str_replace('alidation_helper', 'alidation', $class_name);
+
     if (strpos($class_name, '_helper')) {
         $class_name = 'tg_helpers/' . $class_name;
     }
@@ -133,7 +135,7 @@ function attempt_return_nice_url($target_url) {
 
 define('APPPATH', str_replace("\\", "/", dirname(dirname(__FILE__)) . '/'));
 define('REQUEST_TYPE', $_SERVER['REQUEST_METHOD']);
-$tg_helpers = ['form_helper', 'flashdata_helper', 'img_helper', 'string_helper', 'timedate_helper', 'url_helper', 'utilities_helper', 'validation_helper'];
+$tg_helpers = ['form_helper', 'flashdata_helper', 'string_helper', 'timedate_helper', 'url_helper', 'utilities_helper'];
 define('TRONGATE_HELPERS', $tg_helpers);
 $data = get_segments();
 define('SEGMENTS', $data['segments']);

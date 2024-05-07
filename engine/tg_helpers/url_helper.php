@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Get the current URL of the web page.
  *

@@ -184,7 +184,9 @@ class Trongate {
      * @return array|null The information of the uploaded file.
      */
     public function upload_picture(array $data): ?array {
-        return $this->img_helper->upload($data);
+        require_once 'Image.php';
+        $image = new Image;
+        return $image->upload($data);
     }
 
     /**

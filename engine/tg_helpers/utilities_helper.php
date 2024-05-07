@@ -1,14 +1,17 @@
 <?php
-
 /**
- * Encode data as JSON and optionally display it with preformatted HTML.
+ * Outputs the given data as JSON in a prettified format, suitable for debugging and visualization.
+ * This function is especially useful during development for inspecting data structures in a readable JSON format directly in the browser. 
+ * It optionally allows terminating the script immediately after output, useful in API development for stopping further processing.
  *
- * @param mixed $data The data to be encoded as JSON.
- * @param bool|null $kill_script (Optional) If true, terminate the script after displaying the JSON. Default is null.
- * @return void
+ * @param mixed $data The data (e.g., array or object) to encode into JSON format. The data can be any type that is encodable into JSON.
+ * @param bool|null $kill_script Optionally, whether to terminate the script after outputting the JSON. 
+ *                                If true, the script execution is halted immediately after the JSON output.
+ *                                Default is null, which means the script continues running unless specified otherwise.
+ * @return void Does not return any value; the output is directly written to the output buffer.
  */
 function json($data, ?bool $kill_script = null): void {
-    echo '<pre>' . json_encode($data, JSON_PRETTY_PRINT) . '</pre';
+    echo '<pre>' . json_encode($data, JSON_PRETTY_PRINT) . '</pre>';
 
     if (isset($kill_script)) {
         die();

@@ -1,37 +1,4 @@
 <?php
-
-/**
- * IMPORTANT NOTE REGARDING STRIP_TAGS():
- *
- * It's possible that you may have to write and use your own, unique 
- * string filter methods depending on your specific use case. With this 
- * being the case, please note that strip_tags function has an optional 
- * second argument, which is a string of allowed HTML tags and attributes. 
- * If you want to allow certain HTML tags or attributes in the string, 
- * you can pass a list of allowed tags and attributes as the second argument.
- *
- * Example 1: 
- * $string = '<p>This is a <strong>test</strong> string.</p>';
- * $filtered_string = strip_tags($string, '<strong>');
- * echo $filtered_string;  // Outputs: "This is a <strong>test</strong> string."
- *
- * Example 2:
- * In this example, we allow both 'strong' tags and 'em' tags...
- * $string = '<p>This is a <strong>test</strong> string.</p>';
- * $filtered_string = strip_tags($string, '<strong><em>');
- * echo $filtered_string;  // Outputs: "This is a <strong>test</strong> string."
- *
- * Example 3:
- * In this example, we allow the style attribute for the <em> tag...
- * $string = '<p>This is a <strong>test</strong> string.</p><em style="color:red">Emphasis</em>';
- * $filtered_string = strip_tags($string, '<strong><em style>');
- * echo $filtered_string;  // Outputs: "This is a <strong>test</strong> string.<em style="color:red">Emphasis</em>"
- *
- * FINALLY 
- * If you pass an array of allowed tags into strip_tags, before a database insert, 
- * use html_entity_decode() when displaying the stored string in the browser. 
- */
-
 /**
  * Generate the opening tag for an HTML form.
  *
@@ -510,4 +477,61 @@ function filter_name(string $name, array $allowed_chars = []) {
     $name = trim($name);
 
     return $name;
+}
+
+/**
+ * Retrieve and display validation error messages.
+ *
+ * @param string|null $opening_html The opening HTML tag for displaying individual field errors.
+ * @param string|null $closing_html The closing HTML tag for displaying individual field errors.
+ * @return string|null Returns the formatted validation error messages or null if no errors exist.
+ */
+function validation_errors(?string $opening_html = null, ?string $closing_html = null): ?string {
+    if (isset($_SESSION['form_submission_errors'])) {
+        $validation_err_str = '';
+        $validation_errors = [];
+        $closing_html = (isset($closing_html)) ? $closing_html : false;
+        $form_submission_errors = $_SESSION['form_submission_errors'];
+
+        if ((isset($opening_html)) && (gettype($closing_html) == 'boolean')) {
+            // Build individual form field validation error(s)
+            if (isset($form_submission_errors[$opening_html])) {
+                $validation_err_str .= '<div class="validation-error-report">';
+                $form_field_errors = $form_submission_errors[$opening_html];
+                foreach ($form_field_errors as $validation_error) {
+                    $validation_err_str .= '<div>&#9679; ' . $validation_error . '</div>';
+                }
+                $validation_err_str .= '</div>';
+            }
+
+            return $validation_err_str;
+        } else {
+            // Normal error reporting
+            foreach ($form_submission_errors as $key => $form_field_errors) {
+                foreach ($form_field_errors as $form_field_error) {
+                    $validation_errors[] = $form_field_error;
+                }
+            }
+
+            if (!isset($opening_html)) {
+
+                if (defined('ERROR_OPEN') && defined('ERROR_CLOSE')) {
+                    $opening_html = ERROR_OPEN;
+                    $closing_html = ERROR_CLOSE;
+                } else {
+                    $opening_html = '<p style="color: red;">';
+                    $closing_html = '</p>';
+                }
+            }
+
+            foreach ($validation_errors as $form_submission_error) {
+                $validation_err_str .= $opening_html . $form_submission_error . $closing_html;
+            }
+
+            unset($_SESSION['form_submission_errors']);
+            return $validation_err_str;
+        }
+    }
+
+    return null;
 }
