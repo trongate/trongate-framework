@@ -417,59 +417,6 @@ function post(string $field_name, ?bool $clean_up = null) {
 }
 
 /**
- * Filter and sanitize a string.
- *
- * @param string $string The input string to be filtered and sanitized.
- * @param string[] $allowed_tags An optional array of allowed HTML tags (default is an empty array).
- * @return string The filtered and sanitized string.
- */
-function filter_string(string $string, array $allowed_tags = []) {
-    // Remove HTML & PHP tags
-    $string = strip_tags($string, implode('', $allowed_tags));
-
-    // Convert multiple consecutive whitespaces to a single space, except for line breaks
-    $string = preg_replace('/[^\S\r\n]+/', ' ', $string);
-
-    // Trim leading and trailing white space
-    $string = trim($string);
-
-    return $string;
-}
-
-/**
- * Filter and sanitize a name.
- *
- * @param string $name The input name to be filtered and sanitized.
- * @param string[] $allowed_chars An optional array of allowed characters.
- * @return string The filtered and sanitized name.
- */
-function filter_name(string $name, array $allowed_chars = []) {
-    // Similar to filter_string() but better suited for usernames, etc.
-
-    // Remove HTML & PHP tags (please read note above for more!)
-    $name = strip_tags($name);
-
-    // Apply XSS filtering
-    $name = htmlspecialchars($name);
-
-    // Create a regex pattern that includes the allowed characters
-    $pattern = '/[^a-zA-Z0-9\s';
-    $pattern .= !empty($allowed_chars) ? '[' . implode('', $allowed_chars) . ']' : ']';
-    $pattern .= '/';
-
-    // Replace any characters that are not in the allowed list
-    $name = preg_replace($pattern, '', $name);
-
-    // Convert double spaces to single spaces
-    $name = preg_replace('/\s+/', ' ', $name);
-
-    // Trim leading and trailing white space
-    $name = trim($name);
-
-    return $name;
-}
-
-/**
  * Retrieve and display validation error messages.
  *
  * @param string|null $opening_html The opening HTML tag for displaying individual field errors.
