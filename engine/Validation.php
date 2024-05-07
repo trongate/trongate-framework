@@ -745,7 +745,7 @@ class Validation {
      * @param int $num The segment number to retrieve.
      * @return string The requested URL segment.
      */
-    public function url_segment(int $num): string {
+    private function url_segment(int $num): string {
         $segments = SEGMENTS;
 
         if (isset($segments[$num])) {
