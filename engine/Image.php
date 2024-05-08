@@ -204,17 +204,19 @@ class Image {
     /**
      * Saves the currently loaded image to a file, with optional compression and file permissions settings.
      *
-     * This method saves the image resource held in this class to a specified filename. It handles different
-     * image types and applies the specified compression level and file permissions, if provided. If no filename
-     * is given, it defaults to the filename stored in the class.
+     * This method saves an image resource held in this class to a specified file. It handles different
+     * image types and applies the specified compression level for formats that support it (JPEG, WEBP).
+     * File permissions can also be set if provided. If no filename is specified, the method uses an
+     * internal default filename, which must be set prior to calling this method.
      *
-     * @param string|null $filename Optional. The path to save the image file. If null, uses the class's internal filename.
-     * @param int $compression Optional. The level of compression (for JPEG and WEBP formats) ranging from 0 (worst quality, smallest file) to 100 (best quality, biggest file). Defaults to 100.
-     * @param int|null $permissions Optional. The file permissions to set. If specified, chmod is applied to the file.
+     * @param string|null $filename Optional. The path where the image file will be saved. Defaults to the class's internal filename if null.
+     * @param int $compression Optional. Compression level for JPEG and WEBP images, from 0 (worst quality, smallest file) to 100 (best quality, largest file). Defaults to 100.
+     * @param int|null $permissions Optional. File permissions to set on the saved file. Uses format (e.g., 0644). If not specified, the system's default permissions are used.
      * @return void
-     * @throws Exception Throws an exception if there is an error in accessing the image type or writing the file.
+     * @throws InvalidArgumentException If an unsupported image type is encountered or required properties are not set.
+     * @throws RuntimeException If writing the file fails.
      */
-    public function save(?string $filename = null, int $compression = 100, ?int $permissions = null): void {
+    protected function save(?string $filename = null, int $compression = 100, ?int $permissions = null): void {
         $filename = $filename ?: $this->file_name;
 
         switch ($this->get_image_type()) {
@@ -232,24 +234,25 @@ class Image {
                 imagepng($this->image, $filename);
                 break;
             default:
-                throw new Exception("Unsupported image type or save operation failed.");
+                throw new InvalidArgumentException("Unsupported image type or required properties not set.");
         }
 
         if ($permissions !== null) {
-            chmod($filename, $permissions);
+            if (!chmod($filename, $permissions)) {
+                throw new RuntimeException("Failed to set file permissions.");
+            }
         }
     }
 
     /**
-     * Outputs or returns the image content directly.
+     * Outputs or returns the image content directly depending on the given parameter.
      *
-     * This method sends the image to the browser or returns the image data as a string based on the parameter provided.
-     * It supports different image formats based on the image type determined by get_image_type(). If the `$return` parameter
-     * is true, it captures the output using output buffering and returns it as a string. Otherwise, it outputs the image
-     * directly to the browser.
+     * This method handles the output of the image directly to the browser or captures the image data as a string.
+     * The operation depends on the `$return` parameter. It utilizes output buffering to capture the output when `$return` is true.
+     * Supports various image formats based on the internal image type set within the class.
      *
-     * @param bool $return Determines whether to return the image content as a string (true) or output directly (false).
-     * @return string|null Returns image data as a string if `$return` is true; otherwise, nothing is returned.
+     * @param bool $return Determines whether to return the image content as a string (true) or to output it directly to the browser (false).
+     * @return string|null Returns the image data as a string if `$return` is true; otherwise, outputs directly and returns null.
      */
     public function output(bool $return = false): ?string {
         $contents = null;
@@ -279,40 +282,61 @@ class Image {
     }
 
     /**
-     * Retrieves the width of the loaded image.
+     * Retrieves the width of the currently loaded image.
      *
-     * This method returns the width of the image resource currently loaded in the class.
-     * It uses the imagesx() function, which retrieves the width of an image resource.
+     * This method returns the width of the image resource that is currently loaded within the instance.
+     * It relies on the PHP GD library's imagesx() function to obtain the width of the image resource.
      *
-     * @return int Returns the width of the image in pixels.
+     * @return int The width of the image in pixels, if an image is loaded.
+     * @throws Exception If no image is loaded.
      */
     public function get_width(): int {
+        if ($this->image === null) {
+            throw new Exception("No image is loaded.");
+        }
         return imagesx($this->image);
     }
 
     /**
-     * Retrieves the height of the loaded image.
+     * Retrieves the height of the currently loaded image.
      *
-     * This method returns the height of the image resource currently loaded in the class.
-     * It uses the imagesy() function, which retrieves the height of an image resource.
+     * This method returns the height of the image resource that is currently loaded within the instance.
+     * It relies on the PHP GD library's imagesy() function to obtain the height of the image resource.
      *
-     * @return int Returns the height of the image in pixels.
+     * @return int The height of the image in pixels, if an image is loaded.
+     * @throws Exception If no image is loaded, ensuring that the method does not fail silently.
      */
     public function get_height(): int {
+        if ($this->image === null) {
+            throw new Exception("No image is loaded.");
+        }
         return imagesy($this->image);
     }
 
     /**
      * Resizes the image to a specified height while maintaining the aspect ratio.
      *
-     * This method calculates the new width of the image that maintains the aspect ratio based on the given height,
-     * then resizes the image to these new dimensions.
+     * This method calculates the proportional width necessary to maintain the aspect ratio based on a new height,
+     * then resizes the image to these new dimensions using the `resize` method.
      *
      * @param int $height The target height to which the image should be resized.
+     * @throws Exception If no image is loaded or if the provided height is non-positive.
      * @return void
      */
     public function resize_to_height(int $height): void {
-        $ratio = $height / $this->get_height();
+        if ($this->image === null) {
+            throw new Exception("No image is loaded to resize.");
+        }
+        if ($height <= 0) {
+            throw new Exception("Height must be greater than zero.");
+        }
+
+        $currentHeight = $this->get_height();
+        if ($currentHeight === 0) {  // To prevent division by zero
+            throw new Exception("Loaded image has zero height, cannot resize.");
+        }
+
+        $ratio = $height / $currentHeight;
         $width = $this->get_width() * $ratio;
         $this->resize($width, $height);
     }
@@ -320,14 +344,27 @@ class Image {
     /**
      * Resizes the image to a specified width while maintaining the aspect ratio.
      *
-     * This method calculates the new height of the image that maintains the aspect ratio based on the given width,
-     * then resizes the image to these new dimensions.
+     * This method calculates the proportional height necessary to maintain the aspect ratio based on a new width,
+     * then resizes the image to these new dimensions using the `resize` method.
      *
      * @param int $width The target width to which the image should be resized.
+     * @throws Exception If no image is loaded or if the provided width is non-positive.
      * @return void
      */
     public function resize_to_width(int $width): void {
-        $ratio = $width / $this->get_width();
+        if ($this->image === null) {
+            throw new Exception("No image is loaded to resize.");
+        }
+        if ($width <= 0) {
+            throw new Exception("Width must be greater than zero.");
+        }
+
+        $currentWidth = $this->get_width();
+        if ($currentWidth === 0) {  // To prevent division by zero
+            throw new Exception("Loaded image has zero width, cannot resize.");
+        }
+
+        $ratio = $width / $currentWidth;
         $height = $this->get_height() * $ratio;
         $this->resize($width, $height);
     }
@@ -336,13 +373,21 @@ class Image {
      * Scales the image by a given percentage, adjusting both width and height while maintaining the aspect ratio.
      *
      * This method calculates the new dimensions of the image based on the percentage scale provided.
-     * It scales the width and height by the given percentage, then resizes the image to these new dimensions.
+     * It scales the width and height by the given percentage, then resizes the image to these new dimensions using the `resize` method.
      *
      * @param float $scale The percentage by which to scale the image. A value of 100 maintains the original size,
      *                     values less than 100 reduce the size, and values greater than 100 increase the size.
+     * @throws Exception If no image is loaded or if the scale value is not valid.
      * @return void
      */
     public function scale(float $scale): void {
+        if ($this->image === null) {
+            throw new Exception("No image is loaded to scale.");
+        }
+        if ($scale <= 0) {
+            throw new Exception("Scale must be a positive number.");
+        }
+
         $width = $this->get_width() * $scale / 100;
         $height = $this->get_height() * $scale / 100;
         $this->resize($width, $height);
@@ -353,13 +398,22 @@ class Image {
      *
      * This method adjusts the image to the specified width and height, maintaining the aspect ratio and
      * cropping the excess if necessary. It ensures that the final image matches the target dimensions
-     * exactly, even if that involves cropping parts of the image.
+     * exactly, even if that involves cropping parts of the image. It handles different aspect ratios by first
+     * resizing to the dimension that requires less adjustment before cropping to achieve the desired dimensions.
      *
      * @param int $width The target width for the image.
      * @param int $height The target height for the image.
+     * @throws Exception If no image is loaded or if width or height are non-positive values.
      * @return void
      */
     public function resize_and_crop(int $width, int $height): void {
+        if ($this->image === null) {
+            throw new Exception("No image is loaded to resize and crop.");
+        }
+        if ($width <= 0 || $height <= 0) {
+            throw new Exception("Width and height must be positive integers.");
+        }
+
         $target_ratio = $width / $height;
         $actual_ratio = $this->get_width() / $this->get_height();
 
@@ -377,60 +431,88 @@ class Image {
     /**
      * Resizes the image to the specified dimensions.
      *
-     * This method creates a new image of the given width and height, applies transparency settings if necessary,
-     * and resamples the original image onto this new image. This effectively resizes the image to the new dimensions.
+     * Creates a new image resource with the specified width and height, then resamples
+     * the current image onto this new canvas. This method maintains image quality and applies
+     * appropriate transparency settings based on the image type. As a protected method, it's intended
+     * for internal class operations and use by extending classes, supporting common image manipulations
+     * such as scaling and cropping that require direct resizing.
      *
-     * @param int $width The target width for the resized image.
-     * @param int $height The target height for the resized image.
+     * @param int $width The target width for the resized image, must be a positive integer.
+     * @param int $height The target height for the resized image, must be a positive integer.
+     * @throws Exception Throws an exception if the dimensions provided are invalid or if no image is loaded.
      * @return void
      */
     protected function resize(int $width, int $height): void {
-        $new_image = imagecreatetruecolor((int)$width, (int)$height);
+        if ($this->image === null) {
+            throw new Exception("No image is loaded to resize.");
+        }
+        if ($width <= 0 || $height <= 0) {
+            throw new Exception("Width and height must be positive integers.");
+        }
+
+        $new_image = imagecreatetruecolor($width, $height);
+        if (!$new_image) {
+            throw new Exception("Failed to create a new image resource.");
+        }
         $this->prepare_transparency($new_image);
-        imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, (int)$width, (int)$height, $this->get_width(), $this->get_height());
+        imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, $width, $height, $this->get_width(), $this->get_height());
         $this->image = $new_image;
     }
 
     /**
      * Prepares the transparency settings for a given image resource based on its type.
      *
-     * This method configures transparency handling for GIF and PNG images. For GIFs with a specific transparent color,
-     * it allocates and sets this color in the new resource. For PNGs, it ensures that alpha blending is disabled and
-     * alpha saving is enabled to preserve transparency in the new image.
+     * Configures transparency handling for GIF and PNG images. For GIF images with a specific transparent color,
+     * allocates this color in the new image resource and sets it as transparent. For PNG images, ensures that
+     * alpha blending is disabled and alpha saving is enabled to maintain transparency in the resultant image.
+     * This method is critical for preserving the visual integrity of images that require transparency.
      *
      * @param resource $resource The image resource to which transparency settings should be applied.
+     * @throws Exception Throws an exception if transparency preparation fails.
      * @return void
      */
     private function prepare_transparency($resource): void {
         $image_type = $this->get_image_type();
-        if ($image_type == IMAGETYPE_GIF || $image_type == IMAGETYPE_PNG) {
-            $transparency = imagecolortransparent($this->image);
-            if ($transparency >= 0) {
-                $transparent_color = imagecolorsforindex($this->image, $transparency);
-                $transparency = imagecolorallocate($resource, $transparent_color['red'], $transparent_color['green'], $transparent_color['blue']);
-                imagefill($resource, 0, 0, $transparency);
-                imagecolortransparent($resource, $transparency);
-            } elseif ($image_type == IMAGETYPE_PNG) {
+        if ($image_type === IMAGETYPE_GIF || $image_type === IMAGETYPE_PNG) {
+            if ($image_type === IMAGETYPE_GIF) {
+                $transparency = imagecolortransparent($this->image);
+                if ($transparency >= 0) {
+                    $transparent_color = imagecolorsforindex($this->image, $transparency);
+                    $transparency = imagecolorallocate($resource, $transparent_color['red'], $transparent_color['green'], $transparent_color['blue']);
+                    if (!$transparency) {
+                        throw new Exception("Failed to allocate transparency color for GIF image.");
+                    }
+                    imagefill($resource, 0, 0, $transparency);
+                    imagecolortransparent($resource, $transparency);
+                }
+            } elseif ($image_type === IMAGETYPE_PNG) {
                 imagealphablending($resource, false);
                 imagesavealpha($resource, true);
                 $color = imagecolorallocatealpha($resource, 0, 0, 0, 127);
+                if (!$color) {
+                    throw new Exception("Failed to allocate alpha transparency for PNG image.");
+                }
                 imagefill($resource, 0, 0, $color);
             }
+        } else {
+            throw new Exception("Unsupported image type for transparency preparation.");
         }
     }
 
     /**
      * Crops the image to specified dimensions from a selected position.
      *
-     * This method adjusts the image to the specified width and height. The cropping process
-     * can focus on the center or the right side of the image, depending on the `trim` parameter.
-     * The resulting image contains the section of the original image resized to the new dimensions.
+     * This method adjusts the image to the specified width and height, focusing the crop based on the `trim` parameter.
+     * It will crop the image focusing on the center or the right side, depending on `trim`. If the current image dimensions
+     * are less than the desired dimensions, no cropping occurs. The resulting image retains the specified dimensions from
+     * the selected part of the original image.
      *
      * @param int $width The desired width of the cropped image.
      * @param int $height The desired height of the cropped image.
      * @param string $trim Optional. Determines the part of the image to focus on during cropping.
-     *                     Can be 'center' or 'right'. Default is 'center'.
+     *                     Can be 'center' or 'right'. Default is 'center'. If 'left' is provided, it defaults to no offset.
      * @return void
+     * @throws InvalidArgumentException If the given dimensions are invalid or exceed the original dimensions.
      */
     public function crop(int $width, int $height, string $trim = 'center'): void {
         $offset_x = 0;
@@ -457,13 +539,17 @@ class Image {
     /**
      * Retrieves the type of the currently loaded image.
      *
-     * This method returns the image type, typically one of the IMAGETYPE_XXX constants,
-     * which corresponds to the format of the image currently managed by this class instance.
-     * If no image has been loaded or the type is not determined, null may be returned.
+     * This method returns the image type identified by one of the IMAGETYPE_XXX constants,
+     * corresponding to the format of the image currently held by the class instance.
+     * The image type is useful for determining how to process or handle the image data.
+     * If no image has been loaded or if the type cannot be determined (e.g., the image data is invalid),
+     * null is returned. This method is protected to limit its accessibility to within the class itself
+     * and its subclasses, supporting encapsulation of the image handling logic.
      *
-     * @return int|null Returns the image type as one of the predefined IMAGETYPE_XXX constants, or null if not determined.
+     * @return int|null Returns the image type as one of the predefined IMAGETYPE_XXX constants.
+     *                  Returns null if the image type is not determined or no image is loaded.
      */
-    public function get_image_type(): ?int {
+    protected function get_image_type(): ?int {
         return $this->image_type;
     }
 
@@ -471,39 +557,45 @@ class Image {
      * Frees up memory allocated to the image resource.
      *
      * This method releases the memory associated with the image resource
-     * stored in this class's instance. It is crucial to call this method
-     * when the image is no longer needed, especially in scripts that handle
-     * multiple or large images to prevent memory leaks.
+     * stored in this class's instance. It should be invoked when the image is no longer needed,
+     * especially in scripts that process multiple or large images, to prevent memory leaks and manage
+     * system resources more efficiently. Failure to call this method in such scenarios can lead to 
+     * increased memory usage and possible performance degradation.
      *
      * @return void
      */
     public function destroy(): void {
-        imagedestroy($this->image);
+        if ($this->image !== null) {
+            imagedestroy($this->image);
+            $this->image = null; // Explicitly unset the image to ensure it's no longer usable.
+        }
     }
 
     /**
      * Saves the processed image to a specified path with configured settings.
      *
-     * This method saves an image after optionally resizing it based on maximum width and height constraints.
-     * It checks if the actual dimensions exceed the provided maximums and resizes the image to fit within these bounds
-     * while maintaining the aspect ratio. Finally, it saves the image to the filesystem with specified compression
-     * and permissions.
+     * This method manages the saving of an image after potentially resizing it to meet specified
+     * maximum width and height constraints. If the actual dimensions of the image exceed these maximums,
+     * the image is resized to fit within the bounds while preserving the aspect ratio. The image is then
+     * saved to the filesystem with the specified compression level and file permissions set.
      *
-     * @param array $data Contains all necessary data for saving the image, including:
-     *                    - 'new_file_path': the path where the image will be saved.
-     *                    - 'compression': the compression level for JPEG/WEBP images.
-     *                    - 'permissions': the file permissions to set on the new image.
-     *                    - 'max_width': the maximum allowed width for the image.
-     *                    - 'max_height': the maximum allowed height for the image.
-     *                    - 'tmp_file_width': the temporary file's current width.
-     *                    - 'tmp_file_height': the temporary file's current height.
-     *                    - 'image': the Image object to be manipulated and saved.
+     * @param array $data Configuration array containing all necessary parameters for image processing, including:
+     *                    - 'new_file_path': The path where the image will be saved.
+     *                    - 'compression': The compression level for JPEG/WEBP images, from 0 (worst quality, smallest file)
+     *                      to 100 (best quality, largest file).
+     *                    - 'permissions': The file permissions to set on the new image file, e.g., 0644.
+     *                    - 'max_width': The maximum allowed width for the image.
+     *                    - 'max_height': The maximum allowed height for the image.
+     *                    - 'tmp_file_width': The current width of the temporary file.
+     *                    - 'tmp_file_height': The current height of the temporary file.
+     *                    - 'image': The Image object that is being manipulated and saved.
      * @return void
+     * @throws Exception If saving the image fails due to filesystem errors or invalid parameters.
      */
     private function save_image(array $data): void {
         $new_file_path = $data['new_file_path'] ?? '';
         $compression = $data['compression'] ?? 100;
-        $permissions = $data['permissions'] ?? 775;
+        $permissions = $data['permissions'] ?? 0755; // Default changed to a more common permission setting for images
         $max_width = $data['max_width'] ?? 0;
         $max_height = $data['max_height'] ?? 0;
         $tmp_file_width = $data['tmp_file_width'] ?? 0;
@@ -527,29 +619,31 @@ class Image {
     /**
      * Retrieves the MIME type header of the currently loaded image based on its type.
      *
-     * This method returns the appropriate MIME type for the image currently loaded, which
-     * is determined by the image type property. It throws an exception if no image type
-     * has been set, indicating that no image is loaded.
+     * This method returns the MIME type corresponding to the image format of the loaded image.
+     * It is crucial for setting correct HTTP Content-Type headers when serving images directly
+     * from PHP scripts. If the image type has not been set due to the absence of a loaded image,
+     * this method throws a Nothing_loaded_exception to prevent misuse and to facilitate debugging.
      *
-     * @throws Nothing_loaded_exception If no image has been loaded or the image type is not set.
-     * @return string The MIME type of the image, suitable for HTTP Content-Type headers.
+     * @throws Nothing_loaded_exception If no image has been loaded or if the image type is not set, indicating
+     *                                  that operations requiring an image cannot proceed.
+     * @return string The MIME type of the image, suitable for HTTP Content-Type headers, e.g., 'image/jpeg'.
      */
     public function get_header(): string {
         if (!$this->image_type) {
-            throw new Nothing_loaded_exception();
+            throw new Nothing_loaded_exception("No image has been loaded, or image type is unset.");
         }
         return $this->content_type[$this->image_type];
     }
 
     /**
-     * Checks if a file exists at the specified path.
+     * Validates the existence of a file at the specified path.
      *
-     * This method validates the existence of a file by its path. If the file
-     * does not exist, it throws a Not_found_exception to indicate the missing file.
-     * The path is used to inform about the specific location of the missing file.
+     * This method is a utility function within the Image class that checks if a file exists at a given path.
+     * It is used internally before performing operations that require the file's presence. If the file does not exist,
+     * a Not_found_exception is thrown to handle the error appropriately within the class's workflow.
      *
      * @param string $path The file path to check for existence.
-     * @throws Not_found_exception If the file does not exist at the specified path.
+     * @throws Not_found_exception Thrown if the file does not exist at the specified path, indicating an error in file handling.
      * @return void
      */
     private function check_file_exists(string $path): void {
