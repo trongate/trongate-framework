@@ -66,66 +66,6 @@ class Trongate {
     }
 
     /**
-     * Renders a view and returns the output as a string, or to the browser.
-     *
-     * @param  string     $view The name of the view file to render.
-     * @param  array      $data An array of data to pass to the view file.
-     * @param  bool|null  $return_as_str If set to true, the output is returned as a string, otherwise to the browser.
-     *
-     * @return string|null If $return_as_str is true, returns the output as a string, otherwise returns null.
-     * @throws \Exception
-     * 
-     * @see https://trongate.io/docs/information/understanding-view-files
-     */
-    protected function view(string $view, array $data = [], ?bool $return_as_str = null): ?string {
-        $return_as_str = $return_as_str ?? false;
-        $module_name = $data['view_module'] ?? $this->module_name;
-
-        $view_path = $this->_get_view_path($view, $module_name);
-        extract($data);
-
-        if ($return_as_str) {
-            // Output as string
-            ob_start();
-            require $view_path;
-            return ob_get_clean();
-        } else {
-            // Output view file
-            require $view_path;
-            return null;
-        }
-    }
-
-    /**
-     * Get the path of a view file.
-     *
-     * @param string $view The name of the view file.
-     * @param string $module_name Module name to which the view belongs.
-     *
-     * @return string The path of the view file.
-     * @throws \Exception If the view file does not exist.
-     */
-    function _get_view_path(string $view, ?string $module_name): string {
-
-        if ($this->parent_module !== '' && $this->child_module !== '') {
-            // Load view from child module
-            $view_path = APPPATH . "modules/$this->parent_module/$this->child_module/views/$view.php";
-        } else {
-            // Normal view loading process
-            $view_path = APPPATH . "modules/$module_name/views/$view.php";
-        }
-
-        if (file_exists($view_path)) {
-            return $view_path;
-        } else {
-            $error_message = $this->parent_module !== '' && $this->child_module !== '' ?
-                "View '$view_path' does not exist for child view" :
-                "View '$view_path' does not exist";
-            throw new Exception($error_message);
-        }
-    }
-
-    /**
      * Loads a module using the Modules class.
      *
      * @param string $target_module The name of the target module.
@@ -156,4 +96,65 @@ class Trongate {
     public function upload_file(array $data): ?array {
         return $this->file_helper->upload($data);
     }
+
+    /**
+     * Renders a view and returns the output as a string, or to the browser.
+     *
+     * @param  string     $view The name of the view file to render.
+     * @param  array      $data An array of data to pass to the view file.
+     * @param  bool|null  $return_as_str If set to true, the output is returned as a string, otherwise to the browser.
+     *
+     * @return string|null If $return_as_str is true, returns the output as a string, otherwise returns null.
+     * @throws \Exception
+     * 
+     * @see https://trongate.io/docs/information/understanding-view-files
+     */
+    protected function view(string $view, array $data = [], ?bool $return_as_str = null): ?string {
+        $return_as_str = $return_as_str ?? false;
+        $module_name = $data['view_module'] ?? $this->module_name;
+
+        $view_path = $this->get_view_path($view, $module_name);
+        extract($data);
+
+        if ($return_as_str) {
+            // Output as string
+            ob_start();
+            require $view_path;
+            return ob_get_clean();
+        } else {
+            // Output view file
+            require $view_path;
+            return null;
+        }
+    }
+
+    /**
+     * Get the path of a view file.
+     *
+     * @param string $view The name of the view file.
+     * @param string $module_name Module name to which the view belongs.
+     *
+     * @return string The path of the view file.
+     * @throws \Exception If the view file does not exist.
+     */
+    private function get_view_path(string $view, ?string $module_name): string {
+
+        if ($this->parent_module !== '' && $this->child_module !== '') {
+            // Load view from child module
+            $view_path = APPPATH . "modules/$this->parent_module/$this->child_module/views/$view.php";
+        } else {
+            // Normal view loading process
+            $view_path = APPPATH . "modules/$module_name/views/$view.php";
+        }
+
+        if (file_exists($view_path)) {
+            return $view_path;
+        } else {
+            $error_message = $this->parent_module !== '' && $this->child_module !== '' ?
+                "View '$view_path' does not exist for child view" :
+                "View '$view_path' does not exist";
+            throw new Exception($error_message);
+        }
+    }
+
 }
