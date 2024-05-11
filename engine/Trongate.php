@@ -72,7 +72,8 @@ class Trongate {
      * @return void
      */
     public function module(string $target_module): void {
-        $this->modules->load($target_module);
+        $modules = new Modules;
+        $modules->load($target_module);
     }
 
     /**
@@ -83,7 +84,8 @@ class Trongate {
      * @return array|null The information of the uploaded file.
      */
     public function upload_picture(array $data): ?array {
-        return $this->image->upload($data);
+        $image = new Image;
+        return $image->upload($data);
     }
 
     /**
@@ -94,7 +96,8 @@ class Trongate {
      * @return array|null The information of the uploaded file.
      */
     public function upload_file(array $data): ?array {
-        return $this->file_helper->upload($data);
+        $file = new File; 
+        return $file->upload($data);
     }
 
     /**
