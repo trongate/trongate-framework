@@ -66,57 +66,6 @@ class Trongate {
     }
 
     /**
-     * Load a module's controller dynamically and instantiate it.
-     *
-     * @param class-string $target_module The name of the target module to load.
-     *
-     * @return void
-     *
-     * @throws ReflectionException If the target controller file cannot be found or the controller class cannot be instantiated.
-     */
-    public function module(string $target_module): void {
-        $target_controller = ucfirst($target_module);
-        $target_controller_path = '../modules/' . $target_module . '/controllers/' . $target_controller . '.php';
-
-        if (!file_exists($target_controller_path)) {
-            $child_module = $this->get_child_module($target_module);
-            $target_controller_path = '../modules/' . $target_module . '/' . $child_module . '/controllers/' . ucfirst($child_module) . '.php';
-            $ditch = '-' . $child_module . '/' . $child_module . '/controllers';
-            $replace = '/' . $child_module . '/controllers';
-            $target_controller_path = str_replace($ditch, $replace, $target_controller_path);
-            $target_module = $child_module;
-        }
-
-        require_once $target_controller_path;
-        $this->$target_module = new $target_module($target_module);
-    }
-
-    /**
-     * Get the child module name from the target module name.
-     *
-     * @param  string  $target_module The name of the target module.
-     *
-     * @return string|null The name of the child module, or null if not found.
-     */
-    private function get_child_module(string $target_module): ?string {
-        $bits = explode('-', $target_module);
-
-        if (count($bits) == 2) {
-            if (strlen($bits[1]) > 0) {
-                $child_module = $bits[1];
-            }
-        }
-
-        if (!isset($child_module)) {
-            http_response_code(404);
-            echo 'ERROR: Unable to locate ' . $target_module . ' module!';
-            die();
-        }
-
-        return $child_module;
-    }
-
-    /**
      * Renders a view and returns the output as a string, or to the browser.
      *
      * @param  string     $view The name of the view file to render.
@@ -174,6 +123,17 @@ class Trongate {
                 "View '$view_path' does not exist";
             throw new Exception($error_message);
         }
+    }
+
+    /**
+     * Loads a module using the Modules class.
+     *
+     * @param string $target_module The name of the target module.
+     * @return void
+     */
+    public function module(string $target_module): void {
+        $modules = new Modules;
+        $modules->load($target_module);
     }
 
     /**
