@@ -68,6 +68,19 @@ class Modules {
     }
 
     /**
+     * Lists all existing modules.
+     *
+     * @param bool $recursive Determines whether the listing should be recursive. Default is false.
+     * @return array Returns an array containing the list of existing modules.
+     */
+    public function list(bool $recursive = false): array {
+        $target_path = APPPATH.'modules';
+        $file = new File;
+        $existing_modules = $file->list_directory($target_path, $recursive);
+        return $existing_modules;
+    }
+
+    /**
      * Retrieves the child module from the target module name.
      *
      * @param string $target_module The target module name.
@@ -89,19 +102,6 @@ class Modules {
         }
 
         return $child_module;
-    }
-
-    /**
-     * Lists all existing modules.
-     *
-     * @param bool $recursive Determines whether the listing should be recursive. Default is false.
-     * @return array Returns an array containing the list of existing modules.
-     */
-    public function list(bool $recursive = false): array {
-        $target_path = APPPATH.'modules';
-        $file = new File;
-        $existing_modules = $file->list_directory($target_path, $recursive);
-        return $existing_modules;
     }
 
 }
