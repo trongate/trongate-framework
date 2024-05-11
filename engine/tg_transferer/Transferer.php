@@ -1,6 +1,6 @@
 <?php
 class Transferer {
-    function __construct() {
+    public function __construct() {
         if (ENV != 'dev') {
             die();
         }

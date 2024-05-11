@@ -4,7 +4,8 @@
  * Class Api - Handles API-related functionalities.
  */
 class Api extends Trongate {
-    function __construct() {
+    
+    public function __construct() {
         parent::__construct();
     }
 

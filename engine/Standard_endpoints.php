@@ -10,7 +10,7 @@ class Standard_endpoints extends Trongate {
         ">" => "%3E"
     ];
 
-    function __construct() {
+    public function __construct() {
         parent::__construct();
     }
 
