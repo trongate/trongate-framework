@@ -3,7 +3,6 @@ class Trongate {
 
     use Dynamic_properties;
 
-    protected Modules $modules;
     private ?Model $model;
     protected ?string $module_name = '';
     protected string $parent_module = '';
@@ -16,7 +15,6 @@ class Trongate {
      */
     public function __construct(?string $module_name = null) {
         $this->module_name = $module_name;
-        $this->modules = new Modules;
     }
 
     /**

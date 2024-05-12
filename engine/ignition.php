@@ -9,11 +9,6 @@ require_once '../config/themes.php';
 spl_autoload_register(function ($class_name) {
 
     $class_name = str_replace('alidation_helper', 'alidation', $class_name);
-
-    if (strpos($class_name, '_helper')) {
-        $class_name = 'tg_helpers/' . $class_name;
-    }
-
     $target_filename = realpath(__DIR__ . '/' . $class_name . '.php');
 
     if (file_exists($target_filename)) {
