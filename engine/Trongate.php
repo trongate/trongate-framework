@@ -66,6 +66,9 @@ class Trongate {
     /**
      * Loads a module using the Modules class.
      *
+     * This method serves as an alternative way of invoking the load method from the Modules class.
+     * It simply instantiates a Modules object and calls its load method with the provided target module name.
+     *
      * @param string $target_module The name of the target module.
      * @return void
      */
@@ -75,27 +78,31 @@ class Trongate {
     }
 
     /**
-     * Upload a picture file.
+     * Upload a picture file using the upload method from the Image class.
      *
-     * @param array $data The data for the uploaded file.
+     * This method serves as an alternative way of invoking the upload method from the Image class.
+     * It simply instantiates an Image object and calls its upload method with the provided configuration data.
      *
+     * @param array $config The configuration data for handling the upload.
      * @return array|null The information of the uploaded file.
      */
-    public function upload_picture(array $data): ?array {
+    public function upload_picture(array $config): ?array {
         $image = new Image;
-        return $image->upload($data);
+        return $image->upload($config);
     }
 
     /**
-     * Upload a file.
+     * Upload a file using the upload method from the File class.
      *
-     * @param array $data The data for the uploaded file.
+     * This method serves as an alternative way of invoking the upload method from the File class.
+     * It simply instantiates a File object and calls its upload method with the provided configuration data.
      *
+     * @param array $config The configuration data for handling the upload.
      * @return array|null The information of the uploaded file.
      */
-    public function upload_file(array $data): ?array {
-        $file = new File; 
-        return $file->upload($data);
+    public function upload_file(array $config): ?array {
+        $file = new File;
+        return $file->upload($config);
     }
 
     /**
