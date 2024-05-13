@@ -30,7 +30,7 @@ class Trongate {
      * 
      * @see https://trongate.io/docs/information/what-are-templates
      */
-    public function template(string $template_name, array $data = []): void {
+    protected function template(string $template_name, array $data = []): void {
         $template_controller_path = '../templates/controllers/Templates.php';
         require_once $template_controller_path;
 
@@ -58,7 +58,7 @@ class Trongate {
      * @param string $target_module The name of the target module.
      * @return void
      */
-    public function module(string $target_module): void {
+    protected function module(string $target_module): void {
         $modules = new Modules;
         $modules->load($target_module);
     }
@@ -72,7 +72,7 @@ class Trongate {
      * @param array $config The configuration data for handling the upload.
      * @return array|null The information of the uploaded file.
      */
-    public function upload_picture(array $config): ?array {
+    protected function upload_picture(array $config): ?array {
         $image = new Image;
         return $image->upload($config);
     }
@@ -86,7 +86,7 @@ class Trongate {
      * @param array $config The configuration data for handling the upload.
      * @return array|null The information of the uploaded file.
      */
-    public function upload_file(array $config): ?array {
+    protected function upload_file(array $config): ?array {
         $file = new File;
         return $file->upload($config);
     }
