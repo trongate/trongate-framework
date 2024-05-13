@@ -18,20 +18,6 @@ class Trongate {
     }
 
     /**
-     * Load a helper class dynamically and instantiate it.
-     *
-     * @param string $helper The name of the helper class to load.
-     * 
-     * @return void
-     * 
-     * @throws Exception If the helper class file cannot be found or the class cannot be instantiated.
-     */
-    public function load(string $helper): void {
-        require_once 'tg_helpers/' . $helper . '.php';
-        $this->$helper = new $helper;
-    }
-
-    /**
      * Loads a template controller file, instantiates the corresponding object, and calls
      * the specified template method with the given data.
      *
