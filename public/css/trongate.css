@@ -260,7 +260,11 @@ div.modal-body p.text-center {
 
 .pagination {
   display: inline-block;
-  margin: 1em 0;
+  margin: 0 0 1em 0;
+}
+
+.pagination:last-of-type {
+  margin-top: 1em;
 }
 
 .pagination a {

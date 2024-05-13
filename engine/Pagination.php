@@ -1,381 +1,400 @@
 <?php
+
+/**
+ * Class Pagination - Handles pagination functionality for displaying paginated data.
+ */
 class Pagination {
 
-    static public $default_limit = 10;
-    static private $pagination_html;
-    static private $pagination_links = [];
+    // Required properties with their expected types
+    private static $required_properties = [
+        "total_rows" => "int",
+        "page_num_segment" => "int",
+        "limit" => "int",
+        "pagination_root" => "string",
+        "record_name_plural" => "string"
+    ];
 
-    static protected function assume_page_num_segment() {
-        $page_num_segment = 3; //our default assumption
+    // Optional properties with their default values and expected types
+    private static $optional_properties = [
+        "include_showing_statement" => ["default" => false, "type" => "bool"],
+        "include_css" => ["default" => false, "type" => "bool"],
+        "num_links_per_page" => ["default" => 10, "type" => "int"],
+        "settings" => ["default" => [], "type" => "array"]
+    ];
 
-        //are we using a custom route?
-        $target_url = current_url();
+    // Derived properties with their default values
+    private static $derived_properties = [];
 
-        foreach (CUSTOM_ROUTES as $key => $value) {
-            $pos = strpos($target_url, $key);
+    // Map PHP types to expected types
+    private static $type_map = [
+        "integer" => "int",
+        "string" => "string",
+        "boolean" => "bool",
+        "double" => "float"
+    ];
 
-            if (is_numeric($pos)) {
-                //we must be viewing a custom route!
-                $target_url = str_replace($key, $value, $target_url);
+    // Default pagination settings
+    private static $default_settings = [
+        'pagination_open' => '<div class="pagination">',
+        'pagination_close' => '</div>',
+        'cur_link_open' => '<a href="#" class="active">',
+        'cur_link_close' => '</a>',
+        'num_link_open' => '',
+        'num_link_close' => '',
+        'first_link' => 'First',
+        'first_link_open' => '',
+        'first_link_close' => '',
+        'last_link' => 'Last',
+        'last_link_open' => '',
+        'last_link_close' => '',
+        'prev_link' => '&laquo;',
+        'prev_link_open' => '',
+        'prev_link_close' => '',
+        'next_link' => '&raquo;',
+        'next_link_open' => '',
+        'next_link_close' => '',
+    ];
 
-                //compare num segments in key (nice URL) and value (assumed URL)
-                $key_bits = explode('/', $key);
-                $value_bits = explode('/', $value);
+    /**
+     * Display pagination links based on provided pagination data.
+     *
+     * @param array $pagination_data The pagination data array.
+     * @return void
+     */
+    public static function display(array $pagination_data): void {
 
-                $diff = count($value_bits) - count($key_bits);
-                if ($diff != 0) {
-                    $page_num_segment = $page_num_segment - $diff;
-                }
-            }
+        // If 'showing_statement' property exists, bypass any errors caused by empty/missing 'record_name_plural'
+        if (isset($pagination_data['showing_statement']) && !isset($pagination_data['record_name_plural'])) {
+            $pagination_data['record_name_plural'] = 'x'; // Placeholder (since 'record_name_plural' won't be used)
         }
 
-        return $page_num_segment;
+        // Make sure we have all of the required properties
+        self::check_for_required_properties($pagination_data);
+
+        // Initialize optional properties
+        $pagination_data = self::init_optional_properties($pagination_data);
+
+        // Initialize derived properties:
+        // "root","current_page","start","end","num_links_to_side","num_pages","prev","next","showing_statement"
+        $pagination_data = self::init_derived_properties($pagination_data);
+
+        // Check if pagination is necessary
+        if ($pagination_data['total_rows'] <= $pagination_data['limit']) {
+            // No need for pagination, exit early
+            return;
+        }
+
+        // Output the showing statement
+        if (!empty($pagination_data['showing_statement'])) {
+            echo '<p>' . $pagination_data['showing_statement'] . '</p>';
+        }
+
+        self::render_pagination($pagination_data);
     }
 
-    static public function display($data = null) {
+    /**
+     * Render pagination links based on provided pagination data.
+     *
+     * @param array $pagination_data The pagination data array.
+     * @return void
+     */
+    private static function render_pagination(array $pagination_data): void {
+        $html = PHP_EOL.'<div class="pagination">';
 
-        if (!isset($data)) {
-            die('<br><b>ERROR:</b> Data must be passed into the pagination class in order for it to work.  Please refer to documentation.');
-        } elseif (is_numeric($data)) {
-            $total_rows = $data;
-            unset($data);
-            $data['include_css'] = true;
-            $data['total_rows'] = $total_rows;
+        // Attempt 'first/prev' buttons if not on the first page.
+        if ($pagination_data['current_page'] > 1) {
+            $html .= $pagination_data['settings']['first_link_open'];
+            $html.= self::attempt_build_link('first_link', $pagination_data);
+            $html .= $pagination_data['settings']['first_link_close'].PHP_EOL;
+
+            $html .= $pagination_data['settings']['prev_link_open'];
+            $html.= self::attempt_build_link('prev_link', $pagination_data);
+            $html .= $pagination_data['settings']['prev_link_close'].PHP_EOL;
         }
 
-        if (!isset($data['total_rows'])) {
-            die('<br><b>ERROR:</b> The $data[\'total_rows\'] value must be passed into the pagination class in order for it to work.');
-        } else {
-            $total_rows = $data['total_rows'];
-        }
-
-        if (!isset($data['include_css'])) {
-            $pagination_data['include_css'] = false;
-        } else {
-            $pagination_data['include_css'] = $data['include_css'];
-        }
-
-        if (!isset($data['num_links_per_page'])) {
-            $pagination_data['num_links_per_page'] = 10;
-        } else {
-            $pagination_data['num_links_per_page'] = $data['num_links_per_page'];
-        }
-
-        if (!isset($data['template'])) {
-            $pagination_template = 'default';
-        } else {
-            $pagination_template = $data['template'];
-        }
-
-        if (!isset($data['page_num_segment'])) {
-            //$page_num_segment = 3;
-            $page_num_segment = self::assume_page_num_segment();
-        } else {
-            $page_num_segment = $data['page_num_segment'];
-        }
-
-        if (!isset($data['pagination_root'])) {
-
-            $pagination_root = BASE_URL;
-            $segments_data = get_segments(true);
-            $segments = $segments_data['segments'];
-
-            if (isset($segments[1])) {
-                $pagination_root .= $segments[1];
-            }
-
-            if ((isset($segments[2])) && ($page_num_segment > 2)) {
-                $pagination_root .= '/' . $segments[2];
-            }
-        } else {
-            $pagination_root = BASE_URL . $data['pagination_root'];
-        }
-
-        $pagination_data['root'] = $pagination_root . '/';
-
-        if (!isset($data['limit'])) {
-            $limit = self::$default_limit;
-        } else {
-            $limit = $data['limit'];
-        }
-
-        $segments_data = get_segments(true);
-        $segments = $segments_data['segments'];
-        $current_page = self::get_page_num($page_num_segment, $segments);
-        $num_pages = (int) ceil($total_rows / $limit);
-
-        if ($num_pages < 2) {
-
-            $showing_statement = '';
-
-            if (isset($data['include_showing_statement'])) {
-                //has a search been submitted?
-                $additional_url_string = str_replace(BASE_URL, '', current_url());
-                $additional_segments = explode('/', $additional_url_string);
-
-                if (isset($additional_segments[3])) {
-                    if ($total_rows == 0) {
-                        $showing_statement = '<p>Your search produced no results.</p>';
-                        $attr = array('class' => 'button alt');
-                        $showing_statement .= anchor(previous_url(), 'Go Back', $attr);
-                    } else {
-                        $showing_statement = '<p>Your search produced the following result(s):</p>';
-                    }
-                }
-            }
-
-            return $showing_statement;
-        }
-
-        $target_settings_method = 'get_settings_' . $pagination_template;
-        $settings = self::$target_settings_method();
-        $pagination_data['settings'] = $settings;
-
-        $num_links_per_page = $pagination_data['num_links_per_page'];
-        $num_links_to_side = (int) ceil($num_links_per_page / 2);
-
-        if (($current_page - $num_links_to_side) - 1 > 0) {
-            $start = $current_page - ($num_links_to_side - 1);
-        } else {
-            $start = 1;
-        }
-
-        if (($current_page + $num_links_to_side) < $num_pages) {
-            $end = $current_page + $num_links_to_side;
-        } else {
-            $end = $num_pages;
-        }
-
-        //figure out the prev and next links
-        if (($current_page - 1) > 0) {
-            $prev = $current_page - 1;
-        } else {
-            $prev = '';
-        }
-
-        if (($current_page + 1) > $num_pages) {
-            $next = $num_pages;
-        } else {
-            $next = $current_page + 1;
-        }
-
-        if (isset($data['include_showing_statement'])) {
-
-            if (isset($data['record_name_plural'])) {
-                $record_name_plural = $data['record_name_plural'];
+        for ($i=1; $i <= $pagination_data['num_pages']; $i++) { 
+            // Numbered links.
+            if ($i == $pagination_data['current_page']) {
+                $html .= $pagination_data['settings']['cur_link_open'];
+                $html .= $i;
+                $html .= $pagination_data['settings']['cur_link_close'].PHP_EOL;
             } else {
-                $record_name_plural = null;
-            }
-
-            $pagination_data['showing_statement'] = self::get_showing_statement($limit, $current_page, $total_rows, $record_name_plural);
-        }
-
-        $pagination_data['total_rows'] = $total_rows;
-        $pagination_data['template'] = $pagination_template;
-        $pagination_data['pagination_root'] = $pagination_root;
-        $pagination_data['current_page'] = $current_page;
-        $pagination_data['page_num_segment'] = $page_num_segment;
-        $pagination_data['start'] = $start;
-        $pagination_data['end'] = $end;
-        $pagination_data['num_links_to_side'] = $num_links_to_side;
-        $pagination_data['num_pages'] = $num_pages;
-        $pagination_data['prev'] = $prev;
-        $pagination_data['next'] = $next;
-
-        self::draw_pagination($pagination_data);
-    }
-
-    static public function get_page_num($page_num_segment, $segments) {
-        $page_num = 1;
-
-        if (isset($segments[$page_num_segment])) {
-            $segment_value = $segments[$page_num_segment];
-            if (is_numeric($segment_value)) {
-                $page_num = $segment_value;
+                $html .= $pagination_data['settings']['num_link_open'];
+                $html.= self::attempt_build_link($i, $pagination_data);
+                $html .= $pagination_data['settings']['num_link_close'].PHP_EOL;
             }
         }
 
-        return $page_num;
-    }
+        // Attempt 'next/last' buttons if not on the last page.
+        if ($pagination_data['current_page'] < $pagination_data['num_pages']) {
+            $html .= $pagination_data['settings']['next_link_open'];
+            $html.= self::attempt_build_link('next_link', $pagination_data);
+            $html .= $pagination_data['settings']['next_link_close'].PHP_EOL;
 
-    static public function draw_pagination($pagination_data) {
+            $html .= $pagination_data['settings']['last_link_open'];
+            $html.= self::attempt_build_link('last_link', $pagination_data);
+            $html .= $pagination_data['settings']['last_link_close'].PHP_EOL;
+        }
 
-        extract($pagination_data);
+        $html.= '</div>';
 
-        $trailing_url_str = '';
-        $segments_str = str_replace(BASE_URL, '', current_url());
-        $url_segments = explode('/', $segments_str);
-        if ($url_segments > $page_num_segment) {
-            for ($i = $page_num_segment; $i < count($url_segments); $i++) {
-                $trailing_url_str .= '/' . $url_segments[$i];
+        if ($pagination_data['include_css'] === true) {
+            $sample_css_path = APPPATH.'engine/views/sample_pagination_style.css';
+            if (file_exists($sample_css_path)) {
+                $css_code = file_get_contents($sample_css_path);
             }
+            $html.= PHP_EOL.'<style>'.$css_code.'</style>'.PHP_EOL;
         }
-        $pagination_data['trailing_url_str'] = $trailing_url_str;
-
-        if (isset($showing_statement)) {
-            echo '<p>' . $showing_statement . '</p>';
-        }
-
-        if ($current_page > 1) {
-            $links[] = 'first_link';
-            $links[] = 'prev_link';
-        }
-
-        for ($i = $start; $i <= $end; $i++) {
-            $links[] = $i;
-        }
-
-        if ($current_page < $num_pages) {
-            $links[] = 'next_link';
-            $links[] = 'last_link';
-        }
-
-        $nl = '
-';
-
-        $html = $nl . $nl . $settings['pagination_open'] . $nl;
-        foreach ($links as $key => $value) {
-
-            if (is_numeric($value)) {
-
-                if ($value == $current_page) {
-                    $html .= $settings['cur_link_open'];
-                    $html .= $value;
-                    $html .= $settings['cur_link_close'];
-                } else {
-
-                    $html .= $settings['num_link_open'];
-                    $html .= self::attempt_build_link($value, $pagination_data);
-                    $html .= $settings['num_link_close'];
-                    $html .= $nl;
-                }
-            } else {
-
-                $html .= $settings[$value . '_open'];
-                $html .= self::attempt_build_link($value, $pagination_data);
-                $html .= $settings[$value . '_close'];
-                $html .= $nl;
-            }
-        }
-
-        $html .= $settings['pagination_close'];
-        $html = str_replace('><', '>' . $nl . '<', $html);
-
-        if ($include_css == true) {
-            $html .= self::get_sample_css();
-        }
-
+        
         echo $html;
     }
 
-    static public function attempt_build_link($value, $pagination_data) {
+    /**
+     * Attempt to build a pagination link.
+     *
+     * @param string|int $value The value to determine the type of link.
+     * @param array $pagination_data The pagination data array.
+     * @return string The HTML code for the pagination link.
+     */
+    private static function attempt_build_link($value, array $pagination_data): string {
 
-        extract($pagination_data);
+        $pagination_root_url = BASE_URL.$pagination_data['pagination_root'];
+        $settings = $pagination_data['settings'];
+        $current_page = $pagination_data['current_page'];
 
         switch ($value) {
             case 'first_link':
-                $html = '<a href="' . $root . $trailing_url_str . '">' . $settings['first_link'] . '</a>';
+                $html = '<a href="' . $pagination_root_url . '">' . $settings['first_link'] . '</a>';
                 break;
             case 'last_link':
-                $html = '<a href="' . $root . $num_pages . $trailing_url_str . '">' . $settings['last_link'] . '</a>';
+                $html = '<a href="' . $pagination_root_url . $pagination_data['num_pages'] . '">' . $settings['last_link'] . '</a>';
                 break;
             case 'prev_link':
-                $html = '<a href="' . $root . $prev . $trailing_url_str . '">' . $settings['prev_link'] . '</a>';
+                $html = '<a href="' . $pagination_root_url . $current_page-1 . '">' . $settings['prev_link'] . '</a>';
                 break;
             case 'next_link':
-                $html = '<a href="' . $root . $next . $trailing_url_str . '">' . $settings['next_link'] . '</a>';
+                $html = '<a href="' . $pagination_root_url . $current_page+1 . '">' . $settings['next_link'] . '</a>';
                 break;
             default:
-                $html = '<a href="' . $root . $value . $trailing_url_str . '">' . $value . '</a>';
+                $html = '<a href="' . $pagination_root_url . $value . '">' . $value . '</a>';
                 break;
         }
 
         return $html;
+
     }
 
-    static public function get_settings_default() {
+    /**
+     * Checks for the presence and type of required properties in the pagination data array.
+     *
+     * @param array $pagination_data The pagination data array.
+     * @return void
+     */
+    private static function check_for_required_properties(array $pagination_data): void {
 
-        $settings['pagination_open'] = '<div class="pagination">';
-        $settings['pagination_close'] = '</div>';
+        // Accessing static properties using self::$required_properties;
+        $type_map = self::$type_map;
+        $required_properties = self::$required_properties;
 
-        $settings['cur_link_open'] = '<a href="#" class="active">';
-        $settings['cur_link_close'] = '</a>';
+        // Loop through required properties
+        foreach ($required_properties as $property => $expected_type) {
+            // Check if property exists in $pagination_data
+            if (isset($pagination_data[$property])) {
+                // Check if the type matches
+                if (isset($type_map[gettype($pagination_data[$property])]) && $type_map[gettype($pagination_data[$property])] === $expected_type) {
+                    // Unset the property from the required properties array
+                    unset($required_properties[$property]);
+                }
+            }
+        }
 
-        $settings['num_link_open'] = '';
-        $settings['num_link_close'] = '';
+        // Check if any required properties are missing
+        if (!empty($required_properties)) {
+            $missing_properties = [];
+            foreach ($required_properties as $property => $expected_type) {
+                $missing_properties[] = "$property (expected type: $expected_type)";
+            }
+            $error_message = 'Pagination Error: ';
+            if (count($missing_properties) === 1) {
+                $error_message .= 'Missing required property: ';
+            } else {
+                $error_message .= 'Missing required properties: ';
+            }
+            $error_message .= implode(', ', $missing_properties);
+            die($error_message);
+        }
+    }
 
-        $settings['first_link'] = 'First';
-        $settings['first_link_open'] = '';
-        $settings['first_link_close'] = '';
+    /**
+     * Initializes optional properties in the pagination data array with default values if they are not already set.
+     *
+     * @param array $pagination_data The pagination data array.
+     * @return array The pagination data array with optional properties initialized.
+     */
+    private static function init_optional_properties(array $pagination_data): array {
 
-        $settings['last_link'] = 'Last';
-        $settings['last_link_open'] = '';
-        $settings['last_link_close'] = '';
+        // Accessing static properties using self::$optional_properties
+        $type_map = self::$type_map;
+        $optional_properties = self::$optional_properties;
 
-        $settings['prev_link'] = '&laquo;';
-        $settings['prev_link_open'] = '';
-        $settings['prev_link_close'] = '';
+        // Loop through optional properties
+        foreach ($optional_properties as $property => $options) {
+            // Check if property exists in $pagination_data
+            if (!isset($pagination_data[$property])) {
+                // If property does not exist, set it to the default value
+                $pagination_data[$property] = $options['default'];
+            } else {
+                // If property exists, check if the type matches
+                $expected_type = $options['type'];
+                if (isset($type_map[gettype($pagination_data[$property])]) && $type_map[gettype($pagination_data[$property])] !== $expected_type) {
+                    // If the type of the property doesn't match the expected type, set it to the default value
+                    $pagination_data[$property] = $options['default'];
+                }
+            }
+        }
 
-        $settings['next_link'] = '&raquo;';
-        $settings['next_link_open'] = '';
-        $settings['next_link_close'] = '';
+        if (empty($pagination_data['settings'])) {
+            $pagination_data['settings'] = self::$default_settings;
+        } else {
+            // Custom settings have been submitted, let's validate them...
+            $pagination_data['settings'] = self::validate_settings($pagination_data['settings']);
+        }
+
+        return $pagination_data;
+    }
+
+    /**
+     * Validate custom pagination settings.
+     *
+     * @param array $submitted_settings The custom pagination settings submitted for validation.
+     * @return array|null The validated custom pagination settings, or null if validation fails.
+     */
+    private static function validate_settings(array $submitted_settings): ?array {
+        $settings = [];
+        $required_settings = array_keys(self::$default_settings);
+
+        foreach($required_settings as $rs_key => $required_setting) {
+            if (isset($submitted_settings[$required_setting])) {
+                $settings[$required_setting] = $submitted_settings[$required_setting];
+                unset($required_settings[$rs_key]);
+            }
+        }
+
+        // Check if any required settings are missing
+        if ((count($settings)) !== (count($required_settings))) {
+            $error_message = 'Pagination Error: ';
+
+            if (count($required_settings) === 1) {
+                $error_message .= 'Missing required settings property: ';
+            } else {
+                $error_message .= 'Missing required settings properties; ';
+            }
+
+            $error_message .= implode(', ', $required_settings);
+            die($error_message);
+        }
+
         return $settings;
     }
 
-    static public function get_showing_statement($limit, $current_page, $total_rows, $record_name_plural = null) {
+    /**
+     * Initializes derived properties in the pagination data array with default values or calculates them based on other properties.
+     *
+     * This method calculates and initializes the following derived properties in the pagination data array:
+     * - 'root' (string): The pagination root URL.
+     * - 'current_page' (int): The current page number.
+     * - 'start' (int): The starting page number in pagination links.
+     * - 'end' (int): The ending page number in pagination links.
+     * - 'num_links_to_side' (int): The number of links to show on each side.
+     * - 'num_pages' (int): The total number of pages.
+     * - 'prev' (mixed): The previous page number, or an empty string if not applicable.
+     * - 'next' (mixed): The next page number, or the last page number if not applicable.
+     * - 'showing_statement' (string|null): The showing statement, or null if not applicable.
+     *
+     * @param array $pagination_data The pagination data array.
+     * @return array The pagination data array with derived properties initialized.
+     */
+    private static function init_derived_properties(array $pagination_data): array {
 
-        $offset = ($current_page * $limit) - $limit;
+        // Make sure last character of 'pagination_root' is a '/'
+        if (substr($pagination_data['pagination_root'], -1) !== '/') {
+            // If not, append a '/' to the string
+            $pagination_data['pagination_root'] .= '/';
+        }
 
+        $pagination_root = rtrim(BASE_URL, '/') . '/' . ltrim($pagination_data['pagination_root'], '/');
+
+        $page_num_segment = $pagination_data['page_num_segment'] ?? null; // Ensure page_num_segment is set
+        $limit = $pagination_data['limit'] ?? null; // Ensure limit is set
+        $total_rows = $pagination_data['total_rows'] ?? null; // Ensure total_rows is set
+
+        // Check if required properties are set
+        if ($page_num_segment === null || $limit === null || $total_rows === null) {
+            // Throw an exception or handle the error appropriately
+            throw new InvalidArgumentException('Required properties (page_num_segment, limit, total_rows) are missing.');
+        }
+
+        // Calculate num_pages
+        $num_pages = ceil($total_rows / $limit);
+
+        // Calculate other derived properties
+        $current_page = max(segment($pagination_data['page_num_segment'], 'int'), 1);
+        $start = 1;
+        $end = min($pagination_data['num_links_per_page'] ?? 10, $num_pages);
+        $num_links_to_side = ($pagination_data['num_links_per_page'] ?? 10) / 2;
+        $prev = ($current_page > 1) ? $current_page - 1 : '';
+        $next = ($current_page < $num_pages) ? $current_page + 1 : $num_pages;
+
+        // Initialize derived properties in the pagination data array
+        $derived_properties = [
+            'root' => $pagination_root,
+            'current_page' => $current_page,
+            'start' => $start,
+            'end' => $end,
+            'num_links_to_side' => $num_links_to_side,
+            'num_pages' => $num_pages,
+            'prev' => $prev,
+            'next' => $next
+        ];
+
+        if (!isset($pagination_data['showing_statement'])) {
+            // Get showing statement if include_showing_statement is true
+            $showing_statement = self::get_showing_statement($pagination_data, $current_page);
+            if ($showing_statement !== null) {
+                $derived_properties['showing_statement'] = $showing_statement;
+            }
+        }
+
+        // Merge derived properties with pagination data
+        return array_merge($pagination_data, $derived_properties);
+    }
+
+    /**
+     * Generate the showing statement for pagination.
+     *
+     * @param array $pagination_data The pagination data array.
+     * @return string|null The showing statement if it should be included, otherwise null.
+     */
+    private static function get_showing_statement(array $pagination_data, int $current_page): ?string {
+
+        if (!$pagination_data['include_showing_statement']) {
+            return null;
+        }
+
+        $limit = $pagination_data['limit'];
+        $total_rows = $pagination_data['total_rows'];
+        $record_name_plural = $pagination_data['record_name_plural'];
+
+        // Calculate offset
+        $offset = ($current_page - 1) * $limit;
+
+        // Calculate values for showing statement
         $value1 = $offset + 1;
-        $value2 = $offset + $limit;
+        $value2 = min($offset + $limit, $total_rows);
         $value3 = $total_rows;
-
-        if ($value2 > $value3) {
-            $value2 = $value3;
-        }
-
-        if (!isset($record_name_plural)) {
-            $record_name_plural = 'results';
-        }
 
         $showing_statement = "Showing " . $value1 . " to " . $value2 . " of " . number_format($value3) . " $record_name_plural.";
         return $showing_statement;
     }
 
-    static public function get_sample_css() {
-        $css = '
-<style>
-.pagination {
-  display: inline-block;
-}
-
-.pagination a {
-  color: black;
-  float: left;
-  padding: 8px 16px;
-  text-decoration: none;
-  border: 1px solid #ddd;
-}
-
-.pagination a.active {
-  background-color: #636ec6;
-  color: white;
-  border: 1px solid #636ec6;
-}
-
-.pagination a:hover:not(.active) {background-color: #ddd;}
-
-.pagination a:first-child {
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-}
-
-.pagination a:last-child {
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
-</style>
-        ';
-        return $css;
-    }
 }
