@@ -138,12 +138,88 @@ class Pagination {
 
         $html.= '</div>';
 
-        if ($pagination_data['include_css'] === true) {
-            $sample_css_path = APPPATH.'engine/views/sample_pagination_style.css';
-            if (file_exists($sample_css_path)) {
-                $css_code = file_get_contents($sample_css_path);
+    /**
+     * Render pagination links based on provided pagination data.
+     *
+     * @param array $pagination_data The pagination data array.
+     * @return void
+     */
+    private static function render_pagination(array $pagination_data): void {
+        $html = PHP_EOL.'<div class="pagination">';
+
+        // Attempt 'first/prev' buttons if not on the first page.
+        if ($pagination_data['current_page'] > 1) {
+            $html .= $pagination_data['settings']['first_link_open'];
+            $html.= self::attempt_build_link('first_link', $pagination_data);
+            $html .= $pagination_data['settings']['first_link_close'].PHP_EOL;
+
+            $html .= $pagination_data['settings']['prev_link_open'];
+            $html.= self::attempt_build_link('prev_link', $pagination_data);
+            $html .= $pagination_data['settings']['prev_link_close'].PHP_EOL;
+        }
+
+        for ($i=1; $i <= $pagination_data['num_pages']; $i++) { 
+            // Numbered links.
+            if ($i == $pagination_data['current_page']) {
+                $html .= $pagination_data['settings']['cur_link_open'];
+                $html .= $i;
+                $html .= $pagination_data['settings']['cur_link_close'].PHP_EOL;
+            } else {
+                $html .= $pagination_data['settings']['num_link_open'];
+                $html.= self::attempt_build_link($i, $pagination_data);
+                $html .= $pagination_data['settings']['num_link_close'].PHP_EOL;
             }
-            $html.= PHP_EOL.'<style>'.$css_code.'</style>'.PHP_EOL;
+        }
+
+        // Attempt 'next/last' buttons if not on the last page.
+        if ($pagination_data['current_page'] < $pagination_data['num_pages']) {
+            $html .= $pagination_data['settings']['next_link_open'];
+            $html.= self::attempt_build_link('next_link', $pagination_data);
+            $html .= $pagination_data['settings']['next_link_close'].PHP_EOL;
+
+            $html .= $pagination_data['settings']['last_link_open'];
+            $html.= self::attempt_build_link('last_link', $pagination_data);
+            $html .= $pagination_data['settings']['last_link_close'].PHP_EOL;
+        }
+
+        $html.= '</div>';
+
+        if ($pagination_data['include_css'] === true) {
+            // CSS code
+            $css_code = '
+                .pagination {
+                    display: inline-block;
+                    margin: 0 0 1em 0;
+                }
+                .pagination:last-of-type {
+                    margin-top: 1em;
+                }
+                .pagination a {
+                    color: black;
+                    float: left;
+                    padding: 8px 16px;
+                    text-decoration: none;
+                    border: 1px solid #ddd;
+                }
+                .pagination a.active {
+                    background-color: var(--primary);
+                    color: white;
+                    border: 1px solid var(--primary);
+                }
+                .pagination a:hover:not(.active) {
+                    background-color: #ddd;
+                }
+                .pagination a:first-child {
+                    border-top-left-radius: 5px;
+                    border-bottom-left-radius: 5px;
+                }
+                .pagination a:last-child {
+                    border-top-right-radius: 5px;
+                    border-bottom-right-radius: 5px;
+                }';
+
+            // Concatenate CSS code into HTML string
+            $html .= PHP_EOL . '<style>' . $css_code . '</style>' . PHP_EOL;
         }
         
         echo $html;
