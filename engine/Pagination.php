@@ -89,54 +89,9 @@ class Pagination {
             echo '<p>' . $pagination_data['showing_statement'] . '</p>';
         }
 
+        //self::render_pagination($pagination_data);
         self::render_pagination($pagination_data);
     }
-
-    /**
-     * Render pagination links based on provided pagination data.
-     *
-     * @param array $pagination_data The pagination data array.
-     * @return void
-     */
-    private static function render_pagination(array $pagination_data): void {
-        $html = PHP_EOL.'<div class="pagination">';
-
-        // Attempt 'first/prev' buttons if not on the first page.
-        if ($pagination_data['current_page'] > 1) {
-            $html .= $pagination_data['settings']['first_link_open'];
-            $html.= self::attempt_build_link('first_link', $pagination_data);
-            $html .= $pagination_data['settings']['first_link_close'].PHP_EOL;
-
-            $html .= $pagination_data['settings']['prev_link_open'];
-            $html.= self::attempt_build_link('prev_link', $pagination_data);
-            $html .= $pagination_data['settings']['prev_link_close'].PHP_EOL;
-        }
-
-        for ($i=1; $i <= $pagination_data['num_pages']; $i++) { 
-            // Numbered links.
-            if ($i == $pagination_data['current_page']) {
-                $html .= $pagination_data['settings']['cur_link_open'];
-                $html .= $i;
-                $html .= $pagination_data['settings']['cur_link_close'].PHP_EOL;
-            } else {
-                $html .= $pagination_data['settings']['num_link_open'];
-                $html.= self::attempt_build_link($i, $pagination_data);
-                $html .= $pagination_data['settings']['num_link_close'].PHP_EOL;
-            }
-        }
-
-        // Attempt 'next/last' buttons if not on the last page.
-        if ($pagination_data['current_page'] < $pagination_data['num_pages']) {
-            $html .= $pagination_data['settings']['next_link_open'];
-            $html.= self::attempt_build_link('next_link', $pagination_data);
-            $html .= $pagination_data['settings']['next_link_close'].PHP_EOL;
-
-            $html .= $pagination_data['settings']['last_link_open'];
-            $html.= self::attempt_build_link('last_link', $pagination_data);
-            $html .= $pagination_data['settings']['last_link_close'].PHP_EOL;
-        }
-
-        $html.= '</div>';
 
     /**
      * Render pagination links based on provided pagination data.
