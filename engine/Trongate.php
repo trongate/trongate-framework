@@ -85,16 +85,16 @@ class Trongate {
     }
 
     /**
-     * Renders a view and returns the output as a string, or to the browser.
+     * Renders a view file with optional data.
      *
-     * @param  string     $view The name of the view file to render.
-     * @param  array      $data An array of data to pass to the view file.
-     * @param  bool|null  $return_as_str If set to true, the output is returned as a string, otherwise to the browser.
+     * This method can either display the view on the browser or return the generated contents as a string.
      *
-     * @return string|null If $return_as_str is true, returns the output as a string, otherwise returns null.
-     * @throws \Exception
-     * 
-     * @see https://trongate.io/docs/information/understanding-view-files
+     * @param string $view The name of the view file to render.
+     * @param array $data Optional. An associative array of data to pass to the view. Default is an empty array.
+     * @param bool|null $return_as_str Optional. Whether to return the rendered view as a string. Default is null.
+     *                                If set to true, the view content will be returned as a string; if set to false or null,
+     *                                the view will be displayed on the browser. Default is null, which means the view will be displayed.
+     * @return string|null If $return_as_str is true, the rendered view as a string; otherwise, null.
      */
     protected function view(string $view, array $data = [], ?bool $return_as_str = null): ?string {
         $return_as_str = $return_as_str ?? false;
