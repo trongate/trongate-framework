@@ -90,21 +90,6 @@ function attempt_add_custom_routes($target_url) {
     return $target_url;
 }
 
-function attempt_return_nice_url($target_url) {
-    //takes an assumed_url and returns the nice_url
-
-    foreach (CUSTOM_ROUTES as $key => $value) {
-
-        $pos = strpos($target_url, $value);
-
-        if (is_numeric($pos)) {
-            $target_url = str_replace($value, $key, $target_url);
-        }
-    }
-
-    return $target_url;
-}
-
 define('APPPATH', str_replace("\\", "/", dirname(dirname(__FILE__)) . '/'));
 define('REQUEST_TYPE', $_SERVER['REQUEST_METHOD']);
 $tg_helpers = ['form_helper', 'flashdata_helper', 'string_helper', 'timedate_helper', 'url_helper', 'utilities_helper'];

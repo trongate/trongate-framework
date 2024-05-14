@@ -116,7 +116,13 @@ function anchor(string $target_url, $text, ?array $attributes = null, ?string $a
         if (isset($attributes['rewrite_url'])) {
             unset($attributes['rewrite_url']);
         } else {
-            $target_url = attempt_return_nice_url($target_url);
+            //takes an assumed_url and returns the nice_url
+            foreach (CUSTOM_ROUTES as $key => $value) {
+                $pos = strpos($target_url, $value);
+                if (is_numeric($pos)) {
+                    $target_url = str_replace($value, $key, $target_url);
+                }
+            }
         }
 
         foreach ($attributes as $key => $value) {
