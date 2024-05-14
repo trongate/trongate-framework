@@ -18,17 +18,11 @@ class Trongate {
     }
 
     /**
-     * Loads a template controller file, instantiates the corresponding object, and calls
-     * the specified template method with the given data.
+     * Renders a specific template view by calling a corresponding method in the Templates controller class.
      *
-     * @param string $template_name The name of the template method to call.
-     * @param array $data The data to pass to the template method.
-     *
+     * @param string $template_name The name of the template method to be called.
+     * @param array $data An associative array containing data to be passed to the template method.
      * @return void
-     *
-     * @throws Exception If the template controller file cannot be found or the template method does not exist.
-     * 
-     * @see https://trongate.io/docs/information/what-are-templates
      */
     protected function template(string $template_name, array $data = []): void {
         $template_controller_path = '../templates/controllers/Templates.php';
@@ -37,7 +31,6 @@ class Trongate {
         $templates = new Templates;
 
         if (method_exists($templates, $template_name)) {
-
             if (!isset($data['view_file'])) {
                 $data['view_file'] = DEFAULT_METHOD;
             }
