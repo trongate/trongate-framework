@@ -7,7 +7,7 @@ class Trongate_administrators extends Trongate {
 
 
     /**
-     * Initiates the login process for administrators.
+     * Renders a login page for administrators.
      * 
      * @return void
      */
