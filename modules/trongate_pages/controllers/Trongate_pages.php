@@ -69,54 +69,52 @@ class Trongate_pages extends Trongate {
     }
 
     /**
-     * Generate a unique URL string by concatenating search-friendly strings.
+     * Generates a unique URL string by appending search-friendly strings or a random string if all variations are exhausted.
      *
-     * @param string $temp_url_string The temp URL string.
-     * @param array $all_website_pages An array of website page objects with 'url_string' property.
-     * @param int $record_id The ID of the trongate_pages record for which we are creating a unique string.
+     * This function checks if the provided temporary URL string is unique by comparing it with existing URL strings in the given array of website pages.
+     * If the URL string is not unique, it appends search-friendly strings from a predefined list until a unique URL string is obtained.
+     * If all variations of search-friendly strings have been exhausted without finding a unique URL string, it falls back to generating a random string.
+     * A maximum number of iterations is set to prevent infinite looping.
+     *
+     * @param string $temp_url_string The temporary URL string to be made unique.
+     * @param array $all_website_pages An array of all records (as objects) from the 'trongate_pages' table.
+     * @param int $record_id The ID of the website page record for which a unique URL string is being generated (default: 0).
      * @return string The unique URL string.
      */
     function _make_url_string_unique(string $temp_url_string, array $all_website_pages, int $record_id = 0): string {
-
+        // Check if there are any matches for the provided URL string
         $got_matches = $this->_got_matches($temp_url_string, $all_website_pages, $record_id);
 
+        // If the URL string is already unique, return it
         if ($got_matches === false) {
-            return $temp_url_string; // URL string is unique - no need to go any further
+            return $temp_url_string;
         }
 
+        // List of search-friendly strings to append to the URL string
         $search_friendly_strings = array(
-            "information",
-            "advice",
-            "details",
-            "insights",
-            "data",
-            "tips",
-            "facts",
-            "knowledge",
-            "solutions",
-            "resources",
-            "overview",
-            "explanation",
-            "learn-more",
-            "deep-dive",
-            "how-to",
-            "best-practices",
-            "explore",
-            "in-depth",
-            "essentials",
-            "analysis",
-            "research",
-            "walk-through"
+            "information", "advice", "details", "insights", "data",
+            "tips", "facts", "knowledge", "solutions", "resources",
+            "overview", "explanation", "learn-more", "deep-dive",
+            "how-to", "best-practices", "explore", "in-depth",
+            "essentials", "analysis", "research", "walk-through"
         );
 
+        // Append search-friendly strings until a unique URL string is obtained or maximum iterations reached
         $unique_url_string = $temp_url_string;
+        $max_iterations = 10; // Maximum number of iterations to prevent infinite looping
+        $iterations = 0;
 
-        while ($got_matches === true) {
+        while ($got_matches === true && $iterations < $max_iterations) {
             $random_key = array_rand($search_friendly_strings);
             $random_string = $search_friendly_strings[$random_key];
             $unique_url_string .= '-' . $random_string;
-
             $got_matches = $this->_got_matches($unique_url_string, $all_website_pages, $record_id);
+            $iterations++;
+        }
+
+        // If maximum iterations reached without finding a unique URL string, fallback to generating a random string
+        if ($iterations === $max_iterations) {
+            $unique_url_string .= '-' . make_rand_str(8); // Adjust length as needed
         }
 
         return $unique_url_string;
@@ -148,70 +146,6 @@ class Trongate_pages extends Trongate {
         } else {
             return false;
         }
-    }
-
-    /**
-     * Retrieve suggestions for records based on the provided id.
-     *
-     * @return array Returns an array of objects representing the suggested records.
-     */
-    function suggest(): array {
-        //api_auth();
-        $params = file_get_contents('php://input');
-        $posted_data = (object) json_decode($params);
-
-        if (!isset($posted_data->page_title)) {
-            http_response_code(400);
-            die();
-        }
-
-        $args['page_title'] = $posted_data->page_title . '%';
-        $sql = 'SELECT id, page_title, url_string FROM trongate_pages WHERE page_title LIKE :page_title';
-        $rows = $this->model->query_bind($sql, $args, 'object');
-
-        // Add a suggest string to each of the rows
-        foreach ($rows as $key => $value) {
-            $page_title = $value->page_title;
-            $rows[$key]->suggest_str = $page_title . ' (page ID: ' . $value->id . ')';
-        }
-
-        http_response_code(200);
-        echo json_encode($rows);
-
-        return $rows;
-    }
-
-    /**
-     * View pages in 'Category Builder' mode/
-     *
-     * @return void
-     */
-    function category_builder() {
-        $this->module('trongate_security');
-        $data['token'] = $this->trongate_security->_make_sure_allowed();
-        $data['all_pages'] = $this->model->get('id', 'trongate_pages');
-        $data['entity_name_singular'] = $this->entity_name_singular;
-        $data['entity_name_plural'] = $this->entity_name_plural;
-        $data['max_allowed_levels'] = $this->max_allowed_levels;
-        $data['view_module'] = 'trongate_pages';
-        $data['view_file'] = 'category_builder';
-        $this->template('admin', $data);
-    }
-
-    /**
-     * View pages in 'List View' mode/
-     *
-     * @return void
-     */
-    function list_view(): void {
-        $sql = 'SELECT * FROM trongate_pages ORDER BY parent_page_id, priority';
-        $data['rows'] = $this->model->query($sql, 'object');
-
-        $this->module('trongate_security');
-        $data['token'] = $this->trongate_security->_make_sure_allowed();
-        $data['view_module'] = 'trongate_pages';
-        $data['view_file'] = 'trongate_pages_list_view';
-        $this->template('admin', $data);
     }
 
     /**
@@ -253,13 +187,6 @@ class Trongate_pages extends Trongate {
                 die();
             }
 
-            $url_string = strtolower(url_title($page_title));
-            $input['params']['url_string'] = $url_string;
-            $update_id = (int) segment(4);
-            if ($update_id === 0) {
-                $input['params']['parent_page_id'] = 0;
-                $input['params']['priority'] = 0;
-            }
         }
 
         $input['params']['last_updated'] = time();
@@ -267,11 +194,17 @@ class Trongate_pages extends Trongate {
     }
 
     /**
-     * Fetch the uploaded images.
+     * Fetches uploaded images from the 'assets/images/uploads' directory, within the 'Trongate Pages' module.
+     * This function retrieves both directories and images within the specified directory.
      *
-     * @return void
+     * @return array Returns an array containing information about directories and images.
+     *               Each element in the array represents either a directory or an image.
+     *               Directories are represented by associative arrays containing 'info' and 'type' keys,
+     *               where 'info' holds the directory name and 'type' is set to 'directory'.
+     *               Images are represented by associative arrays containing 'file_name', 'date_uploaded',
+     *               'file_size', 'url', and 'type' keys. 'type' is set to 'image'.
      */
-    function fetch_uploaded_images(): void {
+    function fetch_uploaded_images(): array {
         api_auth();
 
         $posted_data = file_get_contents('php://input');
@@ -300,6 +233,8 @@ class Trongate_pages extends Trongate {
 
         http_response_code(200);
         echo json_encode($images);
+
+        return $images;
     }
 
     /**
@@ -1201,7 +1136,8 @@ class Trongate_pages extends Trongate {
         $record_obj = $this->model->get_one_where('url_string', $url_string, 'trongate_pages');
 
         if ($record_obj !== false) {
-            $url_string .= make_rand_str(8);
+            $all_website_pages = $this->model->get('id', 'trongate_pages');
+            $url_string = $this->_make_url_string_unique($url_string, $all_website_pages, $record_obj->id);
         }
 
         return $url_string;
