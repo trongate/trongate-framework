@@ -20,45 +20,44 @@ class Trongate_pages extends Trongate {
      */
     function attempt_display(): void {
 
+        $enable_page_edit = false;
         $this_current_url = rtrim(current_url(), '/');
-        $url_bits = explode('/', $this_current_url);
+        $target_segment = get_last_part($this_current_url, '/');
 
-        $target_segment = end($url_bits);
         if ($target_segment === 'edit') {
-            $num_bits = count($url_bits);
-            $target_segment = $url_bits[$num_bits - 2];
+            $url_segments = explode('/', $this_current_url);
+            $target_segment_index = count($url_segments) - 2;
+            $target_segment = $url_segments[$target_segment_index];
+
+            // Is this user an 'admin' user?
+            $this->module('trongate_tokens');
+            $token = $this->trongate_tokens->_attempt_get_valid_token(1);
+
+            if (($token === false) && (strtolower(ENV) === 'dev')) {
+                redirect('trongate_pages/manage');
+            } else {
+                // User is now confirmed as being 'admin'.
+                $enable_page_edit = true;                
+            }
+
         }
 
-        $target_segment = str_replace('/', '', $target_segment);
-        $record_obj = $this->model->get_one_where('url_string', $target_segment);
+        $record_obj = $this->model->get_one_where('url_string', $target_segment, 'trongate_pages');
 
         if ($record_obj === false) {
+            // No matching record found on trongate_pages table.
             $this->template('error_404', []);
             return;
         }
 
         $data = (array) $record_obj;
+        $data['enable_page_edit'] = $enable_page_edit;
         $data['targetTable'] = 'trongate_pages';
         $data['recordId'] = $record_obj->id;
         $data['imgUploadApi'] = BASE_URL . 'trongate_pages/submit_image_upload';
 
-        $last_segment = end($url_bits);
-
-        //is this user an 'admin' user?
-        $this->module('trongate_tokens');
-        $token = $this->trongate_tokens->_attempt_get_valid_token(1);
-        $data['enable_page_edit'] = false;
-
-        if (($last_segment === 'edit') && ($token !== false)) {
-            $data['enable_page_edit'] = true;
-        } elseif (($last_segment === 'edit') && ($token === false)) {
-            if (strtolower(ENV) === 'dev') {
-                redirect('trongate_pages/manage');
-            }
-        }
-
+        // Produce a 404 page IF this page is not published.
         if (($data['published'] === 0) && ($last_segment !== 'edit')) {
-            //page not published
             load('error_404');
             die();
         }
