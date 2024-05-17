@@ -14,61 +14,6 @@ class Trongate_pages extends Trongate {
     private $sample_text = 'Lorem ipsum, dolor sit amet, consectetur adipisicing elit. Sit sint perferendis a totam repellendus vitae architecto sunt obcaecati doloribus deserunt, unde, molestiae maxime. Enim adipisci officiis sit. Quasi, aliquam, facilis. Lorem ipsum, dolor sit amet, consectetur adipisicing elit. Sit sint perferendis a totam repellendus vitae architecto sunt obcaecati doloribus deserunt, unde, molestiae maxime. Enim adipisci officiis sit. Quasi, aliquam, facilis.Lorem ipsum, dolor sit amet, consectetur adipisicing elit. Sit sint perferendis a totam repellendus vitae architecto sunt obcaecati doloribus deserunt, unde, molestiae maxime. Enim adipisci officiis sit. Quasi, aliquam, facilis.Lorem ipsum, dolor sit amet, consectetur adipisicing elit.';
 
     /**
-     * Attempt to display a page based on the URL segment.
-     *
-     * @return void
-     */
-    function attempt_display(): void {
-
-        $enable_page_edit = false;
-        $this_current_url = rtrim(current_url(), '/');
-        $target_segment = get_last_part($this_current_url, '/');
-
-        if ($target_segment === 'edit') {
-            $url_segments = explode('/', $this_current_url);
-            $target_segment_index = count($url_segments) - 2;
-            $target_segment = $url_segments[$target_segment_index];
-
-            // Is this user an 'admin' user?
-            $this->module('trongate_tokens');
-            $token = $this->trongate_tokens->_attempt_get_valid_token(1);
-
-            if (($token === false) && (strtolower(ENV) === 'dev')) {
-                redirect('trongate_pages/manage');
-            } else {
-                // User is now confirmed as being 'admin'.
-                $enable_page_edit = true;                
-            }
-
-        }
-
-        $record_obj = $this->model->get_one_where('url_string', $target_segment, 'trongate_pages');
-
-        if ($record_obj === false) {
-            // No matching record found on trongate_pages table.
-            $this->template('error_404', []);
-            return;
-        }
-
-        $data = (array) $record_obj;
-        $data['enable_page_edit'] = $enable_page_edit;
-        $data['targetTable'] = 'trongate_pages';
-        $data['recordId'] = $record_obj->id;
-        $data['imgUploadApi'] = BASE_URL . 'trongate_pages/submit_image_upload';
-
-        // Produce a 404 page IF this page is not published.
-        if (($data['published'] === 0) && ($last_segment !== 'edit')) {
-            load('error_404');
-            die();
-        }
-
-        $data['sample_text'] = $this->sample_text;
-        $data['view_module'] = 'trongate_pages';
-        $data['view_file'] = 'display';
-        $this->template($this->page_template, $data);
-    }
-
-    /**
      * Generates a unique URL string by appending search-friendly strings or a random string if all variations are exhausted.
      *
      * This function checks if the provided temporary URL string is unique by comparing it with existing URL strings in the given array of website pages.
@@ -376,41 +321,63 @@ class Trongate_pages extends Trongate {
     }
 
     /**
-     * Displays a single page with the specified URL.
+     * Attempts to display a page based on the URL segment by invoking the display() method of the Trongate Pages module.
+     *
+     * This method delegates the task of displaying a page to the display() method of the Trongate Pages module.
+     * It handles scenarios such as checking if the user is an admin for editing permissions and ensuring that only published pages are displayed.
+     *
+     * @return void
+     */
+    function attempt_display(): void {
+        $this->display();
+    }
+
+    /**
+     * Attempt to display a page based on the URL segment.
      *
      * @return void
      */
     function display(): void {
-        $target_segment = (segment(2) !== 'display') ? 2 : 3;
-        $record_obj = $this->model->get_one_where('url_string', segment($target_segment));
+
+        $enable_page_edit = false;
+        $this_current_url = rtrim(current_url(), '/');
+        $target_segment = get_last_part($this_current_url, '/');
+
+        if ($target_segment === 'edit') {
+            $url_segments = explode('/', $this_current_url);
+            $target_segment_index = count($url_segments) - 2;
+            $target_segment = $url_segments[$target_segment_index];
+
+            // Is this user an 'admin' user?
+            $this->module('trongate_tokens');
+            $token = $this->trongate_tokens->_attempt_get_valid_token(1);
+
+            if (($token === false) && (strtolower(ENV) === 'dev')) {
+                redirect('trongate_pages/manage');
+            } else {
+                // User is now confirmed as being 'admin'.
+                $enable_page_edit = true;                
+            }
+
+        }
+
+        $record_obj = $this->model->get_one_where('url_string', $target_segment, 'trongate_pages');
+
+        if ($record_obj === false) {
+            // No matching record found on trongate_pages table.
+            $this->template('error_404', []);
+            return;
+        }
+
         $data = (array) $record_obj;
+        $data['enable_page_edit'] = $enable_page_edit;
         $data['targetTable'] = 'trongate_pages';
         $data['recordId'] = $record_obj->id;
         $data['imgUploadApi'] = BASE_URL . 'trongate_pages/submit_image_upload';
 
-        $last_segment = SEGMENTS[count(SEGMENTS) - 1];
-
-        //is this user an 'admin' user?
-        $this->module('trongate_tokens');
-        $token = $this->trongate_tokens->_attempt_get_valid_token(1);
-        $data['enable_page_edit'] = false;
-
-        if (($last_segment === 'edit') && ($token !== false)) {
-            $data['enable_page_edit'] = true;
-        } elseif (($last_segment === 'edit') && ($token === false)) {
-            if (strtolower(ENV) === 'dev') {
-                redirect('trongate_pages/manage');
-            }
-        }
-
+        // Produce a 404 page IF this page is not published.
         if (($data['published'] === 0) && ($last_segment !== 'edit')) {
-            //page not published
             load('error_404');
-
-            if (strtolower(ENV) === 'dev') {
-                $this->view('not_published_info');
-            }
-
             die();
         }
 
