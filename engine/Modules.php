@@ -5,6 +5,8 @@
  */
 class Modules {
 
+    private $modules = [];
+
     /**
      * Run a module's controller action.
      *
@@ -64,7 +66,7 @@ class Modules {
         }
 
         require_once $target_controller_path;
-        $this->$target_module = new $target_module($target_module);
+        $this->modules[$target_module] = new $target_module($target_module);
     }
 
     /**
@@ -74,7 +76,7 @@ class Modules {
      * @return array Returns an array containing the list of existing modules.
      */
     public function list(bool $recursive = false): array {
-        $target_path = APPPATH.'modules';
+        $target_path = APPPATH . 'modules';
         $file = new File;
         $existing_modules = $file->list_directory($target_path, $recursive);
         return $existing_modules;
@@ -103,5 +105,4 @@ class Modules {
 
         return $child_module;
     }
-
 }
