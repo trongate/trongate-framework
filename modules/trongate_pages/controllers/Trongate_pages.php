@@ -3,7 +3,6 @@ class Trongate_pages extends Trongate {
 
     private $page_template = 'public';
     private $admin_template = 'admin';
-    private $default_limit = 20;
     private $per_page_options = array(10, 20, 50, 100);
     private $max_file_size_mb = 5; // maximum allowed file size (for images) in megabytes
     private $max_width = 4200; // maximum allowed width for image uploads
@@ -19,10 +18,9 @@ class Trongate_pages extends Trongate {
     function display(): void {
 
         $enable_page_edit = false;
+        $target_segment = get_last_segment();
 
         if (current_url() === BASE_URL) {
-            $target_segment = 'homepage';
-            $last_segment = 'homepage';
 
             if (strtolower(ENV) === 'dev') {
                 $num_rows = $this->model->count('trongate_pages');
@@ -30,13 +28,15 @@ class Trongate_pages extends Trongate {
                     $this->_create_homepage_record();
                 }
             }
+
+            $record_obj = $this->model->get_where(1, 'trongate_pages');
+
         } else {
-            $this_current_url = rtrim(current_url(), '/');
-            $target_segment = get_last_part($this_current_url, '/');
             $last_segment = $target_segment;
         }
 
         if ($target_segment === 'edit') {
+            $this_current_url = rtrim(current_url(), '/');
             $url_segments = explode('/', $this_current_url);
             $target_segment_index = count($url_segments) - 2;
             $target_segment = $url_segments[$target_segment_index];
@@ -51,11 +51,12 @@ class Trongate_pages extends Trongate {
                 // User is now confirmed as being 'admin'.
                 $enable_page_edit = true;                
             }
-
         }
 
-        $record_obj = $this->model->get_one_where('url_string', $target_segment, 'trongate_pages');
-
+        if (!isset($record_obj)) {
+            $record_obj = $this->model->get_one_where('url_string', $target_segment, 'trongate_pages');
+        }
+        
         if ($record_obj === false) {
             // No matching record found on trongate_pages table.
             $this->template('error_404', []);
