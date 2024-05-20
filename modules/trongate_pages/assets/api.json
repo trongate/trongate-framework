@@ -1,18 +1,47 @@
 {
-  "Create Image Folder": {
-    "url_segments": "trongate_pages/submit_create_new_img_folder",
+  "Find One": {
+    "url_segments": "api/get/trongate_pages/{id}",
+    "request_type": "GET",
+    "description": "Fetch one row",
+    "required_fields": [
+      {
+        "name": "id",
+        "label": "ID"
+      }
+    ],
+    "authorization": {
+      "roles": ["admin"]
+    }
+  },
+  "Update": {
+    "url_segments": "api/update/trongate_pages/{id}",
+    "request_type": "PUT",
+    "description": "Update a database record",
+    "enableParams": true,
+    "required_fields": [
+      {
+        "name": "id",
+        "label": "ID"
+      }
+    ],
+    "authorization": {
+      "roles": ["admin"]
+    },
+    "beforeHook": "_pre_update"
+  },
+  "Beautify Source": {
+    "url_segments": "trongate_pages/submit_beautify",
     "request_type": "POST",
-    "description": "Create New Image Folder",
+    "description": "Beautify source code",
     "enableParams": true,
     "authorization": {
       "roles": ["admin"]
     }
   },
-  "Rename Image Folder": {
-    "url_segments": "trongate_pages/submit_rename_img_folder",
+  "Fetch Uploaded Images": {
+    "url_segments": "trongate_pages/fetch_uploaded_images",
     "request_type": "POST",
-    "description": "Rename Existing Image Folder",
-    "enableParams": true,
+    "description": "Fetch Uploaded Images",
     "authorization": {
       "roles": ["admin"]
     }
@@ -32,14 +61,6 @@
       "roles": ["admin"]
     }
   },
-  "Fetch Uploaded Images": {
-    "url_segments": "trongate_pages/fetch_uploaded_images",
-    "request_type": "POST",
-    "description": "Fetch Uploaded Images",
-    "authorization": {
-      "roles": ["admin"]
-    }
-  },
   "Delete Image": {
     "url_segments": "trongate_pages/submit_delete_image/{id}",
     "request_type": "DELETE",
@@ -55,10 +76,28 @@
       "roles": ["admin"]
     }
   },
+  "Create Image Folder": {
+    "url_segments": "trongate_pages/submit_create_new_img_folder",
+    "request_type": "POST",
+    "description": "Create New Image Folder",
+    "enableParams": true,
+    "authorization": {
+      "roles": ["admin"]
+    }
+  },
   "Delete Folder": {
     "url_segments": "trongate_pages/submit_delete_folder",
     "request_type": "DELETE",
     "description": "Delete Folder From Server",
+    "enableParams": true,
+    "authorization": {
+      "roles": ["admin"]
+    }
+  },
+  "Rename Image Folder": {
+    "url_segments": "trongate_pages/submit_rename_img_folder",
+    "request_type": "POST",
+    "description": "Rename Existing Image Folder",
     "enableParams": true,
     "authorization": {
       "roles": ["admin"]
@@ -72,125 +111,5 @@
     "authorization": {
       "roles": ["admin"]
     }
-  },
-  "Get": {
-    "url_segments": "api/get/trongate_pages",
-    "request_type": "GET",
-    "description": "Fetch rows from table",
-    "enableParams": true,
-    "authorization": {
-      "roles": ["admin"]
-    }
-  },
-  "Get By Post": {
-    "url_segments": "api/get/trongate_pages",
-    "request_type": "POST",
-    "description": "Fetch rows from table using POST request.",
-    "enableParams": true,
-    "authorization": {
-      "roles": ["admin"]
-    }
-  },
-  "Find One": {
-    "url_segments": "api/get/trongate_pages/{id}",
-    "request_type": "GET",
-    "description": "Fetch one row",
-    "required_fields": [
-      {
-        "name": "id",
-        "label": "ID"
-      }
-    ],
-    "authorization": {
-      "roles": ["admin"]
-    }
-  },
-  "Exists": {
-    "url_segments": "api/exists/trongate_pages/{id}",
-    "request_type": "GET",
-    "description": "Check if instance exists",
-    "required_fields": [
-      {
-        "name": "id",
-        "label": "ID"
-      }
-    ]
-  },
-  "Count": {
-    "url_segments": "api/count/trongate_pages",
-    "request_type": "GET",
-    "description": "Count number of records",
-    "enableParams": true
-  },
-  "Count By Post": {
-    "url_segments": "api/count/trongate_pages",
-    "request_type": "POST",
-    "description": "Count number of records using POST request",
-    "enableParams": true,
-    "authorization": {
-      "roles": ["admin"]
-    }
-  },
-  "Insert Batch": {
-    "url_segments": "api/batch/trongate_pages",
-    "request_type": "POST",
-    "description": "Insert multiple records",
-    "enableParams": true
-  },
-  "Remember Positions": {
-    "url_segments": "trongate_pages/remember_positions",
-    "request_type": "POST",
-    "description": "Remember positions of some child nodes",
-    "enableParams": true,
-    "authorization": {
-      "roles": ["admin"]
-    }
-  },
-  "Create": {
-    "url_segments": "api/create/trongate_pages",
-    "request_type": "POST",
-    "description": "Insert database record",
-    "enableParams": true,
-    "authorization": {
-      "roles": ["admin"]
-    },
-    "beforeHook": "_pre_create"
-  },
-  "Update": {
-    "url_segments": "api/update/trongate_pages/{id}",
-    "request_type": "PUT",
-    "description": "Update a database record",
-    "enableParams": true,
-    "required_fields": [
-      {
-        "name": "id",
-        "label": "ID"
-      }
-    ],
-    "authorization": {
-      "roles": ["admin"]
-    },
-    "beforeHook": "_pre_update"
-  },
-  "Destroy": {
-    "url_segments": "api/destroy/trongate_pages",
-    "request_type": "DELETE",
-    "description": "Delete row or rows",
-    "enableParams": true
-  },
-  "Delete One": {
-    "url_segments": "api/delete/trongate_pages/{id}",
-    "request_type": "DELETE",
-    "description": "Delete one row",
-    "required_fields": [
-      {
-        "name": "id",
-        "label": "ID"
-      }
-    ],
-    "authorization": {
-      "roles": ["admin"]
-    },
-    "beforeHook": "_make_sure_delete_allowed"
   }
 }

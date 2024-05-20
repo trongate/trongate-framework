@@ -5,6 +5,7 @@
     trongatePagesToken: '<?= $trongate_token ?>',
     imgRootDir: '../modules/trongate_pages/assets/images/uploads',
     currentImgDir: '',
+    inviteClearHome: <?= $tgp_invite_clear_home ?>,
     pageBody: document.getElementsByTagName('body')[0],
     defaultActiveElParent: document.getElementsByClassName('page-content')[0],
     headlineTags: ["H1", "H2", "H3", "H4", "H5", "h1", "h2", "h3", "h4", "h5"],

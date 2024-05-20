@@ -52,13 +52,14 @@ function tgpOpenCodeViewModal() {
     htmlContent = htmlContent.replace(/style=""/g, "");
 
     const params = {
-      raw_html: htmlContent,
+      page_body: htmlContent,
     };
 
     const targetUrl =
       trongatePagesObj.baseUrl + "trongate_pages/submit_beautify";
     const http = new XMLHttpRequest();
     http.open("post", targetUrl);
+    http.setRequestHeader('trongateToken', trongatePagesObj.trongatePagesToken);
     http.setRequestHeader("Content-type", "application-json");
     http.send(JSON.stringify(params));
     http.onload = function () {

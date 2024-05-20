@@ -1,7 +1,7 @@
 <h1><?= $headline ?></h1>
 <?php
 flashdata();
-validation_errors();
+echo validation_errors();
 echo '<p>';
 echo form_button('create', 'Create New Webpage', array('onclick' => 'openModal(\'create-page-modal\')'));
 if (strtolower(ENV) === 'dev') {
@@ -52,15 +52,21 @@ if (count($rows) > 0) {
                     <td class="text-center"><?= $row->id ?></td>
                     <td class="text-center"><?= $published_icon ?></td>
                     <td class="double-decker">
-                        <div><span class="fake-link" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')"><?= $row->page_title ?></span></div>
-                        <div class="xs"><b>URL:</b> <?= $row->webpage_url ?></div>
+                        <div><span class="fake-link" onclick="openGoToWebpagePage('<?= $row->id ?>', '<?= $row->webpage_url ?>', '<?= $row->webpage_url_public ?>')"><?= $row->page_title ?></span></div>
+                        <div class="xs"><b>URL:</b> <?= $row->webpage_url_public ?></div>
                     </td>
                     <td><?= $row->author ?></td>
                     <td class="double-decker">
                         <div><span class="smaller">Created on </span> <?= date('l jS F Y', $row->date_created) ?></div>
-                        <div class="xs">Last updated: <?= date('l jS F Y \a\t H:i', $row->last_updated) ?></div>
+                        <div class="xs">Last updated: <?php 
+                        if ($row->last_updated === 0) {
+                            echo 'Never';
+                        } else {
+                            echo date('l jS F Y \a\t H:i', $row->last_updated);
+                        }
+                        ?></div>
                     </td>
-                    <td><button class="alt" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')">Edit</button></td>
+                    <td><button class="alt" onclick="openGoToWebpagePage('<?= $row->id ?>', '<?= $row->webpage_url ?>', '<?= $row->webpage_url_public ?>')">Edit</button></td>
                 </tr>
             <?php
             }
@@ -98,10 +104,10 @@ if (count($rows) > 0) {
             ?>
                 <tr>
                     <td>
-                        <div><span class="fake-link" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')"><?= $row->page_title ?></span>
+                        <div><span class="fake-link" onclick="openGoToWebpagePage('<?= $row->id ?>', '<?= $row->webpage_url ?>', '<?= $row->webpage_url_public ?>')"><?= $row->page_title ?></span>
                             <div class="published-status"><?= $published_icon . ' <span class="published-txt">' . $published_status ?></span></div>
                         </div>
-                        <div><button class="alt" onclick="openGoToWebpagePage('<?= $row->webpage_url ?>', '<?= $row->id ?>')">Edit</button></div>
+                        <div><button class="alt" onclick="openGoToWebpagePage('<?= $row->id ?>', '<?= $row->webpage_url ?>', '<?= $row->webpage_url_public ?>')">Edit</button></div>
                     </td>
                 </tr>
             <?php
@@ -152,7 +158,9 @@ if (count($rows) > 0) {
 
 <style>
     #results-tbl>thead>tr:nth-child(2)>th:nth-child(1),
-    #results-tbl tbody td:nth-child(1) {
+    #results-tbl tbody td:nth-child(1),
+    #results-tbl>thead>tr:nth-child(2)>th:nth-child(2),
+    #results-tbl tbody td:nth-child(2) {
         width: 1%;
     }
 
@@ -370,7 +378,7 @@ if (count($rows) > 0) {
         publishedTxtEl.innerHTML = publishedTitle;
     }
 
-    function openGoToWebpagePage(webpageUrl, recordId) {
+    function openGoToWebpagePage(recordId, webpageUrl, webpageUrlPublic) {
         const targetIcon = document.getElementById('published-icon-' + recordId);
         const isPublished = (targetIcon.classList.contains('fa-times-circle')) ? 'no' : 'yes';
 
@@ -379,7 +387,7 @@ if (count($rows) > 0) {
             const firstLink = document.querySelector('#goto-webpage-modal > div.modal-body > ul > li:nth-child(1) > a');
             firstLink.href = webpageUrl + '/edit';
             const secondLink = document.querySelector('#goto-webpage-modal > div.modal-body > ul > li:nth-child(2) > a');
-            secondLink.href = webpageUrl;
+            secondLink.href = webpageUrlPublic;
             const notPublishedWarning = document.getElementById('not-published-warning');
             notPublishedWarning.style.display = isPublished === 'yes' ? 'none' : 'block';
         }, 1);

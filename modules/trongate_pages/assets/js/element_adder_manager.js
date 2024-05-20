@@ -484,6 +484,7 @@ function tgpCreateSettingsForm(pageSettings = {}) {
   urlStringInput.value = pageSettings.url_string ? pageSettings.url_string : "";
   urlStringInput.id = "url_string";
   urlStringInput.placeholder = "Enter URL string here...";
+  urlStringInput.autocomplete = 'off';
   form.appendChild(urlStringLabel);
   form.appendChild(urlStringInput);
 
@@ -497,6 +498,7 @@ function tgpCreateSettingsForm(pageSettings = {}) {
   pageTitleInput.value = pageSettings.page_title ? pageSettings.page_title : "";
   pageTitleInput.id = "page_title";
   pageTitleInput.placeholder = "Enter page title here...";
+  pageTitleInput.autocomplete = 'off';
   form.appendChild(pageTitleLabel);
   form.appendChild(pageTitleInput);
 
@@ -512,6 +514,7 @@ function tgpCreateSettingsForm(pageSettings = {}) {
     : "";
   metaKeywordsInput.id = "meta_keywords";
   metaKeywordsInput.placeholder = "Enter keywords here...";
+  metaKeywordsInput.autocomplete = 'off';
   form.appendChild(metaKeywordsLabel);
   form.appendChild(metaKeywordsInput);
 
@@ -557,6 +560,18 @@ function tgpCreateSettingsForm(pageSettings = {}) {
 }
 
 function tgpSaveSettings() {
+
+  tgpReset([
+    "selectedRange",
+    "codeviews",
+    "toolbars",
+    "activeEl",
+  ]);
+
+  tgpSavingPage = true; //so that pointers do not get added to HRs upon mouseup
+
+  tgpRemoveContentEditables();
+
   // Get the form element
   const form = document.getElementById("tgp-settings-form");
 
@@ -566,6 +581,7 @@ function tgpSaveSettings() {
     meta_keywords: form.elements.meta_keywords.value,
     meta_description: form.elements.meta_description.value,
     published: form.elements.published.checked ? 1 : 0,
+    page_body: trongatePagesObj.defaultActiveElParent.innerHTML
   };
 
   // Clear the modal body contents

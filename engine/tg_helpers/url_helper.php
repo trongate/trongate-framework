@@ -43,20 +43,24 @@ function remove_query_string(string $string): string {
 }
 
 /**
- * Retrieves the last part of a string based on a delimiter.
+ * Get the number of segments in the current URL after the base URL.
  *
- * @param string $str The input string to retrieve the last part from.
- * @param string $delimiter The delimiter used to split the string (default: '-').
- * @return string The last part of the input string.
+ * @return int The number of URL segments after the base URL.
  */
-function get_last_part(string $str, string $delimiter = '-'): string {
-    if (strpos($str, $delimiter) !== false) {
-        $parts = explode($delimiter, $str);
-        $last_part = end($parts);
-    } else {
-        $last_part = $str;
-    }
-    return $last_part;
+function get_num_segments(): int {
+    $url_path = str_replace(BASE_URL, '', current_url());
+    $url_segments = explode('/', $url_path);
+    return count($url_segments);
+}
+
+/**
+ * Get the value of the last segment of the current URL.
+ *
+ * @return string The last segment of the URL.
+ */
+function get_last_segment(): string {
+    $last_segment = get_last_part(current_url(), '/');
+    return $last_segment;
 }
 
 /**

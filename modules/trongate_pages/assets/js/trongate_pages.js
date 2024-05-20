@@ -26,7 +26,115 @@ function tgpStartPageEditor() {
   tgpAddPointersToHrs();
   tgpAddPointersToBtnDivs();
   tgpAddOverlayToYoutubeVideos();
+  tgpConsiderInviteClearHome();
   return;
+}
+
+function tgpConsiderInviteClearHome() {
+  if (trongatePagesObj.inviteClearHome === 1) {
+
+    tgpReset([
+      "selectedRange",
+      "codeviews",
+      "customModals",
+      "toolbars",
+      "activeEl",
+    ]);
+
+    const modalId = "tgp-clear-home-invite";
+    const customModal = tgpBuildCustomModal(modalId);
+    const modalBody = customModal.querySelector(".modal-body");
+
+    // Create the close button (cross) container
+    const closeButtonContainer = document.createElement("div");
+    closeButtonContainer.classList.add("tgp-close-button-container");
+
+    // Create the close button (cross)
+    const closeButton = document.createElement("span");
+    closeButton.classList.add("tgp-close-cross");
+    closeButton.innerHTML = "&#215;"; // Times symbol
+
+    // Add hover effect and click event to the close button
+    closeButton.style.cursor = "pointer";
+    closeButton.addEventListener("click", () => {
+      tgpCloseAndDestroyModal(modalId, true);
+    });
+
+    // Append the close button to the close button container
+    closeButtonContainer.appendChild(closeButton);
+    modalBody.appendChild(closeButtonContainer);
+
+    const modalHeading = document.createElement('h2');
+    modalHeading.setAttribute('class', 'text-center');
+    modalHeading.innerText = 'Well, hello there!';
+    modalHeading.style.marginTop = 0;
+    modalBody.appendChild(modalHeading);
+
+    const infoPara = document.createElement('p');
+    infoPara.innerText = 'It seems you\'re new here.  Would you like to clear the default homepage content and have a fresh start?';
+    modalBody.appendChild(infoPara);
+
+    const btnsPara = document.createElement('p');
+    btnsPara.setAttribute('class', 'text-center');
+    modalBody.appendChild(btnsPara);
+
+    const btn = document.createElement('button');
+    btn.setAttribute('type', 'button');
+    btn.innerText = 'Yes, Clear My Homepage';
+    btn.addEventListener('click', (ev) => {
+      tgpClearTheHomepage(ev.target);
+    });
+
+    const btnAlt = document.createElement('button');
+    btnAlt.setAttribute('type', 'button');
+    btnAlt.setAttribute('class', 'alt');
+    btnAlt.innerText = 'No, Keep It As Is';
+    btnAlt.addEventListener('click', (ev) => {
+      tgpCloseAndDestroyModal(modalId, true);
+    });
+
+    btnsPara.appendChild(btn);
+    btnsPara.appendChild(btnAlt);
+
+  }
+}
+
+function tgpClearTheHomepage(clickedEl) {
+  const modalBody = clickedEl.closest('.modal-body');
+  const modalBodyShape = modalBody.getBoundingClientRect();
+  modalBody.style.minHeight = modalBodyShape.height -33 + 'px';
+
+  while(modalBody.firstChild) {
+    modalBody.removeChild(modalBody.firstChild);
+  }
+
+  modalBody.style.display = 'flex';
+  modalBody.style.alignItems = 'center';
+  modalBody.style.justifyContent = 'center';
+
+  const tempSpinner = document.createElement('div');
+  tempSpinner.setAttribute('class', 'spinner');
+  modalBody.appendChild(tempSpinner);
+
+  const pageContentEl = document.querySelector('.page-content');
+
+  while(pageContentEl.firstChild) {
+    pageContentEl.removeChild(pageContentEl.firstChild);
+  }
+
+  tgpSavePage();
+
+  setTimeout(() => {
+    // Now, make the 'Create Element' button flash for a few seconds.
+    const createElBtn = document.querySelector('#tgp-create-page-el-btn');
+    createElBtn.classList.add('blink');
+
+    setTimeout(() => {
+      createElBtn.classList.remove('blink');
+    }, 3000);
+
+  }, 1000);
+
 }
 
 function tgpClickPlusBtn() {
@@ -140,11 +248,9 @@ function tgpSavePage() {
 
   tgpRemoveContentEditables();
 
-  let pageContent = document.getElementsByClassName("page-content")[0];
-
   setTimeout(() => {
     const params = {
-      page_body: trongatePagesObj.defaultActiveElParent.innerHTML,
+      page_body: trongatePagesObj.defaultActiveElParent.innerHTML
     };
 
     tgpSendSaveRequest(params);

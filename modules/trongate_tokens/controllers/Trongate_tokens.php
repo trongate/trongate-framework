@@ -349,7 +349,7 @@ class Trongate_tokens extends Trongate {
         $expiry_date = segment(4);
 
         // Validate input format
-        if (strlen($old_token) !== 32 || !ctype_xdigit($old_token) || !is_numeric($expiry_date) || $expiry_date < time()) {
+        if (strlen($old_token) !== 32 || !is_numeric($expiry_date) || $expiry_date < time()) {
             http_response_code(400); // Bad Request
             die();
         }

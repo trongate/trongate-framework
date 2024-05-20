@@ -620,6 +620,7 @@ function tgpUploadImg() {
   http.send(formData);
 
   http.onload = function () {
+
     const response = http.responseText;
     const status = http.status;
 

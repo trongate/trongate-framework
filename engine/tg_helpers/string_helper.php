@@ -34,6 +34,23 @@ function truncate_words(string $value, int $max_words): string {
 }
 
 /**
+ * Retrieves the last part of a string based on a delimiter.
+ *
+ * @param string $str The input string to retrieve the last part from.
+ * @param string $delimiter The delimiter used to split the string (default: '-').
+ * @return string The last part of the input string.
+ */
+function get_last_part(string $str, string $delimiter = '-'): string {
+    if (strpos($str, $delimiter) !== false) {
+        $parts = explode($delimiter, $str);
+        $last_part = end($parts);
+    } else {
+        $last_part = $str;
+    }
+    return $last_part;
+}
+
+/**
  * Format a number as a price with commas and optional currency symbol.
  *
  * @param float $num The number to be formatted.
