@@ -1,7 +1,7 @@
 <?php
 class Trongate_pages extends Trongate {
 
-	private $page_template = 'public';
+    private $page_template = 'public';
     private $admin_template = 'admin';
     private $per_page_options = array(10, 20, 50, 100);
     private $max_file_size_mb = 5; // maximum allowed file size (for images) in megabytes
@@ -9,89 +9,6 @@ class Trongate_pages extends Trongate {
     private $max_height = 3200; // set maximum allowed height for image uploads
 
     private $sample_text = 'Lorem ipsum, dolor sit amet, consectetur adipisicing elit. Sit sint perferendis a totam repellendus vitae architecto sunt obcaecati doloribus deserunt, unde, molestiae maxime. Enim adipisci officiis sit. Quasi, aliquam, facilis. Lorem ipsum, dolor sit amet, consectetur adipisicing elit. Sit sint perferendis a totam repellendus vitae architecto sunt obcaecati doloribus deserunt, unde, molestiae maxime. Enim adipisci officiis sit. Quasi, aliquam, facilis.Lorem ipsum, dolor sit amet, consectetur adipisicing elit. Sit sint perferendis a totam repellendus vitae architecto sunt obcaecati doloribus deserunt, unde, molestiae maxime. Enim adipisci officiis sit. Quasi, aliquam, facilis.Lorem ipsum, dolor sit amet, consectetur adipisicing elit.';
-
-    /**
-     * Restores the 'default' homepage content.
-     *
-     * @return void
-     */
-    function reset(): void {
-        if (strtolower(ENV) !== 'dev') {
-            http_response_code(403);
-            die();
-        }
-
-        $data['page_body'] = $this->view('default_homepage_content', [], true);
-        $data['last_updated'] = 0;
-        $this->model->update(1, $data);
-        http_response_code(200);
-        echo 'Homepage has been successfully reset.';
-    }
-
-    /**
-     * Ensures that the current user is allowed to access the protected resource.
-     * Feel free to change to suit your own individual use case.
-     *
-     * @return string|false The security token if the user is authorized, or false otherwise.
-     */
-    function _make_sure_allowed(): string|false {
-        //by default, 'admin' users (i.e., users with user_level_id === 1) are allowed
-        $this->module('trongate_security');
-        $token = $this->trongate_security->_make_sure_allowed();
-        return $token;
-    }
-
-    /**
-     * Displays a list of pages that can be managed.
-     *
-     * @return void
-     */
-    function manage(): void {
-        $token = $this->_make_sure_allowed();
-
-        // Check if the image folder exists and is writable
-        $folder_path = APPPATH . 'modules/trongate_pages/assets/images/uploads';
-        if (!is_writable($folder_path)) {
-            $data['view_module'] = 'trongate_pages';
-            $this->view('permissions_error', $data);
-            die();
-        }
-
-        if (segment(4) !== '') {
-            $data['headline'] = 'Search Results';
-            $searchphrase = trim($_GET['searchphrase']);
-            $params['page_title'] = '%' . $searchphrase . '%';
-            $params['page_body'] = '%' . $searchphrase . '%';
-            $sql = 'select * from trongate_pages
-            WHERE page_title LIKE :page_title
-            OR page_body LIKE :page_body
-            ORDER BY date_created desc';
-            $all_rows = $this->model->query_bind($sql, $params, 'object');
-        } else {
-            $data['headline'] = 'Manage Webpages';
-            $all_rows = $this->model->get('id');
-        }
-
-        $pagination_data['total_rows'] = count($all_rows);
-        $pagination_data['page_num_segment'] = 3;
-        $pagination_data['limit'] = $this->_get_limit();
-        $pagination_data['pagination_root'] = 'trongate_pages/manage';
-        $pagination_data['record_name_plural'] = 'webpages';
-        $pagination_data['include_showing_statement'] = true;
-        $data['pagination_data'] = $pagination_data;
-
-        $data['form_location'] = str_replace('/manage', '/submit', current_url());
-        $data['rows'] = $this->_reduce_rows($all_rows);
-        $data['rows'] = $this->_add_publilc_urls($data['rows']);
-        //add author usernames
-        $data['rows'] = $this->_add_author_usernames($data['rows']);
-        $data['token'] = $token;
-        $data['selected_per_page'] = $this->_get_selected_per_page();
-        $data['per_page_options'] = $this->per_page_options;
-        $data['view_module'] = 'trongate_pages';
-        $data['view_file'] = 'manage';
-        $this->template($this->admin_template, $data);
-    }
 
     /**
      * Attempt to display a page based on the URL segment.
@@ -105,6 +22,13 @@ class Trongate_pages extends Trongate {
         if (current_url() === BASE_URL) {
             $target_segment = 'homepage';
             $last_segment = 'homepage';
+
+            if (strtolower(ENV) === 'dev') {
+                $num_rows = $this->model->count('trongate_pages');
+                if ($num_rows === 0) {
+                    $this->_create_homepage_record();
+                }
+            }
         } else {
             $this_current_url = rtrim(current_url(), '/');
             $target_segment = get_last_part($this_current_url, '/');
@@ -172,6 +96,115 @@ class Trongate_pages extends Trongate {
         $data['view_module'] = 'trongate_pages';
         $data['view_file'] = 'display';
         $this->template($this->page_template, $data);
+    }
+
+    /**
+     * Restores the 'default' homepage content.
+     *
+     * @return void
+     */
+    function reset(): void {
+        if (strtolower(ENV) !== 'dev') {
+            http_response_code(403);
+            die();
+        }
+
+        $data['page_body'] = $this->view('default_homepage_content', [], true);
+        $data['last_updated'] = 0;
+        $this->model->update(1, $data);
+        http_response_code(200);
+        echo 'Homepage has been successfully reset.';
+    }
+
+    /**
+     * Creates a homepage record.
+     *
+     * @return void Returns nothing.
+     */
+    function _create_homepage_record(): void {
+        if (strtolower(ENV) !== 'dev') {
+            http_response_code(403);
+            die();
+        }
+
+        $row_data['id'] = 1;
+        $row_data['url_string'] = 'homepage';
+        $row_data['page_title'] = 'Homepage';
+        $row_data['meta_keywords'] = '';
+        $row_data['meta_description'] = '';
+
+        $data['view_module'] = 'trongate_pages';
+        $row_data['page_body'] = $this->view('default_homepage_content', $data, true);
+        $row_data['date_created'] = time();
+        $row_data['last_updated'] = 0;
+        $row_data['published'] = 1;
+        $row_data['created_by'] = 1;
+        $this->model->insert($row_data, 'trongate_pages');
+    }
+
+    /**
+     * Ensures that the current user is allowed to access the protected resource.
+     * Feel free to change to suit your own individual use case.
+     *
+     * @return string|false The security token if the user is authorized, or false otherwise.
+     */
+    function _make_sure_allowed(): string|false {
+        //by default, 'admin' users (i.e., users with user_level_id === 1) are allowed
+        $this->module('trongate_security');
+        $token = $this->trongate_security->_make_sure_allowed();
+        return $token;
+    }
+
+    /**
+     * Displays a list of pages that can be managed.
+     *
+     * @return void
+     */
+    function manage(): void {
+        $token = $this->_make_sure_allowed();
+
+        // Check if the image folder exists and is writable
+        $folder_path = APPPATH . 'modules/trongate_pages/assets/images/uploads';
+        if (!is_writable($folder_path)) {
+            $data['view_module'] = 'trongate_pages';
+            $this->view('permissions_error', $data);
+            die();
+        }
+
+        if (segment(4) !== '') {
+            $data['headline'] = 'Search Results';
+            $searchphrase = trim($_GET['searchphrase']);
+            $params['page_title'] = '%' . $searchphrase . '%';
+            $params['page_body'] = '%' . $searchphrase . '%';
+            $sql = 'select * from trongate_pages
+            WHERE page_title LIKE :page_title
+            OR page_body LIKE :page_body
+            ORDER BY date_created desc';
+            $all_rows = $this->model->query_bind($sql, $params, 'object');
+        } else {
+            $data['headline'] = 'Manage Webpages';
+            $all_rows = $this->model->get('id');
+        }
+
+        $pagination_data['total_rows'] = count($all_rows);
+        $pagination_data['page_num_segment'] = 3;
+        $pagination_data['limit'] = $this->_get_limit();
+        $pagination_data['pagination_root'] = 'trongate_pages/manage';
+        $pagination_data['record_name_plural'] = 'webpages';
+        $pagination_data['include_showing_statement'] = true;
+        $data['pagination_data'] = $pagination_data;
+
+        $data['form_location'] = str_replace('/manage', '/submit', current_url());
+        $data['rows'] = $this->_reduce_rows($all_rows);
+        $data['rows'] = $this->_add_publilc_urls($data['rows']);
+        //add author usernames
+        $data['rows'] = $this->_add_author_usernames($data['rows']);
+        $data['token'] = $token;
+        $data['selected_per_page'] = $this->_get_selected_per_page();
+        $data['per_page_options'] = $this->per_page_options;
+        $data['view_module'] = 'trongate_pages';
+        $data['view_file'] = 'manage';
+        $this->template($this->admin_template, $data);
     }
 
     /**
