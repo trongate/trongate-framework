@@ -3,6 +3,7 @@ class Trongate_pages extends Trongate {
 
     private $page_template = 'public';
     private $admin_template = 'admin';
+    private $default_limit = 20;
     private $per_page_options = array(10, 20, 50, 100);
     private $max_file_size_mb = 5; // maximum allowed file size (for images) in megabytes
     private $max_width = 4200; // maximum allowed width for image uploads
