@@ -50,78 +50,6 @@ class Model {
     }
 
     /**
-     * Determines the PDO parameter type based on the PHP value type.
-     *
-     * @param mixed $value The value for which to determine the parameter type.
-     * @return int The PDO parameter type.
-     */
-    private function get_param_type(mixed $value): int {
-        switch (true) {
-            case is_int($value):
-                $type = PDO::PARAM_INT;
-                break;
-            case is_bool($value):
-                $type = PDO::PARAM_BOOL;
-                break;
-            case is_null($value):
-                $type = PDO::PARAM_NULL;
-                break;
-            default:
-                $type = PDO::PARAM_STR;
-        }
-
-        return $type;
-    }
-
-    /**
-     * Prepares and executes a SQL statement with optional data bindings.
-     *
-     * @param string $sql The SQL statement to prepare.
-     * @param array $data (optional) The data to bind to the SQL statement. Default is an empty array.
-     * @return bool True on success, false on failure.
-     */
-    private function prepare_and_execute(string $sql, array $data = []): bool {
-        $this->stmt = $this->dbh->prepare($sql);
-
-        if (isset($data[0])) { //unnamed data
-            return $this->stmt->execute($data);
-        } else {
-            foreach ($data as $key => $value) {
-                $type = $this->get_param_type($value);
-                $this->stmt->bindValue(":$key", $value, $type);
-            }
-
-            return $this->stmt->execute();
-        }
-    }
-
-    /**
-     * Retrieves the table name from the first URL segment or the current module.
-     *
-     * @return string The table name retrieved from the URL segment or the current module.
-     */
-    private function get_table_from_url(): string {
-        return isset($this->current_module) ? $this->current_module : segment(1);
-    }
-
-    /**
-     * Adds LIMIT and OFFSET clauses to the SQL statement if provided.
-     *
-     * @param string $sql The SQL statement to which LIMIT and OFFSET clauses are added.
-     * @param int|null $limit (optional) The maximum number of results to return. Default is null.
-     * @param int|null $offset (optional) The number of rows to skip before fetching results. Default is null.
-     * @return string The SQL statement with LIMIT and OFFSET clauses added if provided.
-     */
-    private function add_limit_offset(string $sql, ?int $limit, ?int $offset): string {
-        if ((is_numeric($limit)) && (is_numeric($offset))) {
-            $limit_results = true;
-            $sql .= " LIMIT $offset, $limit";
-        }
-
-        return $sql;
-    }
-
-    /**
      * Retrieves rows from a database table based on optional parameters.
      *
      * @param string|null $order_by (optional) The column to order results by. Default is 'id'.
@@ -859,6 +787,78 @@ class Model {
         } else {
             throw new Exception("This feature is disabled because the application environment is not set to 'dev'.");
         }
+    }
+
+    /**
+     * Determines the PDO parameter type based on the PHP value type.
+     *
+     * @param mixed $value The value for which to determine the parameter type.
+     * @return int The PDO parameter type.
+     */
+    private function get_param_type(mixed $value): int {
+        switch (true) {
+            case is_int($value):
+                $type = PDO::PARAM_INT;
+                break;
+            case is_bool($value):
+                $type = PDO::PARAM_BOOL;
+                break;
+            case is_null($value):
+                $type = PDO::PARAM_NULL;
+                break;
+            default:
+                $type = PDO::PARAM_STR;
+        }
+
+        return $type;
+    }
+
+    /**
+     * Prepares and executes a SQL statement with optional data bindings.
+     *
+     * @param string $sql The SQL statement to prepare.
+     * @param array $data (optional) The data to bind to the SQL statement. Default is an empty array.
+     * @return bool True on success, false on failure.
+     */
+    private function prepare_and_execute(string $sql, array $data = []): bool {
+        $this->stmt = $this->dbh->prepare($sql);
+
+        if (isset($data[0])) { //unnamed data
+            return $this->stmt->execute($data);
+        } else {
+            foreach ($data as $key => $value) {
+                $type = $this->get_param_type($value);
+                $this->stmt->bindValue(":$key", $value, $type);
+            }
+
+            return $this->stmt->execute();
+        }
+    }
+
+    /**
+     * Retrieves the table name from the first URL segment or the current module.
+     *
+     * @return string The table name retrieved from the URL segment or the current module.
+     */
+    private function get_table_from_url(): string {
+        return isset($this->current_module) ? $this->current_module : segment(1);
+    }
+
+    /**
+     * Adds LIMIT and OFFSET clauses to the SQL statement if provided.
+     *
+     * @param string $sql The SQL statement to which LIMIT and OFFSET clauses are added.
+     * @param int|null $limit (optional) The maximum number of results to return. Default is null.
+     * @param int|null $offset (optional) The number of rows to skip before fetching results. Default is null.
+     * @return string The SQL statement with LIMIT and OFFSET clauses added if provided.
+     */
+    private function add_limit_offset(string $sql, ?int $limit, ?int $offset): string {
+        if ((is_numeric($limit)) && (is_numeric($offset))) {
+            $limit_results = true;
+            $sql .= " LIMIT $offset, $limit";
+        }
+
+        return $sql;
     }
 
 }
