@@ -392,81 +392,6 @@ class Model {
     }
 
     /**
-     * Display the SQL query to be executed.
-     *
-     * @param string $query The SQL query to be executed.
-     * @param array $data The data to be bound to the SQL query.
-     * @param string|null $caveat (optional) Additional information or note about the query. Default is null.
-     * @return void
-     */
-    public function show_query(string $query, array $data, ?string $caveat = null): void {
-        $keys = array();
-        $values = $data;
-        $named_params = true;
-
-        // Build a regular expression for each parameter
-        foreach ($data as $key => $value) {
-            if (is_string($key)) {
-                $keys[] = '/:' . $key . '/';
-            } else {
-                $keys[] = '/[?]/';
-                $named_params = false;
-            }
-
-            if (is_string($value)) {
-                $values[$key] = "'" . $value . "'";
-            }
-
-            if (is_array($value)) {
-                $values[$key] = "'" . implode("','", $value) . "'";
-            }
-
-            if (is_null($value)) {
-                $values[$key] = 'NULL';
-            }
-        }
-
-        if ($named_params == true) {
-            $query = preg_replace($keys, $values, $query);
-        } else {
-            $query .= ' ';
-            $bits = explode(' ? ', $query);
-            $query = '';
-            for ($i = 0; $i < count($bits); $i++) {
-                $query .= $bits[$i];
-                if (isset($values[$i])) {
-                    $query .= ' ' . $values[$i] . ' ';
-                }
-            }
-        }
-
-        if (!isset($caveat)) {
-            $caveat_info = '';
-        } else {
-            $caveat_info = '<br><hr><div style="font-size: 0.8em;"><b>PLEASE NOTE:</b> ' . $caveat;
-            $caveat_info .= ' PDO currently has no means of displaying previous query executed.</div>';
-        }
-
-        echo '<div class="tg-rprt"><b>QUERY TO BE EXECUTED:</b><br><br>  -> ';
-        echo $query . $caveat_info . '</div>';
-    ?>
-
-    <style>
-        .tg-rprt {
-            color: #383623;
-            background-color: #efe79e;
-            font-family: "Lucida Console", Monaco, monospace;
-            padding: 1em;
-            border: 1px #383623 solid;
-            clear: both !important;
-            margin: 1em 0;
-        }
-    </style>
-
-    <?php
-    }
-
-    /**
      * Insert a new record into the database table and return the ID of the newly inserted record.
      *
      * @param array $data An associative array containing column names as keys and their corresponding values.
@@ -787,6 +712,81 @@ class Model {
         } else {
             throw new Exception("This feature is disabled because the application environment is not set to 'dev'.");
         }
+    }
+
+    /**
+     * Display the SQL query to be executed.
+     *
+     * @param string $query The SQL query to be executed.
+     * @param array $data The data to be bound to the SQL query.
+     * @param string|null $caveat (optional) Additional information or note about the query. Default is null.
+     * @return void
+     */
+    private function show_query(string $query, array $data, ?string $caveat = null): void {
+        $keys = array();
+        $values = $data;
+        $named_params = true;
+
+        // Build a regular expression for each parameter
+        foreach ($data as $key => $value) {
+            if (is_string($key)) {
+                $keys[] = '/:' . $key . '/';
+            } else {
+                $keys[] = '/[?]/';
+                $named_params = false;
+            }
+
+            if (is_string($value)) {
+                $values[$key] = "'" . $value . "'";
+            }
+
+            if (is_array($value)) {
+                $values[$key] = "'" . implode("','", $value) . "'";
+            }
+
+            if (is_null($value)) {
+                $values[$key] = 'NULL';
+            }
+        }
+
+        if ($named_params == true) {
+            $query = preg_replace($keys, $values, $query);
+        } else {
+            $query .= ' ';
+            $bits = explode(' ? ', $query);
+            $query = '';
+            for ($i = 0; $i < count($bits); $i++) {
+                $query .= $bits[$i];
+                if (isset($values[$i])) {
+                    $query .= ' ' . $values[$i] . ' ';
+                }
+            }
+        }
+
+        if (!isset($caveat)) {
+            $caveat_info = '';
+        } else {
+            $caveat_info = '<br><hr><div style="font-size: 0.8em;"><b>PLEASE NOTE:</b> ' . $caveat;
+            $caveat_info .= ' PDO currently has no means of displaying previous query executed.</div>';
+        }
+
+        echo '<div class="tg-rprt"><b>QUERY TO BE EXECUTED:</b><br><br>  -> ';
+        echo $query . $caveat_info . '</div>';
+    ?>
+
+    <style>
+        .tg-rprt {
+            color: #383623;
+            background-color: #efe79e;
+            font-family: "Lucida Console", Monaco, monospace;
+            padding: 1em;
+            border: 1px #383623 solid;
+            clear: both !important;
+            margin: 1em 0;
+        }
+    </style>
+
+    <?php
     }
 
     /**
