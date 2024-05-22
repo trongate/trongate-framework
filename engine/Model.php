@@ -577,6 +577,92 @@ class Model {
     }
 
     /**
+     * Checks if a table exists in the database.
+     *
+     * @param string $table_name The name of the table to check.
+     * @return bool Returns true if the table exists, false otherwise.
+     */
+    public function table_exists(string $table_name): bool {
+        try {
+            // Construct the SQL query to check for the table's existence
+            $sql = "SHOW TABLES LIKE :table_name";
+
+            // Prepare the statement
+            $stmt = $this->dbh->prepare($sql);
+
+            // Bind the table name parameter
+            $stmt->bindParam(':table_name', $table_name, PDO::PARAM_STR);
+
+            // Execute the statement
+            $stmt->execute();
+
+            // Fetch the result
+            $result = $stmt->fetch(PDO::FETCH_NUM);
+
+            // Return true if a result is found, otherwise return false
+            return $result !== false;
+        } catch (PDOException $e) {
+            // Handle any PDO exceptions
+            $this->error = $e->getMessage();
+            echo $this->error;
+            return false;
+        }
+    }
+
+    /**
+     * Retrieves all table names from the database.
+     *
+     * @return array Returns an array of table names.
+     */
+    public function get_all_tables(): array {
+        try {
+            // Construct the SQL query to retrieve all table names
+            $sql = "SHOW TABLES";
+
+            // Prepare and execute the statement
+            $stmt = $this->dbh->prepare($sql);
+            $stmt->execute();
+
+            // Fetch all table names
+            $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            // Return the array of table names
+            return $tables;
+        } catch (PDOException $e) {
+            // Handle any PDO exceptions
+            $this->error = $e->getMessage();
+            echo $this->error;
+            return [];
+        }
+    }
+
+    /**
+     * Describes the structure of a database table.
+     *
+     * Retrieves information about the columns of the specified table.
+     *
+     * @param string $table The name of the table.
+     * @param bool $column_names_only (optional) Whether to return only column names. Default is false.
+     * @return array|false Returns an array of column details or an array of column names if $column_names_only is true. Returns false on failure.
+     */
+    public function describe_table(string $table, bool $column_names_only = false): array|false {
+        try {
+            $sql = 'DESCRIBE ' . $table;
+            $columns = $this->query($sql, 'array');
+
+            if ($column_names_only) {
+                return array_column($columns, 'Field');
+            } else {
+                return $columns;
+            }
+        } catch (PDOException $e) {
+            // Handle any PDO exceptions
+            $this->error = $e->getMessage();
+            return false;
+        }
+    }
+
+    /**
      * Resequence IDs of a specified table.
      *
      * This method resequences the IDs in the given table, assigning new sequential IDs
