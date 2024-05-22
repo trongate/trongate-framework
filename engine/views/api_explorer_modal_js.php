@@ -640,28 +640,28 @@
     const expiryDate = new Date();
     expiryDate.setHours(expiryDate.getHours() + 4);
     const expiryTimestamp = Date.parse(expiryDate) / 1000;
-    const targetUrl = baseUrl + 'trongate_tokens/regenerate/' + goldenToken + '/' + expiryTimestamp;
+    const targetUrl = baseUrl + 'trongate_tokens/regenerate/' + specialToken + '/' + expiryTimestamp;
     const http = new XMLHttpRequest();
     http.open('get', targetUrl);
     http.setRequestHeader('Content-type', 'application/json');
     http.send();
     http.onload = () => {
       if (http.responseText === "false") {
-        expiredGoldenToken();
+        expiredSpecialToken();
       } else {
-        goldenToken = http.responseText;
-        document.getElementById("input-token").value = goldenToken;
-        document.getElementById("token-value").innerHTML = goldenToken;
-        token = goldenToken;
+        specialToken = http.responseText;
+        document.getElementById("input-token").value = specialToken;
+        document.getElementById("token-value").innerHTML = specialToken;
+        token = specialToken;
       }
     }
   }
 
-  function generateNewGoldenToken(currentToken) {
+  function generateNewSpecialToken(currentToken) {
     const expiryDate = new Date();
     expiryDate.setHours(expiryDate.getHours() + 4);
     const expiryTimestamp = Date.parse(expiryDate) / 1000;
-    const targetUrl = baseUrl + 'trongate_tokens/regenerate/' + goldenToken + '/' + expiryTimestamp;
+    const targetUrl = baseUrl + 'trongate_tokens/regenerate/' + specialToken + '/' + expiryTimestamp;
 
     const http = new XMLHttpRequest();
     http.open('get', targetUrl);
@@ -669,9 +669,9 @@
     http.send();
     http.onload = () => {
       if (http.responseText === "false") {
-        expiredGoldenToken();
+        expiredSpecialToken();
       } else {
-        goldenToken = http.responseText;
+        specialToken = http.responseText;
       }
     }
   }

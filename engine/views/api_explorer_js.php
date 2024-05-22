@@ -5,7 +5,7 @@
   let currentEndpointIndex = '';
   let headerInfo = '';
   let currentModalType = 'GET';
-  let goldenToken = '<?= $golden_token ?>';
+  let specialToken = '<?= $special_token ?>';
 
   const baseUrl = '<?= BASE_URL ?>';
   const HTTP_STATUS_CODES = <?= json_encode($http_status_codes) ?>
@@ -153,8 +153,8 @@
 
       //uncheck the bypass auth checkbox
       bypassAuthCheckbox.checked = false;
-      if (token === goldenToken) {
-        //make token empty (golden tokens are only for single use cases)
+      if (token === specialToken) {
+        //make token empty (special tokens are only for single use cases)
         const tokenInputEl = document.getElementById('input-token');
         tokenInputEl.value = '';
 
@@ -162,7 +162,7 @@
 
         const tokenValueEl = document.getElementById('token-value');
         tokenValueEl.innerHTML = '';
-        generateNewGoldenToken(goldenToken);
+        generateNewSpecialToken(specialToken);
       }
     }, 600);
 
@@ -222,7 +222,16 @@
     const serverResponseEl = document.getElementById('server-response');
     serverResponseEl.value = responseText;
 
-    const httpStatusText = HTTP_STATUS_CODES[`CODE_${status}`];
+    //const httpStatusText = HTTP_STATUS_CODES[`CODE_${status}`];
+
+    // Retrieve the HTTP status text based on the status code
+    let httpStatusText;
+    if (HTTP_STATUS_CODES.hasOwnProperty(`${status}`)) {
+      httpStatusText = HTTP_STATUS_CODES[`${status}`];
+    } else {
+      httpStatusText = 'Unknown HTTP Response Code';
+    }
+
     const httpStatusDisplay = (httpStatusText && httpStatusText.length > 20) ? status.toString() : `${status} ${httpStatusText}`;
 
     const statusEl = document.getElementById('http-status-code');
