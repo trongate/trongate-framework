@@ -18,9 +18,15 @@ spl_autoload_register(function ($class_name) {
     return false;
 });
 
-function get_segments($ignore_custom_routes = null) {
+/**
+ * Retrieves the URL segments after optionally ignoring custom routes.
+ *
+ * @param bool|null $ignore_custom_routes Flag to determine whether to ignore custom routes.
+ * @return array Returns an associative array with 'assumed_url' and 'segments'.
+ */
+function get_segments(?bool $ignore_custom_routes = null): array {
 
-    //figure out how many segments need to be ditched
+    // Figure out how many segments need to be ditched
     $pseudo_url = str_replace('://', '', BASE_URL);
     $pseudo_url = rtrim($pseudo_url, '/');
     $bits = explode('/', $pseudo_url);
@@ -32,7 +38,7 @@ function get_segments($ignore_custom_routes = null) {
         $num_segments_to_ditch = 0;
     }
 
-    $assumed_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
+    $assumed_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 
     if (!isset($ignore_custom_routes)) {
         $assumed_url = attempt_add_custom_routes($assumed_url);
@@ -53,8 +59,13 @@ function get_segments($ignore_custom_routes = null) {
     return $data;
 }
 
-function attempt_add_custom_routes($target_url) {
-    //takes a nice URL and returns the assumed_url
+/**
+ * Attempts to replace the target URL with a custom route if a match is found in the custom routes configuration.
+ *
+ * @param string $target_url The original target URL to potentially replace.
+ * @return string Returns the updated URL if a custom route match is found, otherwise returns the original URL.
+ */
+function attempt_add_custom_routes(string $target_url): string {
     $target_url = rtrim($target_url, '/');
     $target_segments_str = str_replace(BASE_URL, '', $target_url);
     $target_segments = explode('/', $target_segments_str);
@@ -62,7 +73,7 @@ function attempt_add_custom_routes($target_url) {
     foreach (CUSTOM_ROUTES as $custom_route => $custom_route_destination) {
         $custom_route_segments = explode('/', $custom_route);
         if (count($target_segments) == count($custom_route_segments)) {
-            if ($custom_route == $target_segments_str) { //perfect match; return immediately
+            if ($custom_route == $target_segments_str) { // Perfect match; return immediately
                 $target_url = str_replace($custom_route, $custom_route_destination, $target_url);
                 break;
             }
@@ -71,6 +82,7 @@ function attempt_add_custom_routes($target_url) {
             $new_custom_url = rtrim(BASE_URL . $custom_route_destination, '/');
             for ($i = 0; $i < count($target_segments); $i++) {
                 if ($custom_route_segments[$i] == $target_segments[$i]) {
+                    continue;
                 } else if ($custom_route_segments[$i] == "(:num)" && is_numeric($target_segments[$i])) {
                     $correction_counter++;
                     $new_custom_url = str_replace('$' . $correction_counter, $target_segments[$i], $new_custom_url);

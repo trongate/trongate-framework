@@ -1,4 +1,9 @@
 <?php
+
+/**
+ * Manages loading modules and rendering of HTML templates.
+ * Also contains methods for assisting with file uploads.
+ */
 class Trongate {
 
     use Dynamic_properties;
