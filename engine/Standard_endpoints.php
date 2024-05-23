@@ -1,7 +1,13 @@
 <?php
+
+/**
+ * This class provides methods for handling standard endpoints configuration.
+ * Standard endpoints are predefined API endpoints with common functionalities such as fetching, searching,
+ * creating, updating, and deleting data from database tables.
+ */
 class Standard_endpoints extends Trongate {
 
-    private $operators = [
+    private array $operators = [
         "!=" => "%21=",
         "<=" => "%3C=",
         ">=" => "%3E=",
@@ -14,7 +20,12 @@ class Standard_endpoints extends Trongate {
         parent::__construct();
     }
 
-    private function get_request_type() {
+    /**
+     * Retrieves the HTTP request type.
+     *
+     * @return string The HTTP request type (GET, POST, DELETE, etc.).
+     */
+    private function get_request_type(): string {
         header('Access-Control-Allow-Headers: X-HTTP-Method-Override');
         $request_type = $_SERVER['REQUEST_METHOD'];
 
@@ -27,7 +38,12 @@ class Standard_endpoints extends Trongate {
         return $request_type;
     }
 
-    public function index() {
+    /**
+     * Main entry point for the API endpoint.
+     *
+     * @return void
+     */
+    public function index(): void {
         $request_type = $this->get_request_type();
         switch ($request_type) {
             case 'GET':
@@ -45,8 +61,14 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    public function get($return_row_count = false) { //GET
-        //get the endpoint from the api.json file (and make sure allowed!)
+    /**
+     * Retrieves data in response to pre-defined HTTP GET requests.
+     *
+     * @param bool $return_row_count Optional. Whether to return the row count instead of data. Default is false.
+     * @return void
+     */
+    public function get(bool $return_row_count = false): void {
+        // Get the endpoint from the api.json file (and make sure it's allowed)
         $endpoint_name =  $return_row_count === true ? 'Count' : 'Get';
         $table_name = segment(1) === 'api' ? segment(3) : segment(1);
         $table_name = remove_query_string($table_name);
@@ -77,7 +99,13 @@ class Standard_endpoints extends Trongate {
         die();
     }
 
-    public function search($return_row_count = false) { //POST
+    /**
+     * Searches for records in the database table in response to pre-defined HTTP POST requests.
+     *
+     * @param bool $return_row_count Optional. Whether to return the row count instead of data. Default is false.
+     * @return void
+     */
+    public function search(bool $return_row_count = false): void {
         $request_type = $this->get_request_type();
         if ($request_type !== 'POST') {
             http_response_code(400);
@@ -114,7 +142,12 @@ class Standard_endpoints extends Trongate {
         die();
     }
 
-    public function find_one() { //GET
+    /**
+     * Finds and retrieves a single record from the database in response to pre-defined HTTP GET requests.
+     *
+     * @return void
+     */
+    public function find_one(): void {
         $request_type = $this->get_request_type();
         if ($request_type !== 'GET') {
             http_response_code(400);
@@ -158,7 +191,12 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    public function exists() { //GET
+    /**
+     * Checks if a record exists in the database in response to pre-defined HTTP GET requests.
+     *
+     * @return void
+     */
+    public function exists(): void {
         $request_type = $this->get_request_type();
         if ($request_type !== 'GET') {
             http_response_code(400);
@@ -196,7 +234,12 @@ class Standard_endpoints extends Trongate {
         die();
     }
 
-    public function count() { //GET or POST
+    /**
+     * Counts the number of records in the database in response to pre-defined HTTP GET or POST requests.
+     *
+     * @return void
+     */
+    public function count(): void {
         $request_type = $this->get_request_type();
         if ($request_type !== 'GET') {
             $this->search(true);
@@ -205,7 +248,12 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    public function create() {
+    /**
+     * Creates a new record in the database in response to pre-defined HTTP POST requests.
+     *
+     * @return void
+     */
+    public function create(): void {
         $request_type = $this->get_request_type();
         if ($request_type !== 'POST') {
             http_response_code(400);
@@ -219,7 +267,7 @@ class Standard_endpoints extends Trongate {
         $after_hook = $input['target_endpoint']['afterHook'] ?? '';
         unset($input['target_endpoint']);
 
-        //make sure params have been posted
+        // Make sure params have been posted
         if (count($input['params']) == 0) {
             $this->api_manager_error(400, 'No posted data!');
         }
@@ -234,7 +282,7 @@ class Standard_endpoints extends Trongate {
             $this->api_manager_error(400, $columns_exist_result);
         }
 
-        //attempt insert new record
+        // Attempt insert new record
         try {
             $new_id = $this->model->insert($input['params'], $table_name);
             $new_record_obj = $this->model->get_where($new_id, $table_name);
@@ -256,10 +304,17 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    function make_sure_columns_exist($table_name, $params, $valid_columns = null) {
-
+    /**
+     * Ensures that the specified columns exist in the given table.
+     *
+     * @param string $table_name The name of the table to check against.
+     * @param array $params An associative array containing column names and their corresponding values.
+     * @param array|null $valid_columns Optional. An array of valid column names. If not provided, it will be fetched from the database.
+     * @return bool|string True if all columns exist, or a string containing an error message if one or more columns do not exist.
+     */
+    private function make_sure_columns_exist(string $table_name, array $params, ?array $valid_columns = null): bool|string {
         if (!isset($valid_columns)) {
-            $valid_columns = $this->get_all_columns($table_name);
+            $valid_columns = $this->model->describe_table($table_name, true);
         }
 
         $invalid_columns = [];
@@ -279,19 +334,12 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    private function get_all_columns($table) {
-        $columns = [];
-        $sql = 'describe ' . $table;
-        $rows = $this->model->query($sql, 'array');
-        foreach ($rows as $row) {
-            $columns[] = $row['Field'];
-        }
-
-        return $columns;
-    }
-
-    public function insert() { // BATCH INSERT!
-
+    /**
+     * Inserts multiple records into the database table.
+     *
+     * @return void
+     */
+    public function insert(): void {
         $request_type = $this->get_request_type();
         if ($request_type !== 'POST') {
             http_response_code(400);
@@ -328,7 +376,8 @@ class Standard_endpoints extends Trongate {
         }
 
         //loop through the posted data and make sure all of the columns exist on the table
-        $valid_columns = $this->get_all_columns($table_name);
+        $valid_columns = $this->model->describe_table($table_name, true);
+
         foreach ($input['params'] as $posted_item) {
             $columns_exist_result = $this->make_sure_columns_exist($table_name, $posted_item);
 
@@ -339,7 +388,6 @@ class Standard_endpoints extends Trongate {
 
         //attempt batch insert records
         try {
-
             $row_count = $this->model->insert_batch($table_name, $input['params']);
             $output['body'] = $row_count;
             $output['code'] = 200;
@@ -357,7 +405,12 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    public function update() { //POST or PUT
+    /**
+     * Updates a record in the database table.  This method can be invoked by either POST or PUT requests.
+     *
+     * @return void
+     */
+    public function update(): void {
         $allowed_request_types = (segment(1) === 'api') ? array('POST', 'PUT') : array('PUT');
         $target_segment = (segment(1) === 'api') ? 4 : 2;
         $update_id = intval(segment($target_segment));
@@ -415,7 +468,12 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    public function destroy() { //POST or DELETE
+    /**
+     * Deletes records from the database table. This method can handle either POST or DELETE requests.
+     *
+     * @return void
+     */
+    public function destroy(): void {
         $allowed_request_types = (segment(1) === 'api') ? array('POST', 'DELETE') : array('DELETE');
         $request_type = $this->get_request_type();
 
@@ -480,7 +538,12 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    public function delete_one() { //DELETE
+    /**
+     * Deletes a single record from the database table. This method is designed to handle DELETE requests.
+     *
+     * @return void
+     */
+    public function delete_one(): void { // DELETE
         $allowed_request_types = (segment(1) === 'api') ? array('POST', 'DELETE') : array('DELETE');
         $target_segment = (segment(1) === 'api') ? 4 : 2;
         $update_id = intval(segment($target_segment));
@@ -538,17 +601,40 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    private function attempt_invoke_before_hook($table_name, $before_hook, $input) {
+    /**
+     * Attempts to invoke the specified before hook for a given table.
+     *
+     * @param string $table_name The name of the table.
+     * @param string $before_hook The name of the before hook.
+     * @param array $input The input data.
+     * @return array The modified input data.
+     */
+    private function attempt_invoke_before_hook(string $table_name, string $before_hook, array $input): array {
         $input = Modules::run($table_name . '/' . $before_hook, $input);
         return $input;
     }
 
-    private function attempt_invoke_after_hook($table_name, $after_hook, $output) {
+    /**
+     * Attempts to invoke the specified after hook for a given table.
+     *
+     * @param string $table_name The name of the table.
+     * @param string $after_hook The name of the after hook.
+     * @param array $output The output data.
+     * @return array The modified output data.
+     */
+    private function attempt_invoke_after_hook(string $table_name, string $after_hook, array $output): array {
         $output = Modules::run($table_name . '/' . $after_hook, $output);
         return $output;
     }
 
-    private function fetch_rows($standard_query, $submitted_params) {
+    /**
+     * Fetches rows from the database based on the provided query and parameters.
+     *
+     * @param string $standard_query The standard SQL query.
+     * @param array $submitted_params The submitted parameters.
+     * @return array|null The fetched rows, or null if an error occurs.
+     */
+    private function fetch_rows(string $standard_query, array $submitted_params): ?array {
         $where_data = $this->extract_where_data($submitted_params);
         $order_by_clause = $this->extract_order_by_clause($submitted_params);
         $limit_offset_clause = $this->extract_limit_offset_clause($submitted_params);
@@ -577,15 +663,20 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    private function extract_where_data($submitted_params) {
-        //returns a WHERE clause and an array of params
+    /**
+     * Extracts WHERE clause data and parameters from submitted parameters.
+     *
+     * @param array $submitted_params The submitted parameters.
+     * @return array The WHERE clause data and parameters.
+     */
+    private function extract_where_data(array $submitted_params): array {
         $params = [];
         $counter = 0;
-        $ignore_keys = array('orderBy', 'order_by', 'limit', 'offset', 'ixd');
+        $ignore_keys = ['orderBy', 'order_by', 'limit', 'offset', 'ixd'];
         $where_clause = '';
         foreach ($submitted_params as $key => $value) {
             $key_bits = explode(' ', trim($key));
-            //ignore limit, offset etc...
+            // Ignore limit, offset, etc...
             if (in_array($key_bits[0], $ignore_keys)) {
                 continue;
             }
@@ -594,14 +685,14 @@ class Standard_endpoints extends Trongate {
             $first_three = substr($key, 0, 3);
             if (strtoupper($first_three) === 'OR ') {
                 $key = substr($key, 3);
-                $key_bits = explode(' ', trim($key)); //must be re-established, having dealt with 'OR' scenario
+                $key_bits = explode(' ', trim($key)); // Must be re-established, having dealt with 'OR' scenario
             }
 
             $column = $key_bits[0];
 
             if (count($key_bits) > 1) {
                 $last_bit = $key_bits[count($key_bits) - 1];
-                $operator = ($last_bit === '!') ? '!=' : $operator = $last_bit;
+                $operator = ($last_bit === '!') ? '!=' : $last_bit;
             } else {
                 $operator = '=';
             }
@@ -617,7 +708,13 @@ class Standard_endpoints extends Trongate {
         return $where_data;
     }
 
-    private function extract_order_by_clause($submitted_params) {
+    /**
+     * Extracts the ORDER BY clause from submitted parameters.
+     *
+     * @param array $submitted_params The submitted parameters.
+     * @return string The ORDER BY clause.
+     */
+    private function extract_order_by_clause(array $submitted_params): string {
         foreach ($submitted_params as $key => $value) {
             if ($key === 'orderBy' or $key === 'order_by') {
                 $order_by_clause = 'ORDER BY ' . $value;
@@ -629,7 +726,13 @@ class Standard_endpoints extends Trongate {
         return $order_by_clause;
     }
 
-    private function extract_limit_offset_clause($submitted_params) {
+    /**
+     * Extracts the LIMIT and OFFSET clauses from submitted parameters.
+     *
+     * @param array $submitted_params The submitted parameters.
+     * @return string The LIMIT and OFFSET clauses.
+     */
+    private function extract_limit_offset_clause(array $submitted_params): string {
         $limit_offset_clause = 'LIMIT [offset], [limit]';
         $limit = null;
         $offset = null;
@@ -652,12 +755,24 @@ class Standard_endpoints extends Trongate {
         return $limit_offset_clause;
     }
 
-    private function clean_output($output) {
+    /**
+     * Cleans the output array by keeping only the allowed keys.
+     *
+     * @param array $output The output array to clean.
+     * @return array The cleaned output array.
+     */
+    private function clean_output(array $output): array {
         $allowed_keys = ['body', 'code', 'token'];
         return array_intersect_key($output, array_flip($allowed_keys));
     }
 
-    public function attempt_serve_standard_endpoint($endpoint_index) {
+    /**
+     * Attempts to serve a standard endpoint based on the provided endpoint index.
+     *
+     * @param int $endpoint_index The index of the standard endpoint to serve.
+     * @return void
+     */
+    public function attempt_serve_standard_endpoint(int $endpoint_index): void {
         $standard_endpoints = $this->get_standard_endpoints();
         $target_endpoint = $standard_endpoints[$endpoint_index];
         $request_name = $target_endpoint['request_name'];
@@ -666,8 +781,12 @@ class Standard_endpoints extends Trongate {
         $this->$target_method();
     }
 
-    public function attempt_find_endpoint_index() {
-
+    /**
+     * Attempts to find the index of the endpoint based on the current request type and URL.
+     *
+     * @return int|string The index of the endpoint if found, otherwise an empty string.
+     */
+    public function attempt_find_endpoint_index(): int|string {
         $request_type = $this->get_request_type();
         $current_url = remove_query_string(current_url());
 
@@ -709,7 +828,14 @@ class Standard_endpoints extends Trongate {
         return $target_endpoint_index;
     }
 
-    private function get_target_endpoint($table_name, $endpoint_name) {
+    /**
+     * Retrieves the target endpoint settings from the API configuration file.
+     *
+     * @param string $table_name The name of the database table.
+     * @param string $endpoint_name The name of the endpoint.
+     * @return array|null An array containing the target endpoint settings, or null if authorization is not allowed.
+     */
+    private function get_target_endpoint(string $table_name, string $endpoint_name): ?array {
         $file_path = APPPATH . 'modules/' . $table_name . '/assets/api.json';
 
         if (!file_exists($file_path)) {
@@ -771,7 +897,14 @@ class Standard_endpoints extends Trongate {
         return $input;
     }
 
-    public function make_sure_allowed($target_endpoint, $table_name) {
+    /**
+     * Validates and authorizes access to the specified endpoint based on authorization rules.
+     *
+     * @param array $target_endpoint The settings of the target endpoint.
+     * @param string $table_name The name of the database table.
+     * @return string|null The user token if authorized, or null if authorization is not allowed.
+     */
+    public function make_sure_allowed(array $target_endpoint, string $table_name): ?string {
 
         if (!isset($target_endpoint['authorization'])) {
             $msg = 'Endpoint not activated since no authorization rules have been declared.';
@@ -856,18 +989,30 @@ class Standard_endpoints extends Trongate {
             }
         }
 
-        //safety net
         $this->api_manager_error(401, 'Invalid token.');
     }
 
-    private function test_for_aaa_token($token) {
+    /**
+     * Tests if the provided token is an 'aaa' token.
+     *
+     * @param string $token The token to be tested.
+     * @return bool Returns true if the token is an 'aaa' token, otherwise false.
+     */
+    private function test_for_aaa_token(string $token): bool {
         $token_obj = $this->model->get_one_where('token', $token, 'trongate_tokens');
         $code = $token_obj->code ?? '';
         $allowed = $code === 'aaa' ? true : false;
         return $allowed;
     }
 
-    private function run_user_owned_test($test_data) {
+    /**
+     * Runs a test to determine if a user owns a specific record based on provided data.
+     *
+     * @param array $test_data An associative array containing test data including user-owned settings.
+     *                        Requires keys: 'user_owned_settings', 'table_name', 'trongate_user_id'.
+     * @return void
+     */
+    private function run_user_owned_test(array $test_data): void {
         $column = $test_data['user_owned_settings']['column'];
         $value = segment($test_data['user_owned_settings']['segmentNum']);
         $target_table = $test_data['table_name'];
@@ -890,7 +1035,12 @@ class Standard_endpoints extends Trongate {
         }
     }
 
-    private function fetch_query_params_from_url() {
+    /**
+     * Fetches query parameters from the URL.
+     *
+     * @return array|null An array containing the fetched query parameters, or null if an error occurs.
+     */
+    private function fetch_query_params_from_url(): ?array {
         $query_str = parse_url(urldecode(current_url()), PHP_URL_QUERY);
         settype($query_str, 'string');
         $query_params = [];
@@ -907,7 +1057,12 @@ class Standard_endpoints extends Trongate {
         return $query_params;
     }
 
-    private function fetch_query_params_from_post() {
+    /**
+     * Fetches query parameters from the POST request.
+     *
+     * @return array|null An array containing the fetched query parameters, or null if an error occurs.
+     */
+    private function fetch_query_params_from_post(): ?array {
         $query_params = [];
 
         //get posted params
@@ -970,7 +1125,15 @@ class Standard_endpoints extends Trongate {
         return $query_params;
     }
 
-    private function extract_query_param($query_str_bit, $operators) {
+    /**
+     * Extracts query parameters from the given query string bit using the provided operators.
+     *
+     * @param string $query_str_bit The query string bit to extract parameters from.
+     * @param array $operators An array containing the list of operators.
+     * @return array|false An array containing the extracted query parameters (key, operator, value), or false if no parameters are found.
+     */
+    private function extract_query_param(string $query_str_bit, array $operators): array|false {
+
         //build a bit list of all possible operators
         foreach ($operators as $operator_plain => $operator_encoded) {
             $relevant_operator = $operator_encoded;
@@ -991,7 +1154,13 @@ class Standard_endpoints extends Trongate {
         return false;
     }
 
-    function reduce_query_params($query_params) {
+    /**
+     * Reduces query parameters to simple key/value pairs.
+     *
+     * @param array $query_params An array containing the query parameters.
+     * @return array An array containing the reduced query parameters as key/value pairs.
+     */
+    function reduce_query_params(array $query_params): array {
         //reduce query params to simple key/value pairs
         $params = [];
         foreach ($query_params as $query_param) {
@@ -1014,7 +1183,14 @@ class Standard_endpoints extends Trongate {
         return $params;
     }
 
-    private function api_manager_error($response_status_code, $error_msg) {
+    /**
+     * Handles API manager errors by setting HTTP response code and echoing error message.
+     *
+     * @param int $response_status_code The HTTP response status code.
+     * @param string $error_msg The error message to be displayed.
+     * @return void
+     */
+    private function api_manager_error(int $response_status_code, string $error_msg): void {
         http_response_code($response_status_code);
         if (strtolower(ENV) === 'dev') {
             echo $error_msg;
@@ -1022,7 +1198,13 @@ class Standard_endpoints extends Trongate {
         die();
     }
 
-    private function get_standard_endpoints() {
+    /**
+     * Retrieves standard endpoints configuration.
+     *
+     * @return array An array containing standard endpoints configuration.
+     */
+    private function get_standard_endpoints(): array {
+
         $standard_endpoints = [
             [
                 'request_name' => 'Get',
