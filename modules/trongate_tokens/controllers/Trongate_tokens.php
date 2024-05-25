@@ -382,22 +382,31 @@ class Trongate_tokens extends Trongate {
 
     /**
      * Attempt to validate and return a token based on optional user level(s) condition.
+     * This method checks for a valid token in the following locations, in order of priority:
+     * 1. HTTP headers ($_SERVER['HTTP_TRONGATETOKEN'])
+     * 2. Cookies ($_COOKIE['trongatetoken'])
+     * 3. Session ($_SESSION['trongatetoken'])
      *
      * @param int|array|null $user_levels User levels to filter tokens.
-     * @return string|false The valid token if found, or false if none is found.
+     * @return string|bool The valid token if found, or false if none is found.
      */
-    function _attempt_get_valid_token($user_levels = null): string|false {
+    public function _attempt_get_valid_token($user_levels = null): string|bool {
         // Initialize array to store user tokens
         $user_tokens = [];
 
+        // Check for token in headers
+        if (isset($_SERVER['HTTP_TRONGATETOKEN'])) {
+            $user_tokens[] = htmlspecialchars($_SERVER['HTTP_TRONGATETOKEN'], ENT_QUOTES, 'UTF-8');
+        }
+
         // Check for token in cookie
         if (isset($_COOKIE['trongatetoken'])) {
-            $user_tokens[] = $_COOKIE['trongatetoken'];
+            $user_tokens[] = htmlspecialchars($_COOKIE['trongatetoken'], ENT_QUOTES, 'UTF-8');
         }
 
         // Check for token in session
         if (isset($_SESSION['trongatetoken'])) {
-            $user_tokens[] = $_SESSION['trongatetoken'];
+            $user_tokens[] = htmlspecialchars($_SESSION['trongatetoken'], ENT_QUOTES, 'UTF-8');
         }
 
         // If no tokens found, return false
@@ -407,6 +416,9 @@ class Trongate_tokens extends Trongate {
 
         // Determine type of user levels provided
         $user_levels_type = gettype($user_levels);
+
+        // Initialize token variable
+        $token = false;
 
         // Execute SQL query based on user levels
         switch ($user_levels_type) {
