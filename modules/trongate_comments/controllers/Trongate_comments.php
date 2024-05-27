@@ -77,9 +77,10 @@ class Trongate_comments extends Trongate {
         // Establish user_id, date_created, and code before doing an insert.
         $this->module('trongate_tokens');
         $token = $input['token'];
-        $user = $this->trongate_tokens->_fetch_token_obj($token);
 
-        $input['params']['user_id'] = $user->user_id;
+        $trongate_user_id = $this->trongate_tokens->_get_user_id($token);
+
+        $input['params']['user_id'] = $trongate_user_id;
         $input['params']['date_created'] = time();
         $input['params']['code'] = make_rand_str(6);
 
