@@ -661,7 +661,7 @@ class Nothing_loaded_exception extends Exception {
     /**
      * Constructs the exception with a default message.
      */
-    public function __construct()
+    public function __construct() {
         parent::__construct("No valid data loaded to proceed with the operation.");
     }
 }
