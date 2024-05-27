@@ -454,7 +454,12 @@ class Image {
         if (!$new_image) {
             throw new Exception("Failed to create a new image resource.");
         }
-        $this->prepare_transparency($new_image);
+
+        $image_type = $this->get_image_type();
+        if ($image_type === IMAGETYPE_GIF || $image_type === IMAGETYPE_PNG) {
+            $this->prepare_transparency($new_image);
+        }
+
         imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, $width, $height, $this->get_width(), $this->get_height());
         $this->image = $new_image;
     }
