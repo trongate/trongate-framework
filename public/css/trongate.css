@@ -48,6 +48,7 @@ img {
 }
 
 input[type="text"],
+input[type="search"],
 input[type="number"],
 input[type="email"],
 input[type="password"],
@@ -62,6 +63,7 @@ textarea {
 }
 
 input[type="text"]:focus,
+input[type="search"]:focus,
 input[type="number"]:focus,
 textarea:focus,
 input[type="email"]:focus,
@@ -72,6 +74,7 @@ select:focus {
 }
 
 input[type="text"],
+input[type="search"],
 input[type="number"],
 input[type="email"],
 input[type="password"],
