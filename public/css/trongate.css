@@ -508,6 +508,10 @@ div.modal-body p.text-center {
   font-size: 0.7em;
 }
 
+.mt-0 {
+  margin-top: 0 !important;
+}
+
 .mt-1 {
   margin-top: 1em !important;
 }
@@ -518,6 +522,10 @@ div.modal-body p.text-center {
 
 .mt-3 {
   margin-top: 3em !important;
+}
+
+.mb-0 {
+  margin-bottom: 0 !important;
 }
 
 .mb-1 {
