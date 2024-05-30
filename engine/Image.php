@@ -12,7 +12,7 @@ class Image {
 
     /**
      * Holds the GD image resource instance.
-     * @var resource|null
+     * @var resource|GdImage|null
      */
     private $image;
 
@@ -437,12 +437,12 @@ class Image {
      * for internal class operations and use by extending classes, supporting common image manipulations
      * such as scaling and cropping that require direct resizing.
      *
-     * @param int $width The target width for the resized image, must be a positive integer.
-     * @param int $height The target height for the resized image, must be a positive integer.
+     * @param float $width The target width for the resized image, must be a positive integer.
+     * @param float $height The target height for the resized image, must be a positive integer.
      * @throws Exception Throws an exception if the dimensions provided are invalid or if no image is loaded.
      * @return void
      */
-    protected function resize(int $width, int $height): void {
+    protected function resize(float $width, float $height): void {
         if ($this->image === null) {
             throw new Exception("No image is loaded to resize.");
         }
@@ -472,7 +472,7 @@ class Image {
      * alpha blending is disabled and alpha saving is enabled to maintain transparency in the resultant image.
      * This method is critical for preserving the visual integrity of images that require transparency.
      *
-     * @param resource $resource The image resource to which transparency settings should be applied.
+     * @param resource|GdImage $resource The image resource to which transparency settings should be applied.
      * @throws Exception Throws an exception if transparency preparation fails.
      * @return void
      */
@@ -656,7 +656,6 @@ class Image {
             throw new Not_found_exception($path);
         }
     }
-
 }
 
 /**
