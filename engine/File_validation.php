@@ -66,11 +66,11 @@ class File_validation {
      * @param mixed $file_check_value The value or parameter associated with the check (e.g., allowed extensions, maximum size).
      * @param array $target_file The file array from $_FILES that contains file details like name and size.
      * @param string $temp_file_name The temporary filename of the file being uploaded.
-     * @param int $file_size The size of the file in kilobytes.
+     * @param float $file_size The size of the file in kilobytes.
      * @return mixed Returns the result of the validation check, which could be a boolean or a string containing an error message.
      * @throws Exception If an invalid validation rule key is provided.
      */
-    private function perform_check(string $file_check_key, $file_check_value, array $target_file, string $temp_file_name, int $file_size) {
+    private function perform_check(string $file_check_key, $file_check_value, array $target_file, string $temp_file_name, float $file_size) {
         $dimension_data = null;
         switch ($file_check_key) {
             case 'allowed_types':
@@ -137,11 +137,11 @@ class File_validation {
      * This function compares the size of a file against a predefined maximum size limit.
      * If the file size is greater than the allowed maximum, an error message is returned.
      *
-     * @param int $file_size The size of the file in kilobytes.
-     * @param int $max_size The maximum file size allowed in kilobytes.
+     * @param float $file_size The size of the file in kilobytes.
+     * @param float $max_size The maximum file size allowed in kilobytes.
      * @return string An error message if the file size exceeds the maximum allowed size; otherwise, an empty string.
      */
-    private function check_file_size(int $file_size, int $max_size): string {
+    private function check_file_size(float $file_size, float $max_size): string {
         if ($file_size > $max_size) {
             return 'The file that you attempted to upload exceeds the maximum allowed file size (' . $max_size . ' kilobytes).';
         }
@@ -203,5 +203,4 @@ class File_validation {
     public function get_target_file(): string {
         return array_keys($_FILES)[0];
     }
-
 }
