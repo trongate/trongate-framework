@@ -11,7 +11,7 @@
 
 <body>
 	<?php
-	if ((segment(2) !== 'login') && (segment(2) !== 'submit_login')) { ?>
+	if ((segment(2) !== '') && (segment(2) !== 'login') && (segment(2) !== 'submit_login')) { ?>
 		<div id="top-gutter">
 			<div>
 				<a href="<?= BASE_URL ?>trongate_administrators/go_home">
