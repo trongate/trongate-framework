@@ -51,6 +51,26 @@ function get_last_part(string $str, string $delimiter = '-'): string {
 }
 
 /**
+ * Removes a portion of a string between two given substrings..
+ *
+ * @param string $start The starting substring.
+ * @param string $end The ending substring.
+ * @param string $haystack The string from which to remove the substring.
+ * @return string The modified string.
+ */
+function remove_substr_between(string $start, string $end, string $haystack): string {
+    $start_pos = strpos($haystack, $start);
+    if ($start_pos === false) {
+        return $haystack;
+    }
+    $end_pos = strpos($haystack, $end, $start_pos + strlen($start));
+    if ($end_pos === false) {
+        return $haystack;
+    }
+    return substr($haystack, 0, $start_pos) . substr($haystack, $end_pos + strlen($end));
+}
+
+/**
  * Format a number as a price with commas and optional currency symbol.
  *
  * @param float $num The number to be formatted.
@@ -189,21 +209,31 @@ function remove_html_code(string $content, string $opening_pattern, string $clos
 /**
  * Filter and sanitize a string.
  *
- * @param string $string The input string to be filtered and sanitized.
+ * @param string $str The input string to be filtered and sanitized.
  * @param string[] $allowed_tags An optional array of allowed HTML tags (default is an empty array).
  * @return string The filtered and sanitized string.
  */
-function filter_string(string $string, array $allowed_tags = []) {
+function filter_str(string $str, array $allowed_tags = []): string {
     // Remove HTML & PHP tags
-    $string = strip_tags($string, implode('', $allowed_tags));
+    $str = strip_tags($str, implode('', $allowed_tags));
 
     // Convert multiple consecutive whitespaces to a single space, except for line breaks
-    $string = preg_replace('/[^\S\r\n]+/', ' ', $string);
+    $str = preg_replace('/[^\S\r\n]+/', ' ', $str);
 
     // Trim leading and trailing white space
-    $string = trim($string);
+    $str = trim($str);
 
-    return $string;
+    return $str;
+}
+
+/**
+ * Alias for filter_str function for backward compatibility.
+ * @deprecated This function is deprecated and will be removed from the Trongate framework on June 3, 2026.
+ * Developers are encouraged to globally replace instances of 'filter_string(' with 'filter_str(' throughout their site or application.
+ */
+function filter_string(string $string, array $allowed_tags = []): string {
+    trigger_error('The filter_string function is deprecated and will be removed from the Trongate framework on June 2026.', E_USER_DEPRECATED);
+    return filter_str($string, $allowed_tags);
 }
 
 /**
