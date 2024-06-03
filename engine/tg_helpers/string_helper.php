@@ -51,23 +51,35 @@ function get_last_part(string $str, string $delimiter = '-'): string {
 }
 
 /**
- * Removes a portion of a string between two given substrings..
+ * Removes a portion of a string between two given substrings.
  *
  * @param string $start The starting substring.
  * @param string $end The ending substring.
  * @param string $haystack The string from which to remove the substring.
+ * @param bool $remove_all Optional argument to remove all matching portions. Defaults to false.
  * @return string The modified string.
  */
-function remove_substr_between(string $start, string $end, string $haystack): string {
-    $start_pos = strpos($haystack, $start);
-    if ($start_pos === false) {
+function remove_substr_between(string $start, string $end, string $haystack, bool $remove_all = false): string {
+    if (!$remove_all) {
+        $start_pos = strpos($haystack, $start);
+        if ($start_pos === false) {
+            return $haystack;
+        }
+        $end_pos = strpos($haystack, $end, $start_pos + strlen($start));
+        if ($end_pos === false) {
+            return $haystack;
+        }
+        return substr($haystack, 0, $start_pos) . substr($haystack, $end_pos + strlen($end));
+    } else {
+        while (($start_pos = strpos($haystack, $start)) !== false) {
+            $end_pos = strpos($haystack, $end, $start_pos + strlen($start));
+            if ($end_pos === false) {
+                break;
+            }
+            $haystack = substr($haystack, 0, $start_pos) . substr($haystack, $end_pos + strlen($end));
+        }
         return $haystack;
     }
-    $end_pos = strpos($haystack, $end, $start_pos + strlen($start));
-    if ($end_pos === false) {
-        return $haystack;
-    }
-    return substr($haystack, 0, $start_pos) . substr($haystack, $end_pos + strlen($end));
 }
 
 /**
