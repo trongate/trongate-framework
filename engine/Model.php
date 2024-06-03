@@ -248,6 +248,50 @@ class Model {
     }
 
     /**
+     * Retrieves records from a database table where the column's value is within a specified array of values.
+     *
+     * @param string $column The name of the column to filter by.
+     * @param array $values The array of values to match against the specified column.
+     * @param string|null $target_table (optional) The name of the database table to be queried. Default is null.
+     * @param string $return_type (optional) The type of result to return ('object' or 'array'). Default is 'object'.
+     * @return array Returns an array of objects or arrays representing the fetched rows.
+     * @throws InvalidArgumentException If the values array is empty.
+     */
+    public function get_where_in(string $column, array $values, ?string $target_table = null, string $return_type = 'object'): array {
+        if (empty($values)) {
+            throw new InvalidArgumentException('The values array must not be empty.');
+        }
+
+        if (!isset($target_table)) {
+            $target_table = $this->get_table_from_url();
+        }
+
+        // Convert the array of values to a comma-separated string
+        $values_str = implode(',', array_map('intval', $values));
+
+        // Build the SQL query
+        $sql = "SELECT * FROM $target_table WHERE $column IN ($values_str)";
+
+        // Debugging: show query if debug mode is enabled
+        if ($this->debug == true) {
+            $data = [];
+            $this->show_query($sql, $data, $this->query_caveat);
+        }
+
+        // Execute the query
+        $this->prepare_and_execute($sql, []);
+
+        // Fetch and return the results
+        if ($return_type === 'object') {
+            return $this->stmt->fetchAll(PDO::FETCH_OBJ);
+        } elseif ($return_type === 'array') {
+            return $this->stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        return [];
+    }
+
+    /**
      * Counts the number of rows in a database table.
      *
      * @param string|null $target_tbl (optional) The name of the database table to count rows from. Default is null.
