@@ -232,7 +232,6 @@ function filter_str(string $str, array $allowed_tags = []): string {
  * Developers are encouraged to globally replace instances of 'filter_string(' with 'filter_str(' throughout their site or application.
  */
 function filter_string(string $string, array $allowed_tags = []): string {
-    trigger_error('The filter_string function is deprecated and will be removed from the Trongate framework on June 2026.', E_USER_DEPRECATED);
     return filter_str($string, $allowed_tags);
 }
 
