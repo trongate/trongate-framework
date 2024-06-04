@@ -994,7 +994,7 @@ class Trongate_pages extends Trongate {
      * @return int The limit for the number of records per page.
      */
     function _get_limit(): int {
-        if (isset($_SESSION['selected_per_page'])) {
+        if (isset($_SESSION['selected_per_page']) && isset($this->per_page_options[$_SESSION['selected_per_page']])) {
             $limit = $this->per_page_options[$_SESSION['selected_per_page']];
         } else {
             $limit = $this->default_limit;
@@ -1307,15 +1307,42 @@ class Trongate_pages extends Trongate {
     }
 
     /**
-     * Get the number of records selected per page.
+     * Get the index for the number of records selected per page.
      *
-     * @return int The number of records selected per page.
+     * @return int The index for the number of records selected per page.
      */
     function _get_selected_per_page(): int {
-        $selected_per_page = (isset($_SESSION['selected_per_page'])) ? $_SESSION['selected_per_page'] : 1;
+        if (isset($_SESSION['selected_per_page']) && isset($this->per_page_options[$_SESSION['selected_per_page']])) {
+            $selected_per_page = $_SESSION['selected_per_page'];
+        } else {
+            $selected_per_page = 1;
+        }
+        
         return $selected_per_page;
     }
 
+    /**
+     * Set in session the index for the number of records selected per page.
+     *
+     * @param mixed $selected_index The index for the number of records selected per page.
+     *
+     * @return void
+     */
+    public function set_per_page($selected_index): void {
+        $this->module('trongate_security');
+        $this->trongate_security->_make_sure_allowed();
+
+        settype($selected_index, 'integer');
+ 
+        if (!isset($this->per_page_options[$selected_index])) {
+            $selected_index = 1;
+        }
+
+        $_SESSION['selected_per_page'] = $selected_index;
+		
+        redirect('trongate_pages/manage');
+    }
+    
     /**
      * Check if a module exists that shares the same name as a target URL string.
      *
