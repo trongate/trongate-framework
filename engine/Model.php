@@ -726,6 +726,12 @@ class Model {
      *       proper backups of your data before executing this operation.
      */
     public function resequence_ids(string $table_name): bool {
+
+        $num_rows = $this->count($table_name);
+        if ($num_rows === 0) {
+            return true;
+        }
+        
         try {
             // Begin transaction
             $this->dbh->beginTransaction();
