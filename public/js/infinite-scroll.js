@@ -52,7 +52,6 @@ function identifyPaginationContainer() {
     }
 }
 
-
 function removeAllLoadingMoreSpinners() {
     loadingMoreRecords = false;
     const allLoadingMoreSpinners = document.querySelectorAll('.loading-more-records');
@@ -120,7 +119,20 @@ function loadMoreRecords() {
                 paginationContainer.appendChild(row);
             });
 
+            // Swap the pagination on the existing page.
+            const existingPaginationEls = document.querySelectorAll('.pagination');
+            existingPaginationEls.forEach(paginationEl => {
+                paginationEl.innerHTML = targetPaginationEl.innerHTML;
+            });
+
+            // Remove any showing statements that are on the page.
+            const existingShowingStatements = document.querySelectorAll('.tg-showing-statement');
+            existingShowingStatements.forEach(existingShowingStatement => {
+                existingShowingStatement.remove();
+            });
+
             removeAllLoadingMoreSpinners();
+            
         } else {
             console.error(http.status);
             console.error(http.responseText);

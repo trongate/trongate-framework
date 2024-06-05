@@ -87,7 +87,7 @@ class Pagination {
 
         // Output the showing statement
         if (!empty($pagination_data['showing_statement'])) {
-            echo '<p>' . $pagination_data['showing_statement'] . '</p>';
+            echo '<p class="tg-showing-statement">' . $pagination_data['showing_statement'] . '</p>';
         }
 
         self::render_pagination($pagination_data);
