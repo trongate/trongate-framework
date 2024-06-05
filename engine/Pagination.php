@@ -19,7 +19,8 @@ class Pagination {
         "include_showing_statement" => ["default" => false, "type" => "bool"],
         "include_css" => ["default" => false, "type" => "bool"],
         "num_links_per_page" => ["default" => 10, "type" => "int"],
-        "settings" => ["default" => [], "type" => "array"]
+        "settings" => ["default" => [], "type" => "array"],
+        "enable_infinite_scrolling" => ["default" => true, "type" => "bool"]
     ];
 
     // Derived properties with their default values
@@ -52,7 +53,7 @@ class Pagination {
         'prev_link_close' => '',
         'next_link' => '&raquo;',
         'next_link_open' => '',
-        'next_link_close' => '',
+        'next_link_close' => ''
     ];
 
     /**
@@ -89,7 +90,6 @@ class Pagination {
             echo '<p>' . $pagination_data['showing_statement'] . '</p>';
         }
 
-        //self::render_pagination($pagination_data);
         self::render_pagination($pagination_data);
     }
 
@@ -100,44 +100,50 @@ class Pagination {
      * @return void
      */
     private static function render_pagination(array $pagination_data): void {
+
         $html = PHP_EOL.'<div class="pagination">';
 
         // Attempt 'first/prev' buttons if not on the first page.
         if ($pagination_data['current_page'] > 1) {
             $html .= $pagination_data['settings']['first_link_open'];
-            $html.= self::attempt_build_link('first_link', $pagination_data);
-            $html .= $pagination_data['settings']['first_link_close'].PHP_EOL;
+            $html .= self::attempt_build_link('first_link', $pagination_data);
+            $html .= $pagination_data['settings']['first_link_close'] . PHP_EOL;
 
             $html .= $pagination_data['settings']['prev_link_open'];
-            $html.= self::attempt_build_link('prev_link', $pagination_data);
-            $html .= $pagination_data['settings']['prev_link_close'].PHP_EOL;
+            $html .= self::attempt_build_link('prev_link', $pagination_data);
+            $html .= $pagination_data['settings']['prev_link_close'] . PHP_EOL;
         }
 
-        for ($i=1; $i <= $pagination_data['num_pages']; $i++) { 
-            // Numbered links.
+        // Calculate the range of links to display based on num_links_to_side
+        $start_range = max(1, $pagination_data['current_page'] - $pagination_data['num_links_to_side']);
+        $end_range = min($pagination_data['num_pages'], $pagination_data['current_page'] + $pagination_data['num_links_to_side']);
+
+        // Loop through the range of links to display
+        for ($i = $start_range; $i <= $end_range; $i++) {
+            // Numbered links
             if ($i == $pagination_data['current_page']) {
                 $html .= $pagination_data['settings']['cur_link_open'];
                 $html .= $i;
-                $html .= $pagination_data['settings']['cur_link_close'].PHP_EOL;
+                $html .= $pagination_data['settings']['cur_link_close'] . PHP_EOL;
             } else {
                 $html .= $pagination_data['settings']['num_link_open'];
-                $html.= self::attempt_build_link($i, $pagination_data);
-                $html .= $pagination_data['settings']['num_link_close'].PHP_EOL;
+                $html .= self::attempt_build_link($i, $pagination_data);
+                $html .= $pagination_data['settings']['num_link_close'] . PHP_EOL;
             }
         }
 
         // Attempt 'next/last' buttons if not on the last page.
         if ($pagination_data['current_page'] < $pagination_data['num_pages']) {
             $html .= $pagination_data['settings']['next_link_open'];
-            $html.= self::attempt_build_link('next_link', $pagination_data);
-            $html .= $pagination_data['settings']['next_link_close'].PHP_EOL;
+            $html .= self::attempt_build_link('next_link', $pagination_data);
+            $html .= $pagination_data['settings']['next_link_close'] . PHP_EOL;
 
             $html .= $pagination_data['settings']['last_link_open'];
-            $html.= self::attempt_build_link('last_link', $pagination_data);
-            $html .= $pagination_data['settings']['last_link_close'].PHP_EOL;
+            $html .= self::attempt_build_link('last_link', $pagination_data);
+            $html .= $pagination_data['settings']['last_link_close'] . PHP_EOL;
         }
 
-        $html.= '</div>';
+        $html .= '</div>';
 
         if ($pagination_data['include_css'] === true) {
             // CSS code
@@ -176,7 +182,25 @@ class Pagination {
             // Concatenate CSS code into HTML string
             $html .= PHP_EOL . '<style>' . $css_code . '</style>' . PHP_EOL;
         }
-        
+
+        $enable_infinite_scrolling = (bool) $pagination_data['enable_infinite_scrolling'] ?? true;
+        if ($enable_infinite_scrolling === true) {
+
+            $scroll_js_file_path = APPPATH . 'public/js/infinite-scroll.js';
+
+            if (file_exists($scroll_js_file_path)) {
+                echo '<script id="init-infinite-scroll">' . PHP_EOL;
+                echo 'if (!document.getElementById(\'infinite-scroll-script\')) {' . PHP_EOL;
+                echo '    const infiniteScrollEl = document.createElement(\'script\');' . PHP_EOL;
+                echo '    infiniteScrollEl.src = \'' . BASE_URL . 'js/infinite-scroll.js\';' . PHP_EOL;
+                echo '    infiniteScrollEl.id = \'infinite-scroll-script\';' . PHP_EOL;
+                echo '    document.body.appendChild(infiniteScrollEl);' . PHP_EOL;
+                echo '}' . PHP_EOL;
+                echo '</script>' . PHP_EOL;
+            }
+
+        }
+
         echo $html;
     }
 
@@ -373,6 +397,7 @@ class Pagination {
         $start = 1;
         $end = min($pagination_data['num_links_per_page'] ?? 10, $num_pages);
         $num_links_to_side = ($pagination_data['num_links_per_page'] ?? 10) / 2;
+
         $prev = ($current_page > 1) ? $current_page - 1 : '';
         $next = ($current_page < $num_pages) ? $current_page + 1 : $num_pages;
 
