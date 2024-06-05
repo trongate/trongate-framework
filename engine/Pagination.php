@@ -19,7 +19,8 @@ class Pagination {
         "include_showing_statement" => ["default" => false, "type" => "bool"],
         "include_css" => ["default" => false, "type" => "bool"],
         "num_links_per_page" => ["default" => 10, "type" => "int"],
-        "settings" => ["default" => [], "type" => "array"]
+        "settings" => ["default" => [], "type" => "array"],
+        "enable_infinite_scrolling" => ["default" => true, "type" => "bool"]
     ];
 
     // Derived properties with their default values
@@ -52,7 +53,7 @@ class Pagination {
         'prev_link_close' => '',
         'next_link' => '&raquo;',
         'next_link_open' => '',
-        'next_link_close' => '',
+        'next_link_close' => ''
     ];
 
     /**
@@ -99,6 +100,7 @@ class Pagination {
      * @return void
      */
     private static function render_pagination(array $pagination_data): void {
+
         $html = PHP_EOL.'<div class="pagination">';
 
         // Attempt 'first/prev' buttons if not on the first page.
@@ -179,6 +181,24 @@ class Pagination {
 
             // Concatenate CSS code into HTML string
             $html .= PHP_EOL . '<style>' . $css_code . '</style>' . PHP_EOL;
+        }
+
+        $enable_infinite_scrolling = (bool) $pagination_data['enable_infinite_scrolling'] ?? true;
+        if ($enable_infinite_scrolling === true) {
+
+            $scroll_js_file_path = APPPATH . 'public/js/infinite-scroll.js';
+
+            if (file_exists($scroll_js_file_path)) {
+                echo '<script id="init-infinite-scroll">' . PHP_EOL;
+                echo 'if (!document.getElementById(\'infinite-scroll-script\')) {' . PHP_EOL;
+                echo '    const infiniteScrollEl = document.createElement(\'script\');' . PHP_EOL;
+                echo '    infiniteScrollEl.src = \'' . BASE_URL . 'js/infinite-scroll.js\';' . PHP_EOL;
+                echo '    infiniteScrollEl.id = \'infinite-scroll-script\';' . PHP_EOL;
+                echo '    document.body.appendChild(infiniteScrollEl);' . PHP_EOL;
+                echo '}' . PHP_EOL;
+                echo '</script>' . PHP_EOL;
+            }
+
         }
 
         echo $html;
