@@ -223,6 +223,29 @@ class Trongate_tokens extends Trongate {
     }
 
     /**
+     * Retrieves the user level associated with the given token or the current user token.
+     *
+     * @param string|null $token (optional) The token used to identify the user. If not provided, the token of the current user is used.
+     * @return string|false The user level title if found, otherwise false.
+     */
+    public function _get_user_level(?string $token = null): string|false {
+        // If token is not provided, get the user object to fetch the token
+        if (!$token) {
+            $user_obj = $this->_get_user_obj();
+            if ($user_obj === false) {
+                return false; // Return false if user object not found
+            }
+            $token = $user_obj->token;
+        }
+
+        // Call _get_user_obj() with the provided or retrieved token
+        $user_obj = $this->_get_user_obj($token);
+
+        // Return user level title if user object is found, otherwise return false
+        return $user_obj !== false ? $user_obj->user_level : false;
+    }
+
+    /**
      * Generate a token based on provided data.
      *
      * @param array $data An array containing token generation parameters.
