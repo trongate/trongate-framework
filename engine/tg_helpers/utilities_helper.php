@@ -154,3 +154,41 @@ function load(string $template_file, ?array $data = null): void {
         die('<br><b>ERROR:</b> View file does not exist at: ' . $file_path);
     }
 }
+
+/**
+ * Sorts an array of associative arrays by a specified property.
+ *
+ * @param array $array The array to be sorted.
+ * @param string $property The property by which to sort the array.
+ * @param string $direction The direction to sort ('asc' for ascending, 'desc' for descending). Default is 'asc'.
+ * @return array The sorted array.
+ */
+function sort_by_property(array &$array, string $property, string $direction = 'asc'): array {
+    usort($array, function($a, $b) use ($property, $direction) {
+        if ($a[$property] == $b[$property]) {
+            return 0;
+        }
+        if ($direction === 'asc') {
+            return ($a[$property] < $b[$property]) ? -1 : 1;
+        } else {
+            return ($a[$property] > $b[$property]) ? -1 : 1;
+        }
+    });
+    return $array;
+}
+
+/**
+ * Sorts an array of objects by a specified property.
+ *
+ * @param array $array The array of objects to be sorted.
+ * @param string $property The property by which to sort the objects.
+ * @param string $direction (Optional) The direction of sorting ('asc' or 'desc'). Defaults to 'asc'.
+ * @return array The sorted array of objects.
+ */
+function sort_rows_by_property(array $array, string $property, string $direction = 'asc'): array {
+    usort($array, function($a, $b) use ($property, $direction) {
+        $result = $a->$property <=> $b->$property;
+        return ($direction === 'desc') ? -$result : $result;
+    });
+    return $array;
+}
