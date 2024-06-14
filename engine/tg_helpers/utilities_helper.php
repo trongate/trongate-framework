@@ -165,14 +165,14 @@ function load(string $template_file, ?array $data = null): void {
  */
 function sort_by_property(array &$array, string $property, string $direction = 'asc'): array {
     usort($array, function($a, $b) use ($property, $direction) {
-        if ($a[$property] == $b[$property]) {
-            return 0;
-        }
-        if ($direction === 'asc') {
-            return ($a[$property] < $b[$property]) ? -1 : 1;
+        // Determine the comparison method based on the property type
+        if (is_string($a[$property])) {
+            $result = strcasecmp($a[$property], $b[$property]);
         } else {
-            return ($a[$property] > $b[$property]) ? -1 : 1;
+            $result = $a[$property] <=> $b[$property];
         }
+        
+        return ($direction === 'desc') ? -$result : $result;
     });
     return $array;
 }
@@ -187,7 +187,13 @@ function sort_by_property(array &$array, string $property, string $direction = '
  */
 function sort_rows_by_property(array $array, string $property, string $direction = 'asc'): array {
     usort($array, function($a, $b) use ($property, $direction) {
-        $result = $a->$property <=> $b->$property;
+        // Determine the comparison method based on the property type
+        if (is_string($a->$property)) {
+            $result = strcasecmp($a->$property, $b->$property);
+        } else {
+            $result = $a->$property <=> $b->$property;
+        }
+        
         return ($direction === 'desc') ? -$result : $result;
     });
     return $array;
