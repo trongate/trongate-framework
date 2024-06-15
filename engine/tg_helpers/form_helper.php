@@ -7,7 +7,7 @@
  * @param string|null $additional_code An optional additional code to include in the form tag.
  * @return string The HTML opening tag for the form.
  */
-function form_open(string $location, ?array $attributes = null, ?string $additional_code = null) {
+function form_open(string $location, ?array $attributes = null, ?string $additional_code = null): string {
     $extra = '';
 
     if (isset($attributes['method'])) {
@@ -19,7 +19,7 @@ function form_open(string $location, ?array $attributes = null, ?string $additio
 
     if (isset($attributes)) {
         foreach ($attributes as $key => $value) {
-            $extra .= ' ' . $key . '="' . $value . '"';
+            $extra .= ' ' . $key . '="' . htmlentities($value, ENT_QUOTES, 'UTF-8') . '"';
         }
     }
 
@@ -28,10 +28,10 @@ function form_open(string $location, ?array $attributes = null, ?string $additio
     }
 
     if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
+        $extra .= ' ' . htmlentities($additional_code, ENT_QUOTES, 'UTF-8');
     }
 
-    $html = '<form action="' . $location . '" method="' . $method . '"' . $extra . '>';
+    $html = '<form action="' . htmlentities($location, ENT_QUOTES, 'UTF-8') . '" method="' . htmlentities($method, ENT_QUOTES, 'UTF-8') . '"' . $extra . '>';
     return $html;
 }
 
@@ -154,6 +154,8 @@ function form_input(string $name, $value = null, ?array $attributes = null, ?str
     $extra = '';
     if (!isset($value)) {
         $value = '';
+    } else {
+        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     }
 
     if (isset($attributes)) {
@@ -161,10 +163,10 @@ function form_input(string $name, $value = null, ?array $attributes = null, ?str
     }
 
     if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
+        $extra .= ' ' . htmlentities($additional_code, ENT_QUOTES, 'UTF-8');
     }
 
-    return '<input type="text" name="' . $name . '" value="' . $value . '"' . $extra . '>';
+    return '<input type="text" name="' . htmlentities($name, ENT_QUOTES, 'UTF-8') . '" value="' . $value . '"' . $extra . '>';
 }
 
 /**
@@ -181,6 +183,8 @@ function form_search(string $name, $value = null, ?array $attributes = null, ?st
     $extra = '';
     if (!isset($value)) {
         $value = '';
+    } else {
+        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     }
 
     if (isset($attributes)) {
@@ -266,6 +270,8 @@ function form_textarea($name, $value = null, $attributes = null, $additional_cod
     $extra = '';
     if (!isset($value)) {
         $value = '';
+    } else {
+        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     }
 
     if (isset($attributes)) {
@@ -349,6 +355,8 @@ function form_radio(string $name, ?string $value = null, bool $checked = false, 
         $extra .= ' ' . $additional_code;
     }
 
+    $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
     $html = '<input type="radio" name="' . $name . '" value="' . $value . '"' . $extra . '>';
     return $html;
 }
@@ -393,6 +401,7 @@ function form_dropdown(string $name, array $options, ?string $selected_key = nul
 ';
 
     foreach ($options as $option_key => $option_value) {
+        $option_key = htmlspecialchars($option_key, ENT_QUOTES, 'UTF-8');
         $selected = ($option_key == $selected_key) ? ' selected' : '';
         $html .= '<option value="' . $option_key . '"' . $selected . '>' . $option_value . '</option>
 ';
@@ -451,51 +460,23 @@ function post(string $field_name, ?bool $clean_up = null) {
  * @return string|null Returns the formatted validation error messages or null if no errors exist.
  */
 function validation_errors(?string $opening_html = null, ?string $closing_html = null): ?string {
-    if (isset($_SESSION['form_submission_errors'])) {
-        $validation_err_str = '';
-        $validation_errors = [];
-        $closing_html = (isset($closing_html)) ? $closing_html : false;
-        $form_submission_errors = $_SESSION['form_submission_errors'];
+    if (!isset($_SESSION['form_submission_errors'])) {
+        return null;
+    }
 
-        if ((isset($opening_html)) && (gettype($closing_html) == 'boolean')) {
-            // Build individual form field validation error(s)
-            if (isset($form_submission_errors[$opening_html])) {
-                $validation_err_str .= '<div class="validation-error-report">';
-                $form_field_errors = $form_submission_errors[$opening_html];
-                foreach ($form_field_errors as $validation_error) {
-                    $validation_err_str .= '<div>&#9679; ' . $validation_error . '</div>';
-                }
-                $validation_err_str .= '</div>';
-            }
+    $validation_err_str = '';
+    $form_submission_errors = $_SESSION['form_submission_errors'];
 
-            return $validation_err_str;
-        } else {
-            // Normal error reporting
-            foreach ($form_submission_errors as $key => $form_field_errors) {
-                foreach ($form_field_errors as $form_field_error) {
-                    $validation_errors[] = $form_field_error;
-                }
-            }
+    if (!$opening_html) {
+        $opening_html = '<p style="color: red;">';
+    }
 
-            if (!isset($opening_html)) {
-
-                if (defined('ERROR_OPEN') && defined('ERROR_CLOSE')) {
-                    $opening_html = ERROR_OPEN;
-                    $closing_html = ERROR_CLOSE;
-                } else {
-                    $opening_html = '<p style="color: red;">';
-                    $closing_html = '</p>';
-                }
-            }
-
-            foreach ($validation_errors as $form_submission_error) {
-                $validation_err_str .= $opening_html . $form_submission_error . $closing_html;
-            }
-
-            unset($_SESSION['form_submission_errors']);
-            return $validation_err_str;
+    foreach ($form_submission_errors as $field_errors) {
+        foreach ($field_errors as $error) {
+            $validation_err_str .= $opening_html . htmlentities($error, ENT_QUOTES, 'UTF-8') . $closing_html;
         }
     }
 
-    return null;
+    unset($_SESSION['form_submission_errors']);
+    return $validation_err_str;
 }
