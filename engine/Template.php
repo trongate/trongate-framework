@@ -18,6 +18,7 @@ class Template {
 
         if (isset($url_bits[0])) {
             $view_module = $url_bits[0];
+            $view_module = str_replace('-', '/', $view_module);
         } else {
             $view_module = DEFAULT_MODULE;
         }
