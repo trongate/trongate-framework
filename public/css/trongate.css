@@ -612,4 +612,10 @@ div.modal-body p.text-center {
   .modal-footer button:last-child {
     margin: 0px 0 0 0.3em;
   }
+
+  p.button-container {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  
 }
