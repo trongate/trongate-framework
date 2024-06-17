@@ -129,28 +129,43 @@ class Trongate {
      * Get the path of a view file.
      *
      * @param string $view The name of the view file.
-     * @param string $module_name Module name to which the view belongs.
+     * @param string|null $module_name Module name to which the view belongs.
      *
      * @return string The path of the view file.
      * @throws \Exception If the view file does not exist.
      */
     private function get_view_path(string $view, ?string $module_name): string {
+        try {
+            if ($this->parent_module !== '' && $this->child_module !== '') {
+                // Load view from child module
+                $view_path = APPPATH . "modules/$this->parent_module/$this->child_module/views/$view.php";
+            } else {
+                // Normal view loading process
+                $view_path = APPPATH . "modules/$module_name/views/$view.php";
+            }
 
-        if ($this->parent_module !== '' && $this->child_module !== '') {
-            // Load view from child module
-            $view_path = APPPATH . "modules/$this->parent_module/$this->child_module/views/$view.php";
-        } else {
-            // Normal view loading process
-            $view_path = APPPATH . "modules/$module_name/views/$view.php";
-        }
-
-        if (file_exists($view_path)) {
-            return $view_path;
-        } else {
-            $error_message = $this->parent_module !== '' && $this->child_module !== '' ?
-                "View '$view_path' does not exist for child view" :
-                "View '$view_path' does not exist";
-            throw new Exception($error_message);
+            if (file_exists($view_path)) {
+                return $view_path;
+            } else {
+                $error_message = $this->parent_module !== '' && $this->child_module !== '' ?
+                    "View '$view_path' does not exist for child view" :
+                    "View '$view_path' does not exist";
+                throw new Exception($error_message);
+            }
+        } catch (Exception $e) {
+            // Attempt to derive module name from URL segment
+            $segment_one = segment(1);
+            if (strpos($segment_one, '-') !== false && substr_count($segment_one, '-') == 1) {
+                $module_name_from_segment = str_replace('-', '/', $segment_one);
+                $view_path_from_segment = APPPATH . "modules/$module_name_from_segment/views/$view.php";
+                if (file_exists($view_path_from_segment)) {
+                    return $view_path_from_segment;
+                } else {
+                    throw new Exception("View '$view_path_from_segment' does not exist (derived from segment)");
+                }
+            } else {
+                throw $e; // Re-throw the original exception if unable to find view using segment
+            }
         }
     }
 
