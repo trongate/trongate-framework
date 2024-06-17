@@ -103,7 +103,12 @@ class Trongate {
      */
     protected function view(string $view, array $data = [], ?bool $return_as_str = null): ?string {
         $return_as_str = $return_as_str ?? false;
-        $module_name = $data['view_module'] ?? $this->module_name;
+
+        if (isset($data['view_module'])) {
+            $module_name = $data['view_module'];
+        } else {
+            $module_name = strtolower(get_class($this));
+        }
 
         $view_path = $this->get_view_path($view, $module_name);
         extract($data);
