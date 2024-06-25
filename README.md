@@ -8,7 +8,7 @@
 <div align="center">
   <br>
   <br>
-  <h1>Break the rules, use Trongate.</h1>
+  <h1>"BREAK THE RULES, USE TRONGATE."</h1>
   <br>
 </div>
 
@@ -16,7 +16,9 @@
   <h3>
    GitHub stars are the metric by which the success of frameworks gets measured. We need 1,200 GitHub stars to make Trongate a top ten PHP framework. If Trongate becomes a top ten PHP framework it will be one of the most electrifying events in the history of PHP! 
   </h3>
+
 <!-- Badges -->
+
 <p>
   <a href="https://www.php.net/">
     <img src="https://img.shields.io/badge/PHP-8%2B-777BB4"
