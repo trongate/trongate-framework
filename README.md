@@ -1,12 +1,21 @@
 <div align="center">
   <h1>Trongate PHP Framework</h1>
-  <img src="https://trongate.io/trongate_logo/trongate_logo_dark_blue_bg.png" alt="logo" width="600" height="auto" />
-  <h1>Break the rules use Trongate</h1>
-  
+  <br>
+  <a href="https://trongate.io">
+    <img src="https://trongate.io/trongate_logo/trongate_logo_dark_blue_bg.png" alt="logo" width="600" height="auto" />
+  </a>
+</div>
+<div align="center">
+  <br>
+  <br>
+  <h1>Break the rules, use Trongate.</h1>
+  <br>
+</div>
+
+<div align="center">
   <h3>
    GitHub stars are the metric by which the success of frameworks gets measured. We need 1,200 GitHub stars to make Trongate a top ten PHP framework. If Trongate becomes a top ten PHP framework it will be one of the most electrifying events in the history of PHP! 
   </h3>
-
 <!-- Badges -->
 <p>
   <a href="https://www.php.net/">
@@ -29,7 +38,6 @@
     <img src="https://img.shields.io/github/issues/trongate/trongate-framework" alt="open issues" />
   </a>
 </p>
-   
 <h4>
     <a href="https://trongate.io">Website</a>
   <span> · </span>
