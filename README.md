@@ -198,6 +198,12 @@ There are a wide variety of benefits from using the Trongate Desktop App. These 
  <img src="http://img.youtube.com/vi/2sAtjYcAD-4/hqdefault.jpg" alt="Watch the video" />
 </a>
 
+<!-- Need help -->
+
+## :handshake: [Help Bar](https://trongate.io/help_bar)
+
+> We're currently doing a soft launch of our all new [discussion forums](https://trongate.io/help_bar). It is estimated that the forums will be ready on 24th June and all data from the Help Bar will be moved across by then. Feel free to check it out, post comments and give us some [feedback](https://trongate.io/help_bar).
+
 <!-- Contributing -->
 
 ## :wave: Contributing
@@ -206,16 +212,17 @@ There are a wide variety of benefits from using the Trongate Desktop App. These 
   <img src="https://contrib.rocks/image?repo=trongate/trongate-framework" />
 </a>
 
-Contributions are always welcome!
+### Contributions are always welcome!
+
+<!-- copyright -->
+
+## :copyright: Copyright
+
+- Copyright © 2019 David Connelly [@davidjconnelly](https://twitter.com/davidjconnelly)
+- Copyright © 2024 [Contributors](/../../graphs/contributors).
 
 <!-- License -->
 
-## :warning: License
+## :balance_scale: License
 
-See LICENSE.txt for more information.
-
-<!-- Contact -->
-
-## :handshake: Contact
-
-David Connelly - [@davidjconnelly](https://twitter.com/davidjconnelly) - [Get In Touch](https://trongate.io/your_messages/compose)
+This product is released under the [MIT License](http://opensource.org/licenses/MIT). See [LICENSE](/LICENSE.md) for more information.
