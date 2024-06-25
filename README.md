@@ -33,7 +33,7 @@
 <h4>
     <a href="https://trongate.io">Website</a>
   <span> · </span>
-    <a href="https://trongate.io/docs_m/contents">Documentation</a>
+    <a href="https://trongate.io/docs">Documentation</a>
   <span> · </span>
     <a href="https://trongate.io/learning-zone">Learning Zone</a>
   <span> · </span>
@@ -50,14 +50,16 @@
 # :notebook_with_decorative_cover: Table of Contents
 
 - [About the Project](#star2-about-the-project)
+  - [Break the Rules](#is-this-fast-enough-for-you)
   - [Features](#dart-features)
 - [Getting Started](#toolbox-getting-started)
   - [Prerequisites](#bangbang-prerequisites)
   - [Installation](#gear-installation)
 - [Usage](#eyes-usage)
+- [Help Bar](#handshake-help-bar)
 - [Contributing](#wave-contributing)
-- [License](#warning-license)
-- [Contact](#handshake-contact)
+- [Copyright](#copyright-copyright)
+- [License](#balance_scale-license)
 
 <!-- About the Project -->
 
@@ -206,7 +208,7 @@ There are a wide variety of benefits from using the Trongate Desktop App. These 
 
 <!-- Contributing -->
 
-## :wave: Contributing
+## :wave: [Contributing](/../../graphs/contributors)
 
 <a href="https://github.com/trongate/trongate-framework/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=trongate/trongate-framework" />
