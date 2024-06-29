@@ -83,6 +83,9 @@ function closeModal() {
     if (overlay) {
       overlay.remove();
     }
+    // Dispatch a custom event indicating modal closure
+    var event = new Event('modalClosed', { bubbles: true, cancelable: true });
+    document.dispatchEvent(event);
   }
 }
 
