@@ -258,6 +258,13 @@ div.modal-body p.text-center {
   padding: 1em;
 }
 
+.container-md {
+  width: 90%;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 1em;
+}
+
 .container-lg {
   width: 90%;
   max-width: 960px;
