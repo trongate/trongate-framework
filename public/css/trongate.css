@@ -238,27 +238,45 @@ div.modal-body p.text-center {
 }
 
 .container-xxs {
+  width: 90%;
   max-width: 450px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-xs {
+  width: 90%;
   max-width: 640px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-sm {
+  width: 90%;
   max-width: 760px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-lg {
+  width: 90%;
   max-width: 960px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-xl {
+  width: 90%;
   max-width: 1100px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-xxl {
+  width: 90%;
   max-width: 1300px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .pagination {
