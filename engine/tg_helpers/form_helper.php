@@ -453,28 +453,43 @@ function post(string $field_name, ?bool $clean_up = null) {
 }
 
 /**
- * Generates and returns a string of validation error messages.
+ * Generates and returns validation error messages in HTML or JSON format.
  *
- * @param string|null $opening_html Optional HTML to open each error message.
+ * @param string|int|null $first_arg Optional HTML to open each error message, HTTP status code for JSON output, or null.
  * @param string|null $closing_html Optional HTML to close each error message.
  * @return string|null Returns a string of formatted validation errors or null if no errors are present.
  */
-function validation_errors(?string $opening_html = null, ?string $closing_html = null): ?string {
-
-    // Check if there are any form submission errors in the session.
+function validation_errors(string|int|null $first_arg = null, ?string $closing_html = null): ?string {
     if (!isset($_SESSION['form_submission_errors'])) {
         return null;
     }
 
-    $validation_err_str = '';
     $form_submission_errors = $_SESSION['form_submission_errors'];
 
+    if (is_int($first_arg) && $first_arg >= 400 && $first_arg <= 499) {
+        $json_errors = [];
+        foreach ($form_submission_errors as $field => $field_errors) {
+            $json_errors[] = [
+                'field' => $field,
+                'messages' => $field_errors
+            ];
+        }
+
+        http_response_code($first_arg);
+        header('Content-Type: application/json');
+        echo json_encode($json_errors);
+        unset($_SESSION['form_submission_errors']);
+        die();
+    }
+
+    $validation_err_str = '';
+
     // Handle inline validation errors.
-    if (isset($opening_html) && !isset($closing_html)) {
+    if (isset($first_arg) && !isset($closing_html)) {
         // If the specific field's errors exist, display them.
-        if (isset($form_submission_errors[$opening_html])) {
+        if (isset($form_submission_errors[$first_arg])) {
             $validation_err_str .= '<div class="validation-error-report">';
-            $form_field_errors = $form_submission_errors[$opening_html];
+            $form_field_errors = $form_submission_errors[$first_arg];
 
             foreach ($form_field_errors as $validation_error) {
                 $validation_err_str .= '<div>&#9679; ' . htmlspecialchars($validation_error, ENT_QUOTES, 'UTF-8') . '</div>';
@@ -494,20 +509,20 @@ function validation_errors(?string $opening_html = null, ?string $closing_html =
             }
         }
 
-        // Initialize $opening_html and $closing_html if not already set.
-        if (!isset($opening_html)) {
+        // Initialize $first_arg and $closing_html if not already set.
+        if (!isset($first_arg)) {
             if (defined('ERROR_OPEN') && defined('ERROR_CLOSE')) {
-                $opening_html = ERROR_OPEN;
+                $first_arg = ERROR_OPEN;
                 $closing_html = ERROR_CLOSE;
             } else {
-                $opening_html = '<p style="color: red;">';
+                $first_arg = '<p style="color: red;">';
                 $closing_html = '</p>';
             }
         }
 
         // Append each validation error wrapped in HTML tags.
         foreach ($validation_errors as $form_submission_error) {
-            $validation_err_str .= $opening_html . $form_submission_error . $closing_html;
+            $validation_err_str .= $first_arg . $form_submission_error . $closing_html;
         }
 
         // Clear the form submission errors from the session.
