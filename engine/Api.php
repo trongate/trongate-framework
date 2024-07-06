@@ -19,7 +19,7 @@ class Api extends Trongate {
             if (CORS_ALLOWED_ORIGINS === '*') {
                 header('Access-Control-Allow-Origin: *');
             } else {
-                if (isset($_SERVER['HTTP_ORIGIN']) && !empty($_SERVER['HTTP_ORIGIN'])) {
+                if (!empty($_SERVER['HTTP_ORIGIN'])) {
                     $origin = $_SERVER['HTTP_ORIGIN'];
                     $allowedOrigins = explode(',', CORS_ALLOWED_ORIGINS);
 
@@ -27,7 +27,7 @@ class Api extends Trongate {
                         header('Access-Control-Allow-Origin: ' . $origin);
                     } else {
                         $allowedOriginWildcards = array_filter($allowedOrigins, function($allowedOrigin) {
-                            return strpos($allowedOrigin, '*') !== false;
+                            return str_contains($allowedOrigin, '*');
                         });
 
                         if (count($allowedOriginWildcards) > 0) {
@@ -39,7 +39,7 @@ class Api extends Trongate {
                             $originHost = $originParts['host'];
 
                             foreach ($allowedOriginWildcards as $allowedOriginWildcard) {
-                                if (strpos($originHost, $allowedOriginWildcard) !== false) {
+                                if (str_contains($originHost, $allowedOriginWildcard)) {
                                     header('Access-Control-Allow-Origin: ' . $origin);
                                     return;
                                 }
@@ -50,8 +50,6 @@ class Api extends Trongate {
                     }
                 }
                 
-
-                header('Access-Control-Allow-Origin: ' . $origin);
                 header('Access-Control-Allow-Origin: ' . CORS_ALLOWED_ORIGINS);
             }
         }
