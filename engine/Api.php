@@ -7,6 +7,66 @@ class Api extends Trongate {
     
     public function __construct() {
         parent::__construct();
+
+        if (defined('CORS_ENABLED') && CORS_ENABLED === true) {
+            $this->_define_cors_headers();
+        }
+    }
+
+    private function _define_cors_headers(): void
+    {
+        if (defined('CORS_ALLOWED_ORIGINS') && CORS_ALLOWED_ORIGINS !== '') {
+            if (CORS_ALLOWED_ORIGINS === '*') {
+                header('Access-Control-Allow-Origin: *');
+            } else {
+                if (isset($_SERVER['HTTP_ORIGIN']) && !empty($_SERVER['HTTP_ORIGIN'])) {
+                    $origin = $_SERVER['HTTP_ORIGIN'];
+                    $allowedOrigins = explode(',', CORS_ALLOWED_ORIGINS);
+
+                    if (in_array($origin, $allowedOrigins)) {
+                        header('Access-Control-Allow-Origin: ' . $origin);
+                    } else {
+                        $allowedOriginWildcards = array_filter($allowedOrigins, function($allowedOrigin) {
+                            return strpos($allowedOrigin, '*') !== false;
+                        });
+
+                        if (count($allowedOriginWildcards) > 0) {
+                            $allowedOriginWildcards = array_map(function($allowedOrigin) {
+                                return str_replace('*', '', $allowedOrigin);
+                            }, $allowedOriginWildcards);
+
+                            $originParts = parse_url($origin);
+                            $originHost = $originParts['host'];
+
+                            foreach ($allowedOriginWildcards as $allowedOriginWildcard) {
+                                if (strpos($originHost, $allowedOriginWildcard) !== false) {
+                                    header('Access-Control-Allow-Origin: ' . $origin);
+                                    return;
+                                }
+                            }
+                        }
+
+                        header('Access-Control-Allow-Origin: ' . $allowedOrigins[0]);
+                    }
+                }
+                
+
+                header('Access-Control-Allow-Origin: ' . $origin);
+                header('Access-Control-Allow-Origin: ' . CORS_ALLOWED_ORIGINS);
+            }
+        }
+
+        if (defined('CORS_ALLOWED_METHODS') && CORS_ALLOWED_METHODS !== '') {
+            header('Access-Control-Allow-Methods: ' . CORS_ALLOWED_METHODS);
+        }
+
+        if (defined('CORS_ALLOWED_HEADERS') && CORS_ALLOWED_HEADERS !== '') {
+            header('Access-Control-Allow-Headers: ' . CORS_ALLOWED_HEADERS);
+        }
+
+        if (defined('CORS_ALLOWED_CREDENTIALS')) {
+            header('Access-Control-Allow-Credentials: ' . CORS_ALLOWED_CREDENTIALS ? 'true' : 'false');
+        }
     }
 
     /**
