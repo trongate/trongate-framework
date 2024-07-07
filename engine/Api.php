@@ -15,43 +15,19 @@ class Api extends Trongate {
 
     private function _define_cors_headers(): void
     {
-        if (defined('CORS_ALLOWED_ORIGINS') && CORS_ALLOWED_ORIGINS !== '') {
-            if (CORS_ALLOWED_ORIGINS === '*') {
-                header('Access-Control-Allow-Origin: *');
-            } else {
-                if (!empty($_SERVER['HTTP_ORIGIN'])) {
-                    $origin = $_SERVER['HTTP_ORIGIN'];
-                    $allowedOrigins = explode(',', CORS_ALLOWED_ORIGINS);
+        if (
+            defined('CORS_ALLOWED_ORIGINS')
+            && CORS_ALLOWED_ORIGINS !== ''
+            && !empty($_SERVER['HTTP_ORIGIN'])
+        ) {
+            $origin = $_SERVER['HTTP_ORIGIN'];
+            $allowedOrigins = explode(',', CORS_ALLOWED_ORIGINS);
 
-                    if (in_array($origin, $allowedOrigins)) {
-                        header('Access-Control-Allow-Origin: ' . $origin);
-                    } else {
-                        $allowedOriginWildcards = array_filter($allowedOrigins, function($allowedOrigin) {
-                            return str_contains($allowedOrigin, '*');
-                        });
-
-                        if (count($allowedOriginWildcards) > 0) {
-                            $allowedOriginWildcards = array_map(function($allowedOrigin) {
-                                return str_replace('*', '', $allowedOrigin);
-                            }, $allowedOriginWildcards);
-
-                            $originParts = parse_url($origin);
-                            $originHost = $originParts['host'];
-
-                            foreach ($allowedOriginWildcards as $allowedOriginWildcard) {
-                                if (str_contains($originHost, $allowedOriginWildcard)) {
-                                    header('Access-Control-Allow-Origin: ' . $origin);
-                                    return;
-                                }
-                            }
-                        }
-
-                        header('Access-Control-Allow-Origin: ' . $allowedOrigins[0]);
-                    }
-                }
-                
-                header('Access-Control-Allow-Origin: ' . CORS_ALLOWED_ORIGINS);
+            if (in_array($origin, $allowedOrigins)) {
+                header('Access-Control-Allow-Origin: ' . $origin);
             }
+
+            header('Access-Control-Allow-Origin: ' . CORS_ALLOWED_ORIGINS);
         }
 
         if (defined('CORS_ALLOWED_METHODS') && CORS_ALLOWED_METHODS !== '') {
