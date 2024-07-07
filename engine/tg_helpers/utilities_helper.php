@@ -1,4 +1,15 @@
 <?php
+function env(string $key, mixed $default = null): mixed
+{
+    $value = getenv($key);
+
+    if ($value === false) {
+        return $default;
+    }
+
+    return $value;
+}
+
 /**
  * Outputs the given data as JSON in a prettified format, suitable for debugging and visualization.
  * This function is especially useful during development for inspecting data structures in a readable JSON format directly in the browser. 

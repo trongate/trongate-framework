@@ -15,32 +15,15 @@ class Api extends Trongate {
 
     private function _define_cors_headers(): void
     {
-        if (
-            defined('CORS_ALLOWED_ORIGINS')
-            && CORS_ALLOWED_ORIGINS !== ''
-            && !empty($_SERVER['HTTP_ORIGIN'])
-        ) {
-            $origin = $_SERVER['HTTP_ORIGIN'];
-            $allowedOrigins = explode(',', CORS_ALLOWED_ORIGINS);
+        require_once __DIR__ . '/Cors.php';
+        $cors = new Cors(
+            allowedOriginsString: CORS_ALLOWED_ORIGINS,
+            allowedMethodsString: CORS_ALLOWED_METHODS,
+            allowedHeadersString: CORS_ALLOWED_HEADERS,
+            allowedCredentials: CORS_ALLOWED_CREDENTIALS
+        );
 
-            if (in_array($origin, $allowedOrigins)) {
-                header('Access-Control-Allow-Origin: ' . $origin);
-            }
-
-            header('Access-Control-Allow-Origin: ' . CORS_ALLOWED_ORIGINS);
-        }
-
-        if (defined('CORS_ALLOWED_METHODS') && CORS_ALLOWED_METHODS !== '') {
-            header('Access-Control-Allow-Methods: ' . CORS_ALLOWED_METHODS);
-        }
-
-        if (defined('CORS_ALLOWED_HEADERS') && CORS_ALLOWED_HEADERS !== '') {
-            header('Access-Control-Allow-Headers: ' . CORS_ALLOWED_HEADERS);
-        }
-
-        if (defined('CORS_ALLOWED_CREDENTIALS')) {
-            header('Access-Control-Allow-Credentials: ' . CORS_ALLOWED_CREDENTIALS ? 'true' : 'false');
-        }
+        $cors->defineHeaders($_SERVER['HTTP_ORIGIN']);
     }
 
     /**
