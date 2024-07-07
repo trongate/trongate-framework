@@ -1,5 +1,13 @@
 <?php
 
+function t(string $key, mixed $default = null, string $locale = null): string {
+    return Localization::getInstance($locale)->translate($key, $default);
+}
+
+function money($value, string $currency = null, string $locale = null): string {
+    return Localization::getInstance($locale, $currency)->formatCurrency($value);
+}
+
 /**
  * Truncates a string to a specified maximum length.
  *
