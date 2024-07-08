@@ -1,3 +1,9 @@
 {
-  "Welcome": "Velkommen"
+  "Welcome": "Velkommen",
+  "Translate Text": "Oversæt tekst",
+  "Cancel": "Annuller",
+  "Submit": "Indsend",
+  "Enter text to translate below, then hit Submit.": "Indtast tekst til oversættelse nedenfor, og tryk derefter på Send.",
+  "Text to Translate": "Tekst til oversættelse",
+  "Enter text to translate here...": "Indtast tekst til oversættelse her..."
 }
