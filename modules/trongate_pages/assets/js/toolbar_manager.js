@@ -13,6 +13,7 @@ function tgpAddHeadlineToolbar(targetEl) {
     let divRight = document.createElement("div");
     editor.appendChild(divRight);
 
+    tgpBuildTranslateBtn(divLeft);
     tgpBuildCodeBtn(divLeft);
     tgpBuildItalicBtn(divLeft);
     tgpBuildAlignLeftBtn(divLeft);
@@ -163,6 +164,13 @@ function tgpRemoveToolbars() {
   editorElements.forEach((element) => {
     element.remove();
   });
+}
+
+function tgpBuildTranslateBtn(containerEl) {
+    const translateBtn = document.createElement("button");
+    translateBtn.setAttribute("onclick", "tgpOpenTranslateModal()");
+    translateBtn.innerHTML = "Translate <i class='fa fa-language'></i>";
+    containerEl.appendChild(translateBtn);
 }
 
 function tgpBuildCodeBtn(containerEl) {
@@ -821,6 +829,7 @@ function tgpAddTextToolbar(targetEl) {
     let divRight = document.createElement("div");
     editor.appendChild(divRight);
 
+    tgpBuildTranslateBtn(divLeft);
     tgpBuildCodeBtn(divLeft);
     tgpBuildBoldBtn(divLeft);
     tgpBuildItalicBtn(divLeft);

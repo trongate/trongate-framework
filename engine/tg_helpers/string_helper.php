@@ -1,11 +1,11 @@
 <?php
 
 function t(string $key, mixed $default = null, string $locale = null): string {
-    return Localization::getInstance($locale)->translate($key, $default);
+    return TrongateLocalization::getInstance($locale)->translate($key, $default);
 }
 
 function money($value, string $currency = null, string $locale = null): string {
-    return Localization::getInstance($locale, $currency)->formatCurrency($value);
+    return TrongateLocalization::getInstance($locale, $currency)->formatCurrency($value);
 }
 
 /**

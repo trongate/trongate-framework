@@ -1,3 +1,71 @@
+function tgpOpenTranslateModal() {
+    tgpReset(["codeviews", "customModals", "toolbars"]);
+
+    const modalId = "tgp-translate-modal";
+    const modalHeading = document.createElement("div");
+    modalHeading.classList.add("modal-heading");
+
+    const icon = document.createElement("i");
+    icon.classList.add("fa", "fa-language");
+
+    const headingText = document.createTextNode(t("Translate Text"));
+    modalHeading.appendChild(icon);
+    modalHeading.appendChild(headingText);
+
+    // Add a modal footer
+    const modalFooter = document.createElement("div");
+    modalFooter.classList.add("modal-footer");
+
+    // Add a cancel button
+    const closeModalBtn = document.createElement("button");
+    closeModalBtn.setAttribute("class", "alt");
+    closeModalBtn.setAttribute("type", "button");
+    closeModalBtn.innerText = t("Cancel");
+    closeModalBtn.setAttribute(
+        "onclick",
+        "tgpCloseAndDestroyModal('" + modalId + "', false)"
+    );
+    modalFooter.appendChild(closeModalBtn);
+
+    // Add a submit button
+    const submitBtn = document.createElement("button");
+    submitBtn.setAttribute("type", "button");
+    submitBtn.innerText = t("Submit");
+    submitBtn.setAttribute("onclick", "tgpTranslateText()");
+    modalFooter.appendChild(submitBtn);
+
+    const modalOptions = {
+        modalHeading,
+        modalFooter,
+        maxWidth: 570,
+    };
+
+    const customModal = tgpBuildCustomModal(modalId, modalOptions);
+    const modalBody = customModal.querySelector(".modal-body");
+    const infoPara = document.createElement("p");
+    let infoParaText = document.createTextNode(
+        t("Enter text to translate below, then hit Submit.")
+    );
+    infoPara.appendChild(infoParaText);
+    infoPara.setAttribute("class", "text-center sm");
+    modalBody.appendChild(infoPara);
+
+    const translateFormPara = document.createElement("p");
+    translateFormPara.setAttribute("class", "text-center sm");
+    modalBody.appendChild(translateFormPara);
+
+    let formLabel = document.createElement("label");
+    formLabel.innerHTML = t("Text to Translate");
+    translateFormPara.appendChild(formLabel);
+
+    let inputField = document.createElement("textarea");
+    inputField.setAttribute("id", "tgp-translate-text");
+    inputField.setAttribute("placeholder", t("Enter text to translate here..."));
+    inputField.setAttribute("rows", "5");
+    inputField.setAttribute("cols", "50");
+    translateFormPara.appendChild(inputField);
+}
+
 let selectedRangeShadow;
 
 function tgpInsertText() {

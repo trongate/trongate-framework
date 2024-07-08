@@ -56,6 +56,7 @@
 		<ul auto-populate="true"></ul>
 	</div>
 	<script src="<?= BASE_URL  ?>js/app.js"></script>
+    <script src="<?= BASE_URL ?>trongate_localization_module/js/translation_manager.js"></script>
 </body>
 
 </html>

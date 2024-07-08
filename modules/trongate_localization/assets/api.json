@@ -1,0 +1,12 @@
+{
+  "List languages": {
+    "url": "trongate_localization/list_languages",
+    "method": "GET",
+    "description": "Returns a list of languages."
+  },
+  "Get translations": {
+    "url": "trongate_localization/get_translations",
+    "method": "GET",
+    "description": "Returns a list of translations for a given language."
+  },
+}

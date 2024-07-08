@@ -24,5 +24,5 @@ define('DEFAULT_METHOD', 'index');
 define('MODULE_ASSETS_TRIGGER', '_module');
 define('INTERCEPT_404', 'trongate_pages/attempt_display');
 
-//Localization (i18n)
-define('FALLBACK_LOCALE', 'en_US');
+//TrongateLocalization (i18n)
+define('FALLBACK_LOCALE', 'en');
