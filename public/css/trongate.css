@@ -619,6 +619,10 @@ div.modal-body p.text-center {
   }
 }
 
+.mx-indicator-hidden {
+  display: none;
+}
+
 @media screen and (max-width: 550px) {
   button,
   .button {
