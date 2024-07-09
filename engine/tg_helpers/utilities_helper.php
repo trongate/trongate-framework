@@ -200,10 +200,14 @@ function sort_rows_by_property(array $array, string $property, string $direction
 }
 
 /**
- * Checks if the current request originated from Trongate MX.
+ * Checks if the HTTP request has been invoked by Trongate MX.
  *
- * @return bool Returns true if the request is a Trongate MX request, false otherwise.
+ * @return bool True if the request has the X-Trongate-MX header set to 'true', otherwise false.
  */
 function from_trongate_mx(): bool {
-    return isset($_SERVER['HTTP_TRONGATE_MX_REQUEST']) && $_SERVER['HTTP_TRONGATE_MX_REQUEST'] === 'true';
+    if (isset($_SERVER['HTTP_TRONGATE_MX_REQUEST'])) {
+        return true;
+    } else {
+        return false;
+    }
 }
