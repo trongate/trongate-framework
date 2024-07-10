@@ -1,12 +1,16 @@
 {
-  "List languages": {
-    "url": "trongate_localization/list_languages",
-    "method": "GET",
-    "description": "Returns a list of languages."
-  },
   "Get translations": {
-    "url": "trongate_localization/get_translations",
-    "method": "GET",
+    "url_segments": "trongate_localization/get_translations",
+    "request_type": "GET",
     "description": "Returns a list of translations for a given language."
   },
+  "Update translations": {
+    "url_segments": "trongate_localization/update_translations",
+    "request_type": "POST",
+    "description": "Updates translations for a given language.",
+    "enableParams": true,
+    "authorization": {
+      "roles": ["admin"]
+    }
+  }
 }

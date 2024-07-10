@@ -23,7 +23,14 @@ class Trongate_localization extends Trongate
         $fileIterator = new FilesystemIterator(self::LANG_PATH);
 
         foreach ($fileIterator as $file) {
-            $this->languages[] = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+            $language = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+            $this->languages[] = $language;
+
+            // ../assets/lang/en.json
+            $localePath = self::LANG_PATH . DIRECTORY_SEPARATOR . $language . '.json';
+            $translations = file_get_contents($localePath);
+
+            $this->translations[$language] = json_decode($translations, true);
         }
     }
 
@@ -50,23 +57,6 @@ class Trongate_localization extends Trongate
 
         $this->currency = $currency ?? $this->inferCurrencyFromLocale();
 
-        // ../assets/lang/en.json
-        $localePath = self::LANG_PATH . DIRECTORY_SEPARATOR . $this->locale . '.json';
-
-        if (!file_exists($localePath)) {
-            http_response_code(404);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'message' => 'Translations not found',
-                'locale' => $this->locale,
-                'path' => $localePath
-            ]);
-        }
-
-        $translations = file_get_contents($localePath);
-
-        $this->translations = json_decode($translations, true);
-
         return $this;
     }
 
@@ -82,13 +72,11 @@ class Trongate_localization extends Trongate
         return $this->currencyFormatter->getTextAttribute(NumberFormatter::CURRENCY_CODE);
     }
 
-    public function translate(string $key, ?string $default = null, ?string $locale = null, ?string $currency = null): string
+    public function translate(string $key, ?string $default = null, ?string $locale = null): string
     {
-        if ($locale) {
-            $this->_load_locale($locale, $currency);
-        }
+        $translations = (array) $this->translations[$locale ?? $this->locale] ?? $this->translations[FALLBACK_LOCALE];
 
-        return (string) $this->translations[$key] ?? $default;
+        return (string) $translations[$key] ?? $default;
     }
 
     public function currency(float $value, ?string $currency = null): string
@@ -101,22 +89,38 @@ class Trongate_localization extends Trongate
     #endregion
 
     #region Endpoints
-    public function list_languages(): void
-    {
-        http_response_code(200);
-        header('Content-Type: application/json');
-        echo json_encode($this->languages);
-    }
-
     public function get_translations(): void
     {
-        $locale = segment(3, 'string');
-
-        $this->_load_locale($locale);
+        $this->_load_locale();
 
         http_response_code(200);
         header('Content-Type: application/json');
-        echo json_encode($this->translations);
+        echo json_encode([
+            'locale' => $this->locale,
+            'currency' => $this->currency,
+            'languages' => $this->languages,
+            'translations' => $this->translations,
+        ]);
+    }
+
+    public function update_translations(): void
+    {
+        api_auth();
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $key = $data['translation_string'];
+
+        foreach($this->languages as $language) {
+            $localePath = self::LANG_PATH . DIRECTORY_SEPARATOR . $language . '.json';
+            $translations = $this->translations[$language];
+            $value = $data[$language] ?? '';
+
+            $translations[$key] = $value;
+            file_put_contents($localePath, json_encode($translations, JSON_PRETTY_PRINT));
+            $this->translations[$language] = $translations;
+        }
+
+        http_response_code(200);
     }
     #endregion
 }

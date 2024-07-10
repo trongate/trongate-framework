@@ -1,9 +1,10 @@
 {
-  "Welcome": "Velkommen",
-  "Translate Text": "Oversæt tekst",
-  "Cancel": "Annuller",
-  "Submit": "Indsend",
-  "Enter text to translate below, then hit Submit.": "Indtast tekst til oversættelse nedenfor, og tryk derefter på Send.",
-  "Text to Translate": "Tekst til oversættelse",
-  "Enter text to translate here...": "Indtast tekst til oversættelse her..."
+    "Welcome": "Velkommen",
+    "Translate Text": "Overs\u00e6t tekst",
+    "Cancel": "Annuller",
+    "Submit": "Indsend",
+    "Enter text to translate below, then hit Submit.": "Indtast tekst til overs\u00e6ttelse nedenfor, og tryk derefter p\u00e5 Send.",
+    "Text to Translate": "Tekst til overs\u00e6ttelse",
+    "Enter text to translate here...": "Indtast tekst til overs\u00e6ttelse her...",
+    "Hello": "Hejsa Trongate"
 }

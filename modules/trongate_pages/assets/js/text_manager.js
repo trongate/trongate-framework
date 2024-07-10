@@ -1,6 +1,8 @@
 function tgpOpenTranslateModal() {
     tgpReset(["codeviews", "customModals", "toolbars"]);
 
+    const activeEl = trongatePagesObj.activeEl;
+
     const modalId = "tgp-translate-modal";
     const modalHeading = document.createElement("div");
     modalHeading.classList.add("modal-heading");
@@ -11,7 +13,6 @@ function tgpOpenTranslateModal() {
     const headingText = document.createTextNode(t("Translate Text"));
     modalHeading.appendChild(icon);
     modalHeading.appendChild(headingText);
-
     // Add a modal footer
     const modalFooter = document.createElement("div");
     modalFooter.classList.add("modal-footer");
@@ -29,15 +30,15 @@ function tgpOpenTranslateModal() {
 
     // Add a submit button
     const submitBtn = document.createElement("button");
-    submitBtn.setAttribute("type", "button");
+    submitBtn.setAttribute("type", "submit");
+    submitBtn.setAttribute("form", "tgp-translate-form")
     submitBtn.innerText = t("Submit");
-    submitBtn.setAttribute("onclick", "tgpTranslateText()");
     modalFooter.appendChild(submitBtn);
 
     const modalOptions = {
         modalHeading,
         modalFooter,
-        maxWidth: 570,
+        maxWidth: 900,
     };
 
     const customModal = tgpBuildCustomModal(modalId, modalOptions);
@@ -54,16 +55,101 @@ function tgpOpenTranslateModal() {
     translateFormPara.setAttribute("class", "text-center sm");
     modalBody.appendChild(translateFormPara);
 
+    const translateForm = document.createElement("form");
+    translateForm.action = '/trongate_localization/update_translations';
+    translateForm.method = 'post';
+    translateForm.setAttribute("id", "tgp-translate-form");
+
+    // CSRF TOken
+    const csrfToken = document.createElement("input");
+    csrfToken.setAttribute("type", "hidden");
+    csrfToken.setAttribute("name", "csrf_token");
+    csrfToken.setAttribute("value", trongatePagesObj.trongatePagesToken);
+
     let formLabel = document.createElement("label");
     formLabel.innerHTML = t("Text to Translate");
     translateFormPara.appendChild(formLabel);
 
-    let inputField = document.createElement("textarea");
-    inputField.setAttribute("id", "tgp-translate-text");
-    inputField.setAttribute("placeholder", t("Enter text to translate here..."));
-    inputField.setAttribute("rows", "5");
-    inputField.setAttribute("cols", "50");
-    translateFormPara.appendChild(inputField);
+    const translationStringFieldset = document.createElement("fieldset");
+    const translationStringLabel = document.createElement("label");
+    translationStringLabel.setAttribute("for", "tgp-translation-string");
+    translationStringLabel.innerHTML = t("Translation root value");
+    translationStringFieldset.appendChild(translationStringLabel);
+
+    const translationString = document.createElement("input");
+    translationString.setAttribute("type", "text");
+    translationString.setAttribute("id", "tgp-translation-string");
+    translationString.setAttribute("placeholder", t("Enter the value to save on the page..."));
+    translationString.setAttribute("name", "translation_string");
+    translationString.setAttribute("required", "required");
+    translationString.setAttribute("value", activeEl.innerText);
+    translationStringFieldset.appendChild(translationString);
+
+    translateForm.appendChild(translationStringFieldset);
+
+    for (const language of translations_data.languages) {
+        const localeFieldset = document.createElement("fieldset");
+        const legend = document.createElement("legend");
+        legend.innerHTML = t(language, language);
+        localeFieldset.appendChild(legend);
+
+        let inputField = document.createElement("textarea");
+        inputField.setAttribute("id", "tgp-translate-text");
+        inputField.setAttribute("placeholder", t("Enter text to translate here...", undefined, language));
+        // inputField.setAttribute('value', t(activeEl.innerText, undefined, language));
+        inputField.value = t(activeEl.innerText, undefined, language);
+        inputField.setAttribute("required", "required");
+        inputField.setAttribute("rows", "5");
+        inputField.setAttribute("cols", "50");
+        inputField.setAttribute("name", language);
+        localeFieldset.appendChild(inputField);
+
+        translateForm.appendChild(localeFieldset);
+    }
+
+    translateForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const ogSubmitText = submitBtn.innerText;
+
+        try {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> ' + t("Submitting...");
+
+            const formData = new FormData(translateForm);
+            const jsonPayload = {};
+
+            for (const [key, value] of formData.entries()) {
+                jsonPayload[key] = value;
+            }
+
+            const response = await fetch(translateForm.action, {
+                headers: {
+                    "content-type": "application/json",
+                    "Accept": "application/json",
+                    "trongateToken": trongatePagesObj.trongatePagesToken
+                },
+                method: translateForm.method,
+                body: JSON.stringify(jsonPayload)
+            });
+
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+
+            submitBtn.innerHTML = '<i class="fa fa-check"></i> ' + t("Submitted");
+            activeEl.innerText = translationString.value;
+            activeEl.dataset.translate = "true";
+
+            const tgpTranslateSuccessTimeout = setTimeout(() => {
+                tgpCloseAndDestroyModal(modalId, true);
+                clearTimeout(tgpTranslateSuccessTimeout);
+            }, 2000);
+        } finally {
+            submitBtn.innerText = ogSubmitText;
+        }
+    });
+
+    modalBody.appendChild(translateForm);
 }
 
 let selectedRangeShadow;
