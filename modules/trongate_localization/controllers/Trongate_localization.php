@@ -52,6 +52,8 @@ class Trongate_localization extends Trongate
                 $this->languageMappings[$pair[0]] = $pair[0];
             }
         }
+
+        $this->_load_language();
     }
 
     public function _load_language(?string $language = null, ?string $currency = null): static
@@ -106,7 +108,19 @@ class Trongate_localization extends Trongate
 
     public function translate(string $key, ?string $default = null, ?string $locale = null): string
     {
-        $translations = (array) $this->translations[$locale ?? $this->locale] ?? $this->translations[FALLBACK_LOCALE];
+        if (empty($key)) {
+            return $default;
+        }
+
+        if ($locale) {
+            $locale = $this->_compose_locale($locale);
+        } else {
+            $locale = $this->locale;
+        }
+
+        $language = array_flip($this->languageMappings)[$locale] ?? $locale;
+
+        $translations = (array) $this->translations[$language] ?? $this->translations[FALLBACK_LOCALE];
 
         return (string) $translations[$key] ?? $default;
     }
@@ -123,12 +137,11 @@ class Trongate_localization extends Trongate
     #region Endpoints
     public function get_translations(): void
     {
-        $this->_load_language();
-
         http_response_code(200);
         header('Content-Type: application/json');
         echo json_encode([
             'locale' => $this->locale,
+            'language' => array_flip($this->languageMappings)[$this->locale] ?? $this->locale,
             'currency' => $this->currency,
             'languages' => $this->languages,
             'translations' => $this->translations,

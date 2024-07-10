@@ -11,4 +11,7 @@ class Welcome extends Trongate {
 		$this->trongate_pages->display();
 	}
 
+    public function test(): void {
+        $this->template('public');
+    }
 }

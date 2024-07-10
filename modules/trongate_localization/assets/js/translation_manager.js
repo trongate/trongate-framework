@@ -1,6 +1,7 @@
 var translations_data = {
     locale: 'en',
     currency: 'USD',
+    language: 'en',
     languages: ['en'],
     translations: {}
 };
@@ -21,7 +22,7 @@ fetch("/trongate_localization/get_translations")
     });
 
 function translate(key, fallback = undefined, locale = undefined) {
-    var translations = translations_data.translations[locale || translations_data.locale];
+    var translations = translations_data.translations[locale || translations_data.language];
     var returnValue;
 
     if (translations.hasOwnProperty(key)) {

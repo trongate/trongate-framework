@@ -1,11 +1,21 @@
 <?php
 
 function t(string $key, mixed $default = null, string $locale = null): string {
-    return TrongateLocalization::getInstance($locale)->translate($key, $default);
+    return Modules::run(
+        'trongate_localization/translate',
+        $key,
+        $default,
+        $locale
+    );
 }
 
 function money($value, string $currency = null, string $locale = null): string {
-    return TrongateLocalization::getInstance($locale, $currency)->formatCurrency($value);
+    return Modules::run(
+        'trongate_localization/currency',
+        $value,
+        $currency,
+        $locale
+    );
 }
 
 /**
