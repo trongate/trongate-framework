@@ -43,6 +43,7 @@ document.addEventListener('translationsLoaded', function () {
         if (shouldTranslate) {
             const key = element.innerHTML;
             element.innerHTML = translate(key);
+            element.dataset.translateKey = key;
         }
     });
 });

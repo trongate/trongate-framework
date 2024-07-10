@@ -82,7 +82,7 @@ function tgpOpenTranslateModal() {
     translationString.setAttribute("placeholder", t("Enter the value to save on the page..."));
     translationString.setAttribute("name", "translation_string");
     translationString.setAttribute("required", "required");
-    translationString.setAttribute("value", activeEl.innerText);
+    translationString.setAttribute("value", activeEl.dataset.translateKey || activeEl.innerText);
     translationStringFieldset.appendChild(translationString);
 
     translateForm.appendChild(translationStringFieldset);
@@ -97,7 +97,11 @@ function tgpOpenTranslateModal() {
         inputField.setAttribute("id", "tgp-translate-text");
         inputField.setAttribute("placeholder", t("Enter text to translate here...", undefined, language));
         // inputField.setAttribute('value', t(activeEl.innerText, undefined, language));
-        inputField.value = t(activeEl.innerText, undefined, language);
+        inputField.value = t(
+            activeEl.dataset.translateKey || activeEl.innerText,
+            undefined,
+            language
+        );
         inputField.setAttribute("required", "required");
         inputField.setAttribute("rows", "5");
         inputField.setAttribute("cols", "50");
