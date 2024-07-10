@@ -15,6 +15,14 @@ class Trongate_localization extends Trongate
 
     public array $translations = [];
 
+    /**
+     * Maps a string of language codes to their respective locales.
+     *
+     * Example: 'da:da_DK,en:en_US,...' => ['da' => 'da_DK', 'en' => 'en_US', ...]
+     * @var array
+     */
+    public array $languageMappings = [];
+
     #region Module scope
     public function __construct(?string $module_name = null)
     {
@@ -32,32 +40,56 @@ class Trongate_localization extends Trongate
 
             $this->translations[$language] = json_decode($translations, true);
         }
+
+        $languageMappings = explode(',', LOCALE_MAPPINGS);
+
+        foreach ($languageMappings as $mapping) {
+            $pair = explode(':', $mapping, 2);
+
+            if (count($pair) === 2) {
+                $this->languageMappings[$pair[0]] = $pair[1];
+            } else {
+                $this->languageMappings[$pair[0]] = $pair[0];
+            }
+        }
     }
 
-    public function _load_locale(?string $locale = null, ?string $currency = null): static
+    public function _load_language(?string $language = null, ?string $currency = null): static
     {
-        if (empty($locale)) {
-            $locale = $this->readLanguageFromHeader() ?? FALLBACK_LOCALE;
+        if (empty($language)) {
+            $language = $this->readLanguageFromHeader() ?? FALLBACK_LOCALE;
         }
 
-        if (!in_array($locale, $this->languages)) {
+        if (!in_array($language, $this->languages)) {
             http_response_code(404);
             header('Content-Type: application/json');
             echo json_encode([
-                'message' => 'Unsupported locale',
-                'locale' => $locale,
+                'message' => 'Unsupported language',
+                'locale' => $language,
                 'supported' => $this->languages
             ]);
         }
 
-        $this->locale = $locale;
-
-        Locale::setDefault($this->locale);
+        $this->locale = $this->_compose_locale($language) ?? $this->_compose_locale(FALLBACK_LOCALE);
         $this->currencyFormatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
-
         $this->currency = $currency ?? $this->inferCurrencyFromLocale();
 
         return $this;
+    }
+
+    public function _compose_locale(string $language): ?string
+    {
+        if (isset($this->languageMappings[$language])) {
+            return $this->languageMappings[$language];
+        }
+
+        $locale = Locale::composeLocale([
+            'language' => Locale::getPrimaryLanguage($language),
+            'script' => Locale::getScript($language),
+            'region' => Locale::getRegion($language),
+        ]);
+
+        return $locale ?: null;
     }
 
     public function readLanguageFromHeader(): ?string
@@ -91,7 +123,7 @@ class Trongate_localization extends Trongate
     #region Endpoints
     public function get_translations(): void
     {
-        $this->_load_locale();
+        $this->_load_language();
 
         http_response_code(200);
         header('Content-Type: application/json');
