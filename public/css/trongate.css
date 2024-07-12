@@ -619,6 +619,158 @@ div.modal-body p.text-center {
   }
 }
 
+.mx-indicator-hidden {
+  display: none;
+}
+
+.mx-animation-container-cross {
+  padding-top: 0;
+  min-height: 200px;
+}
+
+.mx-animation-container-tick {
+    padding-top: 33px;
+    min-height: 200px;
+}
+
+#big-tick,
+#big-cross {
+  min-width: 100%;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+#big-tick {
+  padding-top: 45px;
+  min-height: 200px;
+}
+
+#cross {
+  padding-top: 0;
+    min-height: 120px;
+    padding-bottom: 33px;
+}
+
+#tick {
+  margin: 0 auto;
+  max-height: 154px;
+}
+
+.circ {
+  opacity: 0;
+  stroke-dasharray: 130;
+  stroke-dashoffset: 130;
+  -webkit-transition: all 1s;
+  -moz-transition: all 1s;
+  -ms-transition: all 1s;
+  -o-transition: all 1s;
+  transition: all 1s;
+}
+
+.tick {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  -webkit-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -moz-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -ms-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -o-transition: stroke-dashoffset 1s 0.5s ease-out;
+  transition: stroke-dashoffset 1s 0.5s ease-out;
+}
+
+.cross {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  -webkit-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -moz-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -ms-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -o-transition: stroke-dashoffset 1s 0.7s ease-out;
+  transition: stroke-dashoffset 1s 0.7s ease-out;
+}
+
+.trigger.drawn .path,
+.drawn + svg .path {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+
+.mx-animation-container-cross {
+  padding-top: 0;
+  min-height: 200px;
+}
+
+.mx-animation-container-tick {
+    padding-top: 33px;
+    min-height: 200px;
+}
+
+#mx-big-tick,
+#mx-big-cross {
+  min-width: 100%;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+#mx-big-tick {
+  padding-top: 45px;
+  min-height: 200px;
+}
+
+#mx-cross {
+  padding-top: 0;
+    min-height: 120px;
+    padding-bottom: 33px;
+}
+
+#mx-tick {
+  margin: 0 auto;
+  max-height: 154px;
+}
+
+.mx-circ {
+  opacity: 0;
+  stroke-dasharray: 130;
+  stroke-dashoffset: 130;
+  -webkit-transition: all 1s;
+  -moz-transition: all 1s;
+  -ms-transition: all 1s;
+  -o-transition: all 1s;
+  transition: all 1s;
+}
+
+.mx-tick {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  -webkit-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -moz-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -ms-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -o-transition: stroke-dashoffset 1s 0.5s ease-out;
+  transition: stroke-dashoffset 1s 0.5s ease-out;
+}
+
+.mx-cross {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  -webkit-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -moz-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -ms-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -o-transition: stroke-dashoffset 1s 0.7s ease-out;
+  transition: stroke-dashoffset 1s 0.7s ease-out;
+}
+
+.mx-trigger.mx-drawn .path,
+.mx-drawn + svg .path {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+
 @media screen and (max-width: 550px) {
   button,
   .button {
