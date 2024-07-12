@@ -1342,6 +1342,25 @@ class Trongate_pages extends Trongate {
     }
 
     /**
+     * Set the number of items per page.
+     *
+     * @param int $selected_index Selected index for items per page.
+     *
+     * @return void
+     */
+    public function set_per_page(int $selected_index): void {
+        $this->module('trongate_security');
+        $this->trongate_security->_make_sure_allowed();
+
+        if (!is_numeric($selected_index)) {
+            $selected_index = $this->per_page_options[1];
+        }
+
+        $_SESSION['selected_per_page'] = $selected_index;
+        redirect(segment(1).'/manage');
+    }
+
+    /**
      * Check if a module exists that shares the same name as a target URL string.
      *
      * @param string $url_string The name of the URL string to check.
