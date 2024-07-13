@@ -120,11 +120,26 @@ class Localization_service
             $locale = $this->locale;
         }
 
-        $language = array_flip($this->languageMappings)[$locale] ?? $locale;
+        $language = $this->language($locale);
 
         $translations = $this->translations($language);
 
-        return (string) $translations[$key] ?? $default;
+        if (str_contains($key, '.')) {
+            $keys = explode('.', $key);
+
+            // Traverse the array of keys to find the value
+            $t = $translations;
+            $result = '';
+
+            foreach ($keys as $key) {
+                $result = $t[$key] ?? '';
+                $t = $result;
+            }
+
+            return empty($result) ? $default : $result;
+        }
+
+        return (string) ($translations[$key] ?? $default);
     }
 
     public function currency(float $value, ?string $currency = null): string
@@ -133,5 +148,16 @@ class Localization_service
             amount: $value,
             currency: $currency ?? $this->currency
         );
+    }
+
+    public function language(?string $locale = null): string
+    {
+        $mappings = array_flip($this->languageMappings);
+
+        if ($locale) {
+            return $mappings[$locale] ?? $locale;
+        }
+
+        return $mappings[$this->locale] ?? $this->locale;
     }
 }

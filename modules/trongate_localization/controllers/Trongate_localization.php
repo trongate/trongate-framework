@@ -26,7 +26,10 @@ class Trongate_localization extends Trongate
      */
     public function __call($method, $args)
     {
-        return $this->_service()->$method(...$args);
+        $service = $this->_service();
+        $service->load();
+
+        return $service->$method(...$args);
     }
     #endregion
 
@@ -41,7 +44,7 @@ class Trongate_localization extends Trongate
         header('Content-Type: application/json');
         echo json_encode([
             'locale' => $service->locale,
-            'language' => array_flip($service->languageMappings)[$service->locale] ?? $service->locale,
+            'language' => $service->language(),
             'currency' => $service->currency,
             'languages' => $service->driver()->languages(),
             'translations' => $service->driver()->translations(),
@@ -62,5 +65,30 @@ class Trongate_localization extends Trongate
             'translations' => $this->_service()->translations()
         ]);
     }
+    #endregion
+    
+    #region Views
+    function manage(): void {
+        $this->module('trongate_security');
+        $this->trongate_security->_make_sure_allowed();
+
+        $service = $this->_service();
+        $service->load();
+
+        if (segment(2) !== '' && !empty($_GET['searchphrase'])) {
+            $data['headline'] = $service->translate('Search Results');
+            $searchphrase = trim($_GET['searchphrase']);
+            $data['rows'] = $service->driver()->search($searchphrase);
+        } else {
+            $data['headline'] = $service->translate('Manage Localizations');
+            $data['rows'] = $service->driver()->translations();
+        }
+
+        $data['view_module'] = 'trongate_localization';
+        $data['view_file'] = 'manage';
+        $data['t'] = $service->translate(...);
+        $this->template('admin', $data);
+    }
+
     #endregion
 }

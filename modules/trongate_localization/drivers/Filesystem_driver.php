@@ -2,6 +2,10 @@
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'Localization_driver.php';
 
+/**
+ * Loads JSON translations into memory and offers functionality to search and update them.
+ * TODO: Do we need to use an iterator instead of an array to reduce memory usage?
+ */
 class Filesystem_driver implements Localization_driver
 {
     // ../assets/lang
@@ -51,5 +55,48 @@ class Filesystem_driver implements Localization_driver
         }
 
         return $this;
+    }
+
+    private function searchMatch(string $key, string $query): bool
+    {
+        // First try to match the key with stripos
+        if (stripos($key, $query) !== false) {
+            return true;
+        }
+
+        // Define a list of delimiters
+        $delimiters = " ,.;\n";
+
+        // Tokenize the key using the delimiters
+        $token = strtok($key, $delimiters);
+        while ($token !== false) {
+            if (stripos($token, $query) !== false) {
+                return true; // Token matches the query
+            }
+            $token = strtok($delimiters); // Continue with the next token
+        }
+
+        return false; // No match found
+    }
+
+    public function search(string $query): iterable
+    {
+        $results = [];
+
+        foreach($this->translations as $language => $translations) {
+            foreach($translations as $key => $value) {
+                // $value may be a string or an array
+                // If it's an array, we need to convert it to a string using dot notation
+                if (is_array($value)) {
+                    $value = implode('.', $value);
+                }
+
+                if ($this->searchMatch($key, $query) || $this->searchMatch($value, $query)) {
+                    $results[$language][$key] = $value;
+                }
+            }
+        }
+
+        return $results;
     }
 }

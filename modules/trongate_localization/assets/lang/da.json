@@ -6,5 +6,13 @@
     "Enter text to translate below, then hit Submit.": "Indtast tekst til overs\u00e6ttelse nedenfor, og tryk derefter p\u00e5 Send.",
     "Text to Translate": "Tekst til overs\u00e6ttelse",
     "Enter text to translate here...": "Indtast tekst til overs\u00e6ttelse her...",
-    "Hello": "Hejsa Trongate"
+    "Hello": "Hejsa Trongate",
+    "Manage Localizations": "Administrer overs\u00e6ttelser",
+    "Key": "N\u00f8gle",
+    "Value": "V\u00e6rdi",
+    "Action": "Handling",
+    "languages": {
+        "da": "Dansk",
+        "en": "Engelsk"
+    }
 }
