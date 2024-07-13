@@ -26,7 +26,12 @@ class Localization_service
     {
         if (!$this->driver) {
             switch (LOCALIZATION_DRIVER) {
-                case 'Filesystem_driver':
+                case 'Database':
+                    require_once __DIR__ . '/../drivers/Database_driver.php';
+                    $this->driver = new Database_driver();
+                    $this->driver->read();
+                    break;
+                case 'Filesystem':
                 default:
                     require_once __DIR__ . '/../drivers/Filesystem_driver.php';
                     $this->driver = new Filesystem_driver();
