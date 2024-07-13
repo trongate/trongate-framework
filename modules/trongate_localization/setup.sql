@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `trongate_localization`
     `language` varchar(65) DEFAULT NULL,
     `key`      varchar(60) DEFAULT NULL,
     `value`    LONGTEXT    DEFAULT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
