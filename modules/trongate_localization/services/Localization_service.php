@@ -115,6 +115,10 @@ class Localization_service
 
     public function translate(string $key, ?string $default = null, ?string $locale = null): string
     {
+        if ($default === null) {
+            $default = $key;
+        }
+
         if (empty($key)) {
             return $default;
         }
