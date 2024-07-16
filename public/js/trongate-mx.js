@@ -1,8 +1,7 @@
 const methodAttributes = ['mx-get', 'mx-post', 'mx-put', 'mx-delete', 'mx-patch'];
 
 function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
-    console.log('look at me.. I am posting a form');
-
+    
     // Establish the target URL.
     const targetUrl = containingForm.getAttribute(httpMethodAttribute);
 
@@ -104,7 +103,13 @@ function mxSubmitForm(element, triggerEvent, httpMethodAttribute) {
 }
 
 function clearExistingValidationErrors(containingForm) {
-    // Remove elements with class 'validation-error-report'
+    // Remove the 'validation-error-alert' element if it exists
+    const validationErrorsAlert = document.querySelector('.validation-error-alert');
+    if (validationErrorsAlert) {
+        validationErrorsAlert.remove();
+    }
+    
+    // Remove 'validation-error-report' elements within the form
     containingForm.querySelectorAll('.validation-error-report')
         .forEach(el => el.remove());
 
@@ -685,8 +690,6 @@ function handleHttpResponse(http, element) {
             }
 
             if (targetEl) {
-                console.log('populate target element');
-
                 // Check to see if we are required to do a success animation.
                 const successanimateStr = element.getAttribute('mx-animate-success');
 
@@ -721,7 +724,6 @@ function handleHttpResponse(http, element) {
         }
 
         if (containingForm) {
-            console.log('now attempting to display');
             attemptDisplayValidationErrors(http, element, containingForm);
         }
 
@@ -784,6 +786,53 @@ function handleValidationErrors(containingForm, validationErrors) {
 
 function attemptDisplayValidationErrors(http, element, containingForm) {
     if (http.status >= 400 && http.status <= 499) {
+
+        try {            
+
+            // Check to see if the containingForm has a class of 'highlight-errors'
+            if (containingForm.classList.contains('highlight-errors')) {
+                // Parse the content of the validation-errors div
+                const validationErrors = JSON.parse(http.responseText);
+
+                // Loop through the validation errors
+                validationErrors.forEach(error => {
+                    const field = containingForm.querySelector(`[name="${error.field}"]`);
+                    if (field) {
+                        field.classList.add('form-field-validation-error');
+
+                        // Create error container
+                        const errorContainer = document.createElement('div');
+                        errorContainer.classList.add('validation-error-report');
+                        errorContainer.innerHTML = error.messages.map(msg => `<div>&#9679; ${msg}</div>`).join('');
+
+                        // Find the appropriate place to insert the error message
+                        let insertBeforeElement = field;
+                        let label = field.previousElementSibling;
+
+                        // Insert the error message
+                        insertBeforeElement.parentNode.insertBefore(errorContainer, insertBeforeElement);
+
+                        // Special handling for checkboxes and radios
+                        if (field.type === "checkbox" || field.type === "radio") {
+                            let parentContainer = field.closest("div");
+                            if (parentContainer) {
+                                parentContainer.classList.add("form-field-validation-error");
+                                parentContainer.style.textIndent = "7px";
+                            }
+                        }
+                    }
+                });                
+            }
+
+        } catch (e) {
+            console.error('Error parsing validation errors:', e);
+        }
+    }
+}
+
+function attemptDisplayValidationErrorsXXXX(http, element, containingForm) {
+    if (http.status >= 400 && http.status <= 499) {
+
         try {
             // Create a temporary DOM element to parse the response
             const tempDiv = document.createElement('div');
@@ -801,78 +850,9 @@ function attemptDisplayValidationErrors(http, element, containingForm) {
             const validationErrors = JSON.parse(validationErrorsDiv.textContent);
 
             // Clear existing validation errors
-            clearExistingValidationErrors(containingForm);
-
-            // Loop through the validation errors
-            validationErrors.forEach(error => {
-                const field = containingForm.querySelector(`[name="${error.field}"]`);
-                if (field) {
-                    field.classList.add('form-field-validation-error');
-
-                    // Create error container
-                    const errorContainer = document.createElement('div');
-                    errorContainer.classList.add('validation-error-report');
-                    errorContainer.innerHTML = error.messages.map(msg => `<div>&#9679; ${msg}</div>`).join('');
-
-                    // Find the appropriate place to insert the error message
-                    let insertBeforeElement = field;
-                    let label = field.previousElementSibling;
-                    if (label && label.tagName.toLowerCase() === 'label') {
-                        insertBeforeElement = field;
-                    } else {
-                        // If there's no label, insert at the start of the parent container
-                        insertBeforeElement = field.parentNode.firstChild;
-                    }
-
-                    // Insert the error message
-                    insertBeforeElement.parentNode.insertBefore(errorContainer, insertBeforeElement);
-
-                    // Special handling for checkboxes and radios
-                    if (field.type === "checkbox" || field.type === "radio") {
-                        let parentContainer = field.closest("div");
-                        if (parentContainer) {
-                            parentContainer.classList.add("form-field-validation-error");
-                            parentContainer.style.textIndent = "7px";
-                        }
-                    }
-                }
-            });
-
-            // Scroll to the first error
-            const firstError = containingForm.querySelector('.validation-error-report');
-            if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-        } catch (e) {
-            console.error('Error parsing validation errors:', e);
-        }
-    }
-}
-
-function attemptDisplayValidationErrors(http, element, containingForm) {
-    if (http.status >= 400 && http.status <= 499) {
-        try {
-            // Create a temporary DOM element to parse the response
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = http.responseText;
-
-            // Look for the validation-errors div
-            const validationErrorsDiv = tempDiv.querySelector('#validation-errors');
-
-            if (!validationErrorsDiv) {
-                // If the validation-errors div doesn't exist, exit the function
-                return;
-            }
-
-            // Parse the content of the validation-errors div
-            const validationErrors = JSON.parse(validationErrorsDiv.textContent);
-
-            // Remove any existing validation error classes and reports
             containingForm.querySelectorAll('.form-field-validation-error, .validation-error-report')
                 .forEach(el => el.remove());
 
-            // Remove the call to drawValidationErrorsAlert
-            // drawValidationErrorsAlert(containingForm); // This line is now removed
-
             // Loop through the validation errors
             validationErrors.forEach(error => {
                 const field = containingForm.querySelector(`[name="${error.field}"]`);
@@ -916,24 +896,6 @@ function attemptDisplayValidationErrors(http, element, containingForm) {
             console.error('Error parsing validation errors:', e);
         }
     }
-}
-
-function drawValidationErrorsAlert(targetForm) {
-    let alertDiv = document.createElement("div");
-    alertDiv.classList.add("validation-error-alert");
-    alertDiv.classList.add("form-field-validation-error");
-    let alertHeadline = document.createElement("h3");
-    let gotFontAwesome = findCss("font-awesome");
-    let iconCode = '<i class="fa fa-warning" style="font-size: 1.4em; margin-right: 0.2em;"></i> ';
-    alertHeadline.innerHTML = gotFontAwesome ? iconCode : "";
-    alertHeadline.innerHTML += "Oops! There was a problem.";
-
-    let infoPara = document.createElement("p");
-    infoPara.textContent = "You'll find more details highlighted below.";
-
-    alertDiv.appendChild(alertHeadline);
-    alertDiv.appendChild(infoPara);
-    targetForm.prepend(alertDiv);
 }
 
 function addErrorClasses(key, allFormFields) {
@@ -1061,62 +1023,8 @@ function hideLoader(element) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Immediately invoke the HTTP request for (page) 'load' events
 function handlePageLoadedEvents(element) {
-    // Immediately invoke the HTTP request for (page) 'load' events
-    console.log('now handling load event');
-
     // Find which out which kind of HTTP request should be invoked
     const attribute = methodAttributes.find(attr => element.hasAttribute(attr));
 

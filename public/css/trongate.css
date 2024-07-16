@@ -479,6 +479,7 @@ div.modal-body p.text-center {
 
 .validation-error-report {
   color: #ff0000 !important;
+  width: 100%;
 }
 
 .validation-error-report > div {
