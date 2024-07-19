@@ -943,28 +943,6 @@ function findCss(fileName) {
     return false;
 }
 
-// Function to handle standard DOM events based on MX attributes
-function handleStandardEvents(element, triggerEvent, httpMethodAttribute) {
-
-    element.addEventListener(triggerEvent, event => {
-        event.preventDefault(); // Prevent default behavior
-
-        // Is the element either a 'form' tag or an element within a form?
-        const containingForm = element.closest('form');
-        if (containingForm) {
-
-            if (triggerEvent === 'submit') {
-                mxSubmitForm(element, triggerEvent, httpMethodAttribute);
-            }
-
-        } else {
-            // This does not belong to a form!
-            initInvokeHttpRequest(element, httpMethodAttribute);
-        }
-
-    });
-}
-
 // Function to establish the trigger event based on element type and mx-trigger attribute
 function establishTriggerEvent(element) {
 
@@ -1089,6 +1067,78 @@ function initializeTrongateMX() {
         handlePageLoadedEvents(element);
     });
 
+    // Attempt to start polling.
+    attemptInitPolling();
+
+}
+
+function attemptInitPolling() {
+    const pollingElements = document.querySelectorAll('[mx-trigger]');
+    pollingElements.forEach(element => {
+        const triggerAttr = element.getAttribute('mx-trigger');
+        setupPolling(element, triggerAttr);
+    });
+}
+
+function parsePollingInterval(intervalString) {
+    const match = intervalString.match(/^(\d+)(s|m|h|d)$/);
+    if (!match) return null;
+
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+
+    switch (unit) {
+        case 's': return value * 1000;
+        case 'm': return value * 60 * 1000;
+        case 'h': return value * 60 * 60 * 1000;
+        case 'd': return value * 24 * 60 * 60 * 1000;
+    }
+}
+
+function setupPolling(element, triggerAttr) {
+    // Basic Polling
+    const basicPollingMatch = triggerAttr.match(/^every\s+(\d+[smhd])$/);
+    if (basicPollingMatch) {
+        const interval = parsePollingInterval(basicPollingMatch[1]);
+        if (interval) {
+            setInterval(() => pollElement(element), interval);
+        }
+        return;
+    }
+
+    // Load Polling
+    const loadPollingMatch = triggerAttr.match(/^load\s+delay:(\d+[smhd])$/);
+    if (loadPollingMatch) {
+        const delay = parsePollingInterval(loadPollingMatch[1]);
+        if (delay) {
+            setTimeout(() => {
+                pollElement(element);
+                setInterval(() => pollElement(element), delay);
+            }, delay);
+        }
+        return;
+    }
+
+    // Polling with Initial Delay
+    const delayedPollingMatch = triggerAttr.match(/^load\s+delay:(\d+[smhd]),\s*every\s+(\d+[smhd])$/);
+    if (delayedPollingMatch) {
+        const initialDelay = parsePollingInterval(delayedPollingMatch[1]);
+        const interval = parsePollingInterval(delayedPollingMatch[2]);
+        if (initialDelay && interval) {
+            setTimeout(() => {
+                pollElement(element);
+                setInterval(() => pollElement(element), interval);
+            }, initialDelay);
+        }
+        return;
+    }
+}
+
+function pollElement(element) {
+    const attribute = methodAttributes.find(attr => element.hasAttribute(attr));
+    if (attribute) {
+        initInvokeHttpRequest(element, attribute);
+    }
 }
 
 function mxDrawBigTick(element, overlay, targetEl) {
