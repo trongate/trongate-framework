@@ -663,7 +663,6 @@ function swapContent(target, source, swapMethod) {
 }
 
 function handleHttpResponse(http, element) {
-
     const containingForm = element.closest('form');
 
     if (containingForm) {
@@ -676,13 +675,30 @@ function handleHttpResponse(http, element) {
     element.classList.remove('blink');
 
     if (http.status >= 200 && http.status < 300) {
-
         if (http.getResponseHeader('Content-Type').includes('text/html')) {
             const mxTargetStr = getAttributeValue(element, 'mx-target');
 
             let targetEl;
 
-            if (mxTargetStr) {
+            if (mxTargetStr === 'none') {
+                // If mx-target is 'none', do not replace any content
+                targetEl = null;
+            } else if (mxTargetStr === 'this') {
+                // Target the element that triggered the request
+                targetEl = element;
+            } else if (mxTargetStr && mxTargetStr.startsWith('closest ')) {
+                // Find the closest ancestor matching the selector
+                const selector = mxTargetStr.replace('closest ', '');
+                targetEl = element.closest(selector);
+            } else if (mxTargetStr && mxTargetStr.startsWith('find ')) {
+                // Find the first descendant matching the selector
+                const selector = mxTargetStr.replace('find ', '');
+                targetEl = element.querySelector(selector);
+            } else if (mxTargetStr === 'body') {
+                // Target the body element
+                targetEl = document.body;
+            } else if (mxTargetStr) {
+                // If a valid CSS selector is provided
                 targetEl = document.querySelector(mxTargetStr);
             } else {
                 // If no mx-target is specified, use the invoking element as the target
@@ -691,9 +707,9 @@ function handleHttpResponse(http, element) {
 
             if (targetEl) {
                 // Check to see if we are required to do a success animation.
-                const successanimateStr = element.getAttribute('mx-animate-success');
+                const successAnimateStr = element.getAttribute('mx-animate-success');
 
-                if (successanimateStr) {
+                if (successAnimateStr) {
                     initAnimateSuccess(targetEl, http, element);
                 } else {
                     populateTargetEl(targetEl, http, element);
@@ -701,7 +717,7 @@ function handleHttpResponse(http, element) {
             }
 
             // Perform 'mx-on-success' actions based on the response
-            // For example, refetch a list of records etc
+            // For example, refetch a list of records etc.
             attemptInitOnSuccessActions(http, element);
 
         } else {
@@ -709,10 +725,9 @@ function handleHttpResponse(http, element) {
             // Handle non-HTML responses (e.g., JSON)
         }
     } else {
-
         console.error('Request failed with status:', http.status);
         // Handle different types of errors
-        switch(http.status) {
+        switch (http.status) {
             case 404:
                 console.error('Resource not found');
                 break;
@@ -727,7 +742,7 @@ function handleHttpResponse(http, element) {
             attemptDisplayValidationErrors(http, element, containingForm);
         }
 
-        // Check to see if we are required to do a success animation.
+        // Check to see if we are required to do an error animation.
         const errorAnimateStr = element.getAttribute('mx-animate-error');
 
         if (errorAnimateStr) {
@@ -735,7 +750,6 @@ function handleHttpResponse(http, element) {
         } else {
             attemptInitOnErrorActions(http, element);
         }
-
     }
 
     // Remove the loader if present
