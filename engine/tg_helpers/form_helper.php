@@ -402,6 +402,7 @@ function form_dropdown(string $name, array $options, ?string $selected_key = nul
 
     foreach ($options as $option_key => $option_value) {
         $option_key = htmlspecialchars($option_key, ENT_QUOTES, 'UTF-8');
+        $option_value = htmlspecialchars($option_value, ENT_QUOTES, 'UTF-8');
         $selected = ($option_key == $selected_key) ? ' selected' : '';
         $html .= '<option value="' . $option_key . '"' . $selected . '>' . $option_value . '</option>
 ';
