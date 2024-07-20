@@ -297,10 +297,6 @@ function invokeHttpRequest(element, httpMethodAttribute) {
 function populateTargetEl(targetEl, http, element) {
 
     const selectStr = element.getAttribute('mx-select');
-    if(!selectStr) {
-        console.log('we have no select string')
-    }
-
     const mxSwapStr = establishSwapStr(element);
     const selectOobStr = element.getAttribute('mx-select-oob');
 
