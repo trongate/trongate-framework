@@ -25,6 +25,5 @@ define('MODULE_ASSETS_TRIGGER', '_module');
 define('INTERCEPT_404', 'trongate_pages/attempt_display');
 
 //TrongateLocalization (i18n)
-define('FALLBACK_LOCALE', getenv('FALLBACK_LOCALE') ?: 'en');
+define('FALLBACK_LOCALE', getenv('FALLBACK_LOCALE') ?: 'en_US');
 define('LOCALE_MAPPINGS', getenv('LOCALE_MAPPINGS') ?: 'da:da_DK,en:en_US,es:es_ES,fr:fr_FR,de:de_DE,it:it_IT,pt:pt_PT,ru:ru_RU,zh:zh_CN,ja:ja_JP,ko:ko_KR,ar:ar_AE,hi:hi_IN,vi:vi_VN,th:th_TH,ms:ms_MY,fil:fil_PH');
-define('LOCALIZATION_DRIVER', getenv('LOCALIZATION_DRIVER') ?: 'Database');

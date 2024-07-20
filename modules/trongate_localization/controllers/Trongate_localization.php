@@ -1,53 +1,37 @@
 <?php
 
+require_once  __DIR__ . DIRECTORY_SEPARATOR . 'Translate.php';
+
 class Trongate_localization extends Trongate
 {
-    #region Module scope
-    public ?Localization_service $localizationService = null;
-
-    public function _service(): Localization_service
-    {
-        if (!$this->localizationService) {
-            require_once __DIR__ . '/../services/Localization_service.php';
-            $this->localizationService = new Localization_service();
-        }
-
-        return $this->localizationService;
-    }
-
-    /**
-     * Forward undefined calls to the underlying service.
-     * due to the nature of trongate (methods starting with _ are not accessible via the URL),
-     * so we can safely forward all calls to the service.
-     *
-     * @param $method
-     * @param $args
-     * @return mixed
-     */
-    public function __call($method, $args)
-    {
-        $service = $this->_service();
-        $service->load();
-
-        return $service->$method(...$args);
-    }
-    #endregion
+    use Translate;
 
     #region Endpoints
     public function get_translations(): void
     {
-        $service = $this->_service();
+        // Call the locale method to set the locale and currency
+        $this->locale();
 
-        $service->load();
+        $translations = $this->model->query(
+            sql: 'SELECT `locale`, `key`, `value` FROM `trongate_localization`',
+            return_type: 'object'
+        );
+
+        $locales = [];
+        $map = [];
+
+        foreach ($translations as $translation) {
+            $locales[$translation->locale] = $translation->locale;
+            $map[$translation->locale][$translation->key] = $translation->value;
+        }
 
         http_response_code(200);
         header('Content-Type: application/json');
         echo json_encode([
-            'locale' => $service->locale,
-            'language' => $service->language(),
-            'currency' => $service->currency,
-            'languages' => $service->driver()->languages(),
-            'translations' => $service->driver()->translations(),
+            'locale' => $this->locale,
+            'currency' => $this->currency,
+            'locales' => $locales,
+            'translations' => $map,
         ]);
     }
 
@@ -58,12 +42,22 @@ class Trongate_localization extends Trongate
         $data = json_decode(file_get_contents('php://input'), true);
         $key = $data['translation_string'];
 
-        $this->_service()->driver()->write($key, $data);
+        $this->model->query_bind(
+            sql: '
+                INSERT INTO `trongate_localization` 
+                (`locale`, `key`, `value`) 
+                VALUES 
+                (:locale, :key, :value)
+                ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)
+            ',
+            data: [
+                'value' => $data['value'],
+                'locale' => $data['locale'],
+                'key' => $key,
+            ]
+        );
 
         http_response_code(200);
-        echo json_encode([
-            'translations' => $this->_service()->translations()
-        ]);
     }
     #endregion
     
