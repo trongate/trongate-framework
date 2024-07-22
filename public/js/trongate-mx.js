@@ -628,24 +628,30 @@ function handleMainSwaps(targetEl, tempFragment, selectStr, mxSwapStr) {
 }
 
 function swapContent(target, source, swapMethod) {
+    // Ensure source is a string
+    const sourceString = typeof source === 'string' ? source : source.outerHTML || source.innerHTML;
+    
+    // Remove the outermost div from the source string
+    const processedSource = removeOutermostDiv(sourceString);
+    
     switch (swapMethod) {
         case 'outerHTML':
-            target.outerHTML = source.outerHTML;
+            target.outerHTML = processedSource;
             break;
         case 'textContent':
-            target.textContent = source.textContent;
+            target.textContent = processedSource;
             break;
         case 'beforebegin':
-            target.insertAdjacentHTML('beforebegin', source.outerHTML);
+            target.insertAdjacentHTML('beforebegin', processedSource);
             break;
         case 'afterbegin':
-            target.insertAdjacentHTML('afterbegin', source.outerHTML);
+            target.insertAdjacentHTML('afterbegin', processedSource);
             break;
         case 'beforeend':
-            target.insertAdjacentHTML('beforeend', source.outerHTML);
+            target.insertAdjacentHTML('beforeend', processedSource);
             break;
         case 'afterend':
-            target.insertAdjacentHTML('afterend', source.outerHTML);
+            target.insertAdjacentHTML('afterend', processedSource);
             break;
         case 'delete':
             target.remove();
@@ -654,8 +660,28 @@ function swapContent(target, source, swapMethod) {
             // Do nothing
             break;
         default: // 'innerHTML' is the default
-            target.innerHTML = source.outerHTML || source.innerHTML;
+            target.innerHTML = processedSource;
     }
+}
+
+function removeOutermostDiv(htmlString) {
+    // Create a temporary container element
+    const tempContainer = document.createElement('div');
+    
+    // Set the innerHTML of the temporary container to the provided HTML string
+    tempContainer.innerHTML = htmlString.trim();
+    
+    // If the first child is a div, replace it with its children
+    if (tempContainer.firstElementChild && tempContainer.firstElementChild.tagName.toLowerCase() === 'div') {
+        const firstDiv = tempContainer.firstElementChild;
+        while (firstDiv.firstChild) {
+            tempContainer.insertBefore(firstDiv.firstChild, firstDiv);
+        }
+        tempContainer.removeChild(firstDiv);
+    }
+    
+    // Return the HTML content of the temporary container
+    return tempContainer.innerHTML;
 }
 
 function handleHttpResponse(http, element) {
