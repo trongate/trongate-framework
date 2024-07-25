@@ -1,78 +1,164 @@
 const methodAttributes = ['mx-get', 'mx-post', 'mx-put', 'mx-delete', 'mx-patch'];
 
-function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
-    
-    // Establish the target URL.
-    const targetUrl = containingForm.getAttribute(httpMethodAttribute);
+/**
+ * Parses the value of a Trongate MX attribute.
+ * 
+ * This function handles two types of attribute values:
+ * 1. Simple strings (e.g., "user-info-modal")
+ * 2. JSON-like structures (e.g., '{"id": "add-element-modal", "width": "760px"}')
+ * 
+ * For simple strings, it returns the value as-is.
+ * For JSON-like structures, it attempts to parse them into JavaScript objects.
+ * 
+ * @param {string} value - The attribute value to parse.
+ * @returns {string|object|boolean} 
+ *          - String: if the input is a simple string.
+ *          - Object: if the input is a valid JSON-like structure.
+ *          - false: if the input appears to be JSON-like but fails to parse.
+ */
+function parseAttributeValue(value) {
+    // Trim any whitespace
+    value = value.trim();
 
-    // Establish the request type.
+    // Check if the value is a simple string (no JSON-like structure)
+    if (!value.startsWith('{') && !value.startsWith('[')) {
+        return value;
+    }
+
+    // The value appears to have a JSON-like structure
+    try {
+        // Attempt to parse as JSON
+        return JSON.parse(value);
+    } catch (e) {
+        // If parsing fails, return false
+        return false;
+    }
+}
+
+/**
+ * Parses the value of a Trongate MX attribute.
+ * 
+ * This function handles two types of attribute values:
+ * 1. Simple strings (e.g., "user-info-modal")
+ * 2. JSON-like structures (e.g., '{"id": "add-element-modal", "width": "760px"}')
+ * 
+ * For simple strings, it returns the value as-is.
+ * For JSON-like structures, it attempts to parse them into JavaScript objects.
+ * 
+ * @param {string} value - The attribute value to parse.
+ * @returns {string|object|boolean} 
+ *          - String: if the input is a simple string.
+ *          - Object: if the input is a valid JSON-like structure.
+ *          - false: if the input appears to be JSON-like but fails to parse.
+ */
+function parseAttributeValue(value) {
+    // Trim any whitespace
+    value = value.trim();
+
+    // Check if the value is a simple string (no JSON-like structure)
+    if (!value.startsWith('{') && !value.startsWith('[')) {
+        return value;
+    }
+
+    // The value appears to have a JSON-like structure
+    try {
+        // Attempt to parse as JSON
+        return JSON.parse(value);
+    } catch (e) {
+        // If parsing fails, return false
+        return false;
+    }
+}
+
+function setupHttpRequest(element, httpMethodAttribute) {
+    const targetUrl = element.getAttribute(httpMethodAttribute);
     const requestType = httpMethodAttribute.replace('mx-', '').toUpperCase();
-
-    // Attempt to display 'loading' element (indicator).
-    attemptActivateLoader(containingForm);
-
-    const formData = new FormData(containingForm);
-
+    attemptActivateLoader(element);
+    
     const http = new XMLHttpRequest();
-    http.open('POST', targetUrl);
-
-    // Attach Trongate MX header to identify the request
+    http.open(requestType, targetUrl);
     http.setRequestHeader('Trongate-MX-Request', 'true');
+    
+    return http;
+}
 
-    // No need to set Content-Type header when sending FormData
-    http.send(formData);
-
-    // Check if 'mx-token' attribute exists
-    const mxToken = containingForm.getAttribute('mx-token');
+function setMXHeaders(http, element) {
+    const mxToken = element.getAttribute('mx-token');
     if (mxToken) {
-        // Attach Trongate Token as a custom header
         http.setRequestHeader('trongateToken', mxToken);
     }
 
-    // Check for mx-headers attribute
-    const mxHeadersAttr = containingForm.getAttribute('mx-headers');
+    const mxHeadersAttr = element.getAttribute('mx-headers');
     if (mxHeadersAttr) {
-        try {
-            // Use makeValidJsonString to fix the input string
-            const fixedJsonStr = makeValidJsonString(mxHeadersAttr);
-            const headersArray = JSON.parse(fixedJsonStr);
-
-            if (Array.isArray(headersArray)) {
-                headersArray.forEach(header => {
-                    if (header.key && header.value) {
-                        http.setRequestHeader(header.key, header.value);
-                    }
-                });
-            } else {
-                console.error('mx-headers attribute should be an array of objects.');
-            }
-        } catch (error) {
-            console.error('Error parsing or fixing mx-headers attribute:', error);
+        const headersArray = parseAttributeValue(mxHeadersAttr);
+        if (headersArray && Array.isArray(headersArray)) {
+            headersArray.forEach(header => {
+                if (header.key && header.value) {
+                    http.setRequestHeader(header.key, header.value);
+                }
+            });
+        } else if (headersArray === false) {
+            console.error('Error parsing mx-headers attribute as JSON.');
+        } else {
+            console.error('mx-headers attribute should be an array of objects.');
         }
     }
+}
 
-    http.onload = function() {
-        attemptHideLoader(containingForm);
-        
-        // Only reset the form if the request was successful
-        if (http.status >= 200 && http.status < 300) {
-            containingForm.reset();
-        }
-
-        handleHttpResponse(http, containingForm);
-    };
-
+/**
+ * Sets error and timeout handlers for XMLHttpRequest.
+ * @param {XMLHttpRequest} http - The XMLHttpRequest object.
+ * @param {HTMLElement} element - The element associated with the request.
+ */
+function setMXHandlers(http, element) {
     http.onerror = function() {
-        attemptHideLoader(containingForm);
-        console.error('Form request failed');
-        // Handle error (e.g., show error message to user)
+        attemptHideLoader(element);
+        console.error('Request failed');
     };
 
     http.ontimeout = function() {
-        attemptHideLoader(containingForm);
-        console.error('Form request timed out');
-        // Handle timeout (e.g., show timeout message to user)
+        attemptHideLoader(element);
+        console.error('Request timed out');
     };
+}
+
+function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
+    const http = setupHttpRequest(containingForm, httpMethodAttribute);
+    setMXHeaders(http, containingForm);
+    setMXHandlers(http, containingForm);
+
+    const formData = new FormData(containingForm);
+
+    http.onload = function() {
+        attemptHideLoader(containingForm);
+        if (http.status >= 200 && http.status < 300) {
+            containingForm.reset();
+        }
+        handleHttpResponse(http, containingForm);
+    };
+
+    http.send(formData);
+}
+
+function invokeHttpRequest(element, httpMethodAttribute) {
+    const http = setupHttpRequest(element, httpMethodAttribute);
+    http.setRequestHeader('Accept', 'text/html');
+    http.timeout = 10000; // 10 seconds timeout
+
+    setMXHeaders(http, element);
+    setMXHandlers(http, element);
+
+    http.onload = function() {
+        attemptHideLoader(element);
+        handleHttpResponse(http, element);
+    };
+
+    try {
+        http.send();
+    } catch (error) {
+        attemptHideLoader(element);
+        console.error('Error sending request:', error);
+    }
 }
 
 function mxSubmitForm(element, triggerEvent, httpMethodAttribute) {
@@ -119,52 +205,31 @@ function clearExistingValidationErrors(containingForm) {
 }
 
 function initInvokeHttpRequest(element, httpMethodAttribute) {
-
     const buildModalStr = element.getAttribute('mx-build-modal');
 
     if (buildModalStr) {
-        const modalOptions = parseModalOptions(buildModalStr);
+        const modalOptions = parseAttributeValue(buildModalStr);
+
+        if (modalOptions === false) {
+            console.warn("Invalid JSON in mx-build-modal:", buildModalStr);
+            return;
+        }
 
         if (typeof modalOptions === "string") {
             const modalData = {
                 id: modalOptions
             }
-
             buildMXModal(modalData, element, httpMethodAttribute);
-
         } else {
             buildMXModal(modalOptions, element, httpMethodAttribute);
         }
-
     } else {
         invokeHttpRequest(element, httpMethodAttribute);
-    }
-
-}
-
-function parseModalOptions(value) {
-    // Trim whitespace from the value
-    value = value.trim();
-
-    // Check if the value starts and ends with '{' and '}', or '[' and ']'
-    if ((value.startsWith('{') && value.endsWith('}')) || 
-        (value.startsWith('[') && value.endsWith(']'))) {
-        try {
-            // Attempt to parse as JSON
-            return JSON.parse(value);
-        } catch (e) {
-            // If parsing fails, return the trimmed string
-            console.warn("Invalid JSON in mx-build-modal:", value);
-            return value;
-        }
-    } else {
-        // If it's not enclosed in curly braces or square brackets, return the trimmed string
-        return value;
     }
 }
 
 function buildMXModal(modalData, element, httpMethodAttribute) {
-    const modalId = modalData.id;
+    const modalId = typeof modalData === 'string' ? modalData : modalData.id;
 
     // Remove any existing elements that have this 'id' to prevent duplicate elements.
     const existingEl = document.getElementById(modalId);
@@ -179,7 +244,7 @@ function buildMXModal(modalData, element, httpMethodAttribute) {
     modal.style.display = 'none';
 
     // Conditionally create the modal heading
-    if (modalData.modalHeading) {
+    if (typeof modalData === 'object' && modalData.modalHeading) {
         const modalHeading = document.createElement('div');
         modalHeading.className = 'modal-heading';
         modalHeading.innerHTML = modalData.modalHeading;
@@ -206,7 +271,7 @@ function buildMXModal(modalData, element, httpMethodAttribute) {
 
     // Adjust modal width if specified
     const targetModal = document.getElementById(modalId);
-    if (modalData.width) {
+    if (typeof modalData === 'object' && modalData.width) {
         targetModal.style.maxWidth = modalData.width;
     }
 
@@ -219,79 +284,6 @@ function buildMXModal(modalData, element, httpMethodAttribute) {
 
     // Invoke HTTP request
     invokeHttpRequest(element, httpMethodAttribute);
-}
-
-function invokeHttpRequest(element, httpMethodAttribute) {
-    // Establish the target URL.
-    const targetUrl = element.getAttribute(httpMethodAttribute);
-    
-    // Establish the request type.
-    const requestType = httpMethodAttribute.replace('mx-', '').toUpperCase();
-    
-    // Attempt to display 'loading' element (indicator).
-    attemptActivateLoader(element);
-
-    const http = new XMLHttpRequest();
-    http.open(requestType, targetUrl);
-    http.setRequestHeader('Accept', 'text/html');
-    http.timeout = 10000; // 10 seconds timeout
-
-    // Check if 'mx-token' attribute exists
-    const mxToken = element.getAttribute('mx-token');
-    if (mxToken) {
-        // Attach Trongate Token as a custom header
-        http.setRequestHeader('trongateToken', mxToken);
-    }
-
-    // Set Trongate MX header to identify the request
-    http.setRequestHeader('Trongate-MX-Request', 'true');
-
-    // Check for mx-headers attribute
-    const mxHeadersAttr = element.getAttribute('mx-headers');
-    if (mxHeadersAttr) {
-        try {
-            // Use makeValidJsonString to fix the input string
-            const fixedJsonStr = makeValidJsonString(mxHeadersAttr);
-            const headersArray = JSON.parse(fixedJsonStr);
-
-            if (Array.isArray(headersArray)) {
-                headersArray.forEach(header => {
-                    if (header.key && header.value) {
-                        http.setRequestHeader(header.key, header.value);
-                    }
-                });
-            } else {
-                console.error('mx-headers attribute should be an array of objects.');
-            }
-        } catch (error) {
-            console.error('Error parsing or fixing mx-headers attribute:', error);
-        }
-    }
-
-    http.onload = function() {
-        attemptHideLoader(element);
-        handleHttpResponse(http, element);
-    };
-
-    http.onerror = function() {
-        attemptHideLoader(element);
-        console.error('Request failed');
-        // Handle error (e.g., show error message to user)
-    };
-
-    http.ontimeout = function() {
-        attemptHideLoader(element);
-        console.error('Request timed out');
-        // Handle timeout (e.g., show timeout message to user)
-    };
-
-    try {
-        http.send();
-    } catch (error) {
-        attemptHideLoader(element);
-        console.error('Error sending request:', error);
-        // Handle error (e.g., show error message to user)
-    }
 }
 
 function populateTargetEl(targetEl, http, element) {
@@ -325,299 +317,6 @@ function populateTargetEl(targetEl, http, element) {
     }
 }
 
-function attemptAddModalButtons(targetEl, element) {
-    if (element.hasAttribute('mx-build-modal')) {
-        const modalValue = element.getAttribute('mx-build-modal');
-
-        try {
-            const modalOptions = JSON.parse(modalValue);
-            const buttonPara = document.createElement('p');
-            buttonPara.setAttribute('class', 'text-center');
-            let buttonsAdded = false;
-
-            if (modalOptions.hasOwnProperty('showCloseButton')) {
-                const closeBtn = document.createElement('button');
-                closeBtn.setAttribute('class', 'alt');
-                closeBtn.innerText = 'Close';
-                closeBtn.setAttribute('onclick', 'closeModal()');
-                buttonPara.appendChild(closeBtn);
-                buttonsAdded = true;
-            }
-
-            if (modalOptions.hasOwnProperty('showDestroyButton')) {
-                const destroyBtn = document.createElement('button');
-                destroyBtn.setAttribute('class', 'alt');
-                destroyBtn.innerText = 'Close';
-                destroyBtn.addEventListener('click', function() {
-                    closeModal();
-                    let targetModal = this.closest('.modal');
-                    if (targetModal) {
-                        targetModal.remove();
-                    }
-                });
-                buttonPara.appendChild(destroyBtn);
-                buttonsAdded = true;
-            }
-
-            if (buttonsAdded) {
-                targetEl.appendChild(buttonPara);
-            }
-        } catch (e) {
-            console.warn('Failed to parse mx-build-modal attribute:', e.message);
-        }
-    }
-}
-
-function handleOobSwaps(tempFragment, selectOobStr) {
-    if (!selectOobStr) {
-        return;
-    }
-
-    // Evaluate the 'mx-select-oob' value to determine what technique to use for handling oob swaps.
-    const methodology = determineOobMethodology(selectOobStr);
-
-    if (!methodology) {
-        return;
-    }
-
-    const oobDataObjs = [];
-
-    if (methodology === 1) {
-        oobDataObjs.push(executeOobMethodology1(selectOobStr));
-    } else if (methodology === 2) {
-        oobDataObjs.push(executeOobMethodology2(selectOobStr));
-    } else if (methodology === 3) {
-        oobDataObjs.push(...executeOobMethodology3(selectOobStr));
-    }
-
-    // Loop through the oobDataObjs array and perform the swaps
-    oobDataObjs.forEach(obj => {
-        //swapElements(obj.select, obj.target, obj.swap);
-
-        let oobSelected;
-        oobSelected = tempFragment.querySelector(obj.select);
-
-        if(!oobSelected) {
-            oobSelected = tempFragment.firstChild;
-        }
-
-        const oobTarget = document.querySelector(obj.target);
-        swapContent(oobTarget, oobSelected.cloneNode(true), obj.swap);
-    });
-}
-
-function executeOobMethodology1(selectOobStr) {
-    /*
-    Example use case:
-    For an attribute like:
-    mx-select-oob="#source-element:#destination-element"
-    
-    This function will return:
-    {
-        select: '#source-element',
-        target: '#destination-element',
-        swap: 'innerHTML'
-    }
-
-    This could be used in any scenario where content needs to be moved or copied:
-    - '#source-element' is the ID of the element containing the original content
-    - '#destination-element' is the ID of the element where content should be placed
-    - 'innerHTML' specifies that the entire content should be swapped
-    */
-
-    const [select, target] = selectOobStr.split(':');
-
-    const oobDataObj = {
-        select,
-        target,
-        swap: "innerHTML"
-    }
-    return oobDataObj;
-}
-
-function executeOobMethodology2(selectOobStr) {
-    /*
-    Example use case:
-    For an attribute like:
-    mx-select-oob="select:#source-element,target:#destination-element,swap:innerHTML"
-    
-    This function will return:
-    {
-        select: '#source-element',
-        target: '#destination-element',
-        swap: 'innerHTML'
-    }
-
-    This could be used in any scenario where content needs to be moved or copied:
-    - '#source-element' is the ID of the element containing the original content
-    - '#destination-element' is the ID of the element where content should be placed
-    - 'innerHTML' specifies that the entire content should be swapped
-
-    If 'swap' is omitted, it defaults to 'innerHTML'
-    */
-
-    // Split the string into key-value pairs
-    const pairs = selectOobStr.split(',');
-    
-    // Initialize the oobDataObj with default swap value
-    const oobDataObj = {
-        select: '',
-        target: '',
-        swap: 'innerHTML'  // Default value
-    };
-
-    // Process each key-value pair
-    pairs.forEach(pair => {
-        const [key, value] = pair.split(':').map(item => item.trim());
-        
-        // Assign values to oobDataObj based on the key
-        switch(key) {
-            case 'select':
-                oobDataObj.select = value;
-                break;
-            case 'target':
-                oobDataObj.target = value;
-                break;
-            case 'swap':
-                oobDataObj.swap = value;
-                break;
-            // Ignore any other keys
-        }
-    });
-
-    // Validate that we have at least select and target
-    if (!oobDataObj.select || !oobDataObj.target) {
-        throw new Error('Invalid mx-select-oob syntax. Both "select" and "target" must be specified.');
-    }
-
-    return oobDataObj;
-}
-
-function executeOobMethodology3(selectOobStr) {
-
-    /*
-    Example use case:
-    For an attribute like:
-    mx-select-oob="[{select:#source-element1,target:#destination-element1,swap:outerHTML},{select:#source-element2,target:#destination-element2,swap:innerText}]"
-    
-    This function will return:
-    [
-        {
-            select: '#source-element1',
-            target: '#destination-element1',
-            swap: 'outerHTML'
-        },
-        {
-            select: '#source-element2',
-            target: '#destination-element2',
-            swap: 'innerText'
-        }
-    ]
-
-    This could be used in any scenario where multiple content swaps need to be performed:
-    - '#source-element1' and '#source-element2' are the IDs of the elements containing the original content
-    - '#destination-element1' and '#destination-element2' are the IDs of the elements where content should be placed
-    - 'outerHTML' and 'innerText' specify how the content should be swapped
-    */
-
-    try {
-        // Use makeValidJsonString to fix the input string
-        const fixedJsonStr = makeValidJsonString(selectOobStr);
-
-        // Parse the fixed JSON string
-        const oobDataObjs = JSON.parse(fixedJsonStr);
-
-        // Validate that the input is an array
-        if (!Array.isArray(oobDataObjs)) {
-            throw new Error('Invalid mx-select-oob syntax. Expected an array of objects.');
-        }
-
-        // Process each object in the array
-        return oobDataObjs.map(obj => {
-            // Ensure that the required properties are present
-            if (!obj.select || !obj.target) {
-                throw new Error('Invalid mx-select-oob syntax. Both "select" and "target" must be specified.');
-            }
-
-            // Set a default swap value if not provided
-            obj.swap = obj.swap || 'innerHTML';
-
-            return obj;
-        });
-    } catch (e) {
-        // Handle any errors
-        console.error('Error processing mx-select-oob:', e);
-        return [];
-    }
-}
-
-function makeValidJsonString(inputString) {
-    // Helper function to check if a string is a valid JSON
-    function isValidJson(str) {
-        try {
-            JSON.parse(str);
-            return true;
-        } catch (e) {
-            return false;
-        }
-    }
-
-    // If the input string is already a valid JSON, return it unmodified
-    if (isValidJson(inputString)) {
-        return inputString;
-    }
-
-    // Attempt to modify the string to make it a valid JSON
-    try {
-        // Use a regular expression to find keys and values that are not quoted and quote them
-        const fixedString = inputString.replace(/([{,]\s*)([^:{}\[\],\s"']+)(\s*:)/g, '$1"$2"$3')
-                                       .replace(/(:\s*)([^,\[\]{}"\s]+)(\s*[}\],])/g, '$1"$2"$3');
-
-        // Check if the fixed string is a valid JSON
-        if (isValidJson(fixedString)) {
-            return fixedString;
-        } else {
-            throw new Error('Unable to fix the string to a valid JSON format.');
-        }
-    } catch (e) {
-        throw new Error('Failed to process the input string. Please ensure it is in a proper format.');
-    }
-}
-
-function determineOobMethodology(attributeValue) {
-    // Trim the attribute value to remove any leading or trailing whitespace
-    attributeValue = attributeValue.trim();
-
-    // Check for Methodology 3 (JSON array)
-    if (attributeValue.startsWith('[') && attributeValue.endsWith(']')) {
-        console.log(attributeValue)
-        try {
-            return 3;
-        } catch (e) {
-            // If it's not valid JSON, it's not methodology 3
-        }
-    }
-
-    // Check for Methodology 2 (key-value pairs)
-    if (attributeValue.includes(',') && attributeValue.includes(':')) {
-        const parts = attributeValue.split(',');
-        const hasAllRequiredKeys = parts.some(part => part.includes('select:')) &&
-                                   parts.some(part => part.includes('target:')) &&
-                                   parts.some(part => part.includes('swap:'));
-        if (hasAllRequiredKeys) {
-            return 2;
-        }
-    }
-
-    // Check for Methodology 1 (basic syntax)
-    if (attributeValue.includes(':') && attributeValue.split(':').length === 2) {
-        return 1;
-    }
-
-    // If none of the above conditions are met, return null or throw an error
-    return null; // or throw new Error('Invalid mx-select-oob syntax');
-}
-
 function handleMainSwaps(targetEl, tempFragment, selectStr, mxSwapStr) {
     let contents = selectStr ? tempFragment.querySelectorAll(selectStr) : [tempFragment.firstChild];
     contents.forEach(content => {
@@ -625,6 +324,78 @@ function handleMainSwaps(targetEl, tempFragment, selectStr, mxSwapStr) {
             swapContent(targetEl, content, mxSwapStr);
         }
     });
+}
+
+function handleOobSwaps(tempFragment, selectOobStr) {
+    if (!selectOobStr) return;
+
+    const parsedValue = parseAttributeValue(selectOobStr);
+
+    if (typeof parsedValue === 'string') {
+        // Handle comma-separated string syntax
+        const swapInstructions = parsedValue.split(/,(?![^[]*\])/);
+        swapInstructions.forEach(instruction => {
+            const [select, target] = instruction.trim().split(':');
+            performOobSwap(tempFragment, { select, target, swap: 'innerHTML' });
+        });
+    } else if (Array.isArray(parsedValue)) {
+        // Handle JSON-like array syntax
+        parsedValue.forEach(obj => performOobSwap(tempFragment, obj));
+    } else if (typeof parsedValue === 'object' && parsedValue !== null) {
+        // Handle single object case (though this is less likely to be used)
+        performOobSwap(tempFragment, parsedValue);
+    } else {
+        console.error('Invalid mx-select-oob syntax:', selectOobStr);
+    }
+}
+
+function performOobSwap(tempFragment, { select, target, swap = 'innerHTML' }) {
+    const oobSelected = tempFragment.querySelector(select);
+    if (!oobSelected) {
+        console.error(`Source element not found: ${select}`);
+        return;
+    }
+
+    const oobTarget = document.querySelector(target);
+    if (!oobTarget) {
+        console.error(`Target element not found: ${target}`);
+        return;
+    }
+
+    swapContent(oobTarget, oobSelected.cloneNode(true), swap);
+}
+
+function handleOobSwapsXXX(tempFragment, selectOobStr) {
+    if (!selectOobStr) return;
+
+    // Split the string by commas, but ignore commas within brackets
+    const swapInstructions = selectOobStr.split(/,(?![^[]*\])/);
+
+    swapInstructions.forEach(instruction => {
+        const trimmedInstruction = instruction.trim();
+        const parsedValue = parseAttributeValue(trimmedInstruction);
+
+        if (typeof parsedValue === 'string') {
+            // Handle simple string case (e.g., "h1:h3")
+            const [select, target] = parsedValue.split(':');
+            performOobSwap(tempFragment, { select, target, swap: 'innerHTML' });
+        } else if (typeof parsedValue === 'object' && parsedValue !== null) {
+            // Handle object case (for advanced syntax)
+            performOobSwap(tempFragment, parsedValue);
+        } else {
+            console.error('Invalid mx-select-oob instruction:', trimmedInstruction);
+        }
+    });
+}
+
+function performOobSwapXXX(tempFragment, { select, target, swap = 'innerHTML' }) {
+    const oobSelected = tempFragment.querySelector(select) || tempFragment.firstChild;
+    const oobTarget = document.querySelector(target);
+    if (oobTarget) {
+        swapContent(oobTarget, oobSelected.cloneNode(true), swap);
+    } else {
+        console.error(`Target element not found: ${target}`);
+    }
 }
 
 function swapContent(target, source, swapMethod) {
@@ -682,6 +453,61 @@ function removeOutermostDiv(htmlString) {
     
     // Return the HTML content of the temporary container
     return tempContainer.innerHTML;
+}
+
+function attemptAddModalButtons(targetEl, element) {
+    if (element.hasAttribute('mx-build-modal')) {
+        const modalValue = element.getAttribute('mx-build-modal');
+        const modalOptions = parseAttributeValue(modalValue);
+
+        if (modalOptions === false) {
+            console.warn('Failed to parse mx-build-modal attribute:', modalValue);
+            return;
+        }
+
+        const buttonPara = document.createElement('p');
+        buttonPara.setAttribute('class', 'text-center');
+        let buttonsAdded = false;
+
+        if (typeof modalOptions === 'string') {
+            // Handle the simple string case
+            const closeBtn = document.createElement('button');
+            closeBtn.setAttribute('class', 'alt');
+            closeBtn.innerText = 'Close';
+            closeBtn.setAttribute('onclick', 'closeModal()');
+            buttonPara.appendChild(closeBtn);
+            buttonsAdded = true;
+        } else if (typeof modalOptions === 'object') {
+            // Handle the object case
+            if (modalOptions.hasOwnProperty('showCloseButton')) {
+                const closeBtn = document.createElement('button');
+                closeBtn.setAttribute('class', 'alt');
+                closeBtn.innerText = 'Close';
+                closeBtn.setAttribute('onclick', 'closeModal()');
+                buttonPara.appendChild(closeBtn);
+                buttonsAdded = true;
+            }
+
+            if (modalOptions.hasOwnProperty('showDestroyButton')) {
+                const destroyBtn = document.createElement('button');
+                destroyBtn.setAttribute('class', 'alt');
+                destroyBtn.innerText = 'Close';
+                destroyBtn.addEventListener('click', function() {
+                    closeModal();
+                    let targetModal = this.closest('.modal');
+                    if (targetModal) {
+                        targetModal.remove();
+                    }
+                });
+                buttonPara.appendChild(destroyBtn);
+                buttonsAdded = true;
+            }
+        }
+
+        if (buttonsAdded) {
+            targetEl.appendChild(buttonPara);
+        }
+    }
 }
 
 function handleHttpResponse(http, element) {
@@ -859,74 +685,6 @@ function attemptDisplayValidationErrors(http, element, containingForm) {
                     }
                 });                
             }
-
-        } catch (e) {
-            console.error('Error parsing validation errors:', e);
-        }
-    }
-}
-
-function attemptDisplayValidationErrorsXXXX(http, element, containingForm) {
-    if (http.status >= 400 && http.status <= 499) {
-
-        try {
-            // Create a temporary DOM element to parse the response
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = http.responseText;
-
-            // Look for the validation-errors div
-            const validationErrorsDiv = tempDiv.querySelector('#validation-errors');
-
-            if (!validationErrorsDiv) {
-                // If the validation-errors div doesn't exist, exit the function
-                return;
-            }
-
-            // Parse the content of the validation-errors div
-            const validationErrors = JSON.parse(validationErrorsDiv.textContent);
-
-            // Clear existing validation errors
-            containingForm.querySelectorAll('.form-field-validation-error, .validation-error-report')
-                .forEach(el => el.remove());
-
-            // Loop through the validation errors
-            validationErrors.forEach(error => {
-                const field = containingForm.querySelector(`[name="${error.field}"]`);
-                if (field) {
-                    field.classList.add('form-field-validation-error');
-
-                    // Create error container
-                    const errorContainer = document.createElement('div');
-                    errorContainer.classList.add('validation-error-report');
-                    errorContainer.innerHTML = error.messages.map(msg => `<div>&#9679; ${msg}</div>`).join('');
-
-                    // Find the appropriate place to insert the error message
-                    let insertBeforeElement = field;
-                    let label = field.previousElementSibling;
-                    if (label && label.tagName.toLowerCase() === 'label') {
-                        insertBeforeElement = field;
-                    } else {
-                        // If there's no label, insert at the start of the parent container
-                        insertBeforeElement = field.parentNode.firstChild;
-                    }
-
-                    // Insert the error message
-                    insertBeforeElement.parentNode.insertBefore(errorContainer, insertBeforeElement);
-
-                    // Special handling for checkboxes and radios
-                    if (field.type === "checkbox" || field.type === "radio") {
-                        let parentContainer = field.closest("div");
-                        if (parentContainer) {
-                            parentContainer.classList.add("form-field-validation-error");
-                            parentContainer.style.textIndent = "7px";
-                        }
-                    }
-                }
-            });
-
-            // Scroll to the first error
-            const firstError = containingForm.querySelector('.validation-error-report');
-            if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         } catch (e) {
             console.error('Error parsing validation errors:', e);
