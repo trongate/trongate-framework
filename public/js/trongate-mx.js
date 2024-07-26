@@ -923,11 +923,7 @@ function pollElement(element) {
 
 function mxDrawBigTick(element, overlay, targetEl) {
 
-    targetEl.classList.add('mx-animation-container-tick');
-    overlay.classList.add("text-center");
-
     let bigTick = document.createElement("div");
-    bigTick.setAttribute("id", "mx-big-tick");
     bigTick.setAttribute("style", "display: none");
     let trigger = document.createElement("div");
     trigger.setAttribute("class", "mx-trigger");
@@ -936,7 +932,6 @@ function mxDrawBigTick(element, overlay, targetEl) {
     let tickSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     tickSvg.setAttribute("version", "1.1");
     tickSvg.setAttribute("id", "mx-tick");
-    tickSvg.setAttribute("style", "margin: 0 auto; display: block;");
     tickSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     tickSvg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
     tickSvg.setAttribute("x", "0px");
@@ -967,8 +962,6 @@ function mxDrawBigTick(element, overlay, targetEl) {
     tickSvg.appendChild(polyline);
 
     overlay.appendChild(bigTick);
-
-    bigTick = document.getElementById("mx-big-tick");
     bigTick.style.display = "flex";
 
     setTimeout(() => {
@@ -978,13 +971,9 @@ function mxDrawBigTick(element, overlay, targetEl) {
 
 }
 
-function mxDrawBigCross(overlay, targetEl) {
-
-    targetEl.classList.add('mx-animation-container-tick');
-    overlay.classList.add("text-center");
+function mxDrawBigCross(overlay) {
 
     let bigCross = document.createElement("div");
-    bigCross.setAttribute("id", "mx-big-cross");
     bigCross.setAttribute("style", "display: none");
     let trigger = document.createElement("div");
     trigger.setAttribute("class", "mx-trigger");
@@ -993,7 +982,6 @@ function mxDrawBigCross(overlay, targetEl) {
     let crossSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     crossSvg.setAttribute("version", "1.1");
     crossSvg.setAttribute("id", "mx-cross");
-    crossSvg.setAttribute("style", "margin: 0 auto; width: 53.7%; transform: scale(0.5)");
     crossSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     crossSvg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
     crossSvg.setAttribute("x", "0px");
@@ -1022,7 +1010,6 @@ function mxDrawBigCross(overlay, targetEl) {
 
     overlay.appendChild(bigCross);
 
-    bigCross = document.getElementById("mx-big-cross");
     bigCross.style.display = "flex";
 
     setTimeout(() => {
@@ -1033,87 +1020,119 @@ function mxDrawBigCross(overlay, targetEl) {
 }
 
 function mxDestroyAnimation() {
-    // Find all elements with class .mx-animation-container-tick
-    let elementsTick = document.querySelectorAll('.mx-animation-container-tick');
-
-    // Loop through each element with class .mx-animation-container-tick and remove the class
-    elementsTick.forEach(element => {
-        element.classList.remove('mx-animation-container-tick');
-    });
-
-    // Find all elements with class .mx-animation-container-cross
-    let elementsCross = document.querySelectorAll('.mx-animation-container-cross');
-
-    // Loop through each element with class .mx-animation-container-cross and remove the class
-    elementsCross.forEach(element => {
-        element.classList.remove('mx-animation-container-cross');
-    });
-
     const mxAnimationEl = document.querySelector('.mx-animation');
     mxAnimationEl.remove();
 }
 
-function mxCreateOverlay(targetEl) {
-    const overlay = document.createElement('div');
-    overlay.setAttribute('class', 'mx-animation');
+function mxCreateOverlay(overlayTargetEl) {
+    // Get the bounding rectangle of the target element
+    const rect = overlayTargetEl.getBoundingClientRect();
 
+    // Create a new div element for the overlay
+    const overlay = document.createElement('div');
+
+    // Set the overlay's styles to match the target element
     overlay.style.position = 'absolute';
-    overlay.style.top = targetEl.offsetTop + 'px';
-    overlay.style.left = targetEl.offsetLeft + 'px';
-    overlay.style.width = targetEl.offsetWidth + 'px';
-    overlay.style.minHeight = targetEl.offsetHeight + 'px';
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'flex-start';
-    overlay.style.justifyContent = 'center';
+    overlay.style.top = `${rect.top + window.scrollY}px`;
+    overlay.style.left = `${rect.left + window.scrollX}px`;
+    overlay.style.width = `${rect.width}px`;
+    overlay.style.minHeight = `${rect.height}px`;
+    overlay.classList.add('mx-animation');
     overlay.style.zIndex = '9999';
 
-    if (getComputedStyle(targetEl).position === 'static') {
-        targetEl.style.position = 'relative';
-    }
+    // Append the overlay to the body
+    document.body.appendChild(overlay);
 
-    targetEl.style.opacity = 0;
-    targetEl.parentNode.appendChild(overlay);
+    // Hide the contents of the area that is below the animation.
+    setChildrenOpacity(overlayTargetEl, 0);
+
+    setTimeout(() => {
+
+        const overlayTargetElHeight = overlayTargetEl.offsetHeight;
+        const overlayHeight = overlay.offsetHeight;
+
+        // Adjust height of area below animation so that it has enough height.
+        if (overlayHeight > overlayTargetElHeight) {
+            overlayTargetEl.style.minHeight = overlayHeight + 'px';
+        }
+    }, 1);
+
     return overlay;
 }
 
-function initAnimateError(targetEl, http, element) {
-    targetEl.classList.add('mx-animation-container-cross');
-
-    const containingModalBody = targetEl.closest('.modal-body');
-    if (containingModalBody) {
-        targetEl = containingModalBody;
+function setChildrenOpacity(overlayTargetEl, opacityValue) {
+    // Ensure opacityValue is a number between 0 and 1
+    const opacityNumber = parseFloat(opacityValue);
+    if (isNaN(opacityNumber) || opacityNumber < 0 || opacityNumber > 1) {
+        throw new Error('Invalid opacity value. It must be a number between 0 and 1.');
     }
 
-    const overlay = mxCreateOverlay(targetEl);
+    // Get all children of overlayTargetEl and convert to an array
+    const children = Array.from(overlayTargetEl.children);
 
-    mxDrawBigCross(overlay, targetEl);
+    // Iterate over each child and set its opacity
+    children.forEach(child => {
+        child.style.opacity = opacityValue;
+    });
+}
+
+function initAnimateError(targetEl, http, element) {
+
+    // Establish where to create an overlay (for our animation).
+    const overlayTargetEl = estOverlayTargetEl(targetEl, element);
+    const overlay = mxCreateOverlay(overlayTargetEl);
+
+    // Draw default cross animation.
+    mxDrawBigCross(overlay);
 
     setTimeout(() => {
         mxDestroyAnimation(targetEl, http, element);
-        targetEl.style.opacity = 1;
+        setChildrenOpacity(overlayTargetEl, 1);
+
+        if (overlayTargetEl.style.minHeight) {
+            overlayTargetEl.style.minHeight = '';
+        }
+
         initAttemptCloseModal(targetEl, http, element);
+        populateTargetEl(targetEl, http, element);
     }, 1300);
 }
 
-function initAnimateSuccess(targetEl, http, element) {
-    targetEl.classList.add('mx-animation-container-tick');
+function estOverlayTargetEl(targetEl, element) {
+    let overlayTargetEl = targetEl;
 
     // Is this inside a modal body?
     const containingModalBody = element.closest('.modal-body');
     if (containingModalBody) {
-        targetEl = containingModalBody;
+        overlayTargetEl = containingModalBody;
+    } else {
+        // Is this inside a form element?
+        const containingForm = element.closest('form');
+        if (containingForm) {
+            overlayTargetEl = containingForm;
+        }
     }
+    return overlayTargetEl;
+}
 
-    const overlay = mxCreateOverlay(targetEl);
+function initAnimateSuccess(targetEl, http, element) {
 
+    // Establish where to create an overlay (for our animation).
+    const overlayTargetEl = estOverlayTargetEl(targetEl, element);
+    const overlay = mxCreateOverlay(overlayTargetEl);
+
+    // Draw default tick animation.
     mxDrawBigTick(element, overlay, targetEl);
 
     setTimeout(() => {
         mxDestroyAnimation(targetEl, http, element);
-        targetEl.style.opacity = 1;
+        setChildrenOpacity(overlayTargetEl, 1);
+
+        if (overlayTargetEl.style.minHeight) {
+            overlayTargetEl.style.minHeight = '';
+        }
 
         initAttemptCloseModal(targetEl, http, element);
-
         populateTargetEl(targetEl, http, element);
     }, 1300);
 }
