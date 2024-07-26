@@ -216,7 +216,7 @@ class Image {
      * @throws InvalidArgumentException If an unsupported image type is encountered or required properties are not set.
      * @throws RuntimeException If writing the file fails.
      */
-    protected function save(?string $filename = null, int $compression = 100, ?int $permissions = null): void {
+    public function save(?string $filename = null, int $compression = 100, ?int $permissions = null): void {
         $filename = $filename ?: $this->file_name;
 
         switch ($this->get_image_type()) {
@@ -656,6 +656,24 @@ class Image {
             throw new Not_found_exception($path);
         }
     }
+    // Redirects to ensure backwards compatibility with older modules like the news Module
+    // and the single picture uploader.
+
+    public function getWidth() {
+        $this -> get_width();
+    }
+
+    public function getHeight() {
+        $this -> get_height();
+    }
+
+    public function resizeToWidth($width) {
+        $this -> resize_to_width($width);
+    }
+
+    public function resizeToHeight($height) {
+        $this -> resize_to_height($height);
+    }
 }
 
 /**
@@ -692,4 +710,6 @@ class Not_found_exception extends Exception {
     public function get_path() {
         return $this->path;
     }
+
+
 }

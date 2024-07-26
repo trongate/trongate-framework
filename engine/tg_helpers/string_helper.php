@@ -51,6 +51,27 @@ function get_last_part(string $str, string $delimiter = '-'): string {
 }
 
 /**
+ * Extracts a substring from a given string, defined by start and end delimiters.
+ * This function searches for the first occurrence of the start delimiter and the first subsequent
+ * occurrence of the end delimiter, and returns the text found between them. If either delimiter
+ * is not found, or if they are in the wrong order, an empty string is returned.
+ *
+ * @param string $string The full string from which to extract content.
+ * @param string $start_delim The starting delimiter of the content to extract.
+ * @param string $end_delim The ending delimiter of the content to extract.
+ * @return string The content found between the specified delimiters or an empty string if no content is found.
+ */
+function extract_content(string $string, string $start_delim, string $end_delim): string {
+    if (($start_pos = strpos($string, $start_delim)) !== false) {
+        $start_pos += strlen($start_delim);
+        if (($end_pos = strpos($string, $end_delim, $start_pos)) !== false) {
+            return substr($string, $start_pos, $end_pos - $start_pos);
+        }
+    }
+    return '';
+}
+
+/**
  * Removes a portion of a string between two given substrings.
  *
  * @param string $start The starting substring.

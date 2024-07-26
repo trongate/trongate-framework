@@ -33,20 +33,46 @@ class Core {
     private function serve_vendor_asset(): void {
         $vendor_file_path = explode('/vendor/', ASSUMED_URL)[1];
         $vendor_file_path = '../vendor/' . $vendor_file_path;
-        if (file_exists($vendor_file_path)) {
-            if (strpos($vendor_file_path, '.css')) {
-                $content_type = 'text/css';
-            } else {
-                $content_type = 'text/plain';
-            }
+        
+        try {
+            $vendor_file_path = $this->sanitize_file_path($vendor_file_path, '../vendor/');
+            
+            if (file_exists($vendor_file_path)) {
+                if (strpos($vendor_file_path, '.css')) {
+                    $content_type = 'text/css';
+                } else {
+                    $content_type = 'text/plain';
+                }
 
-            header('Content-type: ' . $content_type);
-            $contents = file_get_contents($vendor_file_path);
-            echo $contents;
-            die();
-        } else {
-            die('Vendor file not found.');
+                header('Content-type: ' . $content_type);
+                $contents = file_get_contents($vendor_file_path);
+                echo $contents;
+                die();
+            } else {
+                die('Vendor file not found.');
+            }
+        } catch (Exception $e) {
+            die($e->getMessage());
         }
+    }
+
+    /**
+     * Sanitize file paths to prevent directory traversal.
+     *
+     * @param string $path The path to sanitize.
+     * @param string $base_dir The base directory to compare against.
+     * @return string The sanitized path.
+     * @throws Exception if the path is invalid.
+     */
+    private function sanitize_file_path(string $path, string $base_dir): string {
+        $real_base_dir = realpath($base_dir);
+        $real_path = realpath($path);
+
+        if (!$real_path || strpos($real_path, $real_base_dir) !== 0) {
+            throw new Exception('Invalid file path.');
+        }
+
+        return $real_path;
     }
 
     /**
@@ -73,39 +99,40 @@ class Core {
                 }
 
                 $asset_path = '../modules/' . strtolower($target_module) . '/assets/' . $target_dir . '/' . $file_name;
+                
+                try {
+                    $asset_path = $this->sanitize_file_path($asset_path, '../modules/');
+                    
+                    if (file_exists($asset_path)) {
+                        $content_type = mime_content_type($asset_path);
 
-                if (file_exists($asset_path)) {
-                    $content_type = mime_content_type($asset_path);
-
-                    if ($content_type === 'text/plain' || $content_type === 'text/html') {
-
-                        $pos2 = strpos($file_name, '.css');
-                        if (is_numeric($pos2)) {
-                            $content_type = 'text/css';
+                        if ($content_type === 'text/plain' || $content_type === 'text/html') {
+                            if (strpos($file_name, '.css') !== false) {
+                                $content_type = 'text/css';
+                            } elseif (strpos($file_name, '.js') !== false) {
+                                $content_type = 'text/javascript';
+                            }
                         }
 
-                        $pos2 = strpos($file_name, '.js');
-                        if (is_numeric($pos2)) {
-                            $content_type = 'text/javascript';
+                        if ($content_type === 'image/svg') {
+                            $content_type .= '+xml';
                         }
-                    }
 
-                    if ($content_type === 'image/svg') {
-                        $content_type .= '+xml';
-                    }
+                        // Make sure it's not a PHP file or api.json
+                        if (strpos($content_type, 'php') !== false || $file_name === 'api.json') {
+                            http_response_code(422);
+                            die();
+                        }
 
-                    //make sure not a PHP file or api.json
-                    if ((is_numeric(strpos($content_type, 'php'))) || ($file_name === 'api.json')) {
-                        http_response_code(422);
+                        header('Content-type: ' . $content_type);
+                        $contents = file_get_contents($asset_path);
+                        echo $contents;
                         die();
+                    } else {
+                        $this->serve_child_module_asset($asset_path, $file_name);
                     }
-
-                    header('Content-type: ' . $content_type);
-                    $contents = file_get_contents($asset_path);
-                    echo $contents;
-                    die();
-                } else {
-                    $this->serve_child_module_asset($asset_path, $file_name);
+                } catch (Exception $e) {
+                    die($e->getMessage());
                 }
             }
         }

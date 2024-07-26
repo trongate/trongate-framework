@@ -6,7 +6,7 @@ class Welcome extends Trongate {
 	 *
 	 * @return void
 	 */
-	function index(): void {
+	public function index(): void {
 		$this->module('trongate_pages');
 		$this->trongate_pages->display();
 	}

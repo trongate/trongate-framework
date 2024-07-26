@@ -238,27 +238,52 @@ div.modal-body p.text-center {
 }
 
 .container-xxs {
+  width: 90%;
   max-width: 450px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-xs {
+  width: 90%;
   max-width: 640px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-sm {
+  width: 90%;
   max-width: 760px;
+  margin: 0 auto;
+  padding: 1em;
+}
+
+.container-md {
+  width: 90%;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-lg {
+  width: 90%;
   max-width: 960px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-xl {
+  width: 90%;
   max-width: 1100px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .container-xxl {
+  width: 90%;
   max-width: 1300px;
+  margin: 0 auto;
+  padding: 1em;
 }
 
 .pagination {
@@ -454,6 +479,7 @@ div.modal-body p.text-center {
 
 .validation-error-report {
   color: #ff0000 !important;
+  width: 100%;
 }
 
 .validation-error-report > div {
@@ -594,6 +620,54 @@ div.modal-body p.text-center {
   }
 }
 
+.mx-indicator-hidden {
+  display: none;
+}
+
+#mx-tick,
+#mx-cross {
+  max-width: 200px;
+  min-width: 160px;
+  margin: 33px auto;
+}
+
+.mx-circ {
+  opacity: 0;
+  stroke-dasharray: 130;
+  stroke-dashoffset: 130;
+  -webkit-transition: all 1s;
+  -moz-transition: all 1s;
+  -ms-transition: all 1s;
+  -o-transition: all 1s;
+  transition: all 1s;
+}
+
+.mx-tick {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  -webkit-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -moz-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -ms-transition: stroke-dashoffset 1s 0.5s ease-out;
+  -o-transition: stroke-dashoffset 1s 0.5s ease-out;
+  transition: stroke-dashoffset 1s 0.5s ease-out;
+}
+
+.mx-cross {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  -webkit-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -moz-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -ms-transition: stroke-dashoffset 1s 0.7s ease-out;
+  -o-transition: stroke-dashoffset 1s 0.7s ease-out;
+  transition: stroke-dashoffset 1s 0.7s ease-out;
+}
+
+.mx-trigger.mx-drawn .path,
+.mx-drawn + svg .path {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+
 @media screen and (max-width: 550px) {
   button,
   .button {
@@ -612,4 +686,10 @@ div.modal-body p.text-center {
   .modal-footer button:last-child {
     margin: 0px 0 0 0.3em;
   }
+
+  p.button-container {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  
 }

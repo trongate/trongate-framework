@@ -1,4 +1,8 @@
 <?php
+
+/**
+ * Provides functionalities related to managing comments within the admin panel.
+ */
 class Trongate_comments extends Trongate {
 
     /**
@@ -13,8 +17,9 @@ class Trongate_comments extends Trongate {
      * @param array $output The output data containing comments.
      * @return array Processed output data with formatted comments.
      */
-    function _prep_comments(array $output): array {
-        //return comments with nicely formatted date
+    public function _prep_comments(array $output): array {
+
+        // Extract comments body from output
         $body = $output['body'];
 
         //get an array of all trongate_administrators
@@ -59,7 +64,7 @@ class Trongate_comments extends Trongate {
     }
 
     /**
-     * Pre-insert hook to be invoked by API manager before inserting a comment
+     * Pre-insert hook to be invoked by API manager before inserting a comment.
      *
      * @param array $input The input data for insertion.
      *                     Expected structure:
@@ -73,17 +78,17 @@ class Trongate_comments extends Trongate {
      *                     ]
      * @return array Processed input data with additional parameters.
      */
-    function _pre_insert(array $input): array {
-        // Establish user_id, date_created, and code before doing an insert.
-        $this->module('trongate_tokens');
+    public function _pre_insert(array $input): array {
+        // Extract token from input and retrieve user ID using the Trongate tokens module.
         $token = $input['token'];
+        $this->module('trongate_tokens');
+        $input['params']['user_id'] = $this->trongate_tokens->_get_user_id($token);
 
-        $trongate_user_id = $this->trongate_tokens->_get_user_id($token);
-
-        $input['params']['user_id'] = $trongate_user_id;
+        // Add date_created and generate a random code for insertion.
         $input['params']['date_created'] = time();
         $input['params']['code'] = make_rand_str(6);
 
         return $input;
     }
+
 }

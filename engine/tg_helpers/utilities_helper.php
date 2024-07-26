@@ -154,3 +154,60 @@ function load(string $template_file, ?array $data = null): void {
         die('<br><b>ERROR:</b> View file does not exist at: ' . $file_path);
     }
 }
+
+/**
+ * Sorts an array of associative arrays by a specified property.
+ *
+ * @param array $array The array to be sorted.
+ * @param string $property The property by which to sort the array.
+ * @param string $direction The direction to sort ('asc' for ascending, 'desc' for descending). Default is 'asc'.
+ * @return array The sorted array.
+ */
+function sort_by_property(array &$array, string $property, string $direction = 'asc'): array {
+    usort($array, function($a, $b) use ($property, $direction) {
+        // Determine the comparison method based on the property type
+        if (is_string($a[$property])) {
+            $result = strcasecmp($a[$property], $b[$property]);
+        } else {
+            $result = $a[$property] <=> $b[$property];
+        }
+        
+        return ($direction === 'desc') ? -$result : $result;
+    });
+    return $array;
+}
+
+/**
+ * Sorts an array of objects by a specified property.
+ *
+ * @param array $array The array of objects to be sorted.
+ * @param string $property The property by which to sort the objects.
+ * @param string $direction (Optional) The direction of sorting ('asc' or 'desc'). Defaults to 'asc'.
+ * @return array The sorted array of objects.
+ */
+function sort_rows_by_property(array $array, string $property, string $direction = 'asc'): array {
+    usort($array, function($a, $b) use ($property, $direction) {
+        // Determine the comparison method based on the property type
+        if (is_string($a->$property)) {
+            $result = strcasecmp($a->$property, $b->$property);
+        } else {
+            $result = $a->$property <=> $b->$property;
+        }
+        
+        return ($direction === 'desc') ? -$result : $result;
+    });
+    return $array;
+}
+
+/**
+ * Checks if the HTTP request has been invoked by Trongate MX.
+ *
+ * @return bool True if the request has the X-Trongate-MX header set to 'true', otherwise false.
+ */
+function from_trongate_mx(): bool {
+    if (isset($_SERVER['HTTP_TRONGATE_MX_REQUEST'])) {
+        return true;
+    } else {
+        return false;
+    }
+}

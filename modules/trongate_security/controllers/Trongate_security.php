@@ -7,7 +7,7 @@ class Trongate_security extends Trongate {
      * @param string $scenario The scenario for access control. Default is 'admin panel'.
      * @return string Returns a (trongate) token or initializes the 'not allowed' procedure.
      */
-    function _make_sure_allowed(string $scenario = 'admin panel'): string {
+    public function _make_sure_allowed(string $scenario = 'admin panel'): string {
         //returns EITHER (trongate)token OR initialises 'not allowed' procedure
 
         switch ($scenario) {

@@ -10,7 +10,7 @@ class Template {
      *
      * @return string The name of the view module.
      */
-    static public function get_view_module(): string {
+    public static function get_view_module(): string {
         // Attempt to get view_module from URL
         $url = str_replace(BASE_URL, '', current_url());
         $url = filter_var($url, FILTER_SANITIZE_URL);
@@ -18,6 +18,7 @@ class Template {
 
         if (isset($url_bits[0])) {
             $view_module = $url_bits[0];
+            $view_module = str_replace('-', '/', $view_module);
         } else {
             $view_module = DEFAULT_MODULE;
         }
@@ -31,7 +32,7 @@ class Template {
      * @param array|null $data Data to be passed to the view file.
      * @return void
      */
-    static public function display(?array $data = null): void {
+    public static function display(?array $data = null): void {
         if (!isset($data['view_module'])) {
             $data['view_module'] = self::get_view_module();
         }
@@ -51,7 +52,7 @@ class Template {
      * @param array|null $data Data to be passed to the partial view file.
      * @return void
      */
-    static public function partial(string $file_name, ?array $data = null): void {
+    public static function partial(string $file_name, ?array $data = null): void {
         $file_path = APPPATH . 'templates/views/' . $file_name . '.php';
         self::attempt_include($file_path, $data);
     }
@@ -64,7 +65,7 @@ class Template {
      * @param array|null $data Data to be extracted for use in the view file.
      * @return void
      */
-    static private function attempt_include(string $file_path, ?array $data = null): void {
+    private static function attempt_include(string $file_path, ?array $data = null): void {
         if (file_exists($file_path)) {
             if (isset($data)) {
                 extract($data);
