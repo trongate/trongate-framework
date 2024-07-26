@@ -667,6 +667,8 @@ class Image {
         $this -> get_height();
     }
 
+
+
     public function resizeToWidth($width) {
         $this -> resize_to_width($width);
     }
