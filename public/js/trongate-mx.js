@@ -560,6 +560,7 @@ function handleHttpResponse(http, element) {
                 if (successAnimateStr) {
                     initAnimateSuccess(targetEl, http, element);
                 } else {
+                    initAttemptCloseModal(targetEl, http, element);
                     populateTargetEl(targetEl, http, element);
                 }
             }
@@ -596,6 +597,8 @@ function handleHttpResponse(http, element) {
         if (errorAnimateStr) {
             initAnimateError(element, http, element);
         } else {
+            const targetEl = element ?? targetEl;
+            initAttemptCloseModal(targetEl, http, element);
             attemptInitOnErrorActions(http, element);
         }
     }
@@ -1086,6 +1089,7 @@ function initAnimateError(targetEl, http, element) {
     mxDrawBigCross(overlay);
 
     setTimeout(() => {
+        const targetEl = element ?? targetEl;
         mxDestroyAnimation(targetEl, http, element);
         setChildrenOpacity(overlayTargetEl, 1);
 
@@ -1094,7 +1098,8 @@ function initAnimateError(targetEl, http, element) {
         }
 
         initAttemptCloseModal(targetEl, http, element);
-        populateTargetEl(targetEl, http, element);
+        attemptInitOnErrorActions(http, element);
+
     }, 1300);
 }
 
