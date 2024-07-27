@@ -136,6 +136,12 @@ function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
         }
     }
 
+    // Process mx-dom-vals
+    const domVals = processMXDomVals(containingForm);
+    Object.entries(domVals).forEach(([key, value]) => {
+        formData.append(key, value);
+    });
+
     http.onload = function() {
         attemptHideLoader(containingForm);
         if (http.status >= 200 && http.status < 300) {
@@ -171,6 +177,12 @@ function invokeHttpRequest(element, httpMethodAttribute) {
         }
     }
 
+    // Process mx-dom-vals
+    const domVals = processMXDomVals(element);
+    Object.entries(domVals).forEach(([key, value]) => {
+        formData.append(key, value);
+    });
+
     http.onload = function() {
         attemptHideLoader(element);
         handleHttpResponse(http, element);
@@ -182,6 +194,25 @@ function invokeHttpRequest(element, httpMethodAttribute) {
         attemptHideLoader(element);
         console.error('Error sending request:', error);
     }
+}
+
+function processMXDomVals(element) {
+    const mxDomValsStr = element.getAttribute('mx-dom-vals');
+    if (!mxDomValsStr) return {};
+
+    const domVals = parseAttributeValue(mxDomValsStr);
+    if (!domVals || typeof domVals !== 'object') return {};
+
+    const result = {};
+    Object.entries(domVals).forEach(([key, value]) => {
+        if (typeof value === 'object' && value.selector && value.property) {
+            const selectedElement = document.querySelector(value.selector);
+            if (selectedElement) {
+                result[key] = selectedElement[value.property];
+            }
+        }
+    });
+    return result;
 }
 
 function mxSubmitForm(element, triggerEvent, httpMethodAttribute) {
