@@ -30,7 +30,8 @@ function parseAttributeValue(value) {
         // Attempt to parse as JSON
         return JSON.parse(value);
     } catch (e) {
-        // If parsing fails, return false
+        // If parsing fails, log the error and return false
+        console.error('Error parsing attribute value:', e);
         return false;
     }
 }
@@ -88,19 +89,15 @@ function setMXHeaders(http, element) {
         http.setRequestHeader('trongateToken', mxToken);
     }
 
-    const mxHeadersAttr = element.getAttribute('mx-headers');
-    if (mxHeadersAttr) {
-        const headersArray = parseAttributeValue(mxHeadersAttr);
-        if (headersArray && Array.isArray(headersArray)) {
-            headersArray.forEach(header => {
-                if (header.key && header.value) {
-                    http.setRequestHeader(header.key, header.value);
-                }
+    const mxHeadersStr = element.getAttribute('mx-headers');
+    if (mxHeadersStr) {
+        const headers = parseAttributeValue(mxHeadersStr);
+        if (headers && typeof headers === 'object') {
+            Object.entries(headers).forEach(([key, value]) => {
+                http.setRequestHeader(key, value);
             });
-        } else if (headersArray === false) {
-            console.error('Error parsing mx-headers attribute as JSON.');
         } else {
-            console.error('mx-headers attribute should be an array of objects.');
+            console.error('Error parsing mx-headers attribute.');
         }
     }
 }
@@ -127,7 +124,17 @@ function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
     setMXHeaders(http, containingForm);
     setMXHandlers(http, containingForm);
 
-    const formData = new FormData(containingForm);
+    let formData = new FormData(containingForm);
+    
+    const mxValsStr = containingForm.getAttribute('mx-vals');
+    if (mxValsStr) {
+        const vals = parseAttributeValue(mxValsStr);
+        if (vals && typeof vals === 'object') {
+            Object.entries(vals).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+        }
+    }
 
     http.onload = function() {
         attemptHideLoader(containingForm);
@@ -137,7 +144,12 @@ function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
         handleHttpResponse(http, containingForm);
     };
 
-    http.send(formData);
+    try {
+        http.send(formData);
+    } catch (error) {
+        attemptHideLoader(containingForm);
+        console.error('Error sending form request:', error);
+    }
 }
 
 function invokeHttpRequest(element, httpMethodAttribute) {
@@ -148,13 +160,24 @@ function invokeHttpRequest(element, httpMethodAttribute) {
     setMXHeaders(http, element);
     setMXHandlers(http, element);
 
+    let formData = new FormData();
+    const mxValsStr = element.getAttribute('mx-vals');
+    if (mxValsStr) {
+        const vals = parseAttributeValue(mxValsStr);
+        if (vals && typeof vals === 'object') {
+            Object.entries(vals).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+        }
+    }
+
     http.onload = function() {
         attemptHideLoader(element);
         handleHttpResponse(http, element);
     };
 
     try {
-        http.send();
+        http.send(formData);
     } catch (error) {
         attemptHideLoader(element);
         console.error('Error sending request:', error);
@@ -1043,6 +1066,10 @@ function mxCreateOverlay(overlayTargetEl) {
     overlay.style.left = `${rect.left + window.scrollX}px`;
     overlay.style.width = `${rect.width}px`;
     overlay.style.minHeight = `${rect.height}px`;
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
     overlay.classList.add('mx-animation');
     overlay.style.zIndex = '9999';
 
