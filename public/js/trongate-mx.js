@@ -853,6 +853,9 @@ function initializeTrongateMX() {
     // Attempt to start polling.
     attemptInitPolling();
 
+    // Check and define openModal and closeModal if they don't exist
+    ensureModalFunctionsExist();
+
 }
 
 function attemptInitPolling() {
@@ -1154,6 +1157,73 @@ function initAttemptCloseModal(targetEl, http, element) {
     const closeOnErrorStr = element.getAttribute('mx-close-on-error');
     if (closeOnErrorStr === 'true') {
         closeModal();
+    }
+}
+
+function ensureModalFunctionsExist() {
+    // Check if openModal exists, if not define it
+    if (typeof window.openModal !== 'function') {
+        window.openModal = function(modalId) {
+            var body = document.querySelector("body");
+            var pageOverlay = document.getElementById("overlay");
+
+            if (typeof pageOverlay == "undefined" || pageOverlay == null) {
+                var modalContainer = document.createElement("div");
+                modalContainer.setAttribute("id", "modal-container");
+                modalContainer.setAttribute("style", "z-index: 3;");
+                body.prepend(modalContainer);
+
+                var overlay = document.createElement("div");
+                overlay.setAttribute("id", "overlay");
+                overlay.setAttribute("style", "z-index: 2");
+
+                body.prepend(overlay);
+
+                var targetModal = document.getElementById(modalId);
+                var targetModalContent = targetModal.innerHTML;
+                targetModal.remove();
+
+                //create a new modal
+                var newModal = document.createElement("div");
+                newModal.setAttribute("class", "modal");
+                newModal.setAttribute("id", modalId);
+
+                newModal.style.zIndex = 4;
+                newModal.innerHTML = targetModalContent;
+                modalContainer.appendChild(newModal);
+
+                setTimeout(() => {
+                    newModal.style.opacity = 1;
+                    newModal.style.marginTop = "12vh";
+                }, 0);
+            }
+        };
+    }
+
+    // Check if closeModal exists, if not define it
+    if (typeof window.closeModal !== 'function') {
+        window.closeModal = function() {
+            var modalContainer = document.getElementById("modal-container");
+            if (modalContainer) {
+                var openModal = modalContainer.firstChild;
+
+                openModal.style.zIndex = -4;
+                openModal.style.opacity = 0;
+                openModal.style.marginTop = "12vh";
+                openModal.style.display = "none";
+                document.body.appendChild(openModal);
+
+                modalContainer.remove();
+
+                var overlay = document.getElementById("overlay");
+                if (overlay) {
+                    overlay.remove();
+                }
+                // Dispatch a custom event indicating modal closure
+                var event = new Event('modalClosed', { bubbles: true, cancelable: true });
+                document.dispatchEvent(event);
+            }
+        };
     }
 }
 
