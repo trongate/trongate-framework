@@ -212,8 +212,8 @@ class File {
     public function write(string $file_path, $data, bool $append = false): bool {
 
         // Validate the path to ensure it's allowed based on predefined security rules
-        if (!$this->is_path_valid($directory_path)) {
-            throw new Exception("Access to this path is restricted: $directory_path");
+        if (!$this->is_path_valid($file_path)) {
+            throw new Exception("Access to this file is restricted: $file_path");
         }
 
         $flags = $append ? FILE_APPEND : 0;

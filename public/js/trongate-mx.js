@@ -30,7 +30,8 @@ function parseAttributeValue(value) {
         // Attempt to parse as JSON
         return JSON.parse(value);
     } catch (e) {
-        // If parsing fails, return false
+        // If parsing fails, log the error and return false
+        console.error('Error parsing attribute value:', e);
         return false;
     }
 }
@@ -88,19 +89,15 @@ function setMXHeaders(http, element) {
         http.setRequestHeader('trongateToken', mxToken);
     }
 
-    const mxHeadersAttr = element.getAttribute('mx-headers');
-    if (mxHeadersAttr) {
-        const headersArray = parseAttributeValue(mxHeadersAttr);
-        if (headersArray && Array.isArray(headersArray)) {
-            headersArray.forEach(header => {
-                if (header.key && header.value) {
-                    http.setRequestHeader(header.key, header.value);
-                }
+    const mxHeadersStr = element.getAttribute('mx-headers');
+    if (mxHeadersStr) {
+        const headers = parseAttributeValue(mxHeadersStr);
+        if (headers && typeof headers === 'object') {
+            Object.entries(headers).forEach(([key, value]) => {
+                http.setRequestHeader(key, value);
             });
-        } else if (headersArray === false) {
-            console.error('Error parsing mx-headers attribute as JSON.');
         } else {
-            console.error('mx-headers attribute should be an array of objects.');
+            console.error('Error parsing mx-headers attribute.');
         }
     }
 }
@@ -127,7 +124,23 @@ function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
     setMXHeaders(http, containingForm);
     setMXHandlers(http, containingForm);
 
-    const formData = new FormData(containingForm);
+    let formData = new FormData(containingForm);
+    
+    const mxValsStr = containingForm.getAttribute('mx-vals');
+    if (mxValsStr) {
+        const vals = parseAttributeValue(mxValsStr);
+        if (vals && typeof vals === 'object') {
+            Object.entries(vals).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+        }
+    }
+
+    // Process mx-dom-vals
+    const domVals = processMXDomVals(containingForm);
+    Object.entries(domVals).forEach(([key, value]) => {
+        formData.append(key, value);
+    });
 
     http.onload = function() {
         attemptHideLoader(containingForm);
@@ -137,7 +150,12 @@ function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
         handleHttpResponse(http, containingForm);
     };
 
-    http.send(formData);
+    try {
+        http.send(formData);
+    } catch (error) {
+        attemptHideLoader(containingForm);
+        console.error('Error sending form request:', error);
+    }
 }
 
 function invokeHttpRequest(element, httpMethodAttribute) {
@@ -148,17 +166,53 @@ function invokeHttpRequest(element, httpMethodAttribute) {
     setMXHeaders(http, element);
     setMXHandlers(http, element);
 
+    let formData = new FormData();
+    const mxValsStr = element.getAttribute('mx-vals');
+    if (mxValsStr) {
+        const vals = parseAttributeValue(mxValsStr);
+        if (vals && typeof vals === 'object') {
+            Object.entries(vals).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+        }
+    }
+
+    // Process mx-dom-vals
+    const domVals = processMXDomVals(element);
+    Object.entries(domVals).forEach(([key, value]) => {
+        formData.append(key, value);
+    });
+
     http.onload = function() {
         attemptHideLoader(element);
         handleHttpResponse(http, element);
     };
 
     try {
-        http.send();
+        http.send(formData);
     } catch (error) {
         attemptHideLoader(element);
         console.error('Error sending request:', error);
     }
+}
+
+function processMXDomVals(element) {
+    const mxDomValsStr = element.getAttribute('mx-dom-vals');
+    if (!mxDomValsStr) return {};
+
+    const domVals = parseAttributeValue(mxDomValsStr);
+    if (!domVals || typeof domVals !== 'object') return {};
+
+    const result = {};
+    Object.entries(domVals).forEach(([key, value]) => {
+        if (typeof value === 'object' && value.selector && value.property) {
+            const selectedElement = document.querySelector(value.selector);
+            if (selectedElement) {
+                result[key] = selectedElement[value.property];
+            }
+        }
+    });
+    return result;
 }
 
 function mxSubmitForm(element, triggerEvent, httpMethodAttribute) {
@@ -853,6 +907,9 @@ function initializeTrongateMX() {
     // Attempt to start polling.
     attemptInitPolling();
 
+    // Check and define openModal and closeModal if they don't exist
+    ensureModalFunctionsExist();
+
 }
 
 function attemptInitPolling() {
@@ -1040,6 +1097,10 @@ function mxCreateOverlay(overlayTargetEl) {
     overlay.style.left = `${rect.left + window.scrollX}px`;
     overlay.style.width = `${rect.width}px`;
     overlay.style.minHeight = `${rect.height}px`;
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
     overlay.classList.add('mx-animation');
     overlay.style.zIndex = '9999';
 
@@ -1154,6 +1215,73 @@ function initAttemptCloseModal(targetEl, http, element) {
     const closeOnErrorStr = element.getAttribute('mx-close-on-error');
     if (closeOnErrorStr === 'true') {
         closeModal();
+    }
+}
+
+function ensureModalFunctionsExist() {
+    // Check if openModal exists, if not define it
+    if (typeof window.openModal !== 'function') {
+        window.openModal = function(modalId) {
+            var body = document.querySelector("body");
+            var pageOverlay = document.getElementById("overlay");
+
+            if (typeof pageOverlay == "undefined" || pageOverlay == null) {
+                var modalContainer = document.createElement("div");
+                modalContainer.setAttribute("id", "modal-container");
+                modalContainer.setAttribute("style", "z-index: 3;");
+                body.prepend(modalContainer);
+
+                var overlay = document.createElement("div");
+                overlay.setAttribute("id", "overlay");
+                overlay.setAttribute("style", "z-index: 2");
+
+                body.prepend(overlay);
+
+                var targetModal = document.getElementById(modalId);
+                var targetModalContent = targetModal.innerHTML;
+                targetModal.remove();
+
+                //create a new modal
+                var newModal = document.createElement("div");
+                newModal.setAttribute("class", "modal");
+                newModal.setAttribute("id", modalId);
+
+                newModal.style.zIndex = 4;
+                newModal.innerHTML = targetModalContent;
+                modalContainer.appendChild(newModal);
+
+                setTimeout(() => {
+                    newModal.style.opacity = 1;
+                    newModal.style.marginTop = "12vh";
+                }, 0);
+            }
+        };
+    }
+
+    // Check if closeModal exists, if not define it
+    if (typeof window.closeModal !== 'function') {
+        window.closeModal = function() {
+            var modalContainer = document.getElementById("modal-container");
+            if (modalContainer) {
+                var openModal = modalContainer.firstChild;
+
+                openModal.style.zIndex = -4;
+                openModal.style.opacity = 0;
+                openModal.style.marginTop = "12vh";
+                openModal.style.display = "none";
+                document.body.appendChild(openModal);
+
+                modalContainer.remove();
+
+                var overlay = document.getElementById("overlay");
+                if (overlay) {
+                    overlay.remove();
+                }
+                // Dispatch a custom event indicating modal closure
+                var event = new Event('modalClosed', { bubbles: true, cancelable: true });
+                document.dispatchEvent(event);
+            }
+        };
     }
 }
 

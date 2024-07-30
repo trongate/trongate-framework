@@ -61,15 +61,28 @@ class Core {
      *
      * @param string $path The path to sanitize.
      * @param string $base_dir The base directory to compare against.
+     * @param bool $is_child_module True if attempting to sanitize the path for a child module asset
      * @return string The sanitized path.
      * @throws Exception if the path is invalid.
      */
-    private function sanitize_file_path(string $path, string $base_dir): string {
+    private function sanitize_file_path(string $path, string $base_dir, bool $is_child_module = false): string {
         $real_base_dir = realpath($base_dir);
         $real_path = realpath($path);
 
-        if (!$real_path || strpos($real_path, $real_base_dir) !== 0) {
-            throw new Exception('Invalid file path.');
+        if ( (!$real_path || strpos($real_path, $real_base_dir) !== 0) && !$is_child_module ) {
+
+            $real_path = $this->sanitize_file_path($path, $base_dir, true);
+
+        } else if ($is_child_module) {
+
+            $path_bits = explode('/',$path);
+            $path_bits[2] = str_replace('-','/',$path_bits[2]); // split target module into parent/child
+            $real_path = realpath(implode('/',$path_bits));
+
+            if (!$real_path || strpos($real_path, $real_base_dir) !== 0) {
+                http_response_code(404);
+                throw new Exception('Invalid file path.');
+            }
         }
 
         return $real_path;
@@ -128,9 +141,7 @@ class Core {
                         $contents = file_get_contents($asset_path);
                         echo $contents;
                         die();
-                    } else {
-                        $this->serve_child_module_asset($asset_path, $file_name);
-                    }
+                    } 
                 } catch (Exception $e) {
                     die($e->getMessage());
                 }
@@ -138,55 +149,6 @@ class Core {
         }
     }
 
-    /**
-     * Serve child module assets.
-     *
-     * @param string $asset_path The path to the asset.
-     * @param string $file_name The name of the file.
-     * @return void
-     */
-    private function serve_child_module_asset(string $asset_path, string $file_name): void {
-        $start = '/modules/';
-        $end = '/assets/';
-
-        $pos = stripos($asset_path, $start);
-        $str = substr($asset_path, $pos);
-        $str_two = substr($str, strlen($start));
-        $second_pos = stripos($str_two, $end);
-        $str_three = substr($str_two, 0, $second_pos);
-        $target_str = trim($str_three);
-
-        $bits = explode('-', $target_str);
-
-        if (count($bits) == 2) {
-            if (strlen($bits[1]) > 0) {
-                $parent_module = $bits[0];
-                $child_module = $bits[1];
-
-                $asset_path = str_replace($target_str, $parent_module . '/' . $child_module, $asset_path);
-                if (file_exists($asset_path)) {
-
-                    $content_type = mime_content_type($asset_path);
-
-                    if ($content_type === 'text/plain' || $content_type === 'text/html') {
-                        $pos2 = strpos($file_name, '.css');
-                        if (is_numeric($pos2)) {
-                            $content_type = 'text/css';
-                        }
-                        $pos2 = strpos($file_name, '.js');
-                        if (is_numeric($pos2)) {
-                            $content_type = 'text/javascript';
-                        }
-                    }
-
-                    header('Content-type: ' . $content_type);
-                    $contents = file_get_contents($asset_path);
-                    echo $contents;
-                    die();
-                }
-            }
-        }
-    }
 
     /**
      * Attempt SQL transfer.
