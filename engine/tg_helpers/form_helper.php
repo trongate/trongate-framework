@@ -111,6 +111,13 @@ function get_attributes_str($attributes) {
         return $attributes_str;
     }
 
+    // Ensure $attributes is an array
+    if (!is_array($attributes)) {
+        // Optionally log a warning or error
+        error_log('get_attributes_str: $attributes is not an array.');
+        return $attributes_str;
+    }
+
     foreach ($attributes as $a_key => $a_value) {
         $attributes_str .= ' ' . $a_key . '="' . $a_value . '"';
     }
