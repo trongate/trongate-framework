@@ -59,17 +59,15 @@ trait Translate
         $this->locale($locale);
 
         $query_result = $this->model->query_bind(
-            sql: '
-                SELECT `value`
+            sql: 'SELECT value
                 FROM `localization`
                 WHERE `locale` = :locale
                 AND `key` = :key
                 ORDER BY `id` DESC
-                LIMIT 1
-            ',
+                LIMIT 1',
             data: [
-                ':locale' => $this->locale,
-                ':key' => $key,
+                'locale' => $this->locale,
+                'key' => $key,
             ]
         );
 
