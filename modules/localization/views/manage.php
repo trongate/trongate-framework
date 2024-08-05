@@ -9,7 +9,7 @@ if (count($rows)>0) { ?>
             <th colspan="3">
                 <div>
                     <div><?php
-                        echo form_open('trongate_localization/manage', array("method" => "get"));
+                        echo form_open('localization/manage', array("method" => "get"));
                         echo form_input('searchphrase', '', array("placeholder" => "Search records..."));
                         echo form_submit('submit', 'Search', array("class" => "alt"));
                         echo form_close();

@@ -2,7 +2,7 @@
 
 require_once  __DIR__ . DIRECTORY_SEPARATOR . 'Translate.php';
 
-class Trongate_localization extends Trongate
+class Localization extends Trongate
 {
     use Translate;
 
@@ -13,7 +13,7 @@ class Trongate_localization extends Trongate
         $this->locale();
 
         $translations = $this->model->query(
-            sql: 'SELECT `locale`, `key`, `value` FROM `trongate_localization`',
+            sql: 'SELECT `locale`, `key`, `value` FROM `localization`',
             return_type: 'object'
         );
 
@@ -44,7 +44,7 @@ class Trongate_localization extends Trongate
 
         $this->model->query_bind(
             sql: '
-                INSERT INTO `trongate_localization` 
+                INSERT INTO `localization` 
                 (`locale`, `key`, `value`) 
                 VALUES 
                 (:locale, :key, :value)
@@ -78,7 +78,7 @@ class Trongate_localization extends Trongate
             $data['rows'] = $service->driver()->translations();
         }
 
-        $data['view_module'] = 'trongate_localization';
+        $data['view_module'] = 'Localization';
         $data['view_file'] = 'manage';
         $data['t'] = $service->translate(...);
         $this->template('admin', $data);

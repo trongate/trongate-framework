@@ -61,7 +61,7 @@ trait Translate
         $query_result = $this->model->query_bind(
             sql: '
                 SELECT `value`
-                FROM `trongate_localization`
+                FROM `localization`
                 WHERE `locale` = :locale
                 AND `key` = :key
                 ORDER BY `id` DESC
@@ -92,7 +92,7 @@ trait Translate
     {
         if (empty($this->translations)) {
             $this->translations = $this->model->query(
-                sql: 'SELECT `key`, `value` FROM `trongate_localization`',
+                sql: 'SELECT `key`, `value` FROM `localization`',
                 return_type: 'object'
             );
         }

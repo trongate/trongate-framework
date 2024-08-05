@@ -56,7 +56,7 @@ function tgpOpenTranslateModal() {
     modalBody.appendChild(translateFormPara);
 
     const translateForm = document.createElement("form");
-    translateForm.action = '/trongate_localization/update_translations';
+    translateForm.action = '/localization/update_translations';
     translateForm.method = 'post';
     translateForm.setAttribute("id", "tgp-translate-form");
 

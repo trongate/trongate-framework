@@ -11,7 +11,7 @@ class Database_driver implements Localization_driver
 
     public function __construct()
     {
-        $this->model = new Model('trongate_localization');
+        $this->model = new Model('Localization');
     }
 
     public function languages(): iterable
@@ -29,7 +29,7 @@ class Database_driver implements Localization_driver
         $translations = $this->model->query(
             sql: '
                 SELECT * 
-                FROM `trongate_localization` 
+                FROM `localization` 
                 ORDER BY `language` ASC, `key` ASC
             ',
             return_type: 'array'
@@ -55,7 +55,7 @@ class Database_driver implements Localization_driver
             foreach($this->languages as $language) {
                 $this->model->query_bind(
                     sql: '
-                    INSERT INTO `trongate_localization` 
+                    INSERT INTO `localization` 
                     (`language`, `key`, `value`) 
                     VALUES 
                     (:language, :key, :value) 
@@ -84,7 +84,7 @@ class Database_driver implements Localization_driver
         $translations = $this->model->query_bind(
             sql: '
                 SELECT * 
-                FROM `trongate_localization` 
+                FROM `localization` 
                 WHERE `key` LIKE :query 
                 OR `value` LIKE :query
                 ORDER BY `language` ASC, `key` ASC

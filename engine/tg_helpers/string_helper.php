@@ -2,7 +2,7 @@
 
 function t(string $key, mixed $default = null, string $locale = null): string {
     return Modules::run(
-        'trongate_localization/translate',
+        'localization/translate',
         $key,
         $default,
         $locale
@@ -11,7 +11,7 @@ function t(string $key, mixed $default = null, string $locale = null): string {
 
 function money($value, string $currency = null, string $locale = null): string {
     return Modules::run(
-        'trongate_localization/currency',
+        'localization/currency',
         $value,
         $currency,
         $locale
