@@ -431,25 +431,28 @@ function form_file_select(string $name, ?array $attributes = null, ?string $addi
  * Retrieve and clean a value from the POST data.
  *
  * @param string $field_name The name of the POST field to retrieve.
- * @param bool|null $clean_up Whether to clean up the retrieved value (default is null).
+ * @param bool $clean_up Whether to clean up the retrieved value (default is false).
  * @return string|int|float The value retrieved from the POST data.
  */
-function post(string $field_name, ?bool $clean_up = null) {
-    if (!isset($_POST[$field_name])) {
-        $value = '';
-    } else {
-        $value = $_POST[$field_name];
-
-        if (isset($clean_up)) {
-            $value = filter_string($value);
-
-            if (is_numeric($value)) {
-                $var_type = (strpos($value, '.') !== false) ? 'double' : 'int';
-                settype($value, $var_type);
+function post(string $field_name, bool $clean_up = false): string|int|float {
+    // Retrieve the value from the $_POST superglobal
+    $value = $_POST[$field_name] ?? '';
+    // Apply cleaning if requested
+    if ($clean_up) {
+        // Trim whitespace from the beginning and end of the value
+        $value = trim($value);
+        // Sanitize the value (using htmlspecialchars instead of deprecated FILTER_SANITIZE_STRING)
+        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        // Determine if the value should be converted to a number
+        if (is_numeric($value)) {
+            // Convert to the appropriate numeric type
+            if (filter_var($value, FILTER_VALIDATE_FLOAT) !== false) {
+                $value = (float)$value;
+            } elseif (filter_var($value, FILTER_VALIDATE_INT) !== false) {
+                $value = (int)$value;
             }
         }
     }
-
     return $value;
 }
 

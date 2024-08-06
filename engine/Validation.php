@@ -510,17 +510,9 @@ class Validation {
      */
     private function valid_email(array $validation_data): void {
         extract($validation_data);
-
         if ($posted_value !== '') {
             if (!filter_var($posted_value, FILTER_VALIDATE_EMAIL)) {
                 $this->form_submission_errors[$key][] = 'The ' . $label . ' field must contain a valid email address.';
-                return;
-            }
-
-            // Check if the email address contains an @ symbol and a valid domain name
-            $at_pos = strpos($posted_value, '@');
-            if ($at_pos === false || $at_pos === 0) {
-                $this->form_submission_errors[$key][] = 'The ' . $label . ' is not properly formatted.';
                 return;
             }
 
@@ -530,14 +522,11 @@ class Validation {
                 return;
             }
 
-            // Check if the internet is available
-            if ($sock = @fsockopen('www.google.com', 80)) {
-                fclose($sock);
-                $domain_name = substr($posted_value, $at_pos + 1);
-                if (!checkdnsrr($domain_name, 'MX')) {
-                    $this->form_submission_errors[$key][] = 'The ' . $label . ' field contains an invalid domain name';
-                    return;
-                }
+            // Optional: Check domain has valid MX or A record
+            $domain = substr(strrchr($posted_value, "@"), 1);
+            if (!checkdnsrr($domain, "MX") && !checkdnsrr($domain, "A")) {
+                $this->form_submission_errors[$key][] = 'The ' . $label . ' field contains a domain with no valid DNS records.';
+                return;
             }
         }
     }
