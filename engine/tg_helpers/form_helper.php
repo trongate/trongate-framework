@@ -1,4 +1,158 @@
 <?php
+
+/**
+ * Generates an HTML input element.
+ *
+ * @param string $type The type of input element.
+ * @param string $name The name attribute for the input element.
+ * @param string|null $value The value of the input element. Default is null.
+ * @param bool|string|null $checked Whether the input element should be checked (for radio/checkbox). Default is false.
+ * @param array|null $attributes An associative array of HTML attributes for the input. Default is null.
+ * @param string|null $additional_code Additional HTML code to append to the input element. Default is null.
+ * @return string The generated HTML input element.
+ */
+function generate_input_element(string $type, string $name, ?string $value = null, bool|string|null $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
+    $attributes = $attributes ?? [];
+    $attributes['type'] = $type;
+    $attributes['name'] = $name;
+    
+    if ($value !== null) {
+        $attributes['value'] = $value;
+    }
+    
+    if (($type === 'radio' || $type === 'checkbox') && 
+        ($checked === true || $checked === '1' || $checked === 1 || strtolower($checked) === 'on')) {
+        $attributes['checked'] = 'checked';
+    }
+    
+    $html = '<input' . get_attributes_str($attributes);
+    
+    if ($additional_code !== null) {
+        $html .= ' ' . $additional_code;
+    }
+    return $html . '>';
+}
+
+/**
+ * Generates a checkbox form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param mixed $value The value attribute for the input element. Default is '1'.
+ * @param mixed $checked Whether the checkbox should be checked. Can be boolean, string, or any truthy/falsy value.
+ * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+ * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @return string The generated HTML input element.
+ */
+function form_checkbox(string $name, mixed $value = '1', mixed $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
+    // Convert value to string, defaulting to '1' if null
+    $value = $value !== null ? (string) $value : '1';
+    
+    // Validate and convert checked state to boolean
+    $is_checked = filter_var($checked, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+    
+    // Generate the checkbox input element
+    return generate_input_element('checkbox', $name, $value, $is_checked, $attributes, $additional_code);
+}
+
+/**
+ * Generates a radio button form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param mixed $value The value attribute for the input element. Default is null.
+ * @param mixed $checked Whether the radio button should be checked. Can be boolean, string, or any truthy/falsy value.
+ * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+ * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @return string The generated HTML input element.
+ */
+function form_radio(string $name, mixed $value = null, mixed $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
+    // Convert value to string if not null
+    $value = $value !== null ? (string) $value : null;
+    
+    // Validate and convert checked state to boolean
+    $is_checked = filter_var($checked, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+    
+    // Generate the radio input element
+    return generate_input_element('radio', $name, $value, $is_checked, $attributes, $additional_code);
+}
+
+/**
+ * Generates a text input form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param string|null $value The value attribute for the input element. Default is null.
+ * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+ * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @return string The generated HTML input element.
+ */
+function form_input(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    return generate_input_element('text', $name, $value, false, $attributes, $additional_code);
+}
+
+/**
+ * Generates an email input form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param string|null $value The value attribute for the input element. Default is null.
+ * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+ * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @return string The generated HTML input element.
+ */
+function form_email(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    return generate_input_element('email', $name, $value, false, $attributes, $additional_code);
+}
+
+/**
+ * Generates a password input form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param string|null $value The value attribute for the input element. Default is null.
+ * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+ * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @return string The generated HTML input element.
+ */
+function form_password(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    return generate_input_element('password', $name, $value, false, $attributes, $additional_code);
+}
+
+/**
+ * Generates a search input form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param string|null $value The value attribute for the input element. Default is null.
+ * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+ * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @return string The generated HTML input element.
+ */
+function form_search(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    return generate_input_element('search', $name, $value, false, $attributes, $additional_code);
+}
+
+/**
+ * Generates a number input form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param string|int|float|null $value The value attribute for the input element. Default is null.
+ * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+ * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @return string The generated HTML input element.
+ */
+function form_number(string $name, string|int|float|null $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    return generate_input_element('number', $name, $value, false, $attributes, $additional_code);
+}
+
+/**
+ * Generates a hidden input form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param string|int|float|null $value The value attribute for the input element. Default is null.
+ * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+ * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @return string The generated HTML input element.
+ */
+function form_hidden(string $name, string|int|float|null $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    return generate_input_element('hidden', $name, $value, false, $attributes, $additional_code);
+}
+
 /**
  * Generate the opening tag for an HTML form.
  *
@@ -127,108 +281,6 @@ function form_label($label_text, $attributes = null, $additional_code = null): s
 }
 
 /**
- * Generate an HTML input element.
- *
- * @param string $name The name attribute for the input element.
- * @param mixed $value (optional) The initial value for the input element. Default is null.
- * @param array|null $attributes (optional) Additional attributes for the input element. Default is null.
- * @param string|null $additional_code (optional) Additional code to include in the input element. Default is null.
- *
- * @return string The HTML representation of the input element.
- */
-function form_input(string $name, $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
-    $attributes['name'] = $name;
-    $attributes['type'] = $attributes['type'] ?? 'text';
-    
-    if ($value !== null) {
-        $attributes['value'] = $value;
-    }
-
-    $html = '<input' . get_attributes_str($attributes);
-    
-    if ($additional_code !== null) {
-        $html .= ' ' . $additional_code;
-    }
-
-    return $html . '>';
-}
-
-/**
- * Generate an HTML search input element.
- *
- * @param string $name The name attribute for the search input element.
- * @param mixed $value (optional) The initial value for the search input element. Default is null.
- * @param array|null $attributes (optional) Additional attributes for the search input element. Default is null.
- * @param string|null $additional_code (optional) Additional code to include in the search input element. Default is null.
- *
- * @return string The HTML representation of the search input element.
- */
-function form_search(string $name, $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
-    $attributes['type'] = 'search';
-    return form_input($name, $value, $attributes, $additional_code);
-}
-
-/**
- * Generate an HTML input element with type "number".
- *
- * @param string $name The name attribute for the input element.
- * @param int|float|string|null $value The initial value of the input element.
- * @param array|null $attributes An associative array of HTML attributes for the input.
- * @param string|null $additional_code Additional HTML code to append to the input element.
- * @return string The generated HTML input element with type "number".
- */
-function form_number(string $name, $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
-    $attributes['type'] = 'number';
-    return form_input($name, $value, $attributes, $additional_code);
-}
-
-/**
- * Generate an HTML input element with type "password".
- *
- * @param string $name The name attribute for the input element.
- * @param string|null $value The initial value of the input element (password). Use null for no initial value.
- * @param array|null $attributes An associative array of HTML attributes for the input.
- * @param string|null $additional_code Additional HTML code to append to the input element.
- * @return string The generated HTML input element with type "password".
- */
-function form_password(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
-    $attributes['type'] = 'password';
-    return form_input($name, $value, $attributes, $additional_code);
-}
-
-/**
- * Generate an HTML input element with type "email".
- *
- * @param string $name The name attribute for the input element.
- * @param string|null $value The initial value of the input element (email). Use null for no initial value.
- * @param array|null $attributes An associative array of HTML attributes for the input.
- * @param string|null $additional_code Additional HTML code to append to the input element.
- * @return string The generated HTML input element with type "email".
- */
-function form_email(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
-    $attributes['type'] = 'email';
-    return form_input($name, $value, $attributes, $additional_code);
-}
-
-/**
- * Generate an HTML hidden input field.
- *
- * @param string $name The name attribute for the hidden input field.
- * @param string|null $value The initial value of the hidden input field. If not provided, it will be empty.
- * @param string|null $additional_code Additional HTML code to append to the hidden input field.
- * @return string The generated HTML hidden input field.
- */
-function form_hidden(string $name, $value = null, ?string $additional_code = null): string {
-    $attributes = ['type' => 'hidden'];
-    return form_input($name, $value, $attributes, $additional_code);
-}
-
-/**
  * Generate an HTML textarea element.
  *
  * @param string $name The name attribute for the textarea element.
@@ -292,51 +344,6 @@ function form_button(string $name, ?string $value = null, ?array $attributes = n
     $attributes = $attributes ?? [];
     $attributes['type'] = 'button';
     return form_submit($name, $value, $attributes, $additional_code);
-}
-
-/**
- * Generate an HTML input element with type "radio".
- *
- * @param string $name The name attribute for the input element.
- * @param string|null $value The value of the radio button.
- * @param bool $checked Whether the radio button should be checked (true) or unchecked (false).
- * @param array|null $attributes An associative array of HTML attributes for the input.
- * @param string|null $additional_code Additional HTML code to append to the input element.
- * @return string The generated HTML input element with type "radio".
- */
-function form_radio(string $name, ?string $value = null, bool $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
-    $attributes['type'] = 'radio';
-    $attributes['name'] = $name;
-    $attributes['value'] = $value ?? '1';
-    
-    if ($checked) {
-        $attributes['checked'] = 'checked';
-    }
-
-    $html = '<input' . get_attributes_str($attributes);
-    
-    if ($additional_code !== null) {
-        $html .= ' ' . $additional_code;
-    }
-
-    return $html . '>';
-}
-
-/**
- * Generate an HTML input element with type "checkbox".
- *
- * @param string $name The name attribute for the input element.
- * @param string|null $value The value of the checkbox when checked.
- * @param bool $checked Whether the checkbox should be checked (true) or unchecked (false).
- * @param array|null $attributes An associative array of HTML attributes for the input.
- * @param string|null $additional_code Additional HTML code to append to the input element.
- * @return string The generated HTML input element with type "checkbox".
- */
-function form_checkbox(string $name, ?string $value = null, bool $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
-    $attributes['type'] = 'checkbox';
-    return form_radio($name, $value, $checked, $attributes, $additional_code);
 }
 
 /**
