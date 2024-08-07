@@ -1,7 +1,7 @@
-var body = document.querySelector("body");
+const body = document.querySelector("body");
 
 function _(elRef) {
-  var firstChar = elRef.substring(0, 1);
+  const firstChar = elRef.substring(0, 1);
 
   if (firstChar === ".") {
     elRef = elRef.replace(/\./g, "");
@@ -12,46 +12,35 @@ function _(elRef) {
 }
 
 function setPerPage() {
-  var perPageSelector = document.querySelector("#results-tbl select");
-  var lastSegment = window.location.pathname.split("/").pop();
-  var selectedIndex = perPageSelector.value;
-  var targetUrl =
-    window.location.protocol +
-    "//" +
-    window.location.hostname +
-    window.location.pathname;
-  targetUrl = targetUrl.replace(
-    "/manage/",
-    "/set_per_page/" + selectedIndex + "/"
-  );
-  targetUrl = targetUrl.replace(
-    "/manage",
-    "/set_per_page/" + selectedIndex + "/"
-  );
+  const perPageSelector = document.querySelector("#results-tbl select");
+  const lastSegment = window.location.pathname.split("/").pop();
+  const selectedIndex = perPageSelector.value;
+  let targetUrl = `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+  targetUrl = targetUrl.replace("/manage/", `/set_per_page/${selectedIndex}/`);
+  targetUrl = targetUrl.replace("/manage", `/set_per_page/${selectedIndex}/`);
   window.location.href = targetUrl;
 }
 
 function openModal(modalId) {
-  var pageOverlay = document.getElementById("overlay");
+  let pageOverlay = document.getElementById("overlay");
 
-  if (typeof pageOverlay === "undefined" || pageOverlay === null) {
-    var modalContainer = document.createElement("div");
+  if (!pageOverlay) {
+    const modalContainer = document.createElement("div");
     modalContainer.setAttribute("id", "modal-container");
     modalContainer.setAttribute("style", "z-index: 3;");
     body.prepend(modalContainer);
 
-    var overlay = document.createElement("div");
-    overlay.setAttribute("id", "overlay");
-    overlay.setAttribute("style", "z-index: 2");
+    pageOverlay = document.createElement("div");
+    pageOverlay.setAttribute("id", "overlay");
+    pageOverlay.setAttribute("style", "z-index: 2");
 
-    body.prepend(overlay);
+    body.prepend(pageOverlay);
 
-    var targetModal = _(modalId);
-    targetModalContent = targetModal.innerHTML;
+    const targetModal = _(modalId);
+    const targetModalContent = targetModal.innerHTML;
     targetModal.remove();
 
-    //create a new model
-    var newModal = document.createElement("div");
+    const newModal = document.createElement("div");
     newModal.setAttribute("class", "modal");
     newModal.setAttribute("id", modalId);
 
@@ -67,9 +56,9 @@ function openModal(modalId) {
 }
 
 function closeModal() {
-  var modalContainer = document.getElementById("modal-container");
+  const modalContainer = document.getElementById("modal-container");
   if (modalContainer) {
-    var openModal = modalContainer.firstChild;
+    const openModal = modalContainer.firstChild;
 
     openModal.style.zIndex = -4;
     openModal.style.opacity = 0;
@@ -79,34 +68,24 @@ function closeModal() {
 
     modalContainer.remove();
 
-    var overlay = document.getElementById("overlay");
+    const overlay = document.getElementById("overlay");
     if (overlay) {
       overlay.remove();
     }
     // Dispatch a custom event indicating modal closure
-    var event = new Event('modalClosed', { bubbles: true, cancelable: true });
+    const event = new Event('modalClosed', { bubbles: true, cancelable: true });
     document.dispatchEvent(event);
   }
 }
 
-function attemptEscCloseModal() {
-  document.onkeydown = function (e) {
-    var modalContainer = _("modal-container");
-
-    if (e.key === "Escape" && modalContainer) {
-      closeModal();
-    }
-  };
-}
-
 function fetchAssociatedRecords(relationName, updateId) {
-  var params = {
+  const params = {
     relationName,
     updateId,
     callingModule: segment1,
   };
 
-  var targetUrl = baseUrl + "module_relations/fetch_associated_records";
+  const targetUrl = `${baseUrl}module_relations/fetch_associated_records`;
   const http = new XMLHttpRequest();
   http.open("post", targetUrl);
   http.setRequestHeader("Content-type", "application/json");
@@ -119,27 +98,27 @@ function fetchAssociatedRecords(relationName, updateId) {
 }
 
 function drawAssociatedRecords(relationName, results) {
-  var targetTblId = relationName + "-records";
-  var targetTbl = document.getElementById(targetTblId);
+  const targetTblId = `${relationName}-records`;
+  const targetTbl = document.getElementById(targetTblId);
 
   while (targetTbl.firstChild) {
     targetTbl.removeChild(targetTbl.lastChild);
   }
 
-  for (var i = 0; i < results.length; i++) {
-    var recordId = results[i]["id"];
-    var newTr = document.createElement("tr");
-    var newTd = document.createElement("td");
-    var tdText = document.createTextNode(results[i]["value"]);
+  for (const result of results) {
+    const recordId = result.id;
+    const newTr = document.createElement("tr");
+    const newTd = document.createElement("td");
+    const tdText = document.createTextNode(result.value);
     newTd.appendChild(tdText);
     newTr.appendChild(newTd);
-    var btnCell = document.createElement("td");
+    const btnCell = document.createElement("td");
 
-    var disBtn = document.createElement("button");
+    const disBtn = document.createElement("button");
     disBtn.innerHTML = '<i class="fa fa-ban"></i> disassociate';
     disBtn.setAttribute(
       "onclick",
-      "openDisassociateModal('" + relationName + "', " + recordId + ")"
+      `openDisassociateModal('${relationName}', ${recordId})`
     );
     disBtn.setAttribute("class", "danger");
 
@@ -152,15 +131,14 @@ function drawAssociatedRecords(relationName, results) {
 }
 
 function populatePotentialAssociations(relationName, results) {
-  var params = {
-    updateId: updateId,
+  const params = {
+    updateId,
     relationName,
     results,
     callingModule: segment1,
   };
 
-  var fetchAvailableOptionsUrl =
-    baseUrl + "module_relations/fetch_available_options";
+  const fetchAvailableOptionsUrl = `${baseUrl}module_relations/fetch_available_options`;
 
   const http = new XMLHttpRequest();
   http.open("post", fetchAvailableOptionsUrl);
@@ -168,24 +146,23 @@ function populatePotentialAssociations(relationName, results) {
   http.setRequestHeader("trongateToken", token);
   http.send(JSON.stringify(params));
   http.onload = function () {
-    //repopulate available records
-    var results = JSON.parse(http.responseText);
-    var associateBtnId = relationName + "-create";
-    var associateBtn = document.getElementById(associateBtnId);
+    const results = JSON.parse(http.responseText);
+    const associateBtnId = `${relationName}-create`;
+    const associateBtn = document.getElementById(associateBtnId);
 
     if (results.length > 0) {
       associateBtn.style.display = "block";
-      var dropdownId = relationName + "-dropdown";
-      var targetDropdown = document.getElementById(dropdownId);
+      const dropdownId = `${relationName}-dropdown`;
+      const targetDropdown = document.getElementById(dropdownId);
 
       while (targetDropdown.firstChild) {
         targetDropdown.removeChild(targetDropdown.lastChild);
       }
 
-      for (var i = 0; i < results.length; i++) {
-        var newOption = document.createElement("option");
-        newOption.setAttribute("value", results[i]["key"]);
-        newOption.innerHTML = results[i]["value"];
+      for (const result of results) {
+        const newOption = document.createElement("option");
+        newOption.setAttribute("value", result.key);
+        newOption.innerHTML = result.value;
         targetDropdown.appendChild(newOption);
       }
     } else {
@@ -196,26 +173,25 @@ function populatePotentialAssociations(relationName, results) {
 
 function openDisassociateModal(relationName, recordId) {
   setTimeout(() => {
-    var elId = relationName + "-record-to-go";
+    const elId = `${relationName}-record-to-go`;
     document.getElementById(elId).value = recordId;
   }, 100);
 
-  var targetModalId = relationName + "-disassociate-modal";
+  const targetModalId = `${relationName}-disassociate-modal`;
   openModal(targetModalId);
 }
 
 function disassociate(relationName) {
   closeModal();
 
-  //get the id of the record to go
-  var elId = relationName + "-record-to-go";
+  const elId = `${relationName}-record-to-go`;
 
-  var params = {
+  const params = {
     updateId: document.getElementById(elId).value,
     relationName,
   };
 
-  var disassociateUrl = baseUrl + "module_relations/disassociate";
+  const disassociateUrl = `${baseUrl}module_relations/disassociate`;
 
   const http = new XMLHttpRequest();
   http.open("post", disassociateUrl);
@@ -229,10 +205,10 @@ function disassociate(relationName) {
 }
 
 function submitCreateAssociation(relationName) {
-  var dropdownId = relationName + "-dropdown";
-  var dropdown = document.getElementById(dropdownId);
+  const dropdownId = `${relationName}-dropdown`;
+  const dropdown = document.getElementById(dropdownId);
 
-  var params = {
+  const params = {
     updateId,
     relationName,
     callingModule: segment1,
@@ -240,7 +216,7 @@ function submitCreateAssociation(relationName) {
   };
 
   closeModal();
-  var createUrl = baseUrl + "module_relations/submit";
+  const createUrl = `${baseUrl}module_relations/submit`;
 
   const http = new XMLHttpRequest();
   http.open("post", createUrl);
@@ -254,14 +230,14 @@ function submitCreateAssociation(relationName) {
 }
 
 if (typeof drawComments === "boolean") {
-  var commentsBlock = document.getElementById("comments-block");
-  var commentsTbl = document.querySelector("#comments-block > table");
+  const commentsBlock = document.getElementById("comments-block");
+  const commentsTbl = document.querySelector("#comments-block > table");
 
   function submitComment() {
-    var textarea = document.querySelector(
+    const textarea = document.querySelector(
       "#comment-modal > div.modal-body > p:nth-child(1) > textarea"
     );
-    var comment = textarea.value.trim();
+    const comment = textarea.value.trim();
 
     if (comment === "") {
       return;
@@ -269,13 +245,13 @@ if (typeof drawComments === "boolean") {
       textarea.value = "";
       closeModal();
 
-      var params = {
+      const params = {
         comment,
         target_table: segment1,
         update_id: updateId,
       };
 
-      var targetUrl = baseUrl + "api/create/trongate_comments";
+      const targetUrl = `${baseUrl}api/create/trongate_comments`;
       const http = new XMLHttpRequest();
       http.open("post", targetUrl);
       http.setRequestHeader("Content-type", "application/json");
@@ -284,8 +260,7 @@ if (typeof drawComments === "boolean") {
 
       http.onload = function () {
         if (http.status === 401) {
-          //invalid token!
-          window.location.href = baseUrl + "trongate_administrators/login";
+          window.location.href = `${baseUrl}trongate_administrators/login`;
         } else if (http.status === 200) {
           fetchComments();
         }
@@ -294,18 +269,18 @@ if (typeof drawComments === "boolean") {
   }
 
   function fetchComments() {
-    var commentsTbl = document.querySelector("#comments-block > table");
+    const commentsTbl = document.querySelector("#comments-block > table");
     if (commentsTbl === null) {
       return;
     }
 
-    var params = {
+    const params = {
       target_table: segment1,
       update_id: updateId,
       orderBy: "date_created",
     };
 
-    var targetUrl = baseUrl + "api/get/trongate_comments";
+    const targetUrl = `${baseUrl}api/get/trongate_comments`;
     const http = new XMLHttpRequest();
     http.open("post", targetUrl);
     http.setRequestHeader("Content-type", "application/json");
@@ -314,23 +289,21 @@ if (typeof drawComments === "boolean") {
 
     http.onload = function () {
       if (http.status === 401) {
-        //invalid token!
-        window.location.href = baseUrl + "trongate_administrators/login";
+        window.location.href = `${baseUrl}trongate_administrators/login`;
       } else if (http.status === 200) {
         while (commentsTbl.firstChild) {
           commentsTbl.removeChild(commentsTbl.lastChild);
         }
 
-        var comments = JSON.parse(http.responseText);
-        for (var i = 0; i < comments.length; i++) {
-          var tblRow = document.createElement("tr");
-          var tblCell = document.createElement("td");
-          var pDate = document.createElement("p");
-          var pText = document.createTextNode(comments[i]["date_created"]);
+        const comments = JSON.parse(http.responseText);
+        for (const comment of comments) {
+          const tblRow = document.createElement("tr");
+          const tblCell = document.createElement("td");
+          const pDate = document.createElement("p");
+          const pText = document.createTextNode(comment.date_created);
           pDate.appendChild(pText);
-          var pComment = document.createElement("p");
-          var commentText = comments[i]["comment"];
-          pComment.innerHTML = commentText;
+          const pComment = document.createElement("p");
+          pComment.innerHTML = comment.comment;
 
           tblCell.appendChild(pDate);
           tblCell.appendChild(pComment);
@@ -344,30 +317,29 @@ if (typeof drawComments === "boolean") {
 
   function openPicPreview(modalId, picPath) {
     openModal(modalId);
-    var targetEl = document.getElementById("preview-pic");
+    const targetEl = document.getElementById("preview-pic");
     while (targetEl.firstChild) {
       targetEl.removeChild(targetEl.lastChild);
     }
 
-    var imgPreview = document.createElement("img");
+    const imgPreview = document.createElement("img");
     imgPreview.setAttribute("src", picPath);
     targetEl.appendChild(imgPreview);
 
-    var ditchPicBtn = document.getElementById("ditch-pic-btn");
-    var ditchPicBtnText = ditchPicBtn.innerHTML;
-    var iconCode = '<i class="fa fa-trash"></i>';
-    ditchPicBtn.innerHTML = ditchPicBtnText.replace(iconCode, "");
-    ditchPicBtn.innerHTML = iconCode + ditchPicBtn.innerHTML;
+    const ditchPicBtn = document.getElementById("ditch-pic-btn");
+    let ditchPicBtnText = ditchPicBtn.innerHTML;
+    const iconCode = '<i class="fa fa-trash"></i>';
+    ditchPicBtnText = ditchPicBtnText.replace(iconCode, "");
+    ditchPicBtn.innerHTML = iconCode + ditchPicBtnText;
   }
 
   function ditchPreviewPic() {
-    var el = document.querySelector("div.user-panel.main input[name='login']");
-    var previewPic = document.querySelector("#preview-pic img");
-    var picPath = previewPic.src;
-    var removePicUrl =
-      baseUrl + "trongate_filezone/upload/" + segment1 + "/" + updateId;
-    var lastSegment = picPath.split("/").pop();
-    var elId = "gallery-preview-" + lastSegment.replace(".", "-");
+    const el = document.querySelector("div.user-panel.main input[name='login']");
+    const previewPic = document.querySelector("#preview-pic img");
+    const picPath = previewPic.src;
+    const removePicUrl = `${baseUrl}trongate_filezone/upload/${segment1}/${updateId}`;
+    const lastSegment = picPath.split("/").pop();
+    const elId = `gallery-preview-${lastSegment.replace(".", "-")}`;
 
     const http = new XMLHttpRequest();
     http.open("DELETE", removePicUrl);
@@ -384,31 +356,31 @@ if (typeof drawComments === "boolean") {
 
   function refreshPictures(pictures) {
     console.log("response is " + pictures);
-    var pics = JSON.parse(pictures);
-    var galleryPicsGrid = document.getElementById("gallery-pics");
+    const pics = JSON.parse(pictures);
+    const galleryPicsGrid = document.getElementById("gallery-pics");
     while (galleryPicsGrid.firstChild) {
       galleryPicsGrid.removeChild(galleryPicsGrid.lastChild);
     }
 
     if (pics.length < 1) {
-      var para = document.createElement("p");
+      const para = document.createElement("p");
       para.setAttribute("class", "text-center");
-      var paraTxt = "There are currently no gallery pictures for this record.";
-      var picsInfo = document.createTextNode(paraTxt);
+      const paraTxt = "There are currently no gallery pictures for this record.";
+      const picsInfo = document.createTextNode(paraTxt);
       para.appendChild(picsInfo);
       galleryPicsGrid.appendChild(para);
       galleryPicsGrid.style.gridTemplateColumns = "repeat(1, 1fr)";
     } else {
       galleryPicsGrid.style.gridTemplateColumns = "repeat(4, 1fr)";
-      var targetDirectory = baseUrl + segment1 + "_pictures/" + updateId + "/";
-      for (var i = 0; i < pics.length; i++) {
-        var picPath = targetDirectory + pics[i];
-        var newDiv = document.createElement("div");
+      const targetDirectory = `${baseUrl}${segment1}_pictures/${updateId}/`;
+      for (const pic of pics) {
+        const picPath = targetDirectory + pic;
+        const newDiv = document.createElement("div");
         newDiv.setAttribute(
           "onclick",
-          "openPicPreview('preview-pic-modal', '" + picPath + "')"
+          `openPicPreview('preview-pic-modal', '${picPath}')`
         );
-        var thumb = document.createElement("img");
+        const thumb = document.createElement("img");
         thumb.setAttribute("src", picPath);
         newDiv.appendChild(thumb);
         galleryPicsGrid.appendChild(newDiv);
@@ -419,9 +391,9 @@ if (typeof drawComments === "boolean") {
   fetchComments();
 }
 
-var slideNavOpen = false;
-var slideNav = document.getElementById("slide-nav");
-var main = document.getElementsByTagName("main")[0];
+let slideNavOpen = false;
+const slideNav = document.getElementById("slide-nav");
+const main = document.querySelector("main");
 
 function openSlideNav() {
   slideNav.style.opacity = 1;
@@ -439,23 +411,26 @@ function closeSlideNav() {
   slideNavOpen = false;
 }
 
-var slideNavLinks = document.querySelector("#slide-nav ul");
-var autoPopulateSlideNav = slideNavLinks.getAttribute("auto-populate");
+const slideNavLinks = document.querySelector("#slide-nav ul");
+const autoPopulateSlideNav = slideNavLinks.getAttribute("auto-populate");
 if (autoPopulateSlideNav === "true") {
-  var leftNavLinks = document.querySelector("#left-nav ul");
+  const leftNavLinks = document.querySelector("#left-nav ul");
   if (leftNavLinks !== null) {
     slideNavLinks.innerHTML = leftNavLinks.innerHTML;
   }
 }
 
 body.addEventListener("click", (ev) => {
-  if (slideNavOpen === true && ev.target.id !== "open-btn") {
-    if (slideNav.contains(ev.target)) {
-      return true;
-    } else {
+  if (slideNavOpen && ev.target.id !== "open-btn") {
+    if (!slideNav.contains(ev.target)) {
       closeSlideNav();
     }
   }
 });
 
-attemptEscCloseModal();
+document.addEventListener('keydown', (e) => {
+  const modalContainer = _("modal-container");
+  if (e.key === "Escape" && modalContainer) {
+    closeModal();
+  }
+});
