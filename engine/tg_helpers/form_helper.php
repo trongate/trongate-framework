@@ -201,7 +201,7 @@ function form_open_upload(string $location, ?array $attributes = null, ?string $
 }
 
 /**
- * Generate the closing tag for an HTML form, including CSRF token and inline validation errors (if any).
+ * Generates hidden CSRF token input field and a closing form tag.
  *
  * @return string The HTML closing tag for the form.
  */
@@ -308,7 +308,7 @@ function form_textarea(string $name, ?string $value = null, ?array $attributes =
  * Generate an HTML submit button element.
  *
  * @param string $name The name attribute for the button element.
- * @param string|null $value The value of the button. If not provided, the button's name will be used as the value.
+ * @param string|null $value The value of the button. If not provided, defaults to "Submit".
  * @param array|null $attributes An associative array of HTML attributes for the button.
  * @param string|null $additional_code Additional HTML code to append to the button element.
  * @return string The generated HTML submit button element.
@@ -317,7 +317,7 @@ function form_submit(string $name, ?string $value = null, ?array $attributes = n
     $attributes = $attributes ?? [];
     $attributes['type'] = 'submit';
     $attributes['name'] = $name;
-    $value = $value ?? $name;
+    $value = $value ?? 'Submit';
     $attributes['value'] = $value;
     
     $html = '<button' . get_attributes_str($attributes);
@@ -335,7 +335,7 @@ function form_submit(string $name, ?string $value = null, ?array $attributes = n
  * Generate an HTML button element.
  *
  * @param string $name The name attribute for the button element.
- * @param string|null $value The value of the button.
+ * @param string|null $value The value of the button. If not provided, defaults to "Submit".
  * @param array|null $attributes An associative array of HTML attributes for the button.
  * @param string|null $additional_code Additional HTML code to append to the button element.
  * @return string The generated HTML button element.
@@ -343,6 +343,7 @@ function form_submit(string $name, ?string $value = null, ?array $attributes = n
 function form_button(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
     $attributes = $attributes ?? [];
     $attributes['type'] = 'button';
+    $value = $value ?? 'Submit';
     return form_submit($name, $value, $attributes, $additional_code);
 }
 
