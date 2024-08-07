@@ -3,7 +3,7 @@ var body = document.querySelector("body");
 function _(elRef) {
   var firstChar = elRef.substring(0, 1);
 
-  if (firstChar == ".") {
+  if (firstChar === ".") {
     elRef = elRef.replace(/\./g, "");
     return document.getElementsByClassName(elRef);
   } else {
@@ -34,7 +34,7 @@ function setPerPage() {
 function openModal(modalId) {
   var pageOverlay = document.getElementById("overlay");
 
-  if (typeof pageOverlay == "undefined" || pageOverlay == null) {
+  if (typeof pageOverlay === "undefined" || pageOverlay === null) {
     var modalContainer = document.createElement("div");
     modalContainer.setAttribute("id", "modal-container");
     modalContainer.setAttribute("style", "z-index: 3;");
@@ -93,7 +93,7 @@ function attemptEscCloseModal() {
   document.onkeydown = function (e) {
     var modalContainer = _("modal-container");
 
-    if (e.key == "Escape" && modalContainer) {
+    if (e.key === "Escape" && modalContainer) {
       closeModal();
     }
   };
@@ -253,7 +253,7 @@ function submitCreateAssociation(relationName) {
   };
 }
 
-if (typeof drawComments == "boolean") {
+if (typeof drawComments === "boolean") {
   var commentsBlock = document.getElementById("comments-block");
   var commentsTbl = document.querySelector("#comments-block > table");
 
@@ -263,7 +263,7 @@ if (typeof drawComments == "boolean") {
     );
     var comment = textarea.value.trim();
 
-    if (comment == "") {
+    if (comment === "") {
       return;
     } else {
       textarea.value = "";
@@ -283,10 +283,10 @@ if (typeof drawComments == "boolean") {
       http.send(JSON.stringify(params));
 
       http.onload = function () {
-        if (http.status == 401) {
+        if (http.status === 401) {
           //invalid token!
           window.location.href = baseUrl + "trongate_administrators/login";
-        } else if (http.status == 200) {
+        } else if (http.status === 200) {
           fetchComments();
         }
       };
@@ -295,7 +295,7 @@ if (typeof drawComments == "boolean") {
 
   function fetchComments() {
     var commentsTbl = document.querySelector("#comments-block > table");
-    if (commentsTbl == null) {
+    if (commentsTbl === null) {
       return;
     }
 
@@ -313,10 +313,10 @@ if (typeof drawComments == "boolean") {
     http.send(JSON.stringify(params));
 
     http.onload = function () {
-      if (http.status == 401) {
+      if (http.status === 401) {
         //invalid token!
         window.location.href = baseUrl + "trongate_administrators/login";
-      } else if (http.status == 200) {
+      } else if (http.status === 200) {
         while (commentsTbl.firstChild) {
           commentsTbl.removeChild(commentsTbl.lastChild);
         }
@@ -375,7 +375,7 @@ if (typeof drawComments == "boolean") {
     http.setRequestHeader("trongateToken", token);
     http.send(picPath);
     http.onload = function () {
-      if (http.status == 200) {
+      if (http.status === 200) {
         document.getElementById(elId).remove();
       }
     };
@@ -441,7 +441,7 @@ function closeSlideNav() {
 
 var slideNavLinks = document.querySelector("#slide-nav ul");
 var autoPopulateSlideNav = slideNavLinks.getAttribute("auto-populate");
-if (autoPopulateSlideNav == "true") {
+if (autoPopulateSlideNav === "true") {
   var leftNavLinks = document.querySelector("#left-nav ul");
   if (leftNavLinks !== null) {
     slideNavLinks.innerHTML = leftNavLinks.innerHTML;
@@ -449,7 +449,7 @@ if (autoPopulateSlideNav == "true") {
 }
 
 body.addEventListener("click", (ev) => {
-  if (slideNavOpen == true && ev.target.id !== "open-btn") {
+  if (slideNavOpen === true && ev.target.id !== "open-btn") {
     if (slideNav.contains(ev.target)) {
       return true;
     } else {

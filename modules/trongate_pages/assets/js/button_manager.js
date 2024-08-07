@@ -153,7 +153,7 @@ function tgpToggleSecondaryBtnDiv() {
   );
   const secondaryBtnEl = document.getElementById("secondary_btn_div");
 
-  if (targetCheckbox.checked == true) {
+  if (targetCheckbox.checked === true) {
     secondaryBtnEl.style.opacity = 0.6;
   } else {
     secondaryBtnEl.style.opacity = 1;

@@ -344,7 +344,7 @@ if (count($rows) > 0) {
         http.setRequestHeader('trongateToken', '<?= $token ?>');
         http.send(JSON.stringify(params));
         http.onload = (ev) => {
-            if (http.status == 200) {
+            if (http.status === 200) {
                 togglePublishedIcon(clickedIcon);
             }
         };

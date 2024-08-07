@@ -480,7 +480,7 @@ function tgpUnhighlightEl(el) {
 }
 
 window.addEventListener("keydown", (e) => {
-  if (e.keyCode == 27 || e.key == "Escape") {
+  if (e.keyCode === 27 || e.key === "Escape") {
     //destory modals that belong to the Trongate Pages module when escape key pressed
     tgpReset([
       "selectedRange",

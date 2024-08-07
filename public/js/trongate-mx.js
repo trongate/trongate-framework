@@ -1225,7 +1225,7 @@ function ensureModalFunctionsExist() {
             var body = document.querySelector("body");
             var pageOverlay = document.getElementById("overlay");
 
-            if (typeof pageOverlay == "undefined" || pageOverlay == null) {
+            if (typeof pageOverlay === "undefined" || pageOverlay === null) {
                 var modalContainer = document.createElement("div");
                 modalContainer.setAttribute("id", "modal-container");
                 modalContainer.setAttribute("style", "z-index: 3;");

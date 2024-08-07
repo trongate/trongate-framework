@@ -196,7 +196,7 @@ function tgpAttemptActivateItalicBtn(selectedRange) {
   //get an array of all of the italic nodes that intersect the selected range
   let resultObj = tgpIntersectsRange(selectedRange, italicNodes);
 
-  if (resultObj.tgpIntersectsRange == true) {
+  if (resultObj.tgpIntersectsRange === true) {
     let targetBtn = document.getElementById("italicify-btn");
     targetBtn.classList.add("active-editor-btn");
   }
@@ -507,7 +507,7 @@ function tgpAttemptActivateAlignifyBtn(selectedRange, btnId) {
   //get an array of all of the italic nodes that intersect the selected range
   let resultObj = tgpIntersectsRange(selectedRange, alignNodes);
 
-  if (resultObj.tgpIntersectsRange == true) {
+  if (resultObj.tgpIntersectsRange === true) {
     let targetBtn = document.getElementById(btnId);
     targetBtn.classList.add("active-editor-btn");
   }
@@ -539,7 +539,7 @@ function tgpGetAlignNodes(selectedRange, styleAttr) {
     if (divNodes[i].style) {
       var targetNode = divNodes[i];
       var thisNodeTextAlign = targetNode.style.textAlign;
-      if (thisNodeTextAlign == targetTextAlign) {
+      if (thisNodeTextAlign === targetTextAlign) {
         //this node is one of the aligned nodes
         alignNodes.push(targetNode);
       }
@@ -555,7 +555,7 @@ function tgpAlignify(alignType) {
   let btnId = tgpGetAlignBtnId(alignType);
   var clickedEditorBtn = document.getElementById(btnId);
 
-  if (clickedEditorBtn == null) {
+  if (clickedEditorBtn === null) {
     return; //make sure toolbar is open
   }
 
@@ -573,7 +573,7 @@ function tgpAlignify(alignType) {
     let resultObj = tgpIntersectsRange(selectedRange, alignNodes);
 
     //if we found an intersecting
-    if (resultObj.tgpIntersectsRange == true) {
+    if (resultObj.tgpIntersectsRange === true) {
       //loop through each of the intersecting nodes and remove the offending tags...
       var tgpIntersectsRangeIndexes = resultObj.tgpIntersectsRangeIndexes;
       for (let i = 0; i < tgpIntersectsRangeIndexes.length; i++) {
@@ -650,7 +650,7 @@ function tgpAttemptActivateLinkifyBtn(selectedRange) {
   //get an array of all of the a (href) nodes that intersect the selected range
   let resultObj = tgpIntersectsRange(selectedRange, linkNodes);
 
-  if (resultObj.tgpIntersectsRange == true) {
+  if (resultObj.tgpIntersectsRange === true) {
     let targetBtn = document.getElementById("linkify-btn");
     targetBtn.classList.add("active-editor-btn");
   }
@@ -659,7 +659,7 @@ function tgpAttemptActivateLinkifyBtn(selectedRange) {
 function tgpItalicify() {
   let clickedEditorBtn = document.getElementById("italicify-btn");
 
-  if (clickedEditorBtn == null) {
+  if (clickedEditorBtn === null) {
     return;
   }
 
@@ -676,7 +676,7 @@ function tgpItalicify() {
     let resultObj = tgpIntersectsRange(selectedRange, italicNodes);
 
     //if we found an intersecting
-    if (resultObj.tgpIntersectsRange == true) {
+    if (resultObj.tgpIntersectsRange === true) {
       //loop through each of the intersecting nodes and remove the offending tags...
       var tgpIntersectsRangeIndexes = resultObj.tgpIntersectsRangeIndexes;
       for (let i = 0; i < tgpIntersectsRangeIndexes.length; i++) {
@@ -748,7 +748,7 @@ function tgpIntersectsRange(selectedRange, els) {
 
   for (let i = 0; i < els.length; i++) {
     tgpIntersectsRange = selectedRange.intersectsNode(els[i]);
-    if (tgpIntersectsRange == true) {
+    if (tgpIntersectsRange === true) {
       result.tgpIntersectsRange = true;
       result.tgpIntersectsRangeIndexes.push(i);
     }
@@ -890,7 +890,7 @@ function tgpAttemptActivateBoldBtn(selectedRange) {
   //get an array of all of the italic nodes that intersect the selected range
   let resultObj = tgpIntersectsRange(selectedRange, boldNodes);
 
-  if (resultObj.tgpIntersectsRange == true) {
+  if (resultObj.tgpIntersectsRange === true) {
     let targetBtn = document.getElementById("boldify-btn");
     targetBtn.classList.add("active-editor-btn");
   }
@@ -903,7 +903,7 @@ function tgpAttemptActivateItalicBtn(selectedRange) {
   //get an array of all of the italic nodes that intersect the selected range
   let resultObj = tgpIntersectsRange(selectedRange, italicNodes);
 
-  if (resultObj.tgpIntersectsRange == true) {
+  if (resultObj.tgpIntersectsRange === true) {
     let targetBtn = document.getElementById("italicify-btn");
     targetBtn.classList.add("active-editor-btn");
   }
@@ -912,7 +912,7 @@ function tgpAttemptActivateItalicBtn(selectedRange) {
 function tgpBoldify() {
   let clickedEditorBtn = document.getElementById("boldify-btn");
 
-  if (clickedEditorBtn == null) {
+  if (clickedEditorBtn === null) {
     return;
   }
 
@@ -929,7 +929,7 @@ function tgpBoldify() {
     let resultObj = tgpIntersectsRange(selectedRange, boldNodes);
 
     // If we found an intersecting
-    if (resultObj.tgpIntersectsRange == true) {
+    if (resultObj.tgpIntersectsRange === true) {
       // Loop through each of the intersecting nodes and remove the offending tags...
       var tgpIntersectsRangeIndexes = resultObj.tgpIntersectsRangeIndexes;
       for (let i = 0; i < tgpIntersectsRangeIndexes.length; i++) {

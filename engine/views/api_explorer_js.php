@@ -19,9 +19,9 @@
     token = inputTokenEl.value;
     inputTokenEl.value = '';
     const tokenStatusEl = document.getElementById('token-status');
-    const tokenStatusContent = (token == '') ? '' : 'Token is set.';
+    const tokenStatusContent = (token === '') ? '' : 'Token is set.';
     const setTokenBtn = document.getElementById('set-token-btn');
-    setTokenBtn.innerText = (token == '') ? 'Set Token' : 'Unset Token';
+    setTokenBtn.innerText = (token === '') ? 'Set Token' : 'Unset Token';
     tokenStatusEl.innerHTML = tokenStatusContent;
   }
 

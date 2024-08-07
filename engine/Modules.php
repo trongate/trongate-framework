@@ -31,7 +31,7 @@ class Modules {
             //attempt to find child module 
             $bits = explode('-', $target_module);
 
-            if (count($bits) == 2) {
+            if (count($bits) === 2) {
                 if (strlen($bits[1]) > 0) {
                     $parent_module = $bits[0];
                     $target_module = $bits[1];
@@ -91,7 +91,7 @@ class Modules {
     private function get_child_module(string $target_module): ?string {
         $bits = explode('-', $target_module);
 
-        if (count($bits) == 2) {
+        if (count($bits) === 2) {
             if (strlen($bits[1]) > 0) {
                 $child_module = $bits[1];
             }

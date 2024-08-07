@@ -198,7 +198,7 @@ class Trongate_pages extends Trongate {
         $this->validation_helper->set_rules('page_title', 'page title', 'required|min_length[2]|callback_title_check');
         $result = $this->validation_helper->run();
 
-        if ($result == true) {
+        if ($result === true) {
             $data['page_title'] = post('page_title', true);
             $data['meta_keywords'] = '';
             $data['meta_description'] = '';
@@ -526,7 +526,7 @@ class Trongate_pages extends Trongate {
         $submit = post('submit');
         $params['update_id'] = (int) segment(3);
 
-        if (($submit == 'Yes - Delete Now') && ($params['update_id'] > 1)) {
+        if (($submit === 'Yes - Delete Now') && ($params['update_id'] > 1)) {
             //delete all of the comments associated with this record
             $sql = 'delete from trongate_comments where target_table = :module and update_id = :update_id';
             $params['module'] = 'trongate_pages';
@@ -673,7 +673,7 @@ class Trongate_pages extends Trongate {
         if (isset($input['params']['page_title'])) {
             $page_title = trim($input['params']['page_title']);
 
-            if ($page_title == '') {
+            if ($page_title === '') {
                 http_response_code(400);
                 echo 'Invalid page title!';
                 die();
@@ -860,7 +860,7 @@ class Trongate_pages extends Trongate {
             }
             $files = scandir($target_folder_path);
             foreach ($files as $file) {
-                if ($file == '.' || $file == '..') {
+                if ($file === '.' || $file === '..') {
                     continue;
                 }
                 $file_path = $target_folder_path . '/' . $file;
@@ -957,12 +957,12 @@ class Trongate_pages extends Trongate {
             } else {
                 $indent = 0;
             }
-            if ($token == "<textarea>") {
+            if ($token === "<textarea>") {
                 $line = str_pad($token, strlen($token) + $pad, $tab, STR_PAD_LEFT);
                 $result .= $line;
                 $token = strtok("\n");
                 $pad += $indent;
-            } elseif ($token == "</textarea>") {
+            } elseif ($token === "</textarea>") {
                 $line = $token;
                 $result .= $line . "\n";
                 $token = strtok("\n");
@@ -1173,7 +1173,7 @@ class Trongate_pages extends Trongate {
         foreach ($all_rows as $webpage) {
             $count++;
             if (($count >= $start_index) && ($count < $end_index)) {
-                $webpage->published = ($webpage->published == 1 ? 'yes' : 'no');
+                $webpage->published = ($webpage->published === 1 ? 'yes' : 'no');
                 $webpage->webpage_url = BASE_URL . $webpage_trigger . '/' . $webpage->url_string;
                 $rows[] = $webpage;
             }

@@ -9,30 +9,27 @@
  */
 function form_open(string $location, ?array $attributes = null, ?string $additional_code = null): string {
     $extra = '';
+    $method = 'post';
 
-    if (isset($attributes['method'])) {
-        $method = $attributes['method'];
-        unset($attributes['method']);
-    } else {
-        $method = 'post';
-    }
-
-    if (isset($attributes)) {
+    if (is_array($attributes)) {
+        if (isset($attributes['method'])) {
+            $method = $attributes['method'];
+            unset($attributes['method']);
+        }
         foreach ($attributes as $key => $value) {
-            $extra .= ' ' . $key . '="' . htmlentities($value, ENT_QUOTES, 'UTF-8') . '"';
+            $extra .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
         }
     }
 
-    if (filter_var($location, FILTER_VALIDATE_URL) === FALSE) {
+    if (!filter_var($location, FILTER_VALIDATE_URL) && strpos($location, '/') !== 0) {
         $location = BASE_URL . $location;
     }
 
-    if (isset($additional_code)) {
-        $extra .= ' ' . htmlentities($additional_code, ENT_QUOTES, 'UTF-8');
+    if ($additional_code !== null) {
+        $extra .= ' ' . htmlspecialchars($additional_code, ENT_QUOTES, 'UTF-8');
     }
 
-    $html = '<form action="' . htmlentities($location, ENT_QUOTES, 'UTF-8') . '" method="' . htmlentities($method, ENT_QUOTES, 'UTF-8') . '"' . $extra . '>';
-    return $html;
+    return '<form action="' . htmlspecialchars($location, ENT_QUOTES, 'UTF-8') . '" method="' . htmlspecialchars($method, ENT_QUOTES, 'UTF-8') . '"' . $extra . '>';
 }
 
 /**
@@ -43,10 +40,10 @@ function form_open(string $location, ?array $attributes = null, ?string $additio
  * @param string|null $additional_code An optional additional code to include in the form tag.
  * @return string The HTML opening tag for the form with enctype set to "multipart/form-data."
  */
-function form_open_upload(string $location, ?array $attributes = null, ?string $additional_code = null) {
-    $html = form_open($location, $attributes, $additional_code);
-    $html = str_replace('>', ' enctype="multipart/form-data">', $html);
-    return $html;
+function form_open_upload(string $location, ?array $attributes = null, ?string $additional_code = null): string {
+    $attributes = is_array($attributes) ? $attributes : [];
+    $attributes['enctype'] = 'multipart/form-data';
+    return form_open($location, $attributes, $additional_code);
 }
 
 /**
@@ -54,28 +51,17 @@ function form_open_upload(string $location, ?array $attributes = null, ?string $
  *
  * @return string The HTML closing tag for the form.
  */
-/**
- * Generate the closing tag for an HTML form, including CSRF token and inline validation errors (if any).
- *
- * @return string The HTML closing tag for the form.
- */
 function form_close(): string {
-    // 1. Generate the CSRF token
     if (!isset($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
 
-    // 2. Create the hidden form field for CSRF token
-    $html = '<input type="hidden" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
-
-    // 3. Add the closing form tag
+    $html = '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') . '">';
     $html .= '</form>';
 
-    // 4. Include inline validation errors (if any)
     if (isset($_SESSION['form_submission_errors'])) {
-        $errors_json = json_encode($_SESSION['form_submission_errors']);
-        $inline_validation_js = highlight_validation_errors($errors_json);
-        $html .= $inline_validation_js;
+        $errors_json = json_encode($_SESSION['form_submission_errors'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+        $html .= highlight_validation_errors($errors_json);
         unset($_SESSION['form_submission_errors']);
     }
 
@@ -88,14 +74,13 @@ function form_close(): string {
  * @param string $errors_json JSON data containing validation errors.
  * @return string HTML code for highlighting validation errors.
  */
-function highlight_validation_errors($errors_json) {
-    $code = '<div class="inline-validation-builder">';
+function highlight_validation_errors(string $errors_json): string {
     $output_str = file_get_contents(APPPATH . 'engine/views/highlight_errors.txt');
-    $code .= '<script>let validationErrorsJson  = ' . json_encode($errors_json) . '</script>';
-    $code .= '<script>';
-    $code .= $output_str;
-    $code .= '</script></div>';
-    return $code;
+    if ($output_str === false) {
+        error_log('Failed to read highlight_errors.txt file');
+        return '';
+    }
+    return '<div class="inline-validation-builder"><script>let validationErrorsJson = ' . $errors_json . ';</script><script>' . $output_str . '</script></div>';
 }
 
 /**
@@ -104,24 +89,22 @@ function highlight_validation_errors($errors_json) {
  * @param array|null $attributes An associative array of HTML attributes.
  * @return string A string representation of HTML attributes.
  */
-function get_attributes_str($attributes) {
+function get_attributes_str($attributes): string {
+    if (!is_array($attributes) || empty($attributes)) {
+        return '';
+    }
+
     $attributes_str = '';
-
-    if (!isset($attributes)) {
-        return $attributes_str;
+    foreach ($attributes as $key => $value) {
+        if ($value === null || $value === false) {
+            continue;
+        }
+        if ($value === true) {
+            $attributes_str .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
+        } else {
+            $attributes_str .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
+        }
     }
-
-    // Ensure $attributes is an array
-    if (!is_array($attributes)) {
-        // Optionally log a warning or error
-        error_log('get_attributes_str: $attributes is not an array.');
-        return $attributes_str;
-    }
-
-    foreach ($attributes as $a_key => $a_value) {
-        $attributes_str .= ' ' . $a_key . '="' . $a_value . '"';
-    }
-
     return $attributes_str;
 }
 
@@ -133,18 +116,14 @@ function get_attributes_str($attributes) {
  * @param string|null $additional_code Additional HTML code to append to the label element.
  * @return string The generated HTML label element.
  */
-function form_label($label_text, $attributes = null, $additional_code = null) {
-    $extra = '';
-
-    if (isset($attributes)) {
-        $extra = get_attributes_str($attributes);
-    }
-
-    if (isset($additional_code)) {
+function form_label($label_text, $attributes = null, $additional_code = null): string {
+    $extra = get_attributes_str($attributes);
+    
+    if ($additional_code !== null) {
         $extra .= ' ' . $additional_code;
     }
 
-    return '<label' . $extra . '>' . $label_text . '</label>';
+    return '<label' . $extra . '>' . htmlspecialchars($label_text, ENT_QUOTES, 'UTF-8') . '</label>';
 }
 
 /**
@@ -158,22 +137,21 @@ function form_label($label_text, $attributes = null, $additional_code = null) {
  * @return string The HTML representation of the input element.
  */
 function form_input(string $name, $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $extra = '';
-    if (!isset($value)) {
-        $value = '';
-    } else {
-        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    $attributes = $attributes ?? [];
+    $attributes['name'] = $name;
+    $attributes['type'] = $attributes['type'] ?? 'text';
+    
+    if ($value !== null) {
+        $attributes['value'] = $value;
     }
 
-    if (isset($attributes)) {
-        $extra = get_attributes_str($attributes);
+    $html = '<input' . get_attributes_str($attributes);
+    
+    if ($additional_code !== null) {
+        $html .= ' ' . $additional_code;
     }
 
-    if (isset($additional_code)) {
-        $extra .= ' ' . htmlentities($additional_code, ENT_QUOTES, 'UTF-8');
-    }
-
-    return '<input type="text" name="' . htmlentities($name, ENT_QUOTES, 'UTF-8') . '" value="' . $value . '"' . $extra . '>';
+    return $html . '>';
 }
 
 /**
@@ -187,22 +165,9 @@ function form_input(string $name, $value = null, ?array $attributes = null, ?str
  * @return string The HTML representation of the search input element.
  */
 function form_search(string $name, $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $extra = '';
-    if (!isset($value)) {
-        $value = '';
-    } else {
-        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-    }
-
-    if (isset($attributes)) {
-        $extra = get_attributes_str($attributes);
-    }
-
-    if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
-    }
-
-    return '<input type="search" name="' . $name . '" value="' . $value . '"' . $extra . '>';
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'search';
+    return form_input($name, $value, $attributes, $additional_code);
 }
 
 /**
@@ -212,12 +177,12 @@ function form_search(string $name, $value = null, ?array $attributes = null, ?st
  * @param int|float|string|null $value The initial value of the input element.
  * @param array|null $attributes An associative array of HTML attributes for the input.
  * @param string|null $additional_code Additional HTML code to append to the input element.
- * @return string|null The generated HTML input element with type "number", or null if not generated.
+ * @return string The generated HTML input element with type "number".
  */
-function form_number($name, $value = null, $attributes = null, $additional_code = null): ?string {
-    $html = form_input($name, $value, $attributes, $additional_code);
-    $html = str_replace('type="text"', 'type="number"', $html);
-    return $html;
+function form_number(string $name, $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'number';
+    return form_input($name, $value, $attributes, $additional_code);
 }
 
 /**
@@ -229,10 +194,10 @@ function form_number($name, $value = null, $attributes = null, $additional_code 
  * @param string|null $additional_code Additional HTML code to append to the input element.
  * @return string The generated HTML input element with type "password".
  */
-function form_password($name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $html = form_input($name, $value, $attributes, $additional_code);
-    $html = str_replace('type="text"', 'type="password"', $html);
-    return $html;
+function form_password(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'password';
+    return form_input($name, $value, $attributes, $additional_code);
 }
 
 /**
@@ -244,10 +209,10 @@ function form_password($name, ?string $value = null, ?array $attributes = null, 
  * @param string|null $additional_code Additional HTML code to append to the input element.
  * @return string The generated HTML input element with type "email".
  */
-function form_email($name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $html = form_input($name, $value, $attributes, $additional_code);
-    $html = str_replace('type="text"', 'type="email"', $html);
-    return $html;
+function form_email(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'email';
+    return form_input($name, $value, $attributes, $additional_code);
 }
 
 /**
@@ -258,10 +223,9 @@ function form_email($name, ?string $value = null, ?array $attributes = null, ?st
  * @param string|null $additional_code Additional HTML code to append to the hidden input field.
  * @return string The generated HTML hidden input field.
  */
-function form_hidden($name, $value = null, $additional_code = null) {
-    $html = form_input($name, $value, $additional_code);
-    $html = str_replace(' type="text" ', ' type="hidden" ', $html);
-    return $html;
+function form_hidden(string $name, $value = null, ?string $additional_code = null): string {
+    $attributes = ['type' => 'hidden'];
+    return form_input($name, $value, $attributes, $additional_code);
 }
 
 /**
@@ -273,23 +237,19 @@ function form_hidden($name, $value = null, $additional_code = null) {
  * @param string|null $additional_code Additional HTML code to append to the textarea element.
  * @return string The generated HTML textarea element.
  */
-function form_textarea($name, $value = null, $attributes = null, $additional_code = null) {
-    $extra = '';
-    if (!isset($value)) {
-        $value = '';
-    } else {
-        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+function form_textarea(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    $attributes = $attributes ?? [];
+    $attributes['name'] = $name;
+    
+    $html = '<textarea' . get_attributes_str($attributes);
+    
+    if ($additional_code !== null) {
+        $html .= ' ' . $additional_code;
     }
-
-    if (isset($attributes)) {
-        $extra = get_attributes_str($attributes);
-    }
-
-    if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
-    }
-
-    return '<textarea name="' . $name . '"' . $extra . '>' . $value . '</textarea>';
+    
+    $html .= '>' . htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8') . '</textarea>';
+    
+    return $html;
 }
 
 /**
@@ -302,20 +262,21 @@ function form_textarea($name, $value = null, $attributes = null, $additional_cod
  * @return string The generated HTML submit button element.
  */
 function form_submit(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $extra = '';
-    if (!isset($value)) {
-        $value = $name;
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'submit';
+    $attributes['name'] = $name;
+    $value = $value ?? $name;
+    $attributes['value'] = $value;
+    
+    $html = '<button' . get_attributes_str($attributes);
+    
+    if ($additional_code !== null) {
+        $html .= ' ' . $additional_code;
     }
-
-    if (isset($attributes)) {
-        $extra = get_attributes_str($attributes);
-    }
-
-    if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
-    }
-
-    return '<button type="submit" name="' . $name . '" value="' . $value . '"' . $extra . '>' . $value . '</button>';
+    
+    $html .= '>' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '</button>';
+    
+    return $html;
 }
 
 /**
@@ -328,9 +289,9 @@ function form_submit(string $name, ?string $value = null, ?array $attributes = n
  * @return string The generated HTML button element.
  */
 function form_button(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $html = form_submit($name, $value, $attributes, $additional_code);
-    $html = str_replace(' type="submit" ', ' type="button" ', $html);
-    return $html;
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'button';
+    return form_submit($name, $value, $attributes, $additional_code);
 }
 
 /**
@@ -344,28 +305,22 @@ function form_button(string $name, ?string $value = null, ?array $attributes = n
  * @return string The generated HTML input element with type "radio".
  */
 function form_radio(string $name, ?string $value = null, bool $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
-    $extra = '';
-
-    if (!isset($value)) {
-        $value = '1';
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'radio';
+    $attributes['name'] = $name;
+    $attributes['value'] = $value ?? '1';
+    
+    if ($checked) {
+        $attributes['checked'] = 'checked';
     }
 
-    if ($checked === true) {
-        $extra .= ' checked';
+    $html = '<input' . get_attributes_str($attributes);
+    
+    if ($additional_code !== null) {
+        $html .= ' ' . $additional_code;
     }
 
-    if (isset($attributes)) {
-        $extra .= get_attributes_str($attributes);
-    }
-
-    if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
-    }
-
-    $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-
-    $html = '<input type="radio" name="' . $name . '" value="' . $value . '"' . $extra . '>';
-    return $html;
+    return $html . '>';
 }
 
 /**
@@ -379,9 +334,9 @@ function form_radio(string $name, ?string $value = null, bool $checked = false, 
  * @return string The generated HTML input element with type "checkbox".
  */
 function form_checkbox(string $name, ?string $value = null, bool $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
-    $html = form_radio($name, $value, $checked, $attributes, $additional_code);
-    $html = str_replace(' type="radio" ', ' type="checkbox" ', $html);
-    return $html;
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'checkbox';
+    return form_radio($name, $value, $checked, $attributes, $additional_code);
 }
 
 /**
@@ -395,24 +350,24 @@ function form_checkbox(string $name, ?string $value = null, bool $checked = fals
  * @return string The generated HTML for the select menu.
  */
 function form_dropdown(string $name, array $options, ?string $selected_key = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $extra = '';
-    if (isset($attributes)) {
-        $extra = get_attributes_str($attributes);
+    $attributes = $attributes ?? [];
+    $attributes['name'] = $name;
+    
+    $html = '<select' . get_attributes_str($attributes);
+    
+    if ($additional_code !== null) {
+        $html .= ' ' . $additional_code;
     }
-
-    if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
-    }
-
-    $html = '<select name="' . $name . '"' . $extra . '>
-';
+    
+    $html .= ">\n";
 
     foreach ($options as $option_key => $option_value) {
-        $option_key = htmlspecialchars($option_key, ENT_QUOTES, 'UTF-8');
-        $option_value = htmlspecialchars($option_value, ENT_QUOTES, 'UTF-8');
-        $selected = ($option_key == $selected_key) ? ' selected' : '';
-        $html .= '<option value="' . $option_key . '"' . $selected . '>' . $option_value . '</option>
-';
+        $option_attributes = ['value' => $option_key];
+        if ($option_key === $selected_key) {
+            $option_attributes['selected'] = 'selected';
+        }
+        $html .= '    <option' . get_attributes_str($option_attributes) . '>' 
+               . htmlspecialchars($option_value, ENT_QUOTES, 'UTF-8') . "</option>\n";
     }
 
     $html .= '</select>';
@@ -428,10 +383,9 @@ function form_dropdown(string $name, array $options, ?string $selected_key = nul
  * @return string The generated HTML for the file input element.
  */
 function form_file_select(string $name, ?array $attributes = null, ?string $additional_code = null): string {
-    $value = null;
-    $html = form_input($name, $value, $attributes, $additional_code);
-    $html = str_replace(' type="text" ', ' type="file" ', $html);
-    return $html;
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'file';
+    return form_input($name, null, $attributes, $additional_code);
 }
 
 /**
@@ -439,27 +393,26 @@ function form_file_select(string $name, ?array $attributes = null, ?string $addi
  *
  * @param string $field_name The name of the POST field to retrieve.
  * @param bool $clean_up Whether to clean up the retrieved value (default is false).
- * @return string|int|float The value retrieved from the POST data.
+ * @return string|int|float|null The value retrieved from the POST data, or null if not found.
  */
-function post(string $field_name, bool $clean_up = false): string|int|float {
-    // Retrieve the value from the $_POST superglobal
-    $value = $_POST[$field_name] ?? '';
-    // Apply cleaning if requested
+function post(string $field_name, bool $clean_up = false): string|int|float|null {
+    $value = $_POST[$field_name] ?? null;
+
+    if ($value === null) {
+        return null;
+    }
+
     if ($clean_up) {
-        // Trim whitespace from the beginning and end of the value
         $value = trim($value);
-        // Sanitize the value (using htmlspecialchars instead of deprecated FILTER_SANITIZE_STRING)
         $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-        // Determine if the value should be converted to a number
+        
         if (is_numeric($value)) {
-            // Convert to the appropriate numeric type
-            if (filter_var($value, FILTER_VALIDATE_FLOAT) !== false) {
-                $value = (float)$value;
-            } elseif (filter_var($value, FILTER_VALIDATE_INT) !== false) {
-                $value = (int)$value;
-            }
+            return filter_var($value, FILTER_VALIDATE_INT) !== false
+                ? (int) $value
+                : (float) $value;
         }
     }
+
     return $value;
 }
 
@@ -478,67 +431,79 @@ function validation_errors(string|int|null $first_arg = null, ?string $closing_h
     $form_submission_errors = $_SESSION['form_submission_errors'];
 
     if (is_int($first_arg) && $first_arg >= 400 && $first_arg <= 499) {
-        $json_errors = [];
-        foreach ($form_submission_errors as $field => $field_errors) {
-            $json_errors[] = [
-                'field' => $field,
-                'messages' => $field_errors
-            ];
-        }
+        return json_validation_errors($form_submission_errors, $first_arg);
+    }
 
-        http_response_code($first_arg);
-        header('Content-Type: application/json');
-        echo json_encode($json_errors);
-        unset($_SESSION['form_submission_errors']);
-        die();
+    if (isset($first_arg) && !isset($closing_html)) {
+        return inline_validation_errors($form_submission_errors, $first_arg);
+    }
+
+    return general_validation_errors($form_submission_errors, $first_arg, $closing_html);
+}
+
+/**
+ * Generates JSON-formatted validation errors and sends an HTTP response.
+ *
+ * @param array $errors The validation errors.
+ * @param int $status_code The HTTP status code to send.
+ * @return never
+ */
+function json_validation_errors(array $errors, int $status_code): never {
+    $json_errors = array_map(
+        fn($field, $messages) => ['field' => $field, 'messages' => $messages],
+        array_keys($errors),
+        $errors
+    );
+
+    http_response_code($status_code);
+    header('Content-Type: application/json');
+    echo json_encode($json_errors, JSON_THROW_ON_ERROR);
+    unset($_SESSION['form_submission_errors']);
+    exit();
+}
+
+/**
+ * Generates inline validation errors for a specific field.
+ *
+ * @param array $errors The validation errors.
+ * @param string $field The field to display errors for.
+ * @return string The formatted inline validation errors.
+ */
+function inline_validation_errors(array $errors, string $field): string {
+    if (!isset($errors[$field])) {
+        return '';
+    }
+
+    $validation_err_str = '<div class="validation-error-report">';
+    foreach ($errors[$field] as $validation_error) {
+        $validation_err_str .= '<div>&#9679; ' . htmlspecialchars($validation_error, ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    $validation_err_str .= '</div>';
+
+    return $validation_err_str;
+}
+
+/**
+ * Generates general validation errors.
+ *
+ * @param array $errors The validation errors.
+ * @param string|null $opening_html HTML to open each error message.
+ * @param string|null $closing_html HTML to close each error message.
+ * @return string The formatted general validation errors.
+ */
+function general_validation_errors(array $errors, ?string $opening_html = null, ?string $closing_html = null): string {
+    if (!isset($opening_html, $closing_html)) {
+        $opening_html = defined('ERROR_OPEN') ? ERROR_OPEN : '<p style="color: red;">';
+        $closing_html = defined('ERROR_CLOSE') ? ERROR_CLOSE : '</p>';
     }
 
     $validation_err_str = '';
-
-    // Handle inline validation errors.
-    if (isset($first_arg) && !isset($closing_html)) {
-        // If the specific field's errors exist, display them.
-        if (isset($form_submission_errors[$first_arg])) {
-            $validation_err_str .= '<div class="validation-error-report">';
-            $form_field_errors = $form_submission_errors[$first_arg];
-
-            foreach ($form_field_errors as $validation_error) {
-                $validation_err_str .= '<div>&#9679; ' . htmlspecialchars($validation_error, ENT_QUOTES, 'UTF-8') . '</div>';
-            }
-
-            $validation_err_str .= '</div>';
+    foreach ($errors as $field_errors) {
+        foreach ($field_errors as $error) {
+            $validation_err_str .= $opening_html . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . $closing_html;
         }
-    } else {
-        // Handle general validation errors report (usually rendered at the top of the page).
-
-        // Build an array of readable validation errors.
-        $validation_errors = [];
-
-        foreach ($form_submission_errors as $form_field_errors) {
-            foreach ($form_field_errors as $form_field_error) {
-                $validation_errors[] = $form_field_error;
-            }
-        }
-
-        // Initialize $first_arg and $closing_html if not already set.
-        if (!isset($first_arg)) {
-            if (defined('ERROR_OPEN') && defined('ERROR_CLOSE')) {
-                $first_arg = ERROR_OPEN;
-                $closing_html = ERROR_CLOSE;
-            } else {
-                $first_arg = '<p style="color: red;">';
-                $closing_html = '</p>';
-            }
-        }
-
-        // Append each validation error wrapped in HTML tags.
-        foreach ($validation_errors as $form_submission_error) {
-            $validation_err_str .= $first_arg . $form_submission_error . $closing_html;
-        }
-
-        // Clear the form submission errors from the session.
-        unset($_SESSION['form_submission_errors']);
     }
 
+    unset($_SESSION['form_submission_errors']);
     return $validation_err_str;
 }

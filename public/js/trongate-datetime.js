@@ -1241,7 +1241,7 @@ trongateDateTimeObj.createRangeInput = function (
 };
 
 trongateDateTimeObj.closeTimePicker = function () {
-  if (trongateDateTimeObj.activeType == "datetime-picker-calendar") {
+  if (trongateDateTimeObj.activeType === "datetime-picker-calendar") {
     trongateDateTimeObj.destroyElements("datetime-picker-calendar");
   } else {
     trongateDateTimeObj.destroyElements("timepicker-popup");
@@ -1260,7 +1260,7 @@ trongateDateTimeObj.setToNow = function () {
 
   let hourSlider, minuteSlider;
 
-  if (trongateDateTimeObj.activeType == "datetime-picker-calendar") {
+  if (trongateDateTimeObj.activeType === "datetime-picker-calendar") {
     hourSlider = document.querySelector(
       ".inner-timepicker > tr:nth-child(3) > td:nth-child(2) > input[type=range]"
     );
@@ -1303,7 +1303,7 @@ trongateDateTimeObj.updateTimePicker = function () {
     trongateDateTimeObj.currentMinute
   );
 
-  if (activeType == "datetime-picker-calendar") {
+  if (activeType === "datetime-picker-calendar") {
     const timeGuideCell = document.querySelector(
       ".inner-timepicker > tr:nth-child(2) > td:nth-child(2)"
     );

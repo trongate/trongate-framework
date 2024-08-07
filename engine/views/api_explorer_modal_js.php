@@ -430,7 +430,7 @@
       }
 
       const value = thisTableRow.querySelector('.value-input').value;
-      const introChar = (i == 0) ? '?' : '&';
+      const introChar = (i === 0) ? '?' : '&';
       queryString += `${introChar}${key}${operatorEncoded}${encodeURIComponent(value)}`;
     }
 
@@ -606,7 +606,7 @@
     // Add child divs to parent div
     parentDiv.appendChild(firstChildDiv);
 
-    if (currentEndpoint['enableParams'] == undefined) {
+    if (currentEndpoint['enableParams'] === undefined) {
       // Remove the 'Clear Parameters' checkbox
       while (secondChildDiv.firstChild) {
         secondChildDiv.removeChild(secondChildDiv.lastChild);

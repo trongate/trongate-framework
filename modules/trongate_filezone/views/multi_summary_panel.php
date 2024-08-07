@@ -8,7 +8,7 @@
         </p>
 
         <?php
-        if (count($pictures) == 0) {
+        if (count($pictures) === 0) {
         ?>
             <div id="gallery-pics" style="border-bottom: 0; grid-template-columns: repeat(1, 1fr);">
                 <p class="text-center">There are currently no gallery pictures for this record.</p>

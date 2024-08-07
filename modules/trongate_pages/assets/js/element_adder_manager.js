@@ -227,7 +227,7 @@ function tgpCloseAndDestroyModal(targetModal, initReset = false) {
   closeModal();
   targetModal?.remove();
 
-  if (initReset == true) {
+  if (initReset === true) {
     tgpReset([
       "selectedRange",
       "codeviews",

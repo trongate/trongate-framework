@@ -61,19 +61,19 @@ class Trongate_administrators extends Trongate {
 
         $submit = post('submit');
 
-        if ($submit == 'Submit') {
+        if ($submit === 'Submit') {
             // Set validation rules for username and password.
             $this->validation_helper->set_rules('username', 'username', 'required|callback_login_check');
             $this->validation_helper->set_rules('password', 'password', 'required|min_length[5]');
             $result = $this->validation_helper->run();
 
-            if ($result == true) {
+            if ($result === true) {
                 $this->log_user_in(post('username'));
             } else {
                 // Reload login form on validation failure.
                 $this->login();
             }
-        } elseif ($submit == 'Cancel') {
+        } elseif ($submit === 'Cancel') {
             // Redirect to base URL on cancel submission.
             redirect(BASE_URL);
         }
@@ -89,7 +89,7 @@ class Trongate_administrators extends Trongate {
         $data['token'] = $this->_make_sure_allowed();
         $submit = post('submit');
 
-        if ($submit == 'Submit') {
+        if ($submit === 'Submit') {
             // Set validation rules for username, password, and repeat password.
             $this->validation_helper->set_rules('username', 'username', 'required|min_length[5]|callback_username_check');
             $this->validation_helper->set_rules('password', 'password', 'required|min_length[5]');
@@ -97,7 +97,7 @@ class Trongate_administrators extends Trongate {
 
             $result = $this->validation_helper->run();
 
-            if ($result == true) {
+            if ($result === true) {
                 $update_id = segment(3);
                 $data = $this->get_data_from_post();
                 unset($data['repeat_password']);
@@ -121,7 +121,7 @@ class Trongate_administrators extends Trongate {
                 // Reload creation form on validation failure.
                 $this->create();
             }
-        } elseif ($submit == 'Cancel') {
+        } elseif ($submit === 'Cancel') {
             // Redirect to administrators management page on cancel submission.
             redirect('trongate_administrators/manage');
         }
@@ -139,7 +139,7 @@ class Trongate_administrators extends Trongate {
         $update_id = segment(3);
         $submit = post('submit');
 
-        if (($submit == 'Delete Record Now') && (is_numeric($update_id))) {
+        if (($submit === 'Delete Record Now') && (is_numeric($update_id))) {
             // Get the trongate_user_id associated with the administrator record.
             $user_obj = $this->model->get_where($update_id, 'trongate_administrators');
             $trongate_user_id = $user_obj->trongate_user_id;
@@ -191,7 +191,7 @@ class Trongate_administrators extends Trongate {
         $update_id = segment(3);
         $submit = post('submit');
 
-        if ((is_numeric($update_id)) && ($submit == '')) {
+        if ((is_numeric($update_id)) && ($submit === '')) {
             $data = $this->get_data_from_db($update_id);
         } else {
             $data = $this->get_data_from_post();
@@ -202,7 +202,7 @@ class Trongate_administrators extends Trongate {
         if (is_numeric($update_id)) {
             $data['headline'] = 'Update Record';
 
-            if ($data['my_admin_id'] == $update_id) {
+            if ($data['my_admin_id'] === $update_id) {
                 $data['headline'] = str_replace('Record', 'Your Account', $data['headline']);
             }
         } else {
@@ -260,16 +260,16 @@ class Trongate_administrators extends Trongate {
         $this->module('trongate_tokens');
         $token = $this->trongate_tokens->_attempt_get_valid_token(1);
 
-        if ($token == false) {
+        if ($token === false) {
 
-            if (ENV == 'dev') {
+            if (ENV === 'dev') {
                 //automatically give token to user when in dev mode
 
                 //generate trongatetoken for 1st trongate_administrator record on tbl
                 $sql = 'select * from trongate_administrators order by id limit 0,1';
                 $rows = $this->model->query($sql, 'object');
 
-                if ($rows == false) {
+                if ($rows === false) {
                     redirect(BASE_URL . 'trongate_administrators/missing_tbl_msg');
                 } else {
                     $token_params['user_id'] = $rows[0]->trongate_user_id;
@@ -319,7 +319,7 @@ class Trongate_administrators extends Trongate {
         $result = $this->model->get_one_where('username', $str, 'trongate_administrators');
         $error_msg = 'The username that you submitted is not available.';
 
-        if (gettype($result) == 'object') {
+        if (gettype($result) === 'object') {
             if (!is_numeric($update_id)) {
                 return $error_msg;
             } else {
@@ -344,10 +344,10 @@ class Trongate_administrators extends Trongate {
         $error_msg = 'You did not enter a correct username and/or or password.';
 
         $result = $this->model->get_one_where('username', $submitted_username, 'trongate_administrators');
-        if (gettype($result) == 'object') {
+        if (gettype($result) === 'object') {
             $hashed_password = $result->password;
             $is_password_good = $this->verify_hash($submitted_password, $hashed_password);
-            if ($is_password_good == true) {
+            if ($is_password_good === true) {
                 return true;
             }
         }
@@ -383,7 +383,7 @@ class Trongate_administrators extends Trongate {
                 WHERE trongate_tokens.token = :token 
                 ORDER BY trongate_tokens.id DESC LIMIT 0,1';
         $result = $this->model->query_bind($sql, $params, 'object');
-        if (gettype($result) == 'array') {
+        if (gettype($result) === 'array') {
             $id = $result[0]->id;
         } else {
             $id = false;
@@ -399,7 +399,7 @@ class Trongate_administrators extends Trongate {
      */
     private function get_data_from_db(int $update_id) {
         $result_obj = $this->model->get_where($update_id);
-        if (gettype($result_obj) == 'object') {
+        if (gettype($result_obj) === 'object') {
             $data = (array) $result_obj;
         } else {
             $data = false;

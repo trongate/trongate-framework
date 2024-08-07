@@ -20,7 +20,7 @@ function drawValidationErrorsAlert(targetForm) {
   let gotFontAwesome = findCss("font-awesome");
   let iconCode =
     '<i class="fa fa-warning" style="font-size: 1.4em; margin-right: 0.2em;"></i> ';
-  alertHeadline.innerHTML = gotFontAwesome == true ? iconCode : "";
+  alertHeadline.innerHTML = gotFontAwesome === true ? iconCode : "";
   alertHeadline.innerHTML += "Ooops!  There was a problem.";
 
   let infoPara = document.createElement("p");
@@ -54,7 +54,7 @@ function attemptHighlightErrorFields(targetForm, validationErrors) {
 
 function addErrorClasses(key, allFormFields) {
   for (var i = 0; i < allFormFields.length; i++) {
-    if (allFormFields[i]["name"] == key) {
+    if (allFormFields[i]["name"] === key) {
       let formFieldType = allFormFields[i]["type"];
       if (formFieldType === "checkbox" || formFieldType === "radio") {
         let parentContainer = allFormFields[i].closest("div");

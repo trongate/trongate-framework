@@ -72,8 +72,8 @@ function attempt_add_custom_routes(string $target_url): string {
 
     foreach (CUSTOM_ROUTES as $custom_route => $custom_route_destination) {
         $custom_route_segments = explode('/', $custom_route);
-        if (count($target_segments) == count($custom_route_segments)) {
-            if ($custom_route == $target_segments_str) { // Perfect match; return immediately
+        if (count($target_segments) === count($custom_route_segments)) {
+            if ($custom_route === $target_segments_str) { // Perfect match; return immediately
                 $target_url = str_replace($custom_route, $custom_route_destination, $target_url);
                 break;
             }
@@ -81,12 +81,12 @@ function attempt_add_custom_routes(string $target_url): string {
             $correction_counter = 0;
             $new_custom_url = rtrim(BASE_URL . $custom_route_destination, '/');
             for ($i = 0; $i < count($target_segments); $i++) {
-                if ($custom_route_segments[$i] == $target_segments[$i]) {
+                if ($custom_route_segments[$i] === $target_segments[$i]) {
                     continue;
-                } else if ($custom_route_segments[$i] == "(:num)" && is_numeric($target_segments[$i])) {
+                } else if ($custom_route_segments[$i] === "(:num)" && is_numeric($target_segments[$i])) {
                     $correction_counter++;
                     $new_custom_url = str_replace('$' . $correction_counter, $target_segments[$i], $new_custom_url);
-                } else if ($custom_route_segments[$i] == "(:any)") {
+                } else if ($custom_route_segments[$i] === "(:any)") {
                     $correction_counter++;
                     $new_custom_url = str_replace('$' . $correction_counter, $target_segments[$i], $new_custom_url);
                 } else {

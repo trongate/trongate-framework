@@ -21,7 +21,7 @@ function tgpInsertText() {
 function tgpOpenLinkModal() {
   let clickedEditorBtn = document.getElementById("linkify-btn");
 
-  if (clickedEditorBtn == null) {
+  if (clickedEditorBtn === null) {
     return;
   }
 
@@ -38,7 +38,7 @@ function tgpOpenLinkModal() {
     let resultObj = tgpIntersectsRange(selectedRange, linkNodes);
 
     //if we found an intersecting
-    if (resultObj.tgpIntersectsRange == true) {
+    if (resultObj.tgpIntersectsRange === true) {
       //loop through each of the intersecting nodes and remove the offending tags...
       var tgpIntersectsRangeIndexes = resultObj.tgpIntersectsRangeIndexes;
       for (let i = 0; i < tgpIntersectsRangeIndexes.length; i++) {

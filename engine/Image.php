@@ -103,7 +103,7 @@ class Image {
         $data['tmp_file_width'] = $data['image']->get_width();
         $data['tmp_file_height'] = $data['image']->get_height();
 
-        if ($make_rand_name == true) {
+        if ($make_rand_name === true) {
             $file_name_without_extension = strtolower(make_rand_str(10));
             $file_info = return_file_info($target_file['name']);
             $file_extension = $file_info['file_extension'];
@@ -117,7 +117,7 @@ class Image {
             $new_file_name = $file_name_without_extension . $file_extension;
         }
 
-        if ($upload_to_module == true) {
+        if ($upload_to_module === true) {
             $target_module = (isset($data['targetModule']) ? $data['targetModule'] : segment(1));
             $target_destination = '../modules/' . $target_module . '/assets/' . $data['destination'];
         } else {
@@ -417,7 +417,7 @@ class Image {
         $target_ratio = $width / $height;
         $actual_ratio = $this->get_width() / $this->get_height();
 
-        if ($target_ratio == $actual_ratio) {
+        if ($target_ratio === $actual_ratio) {
             $this->resize($width, $height);
         } elseif ($target_ratio > $actual_ratio) {
             $this->resize_to_width($width);
@@ -528,11 +528,11 @@ class Image {
         if ($trim != 'left') {
             if ($current_width > $width) {
                 $diff = $current_width - $width;
-                $offset_x = ($trim == 'center') ? $diff / 2 : $diff; // full diff for trim right
+                $offset_x = ($trim === 'center') ? $diff / 2 : $diff; // full diff for trim right
             }
             if ($current_height > $height) {
                 $diff = $current_height - $height;
-                $offset_y = ($trim == 'center') ? $diff / 2 : $diff;
+                $offset_y = ($trim === 'center') ? $diff / 2 : $diff;
             }
         }
 

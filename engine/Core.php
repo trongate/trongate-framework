@@ -235,7 +235,7 @@ class Core {
 
                 require_once $controller_path;
 
-                if (strtolower(ENV) == 'dev') {
+                if (strtolower(ENV) === 'dev') {
                     $this->attempt_sql_transfer($controller_path);
                 }
 
@@ -321,7 +321,7 @@ class Core {
     private function attempt_init_child_controller(string $controller_path): string {
         $bits = explode('-', $this->current_controller);
 
-        if (count($bits) == 2) {
+        if (count($bits) === 2) {
             if (strlen($bits[1]) > 0) {
 
                 $parent_module = strtolower($bits[0]);

@@ -121,7 +121,7 @@ class Pagination {
         // Loop through the range of links to display
         for ($i = $start_range; $i <= $end_range; $i++) {
             // Numbered links
-            if ($i == $pagination_data['current_page']) {
+            if ($i === $pagination_data['current_page']) {
                 $html .= $pagination_data['settings']['cur_link_open'];
                 $html .= $i;
                 $html .= $pagination_data['settings']['cur_link_close'] . PHP_EOL;

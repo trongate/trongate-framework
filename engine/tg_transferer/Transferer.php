@@ -24,15 +24,15 @@ class Transferer {
             die();
         }
 
-        if ((isset($data->controllerPath)) && ($data->action == 'viewSql')) {
+        if ((isset($data->controllerPath)) && ($data->action === 'viewSql')) {
             readFile($data->controllerPath);
             die();
         }
 
-        if ((isset($data->targetFile)) && ($data->action == 'deleteFile')) {
+        if ((isset($data->targetFile)) && ($data->action === 'deleteFile')) {
             $result = $this->delete_file($data->targetFile);
 
-            if ($result == '') {
+            if ($result === '') {
                 http_response_code(200);
                 echo 'Finished.';
             }
@@ -40,13 +40,13 @@ class Transferer {
             die();
         }
 
-        if ((isset($data->sqlCode)) && (isset($data->targetFile)) && ($data->action == 'runSql')) {
+        if ((isset($data->sqlCode)) && (isset($data->targetFile)) && ($data->action === 'runSql')) {
             $this->run_sql($data->sqlCode);
             $this->delete_file($data->targetFile);
             die();
         }
 
-        if ((isset($data->sampleFile)) && ($data->action == 'getFinishUrl')) {
+        if ((isset($data->sampleFile)) && ($data->action === 'getFinishUrl')) {
             $this->get_finish_location($data->sampleFile);
             die();
         }
@@ -69,7 +69,7 @@ class Transferer {
 
         foreach ($dangerous_strings as $dangerous_string) {
             $contains_dangerous_string = $this->contains_needle($dangerous_string, $file_contents);
-            if ($contains_dangerous_string == true) {
+            if ($contains_dangerous_string === true) {
                 return false;
             }
         }

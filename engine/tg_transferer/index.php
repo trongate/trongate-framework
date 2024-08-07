@@ -3,7 +3,7 @@ require_once 'Transferer.php';
 $transferer = new Transferer;
 $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
 
-if (REQUEST_TYPE == 'POST') {
+if (REQUEST_TYPE === 'POST') {
     $transferer->process_post();
     die();
 }
@@ -19,7 +19,7 @@ if (REQUEST_TYPE == 'POST') {
 <body>
 
     <?php
-    if (count($files) == 1) {
+    if (count($files) === 1) {
         $info = '<p>The following SQL file was found within the module directory:</p>';
     } else {
         $info = '<p>The following SQL files were found within the module directory:</p>';
@@ -43,7 +43,7 @@ if (REQUEST_TYPE == 'POST') {
             $file_contents = file_get_contents($file);
             $all_clear = $transferer->check_sql($file_contents);
 
-            if ($all_clear == true) {
+            if ($all_clear === true) {
                 $info .= '<button onclick="viewSql(\'' . $file . '\', false)">VIEW SQL</button></li>';
             } else {
                 $info .= '<button class="warning" onclick="viewSql(\'' . $file . '\', true)">SUSPICIOUS!</button></li>';
@@ -174,7 +174,7 @@ if (REQUEST_TYPE == 'POST') {
 
             targetFile = file;
 
-            if (warning == true) {
+            if (warning === true) {
                 alert("Trongate detected some potentially dangerous code embedded within this SQL file.  Be extra careful!");
             }
 
@@ -264,14 +264,14 @@ if (REQUEST_TYPE == 'POST') {
                 var response = http.responseText;
                 var status = http.status;
 
-                if (status == 403) {
+                if (status === 403) {
                     document.getElementById("headline").innerHTML = 'Finished';
                     response = response.replace('Finished.', '');
                     document.getElementById("info").innerHTML = '<p>Please delete the file, ' + response + '.</p>';
                     document.getElementById("info").innerHTML += '<p>After you have deleted the file, press \'Okay\'</p><?= $finished_content ?>';
                 } else {
 
-                    if (http.responseText == 'Finished.') {
+                    if (http.responseText === 'Finished.') {
                         document.getElementById("headline").innerHTML = 'Finished';
                         document.getElementById("info").innerHTML = '<p>The SQL file was successfully processed.</p><?= $finished_content ?>';
                     } else {
@@ -309,7 +309,7 @@ if (REQUEST_TYPE == 'POST') {
             http.send(JSON.stringify(params)) // Make sure to stringify
             http.onload = function() {
 
-                if (http.responseText == 'Finished.') {
+                if (http.responseText === 'Finished.') {
                     document.getElementById("headline").innerHTML = 'Finished';
                     document.getElementById("info").innerHTML = '<p>The SQL file was successfully deleted.</p><?= $finished_content ?>';
                 } else {
@@ -347,7 +347,7 @@ if (REQUEST_TYPE == 'POST') {
             http.send(JSON.stringify(params)) // Make sure to stringify
             http.onload = function() {
 
-                if (http.responseText == 'current_url') {
+                if (http.responseText === 'current_url') {
                     location.reload();
                 } else {
                     window.location.href = '<?= BASE_URL ?>';

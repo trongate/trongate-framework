@@ -268,7 +268,7 @@ class Standard_endpoints extends Trongate {
         unset($input['target_endpoint']);
 
         // Make sure params have been posted
-        if (count($input['params']) == 0) {
+        if (count($input['params']) === 0) {
             $this->api_manager_error(400, 'No posted data!');
         }
 
@@ -431,7 +431,7 @@ class Standard_endpoints extends Trongate {
         unset($input['target_endpoint']);
 
         //make sure params have been posted
-        if (count($input['params']) == 0) {
+        if (count($input['params']) === 0) {
             $this->api_manager_error(400, 'No posted data!');
         }
 

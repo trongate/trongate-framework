@@ -209,7 +209,7 @@ class Validation {
         extract($validation_data);
         $posted_value = trim($validation_data['posted_value']);
 
-        if ($posted_value == '') {
+        if ($posted_value === '') {
             $this->form_submission_errors[$key][] = 'The ' . $label . ' field is required.';
         }
     }
@@ -241,7 +241,7 @@ class Validation {
 
             $result = ctype_digit(strval($posted_value));
 
-            if ($result == false) {
+            if ($result === false) {
                 $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be an integer.';
             }
         }
@@ -544,7 +544,7 @@ class Validation {
         if ((strlen($_POST[$key]) !== $inner_value) && ($posted_value !== '')) {
             $error_msg = 'The ' . $label . ' field must be ' . $inner_value . ' characters in length.';
 
-            if ($inner_value === 1) {
+            if ($inner_value == 1) {
                 $error_msg = str_replace('characters in length.', 'character in length.', $error_msg);
             }
 
@@ -564,7 +564,7 @@ class Validation {
 
         if (is_numeric($pos)) {
 
-            if ($posted_value == '') {
+            if ($posted_value === '') {
                 return; // No need to perform tests if no value is submitted
             }
 
@@ -644,7 +644,7 @@ class Validation {
             $this->handle_missing_file_error($key, $label);
             return;
         }
-        if ($_FILES[$key]['name'] == '') {
+        if ($_FILES[$key]['name'] === '') {
             $this->handle_empty_file_error($key, $label);
             return;
         }
@@ -700,7 +700,7 @@ class Validation {
      */
     private function attempt_invoke_callback(string $key, string $label, $posted_value, string $test_to_run): void {
         $chars = substr($test_to_run, 0, 9);
-        if ($chars == 'callback_') {
+        if ($chars === 'callback_') {
             $target_module = ucfirst($this->url_segment(1));
             $target_method = str_replace('callback_', '', $test_to_run);
 

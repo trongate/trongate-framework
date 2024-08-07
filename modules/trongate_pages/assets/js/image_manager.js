@@ -312,7 +312,7 @@ function tgpRestartImageAdder(runOtherEvents = false) {
       tgpFetchUploadedImages();
     }, 600);
 
-    if (runOtherEvents == true) {
+    if (runOtherEvents === true) {
       const okayBtn = document.querySelector(
         "#tgp-media-manager > div.modal-footer > button.alt"
       );

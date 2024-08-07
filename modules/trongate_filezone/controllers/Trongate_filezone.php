@@ -27,7 +27,7 @@ class Trongate_filezone extends Trongate {
 
         $destination = $settings['destination']; // e.g., a2s_pictures
 
-        if ($settings['upload_to_module'] == true) {
+        if ($settings['upload_to_module'] === true) {
             $target_module = (isset($settings['targetModule']) ? $settings['targetModule'] : segment(1));
             $picture_directory_path = APPPATH . 'modules/' . $target_module . '/assets/' . $destination . '/' . $update_id;
             $dir = str_replace('\\', '/', $picture_directory_path);
@@ -85,7 +85,7 @@ class Trongate_filezone extends Trongate {
         $target_module = segment(3);
         $update_id = segment(4);
 
-        if ($request_type == 'DELETE') {
+        if ($request_type === 'DELETE') {
             $this->remove_picture($target_module, $update_id);
         } else {
             $this->do_upload($update_id, $target_module);
@@ -119,7 +119,7 @@ class Trongate_filezone extends Trongate {
         $correct_last_bit = str_replace('-', '.', $last_bit);
         $target_image_name = $first_chunk . $correct_last_bit;
 
-        if ($settings['upload_to_module'] == true) {
+        if ($settings['upload_to_module'] === true) {
             $target_dir = APPPATH . 'modules/' . $target_module . '/assets/' . $destination . '/' . $update_id . '/';
             $target_dir = str_replace('\\', '/', $target_dir);
         } else {
@@ -156,7 +156,7 @@ class Trongate_filezone extends Trongate {
             $filezone_settings['upload_to_module'] = false;
         }
 
-        if ($filezone_settings['upload_to_module'] == true) {
+        if ($filezone_settings['upload_to_module'] === true) {
             $module_assets_dir = BASE_URL . segment(1) . MODULE_ASSETS_TRIGGER;
             $data['target_directory'] = $module_assets_dir . '/' . $filezone_settings['destination'] . '/' . $update_id;
         } else {
@@ -185,7 +185,7 @@ class Trongate_filezone extends Trongate {
             $filezone_settings['upload_to_module'] = false;
         }
 
-        if ($filezone_settings['upload_to_module'] == true) {
+        if ($filezone_settings['upload_to_module'] === true) {
             $target_dir = APPPATH . 'modules/' . $target_module . '/assets/' . $destination . '/' . $update_id;
         } else {
             $target_dir = APPPATH . 'public/' . $destination . '/' . $update_id;
@@ -209,7 +209,7 @@ class Trongate_filezone extends Trongate {
         $data = [];
         $pictures_directory = $this->get_pictures_directory($filezone_settings);
 
-        if ($filezone_settings['upload_to_module'] == true) {
+        if ($filezone_settings['upload_to_module'] === true) {
             $target_module = (isset($filezone_settings['targetModule']) ? $filezone_settings['targetModule'] : segment(1));
             $module_assets_dir = APPPATH . 'modules/' . $target_module . '/assets';
             $picture_directory_path = $module_assets_dir . '/' . $pictures_directory . '/' . $update_id;
@@ -295,7 +295,7 @@ class Trongate_filezone extends Trongate {
         $this->module($target_module);
         $filezone_settings = $this->$target_module->_init_filezone_settings();
 
-        if ($filezone_settings['upload_to_module'] == true) {
+        if ($filezone_settings['upload_to_module'] === true) {
             $target_module = (isset($filezone_settings['targetModule']) ? $filezone_settings['targetModule'] : segment(1));
             $ditch = $target_module . MODULE_ASSETS_TRIGGER . '/';
             $replace = '';
@@ -329,7 +329,7 @@ class Trongate_filezone extends Trongate {
         $target_module = segment(3);
         $update_id = segment(4);
 
-        if (($target_module == '') || (!is_numeric($update_id))) {
+        if (($target_module === '') || (!is_numeric($update_id))) {
             http_response_code(422);
             echo 'Invalid target module and/or update_id.';
             die();

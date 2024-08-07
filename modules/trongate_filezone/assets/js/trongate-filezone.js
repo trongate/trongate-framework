@@ -3,7 +3,7 @@ var rtime,
 const delta = 100,
   thumbnailGrid = _("thumbnail-grid");
 function _(e) {
-  return "." == e.substring(0, 1)
+  return "." === e.substring(0, 1)
     ? ((e = e.replace(".", "")), document.getElementsByClassName(e))
     : document.getElementById(e);
 }
@@ -80,7 +80,7 @@ function attemptUpload(e, t) {
     (n.onload = function () {
       var e = _(r),
         t = e.firstChild;
-      200 == n.status
+      200 === n.status
         ? (t.setAttribute("id", n.responseText),
           t.lastChild.setAttribute(
             "onclick",

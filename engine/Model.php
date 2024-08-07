@@ -27,7 +27,7 @@ class Model {
      */
     public function __construct(?string $current_module = null) {
 
-        if (DATABASE == '') {
+        if (DATABASE === '') {
             return;
         }
 
@@ -78,7 +78,7 @@ class Model {
         }
 
         // Debugging: show query if debug mode is enabled
-        if ($this->debug == true) {
+        if ($this->debug === true) {
             $data = [];
             $query_to_execute = $this->show_query($sql, $data, $this->query_caveat);
         }
@@ -273,7 +273,7 @@ class Model {
         $sql = "SELECT * FROM $target_table WHERE $column IN ($values_str)";
 
         // Debugging: show query if debug mode is enabled
-        if ($this->debug == true) {
+        if ($this->debug === true) {
             $data = [];
             $this->show_query($sql, $data, $this->query_caveat);
         }
@@ -575,14 +575,14 @@ class Model {
 
         $data = [];
 
-        if ($this->debug == true) {
+        if ($this->debug === true) {
             $query_to_execute = $this->show_query($sql, $data);
         }
 
         $this->prepare_and_execute($sql, $data);
 
-        if (($return_type == 'object') || ($return_type == 'array')) {
-            if ($return_type == 'object') {
+        if (($return_type === 'object') || ($return_type === 'array')) {
+            if ($return_type === 'object') {
                 $query = $this->stmt->fetchAll(PDO::FETCH_OBJ);
             } else {
                 $query = $this->stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -890,7 +890,7 @@ class Model {
             }
         }
 
-        if ($named_params == true) {
+        if ($named_params === true) {
             $query = preg_replace($keys, $values, $query);
         } else {
             $query .= ' ';
