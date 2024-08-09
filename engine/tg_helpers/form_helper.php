@@ -312,13 +312,15 @@ function form_textarea(string $name, ?string $value = null, ?array $attributes =
  * @param array|null $attributes An associative array of HTML attributes for the button.
  * @param string|null $additional_code Additional HTML code to append to the button element.
  * @return string The generated HTML submit button element.
+ * 
+ * Note: The value is not escaped by default. If using user-generated content,
+ * ensure it is properly sanitized before passing it to this function.
  */
 function form_submit(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
     $attributes = $attributes ?? [];
     $attributes['type'] = 'submit';
     $attributes['name'] = $name;
     $value = $value ?? 'Submit';
-    $attributes['value'] = $value;
     
     $html = '<button' . get_attributes_str($attributes);
     
@@ -326,7 +328,7 @@ function form_submit(string $name, ?string $value = null, ?array $attributes = n
         $html .= ' ' . $additional_code;
     }
     
-    $html .= '>' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '</button>';
+    $html .= '>' . $value . '</button>';
     
     return $html;
 }
@@ -339,6 +341,9 @@ function form_submit(string $name, ?string $value = null, ?array $attributes = n
  * @param array|null $attributes An associative array of HTML attributes for the button.
  * @param string|null $additional_code Additional HTML code to append to the button element.
  * @return string The generated HTML button element.
+ * 
+ * Note: The value is not escaped by default. If using user-generated content,
+ * ensure it is properly sanitized before passing it to this function.
  */
 function form_button(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
     $attributes = $attributes ?? [];

@@ -1,4 +1,4 @@
-const methodAttributes = ['mx-get', 'mx-post', 'mx-put', 'mx-delete', 'mx-patch'];
+const methodAttributes = ['mx-get', 'mx-post', 'mx-put', 'mx-delete', 'mx-patch', 'mx-remove'];
 
 /**
  * Parses the value of a Trongate MX attribute.
@@ -871,10 +871,15 @@ function handleTrongateMXEvent(event) {
 
     if (triggerEvent !== event.type) return; // If the event doesn't match the trigger, exit the function
 
+    event.preventDefault(); // Prevent default behavior
+
+    if (element.hasAttribute('mx-remove')) {
+        element.remove();
+        return;
+    }
+
     // Find which out which kind of HTTP request should be invoked
     const attribute = methodAttributes.find(attr => element.hasAttribute(attr));
-
-    event.preventDefault(); // Prevent default behavior
 
     if (element.tagName.toLowerCase() === 'form' || element.closest('form')) {
         mxSubmitForm(element, triggerEvent, attribute);
