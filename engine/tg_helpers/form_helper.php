@@ -263,21 +263,26 @@ function get_attributes_str($attributes): string {
 }
 
 /**
- * Generate an HTML label element with optional attributes.
+ * Generate an HTML label element.
  *
- * @param string $label_text The text to display inside the label.
- * @param array|null $attributes An associative array of HTML attributes for the label.
- * @param string|null $additional_code Additional HTML code to append to the label element.
- * @return string The generated HTML label element.
+ * @param string $label_text The text or HTML to be used as the label content.
+ * @param array|null $attributes An associative array of HTML attributes for the label element. Defaults to null.
+ * @param string|null $additional_code Additional HTML code to append to the label element. Defaults to null.
+ * @return string The generated HTML label element with attributes and additional code.
+ * 
+ * Note: The label_text is not escaped by default. If using user-generated content,
+ * ensure it is properly sanitized before passing it to this function.
  */
-function form_label($label_text, $attributes = null, $additional_code = null): string {
-    $extra = get_attributes_str($attributes);
+function form_label(string $label_text, ?array $attributes = null, ?string $additional_code = null): string {
+    $attributes_str = get_attributes_str($attributes);
+    
+    $label = '<label' . $attributes_str . '>' . $label_text . '</label>';
     
     if ($additional_code !== null) {
-        $extra .= ' ' . $additional_code;
+        $label .= $additional_code;
     }
-
-    return '<label' . $extra . '>' . htmlspecialchars($label_text, ENT_QUOTES, 'UTF-8') . '</label>';
+    
+    return $label;
 }
 
 /**
