@@ -874,7 +874,10 @@ function handleTrongateMXEvent(event) {
     event.preventDefault(); // Prevent default behavior
 
     if (element.hasAttribute('mx-remove')) {
-        element.remove();
+        const parent = element.closest('.category-level');
+        if (parent) {
+            parent.remove();
+        }
         return;
     }
 
