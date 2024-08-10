@@ -325,7 +325,7 @@ function form_submit(string $name, ?string $value = null, ?array $attributes = n
     $attributes = $attributes ?? [];
     $attributes['type'] = 'submit';
     $attributes['name'] = $name;
-    $value = $value ?? 'Submit';
+    $attributes['value'] = $value ?? 'Submit';
     
     $html = '<button' . get_attributes_str($attributes);
     
