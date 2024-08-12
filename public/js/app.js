@@ -2,11 +2,12 @@ const body = document.querySelector("body");
 const slideNav = document.getElementById("slide-nav");
 const main = document.querySelector("main");
 let slideNavOpen = false;
+let openingModal = false;
 
-function _(elRef) {
+function getElement(elRef) {
   const firstChar = elRef.substring(0, 1);
   if (firstChar === ".") {
-    return document.getElementsByClassName(elRef.replace(/\./g, ""));
+    return document.querySelector(elRef); // Changed to querySelector for consistency
   } else {
     return document.getElementById(elRef);
   }
@@ -29,6 +30,12 @@ function closeSlideNav() {
 }
 
 function openModal(modalId) {
+  openingModal = true;
+
+  setTimeout(() => {
+    openingModal = false;
+  }, 100);
+
   let pageOverlay = document.getElementById("overlay");
   if (!pageOverlay) {
     const modalContainer = document.createElement("div");
@@ -41,7 +48,9 @@ function openModal(modalId) {
     pageOverlay.setAttribute("style", "z-index: 2");
     body.prepend(pageOverlay);
 
-    const targetModal = _(modalId);
+    const targetModal = getElement(modalId);
+    if (!targetModal) return;
+
     const targetModalContent = targetModal.innerHTML;
     targetModal.remove();
 
@@ -52,11 +61,16 @@ function openModal(modalId) {
     newModal.innerHTML = targetModalContent;
     modalContainer.appendChild(newModal);
 
-    setTimeout(() => {
+    // Use requestAnimationFrame to ensure the modal is in the DOM before we try to show it
+    requestAnimationFrame(() => {
+      newModal.style.display = 'block';
       newModal.style.opacity = 1;
       newModal.style.marginTop = "12vh";
-    }, 0);
+    });
+
+    return newModal;
   }
+  return null;
 }
 
 function closeModal() {
@@ -81,27 +95,52 @@ function closeModal() {
   }
 }
 
-const slideNavLinks = document.querySelector("#slide-nav ul");
-if (slideNavLinks) {
-  const autoPopulateSlideNav = slideNavLinks.getAttribute("auto-populate");
-  if (autoPopulateSlideNav === "true") {
+function autoPopulateSlideNav() {
+  const slideNavLinks = document.querySelector("#slide-nav ul");
+  if (slideNavLinks && slideNavLinks.getAttribute("auto-populate") === "true") {
     const navLinks = document.querySelector("#top-nav");
     if (navLinks) {
       slideNavLinks.innerHTML = navLinks.innerHTML;
     }
   }
-
-  body.addEventListener("click", (ev) => {
-    if (slideNavOpen && ev.target.id !== "open-btn") {
-      if (!slideNav.contains(ev.target)) {
-        closeSlideNav();
-      }
-    }
-  });
 }
 
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') {
-    closeModal();
+function handleSlideNavClick(event) {
+  if (slideNavOpen && event.target.id !== "open-btn" && !slideNav.contains(event.target)) {
+    closeSlideNav();
   }
+}
+
+function handleEscapeKey(event) {
+  if (event.key === 'Escape') {
+    const modalContainer = document.getElementById("modal-container");
+    if (modalContainer) {
+      closeModal();
+    }
+  }
+}
+
+function handleModalClick(event) {
+  if (openingModal === true) {
+    return;
+  }
+
+  const modalContainer = document.getElementById("modal-container");
+  if (modalContainer) {
+    const modal = modalContainer.querySelector('.modal');
+    if (modal && !modal.contains(event.target)) {
+      closeModal();
+    }
+  }
+}
+
+// Initialize
+autoPopulateSlideNav();
+
+// Add event listeners
+body.addEventListener("click", (event) => {
+  handleSlideNavClick(event);
+  handleModalClick(event);
 });
+
+document.addEventListener('keydown', handleEscapeKey);
