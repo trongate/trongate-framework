@@ -401,9 +401,7 @@ function form_dropdown(string $name, array $options, ?string $selected_key = nul
  * @return string The generated HTML for the file input element.
  */
 function form_file_select(string $name, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
-    $attributes['type'] = 'file';
-    return form_input($name, null, $attributes, $additional_code);
+    return generate_input_element('file', $name, null, false, $attributes, $additional_code);
 }
 
 /**

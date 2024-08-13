@@ -40,7 +40,7 @@ function openModal(modalId) {
   if (!pageOverlay) {
     const modalContainer = document.createElement("div");
     modalContainer.setAttribute("id", "modal-container");
-    modalContainer.setAttribute("style", "z-index: 3;");
+    modalContainer.setAttribute("style", "z-index: 9999;");
     body.append(modalContainer);
 
     pageOverlay = document.createElement("div");
