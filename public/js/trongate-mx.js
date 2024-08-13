@@ -119,6 +119,33 @@ function setMXHandlers(http, element) {
     };
 }
 
+function handleMxDuringRequest(element, targetElement) {
+    const mxDuringRequest = element.getAttribute('mx-during-request');
+    if (mxDuringRequest) {
+        if (mxDuringRequest === 'cloak') {
+            targetElement.style.setProperty('opacity', '0', 'important');
+            targetElement.classList.add('mx-cloak');
+        } else {
+            const placeholder = document.querySelector(mxDuringRequest);
+            if (placeholder) {
+                targetElement.dataset.mxOriginalContent = targetElement.innerHTML;
+                targetElement.innerHTML = placeholder.innerHTML;
+                targetElement.classList.add('mx-placeholder-active');
+            }
+        }
+    }
+
+    // Check if the original element is a form and disable its elements
+    if (element.tagName.toLowerCase() === 'form') {
+        Array.from(element.elements).forEach(formElement => {
+            if (!formElement.disabled) {
+                formElement.disabled = true;
+                formElement.classList.add('mx-temp-disabled');
+            }
+        });
+    }
+}
+
 function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
     const http = setupHttpRequest(containingForm, httpMethodAttribute);
     setMXHeaders(http, containingForm);
@@ -141,6 +168,9 @@ function invokeFormPost(containingForm, triggerEvent, httpMethodAttribute) {
     Object.entries(domVals).forEach(([key, value]) => {
         formData.append(key, value);
     });
+
+    const targetElement = establishTargetElement(containingForm);
+    handleMxDuringRequest(containingForm, targetElement);
 
     http.onload = function() {
         attemptHideLoader(containingForm);
@@ -165,6 +195,9 @@ function invokeHttpRequest(element, httpMethodAttribute) {
 
     setMXHeaders(http, element);
     setMXHandlers(http, element);
+
+    const targetElement = establishTargetElement(element);
+    handleMxDuringRequest(element, targetElement);
 
     let formData = new FormData();
     const mxValsStr = element.getAttribute('mx-vals');
@@ -222,23 +255,16 @@ function mxSubmitForm(element, triggerEvent, httpMethodAttribute) {
         return;
     }
 
-    const submitButton = containingForm.querySelector('button[type="submit"]');
-    if (submitButton) {
-        // Clear existing validation errors
-        clearExistingValidationErrors(containingForm);
+    // Clear existing validation errors
+    clearExistingValidationErrors(containingForm);
 
-        submitButton.disabled = true; // Disable submit button
+    // The following three attribute types require an attempt to collect form data.
+    const requiresDataAttributes = ['mx-post', 'mx-put', 'mx-patch'];
 
-        // The following three attribute types require an attempt to collect form data.
-        const requiresDataAttributes = ['mx-post', 'mx-put', 'mx-patch'];
-
-        if (requiresDataAttributes.includes(httpMethodAttribute)) {
-            invokeFormPost(containingForm, triggerEvent, httpMethodAttribute);
-        } else {
-            initInvokeHttpRequest(containingForm, httpMethodAttribute);
-        }
+    if (requiresDataAttributes.includes(httpMethodAttribute)) {
+        invokeFormPost(containingForm, triggerEvent, httpMethodAttribute);
     } else {
-        console.log('no submit button found');
+        initInvokeHttpRequest(containingForm, httpMethodAttribute);
     }
 }
 
@@ -362,12 +388,34 @@ function populateTargetEl(targetEl, http, element) {
 
         // Attempt add modal buttons
         attemptAddModalButtons(targetEl, element);
+
+        // Execute after-swap function if specified
+        executeAfterSwap(element);
+
     } catch (error) {
         console.error('Error in populateTargetEl:', error);
     } finally {
         // Clean up
         tempDiv.innerHTML = '';
         tempFragment.textContent = '';
+    }
+}
+
+function executeAfterSwap(element) {
+    const functionName = element.getAttribute('mx-after-swap');
+    if (functionName) {
+        // Remove parentheses if present
+        const cleanFunctionName = functionName.replace(/\(\)$/, '');
+        
+        if (typeof window[cleanFunctionName] === 'function') {
+            try {
+                window[cleanFunctionName]();
+            } catch (error) {
+                console.error(`Error executing ${cleanFunctionName}:`, error);
+            }
+        } else {
+            console.warn(`Function ${cleanFunctionName} not found`);
+        }
     }
 }
 
@@ -564,48 +612,65 @@ function attemptAddModalButtons(targetEl, element) {
     }
 }
 
-function handleHttpResponse(http, element) {
-    const containingForm = element.closest('form');
+function establishTargetElement(element) {
+    const mxTargetStr = getAttributeValue(element, 'mx-target');
 
-    if (containingForm) {
-        const submitButton = containingForm.querySelector('button[type="submit"]');
-        if (submitButton) {
-            submitButton.removeAttribute('disabled');
-        }
+    if (!mxTargetStr || mxTargetStr === 'this') {
+        return element;
     }
+    
+    if (mxTargetStr === 'none') {
+        return null;
+    }
+    
+    if (mxTargetStr === 'body') {
+        return document.body;
+    }
+    
+    if (mxTargetStr.startsWith('closest ')) {
+        const selector = mxTargetStr.replace('closest ', '');
+        return element.closest(selector);
+    }
+    
+    if (mxTargetStr.startsWith('find ')) {
+        const selector = mxTargetStr.replace('find ', '');
+        return element.querySelector(selector);
+    }
+    
+    // If a valid CSS selector is provided
+    return document.querySelector(mxTargetStr);
+}
+
+function handleHttpResponse(http, element) {
+
+    // Remove cloaking from all elements
+    document.querySelectorAll('.mx-cloak').forEach(el => {
+        el.classList.remove('mx-cloak');
+        if (el.style.opacity === '0') {
+            el.style.removeProperty('opacity');
+        }
+    });
+
+    // Restore original content for elements with placeholders
+    document.querySelectorAll('.mx-placeholder-active').forEach(el => {
+        if (el.dataset.mxOriginalContent) {
+            el.innerHTML = el.dataset.mxOriginalContent;
+            delete el.dataset.mxOriginalContent;
+        }
+        el.classList.remove('mx-placeholder-active');
+    });
+
+    // Re-enable temporarily disabled elements
+    document.querySelectorAll('.mx-temp-disabled').forEach(element => {
+        element.disabled = false;
+        element.classList.remove('mx-temp-disabled');
+    });
 
     element.classList.remove('blink');
 
     if (http.status >= 200 && http.status < 300) {
         if (http.getResponseHeader('Content-Type').includes('text/html')) {
-            const mxTargetStr = getAttributeValue(element, 'mx-target');
-
-            let targetEl;
-
-            if (mxTargetStr === 'none') {
-                // If mx-target is 'none', do not replace any content
-                targetEl = null;
-            } else if (mxTargetStr === 'this') {
-                // Target the element that triggered the request
-                targetEl = element;
-            } else if (mxTargetStr && mxTargetStr.startsWith('closest ')) {
-                // Find the closest ancestor matching the selector
-                const selector = mxTargetStr.replace('closest ', '');
-                targetEl = element.closest(selector);
-            } else if (mxTargetStr && mxTargetStr.startsWith('find ')) {
-                // Find the first descendant matching the selector
-                const selector = mxTargetStr.replace('find ', '');
-                targetEl = element.querySelector(selector);
-            } else if (mxTargetStr === 'body') {
-                // Target the body element
-                targetEl = document.body;
-            } else if (mxTargetStr) {
-                // If a valid CSS selector is provided
-                targetEl = document.querySelector(mxTargetStr);
-            } else {
-                // If no mx-target is specified, use the invoking element as the target
-                targetEl = element;
-            }
+            const targetEl = establishTargetElement(element);
 
             if (targetEl) {
                 // Check to see if we are required to do a success animation.
@@ -641,6 +706,7 @@ function handleHttpResponse(http, element) {
                 console.error('An error occurred');
         }
 
+        const containingForm = element.closest('form');
         if (containingForm) {
             attemptDisplayValidationErrors(http, element, containingForm);
         }
