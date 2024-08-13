@@ -41,12 +41,12 @@ function openModal(modalId) {
     const modalContainer = document.createElement("div");
     modalContainer.setAttribute("id", "modal-container");
     modalContainer.setAttribute("style", "z-index: 3;");
-    body.prepend(modalContainer);
+    body.append(modalContainer);
 
     pageOverlay = document.createElement("div");
     pageOverlay.setAttribute("id", "overlay");
     pageOverlay.setAttribute("style", "z-index: 2");
-    body.prepend(pageOverlay);
+    body.append(pageOverlay);
 
     const targetModal = getElement(modalId);
     if (!targetModal) return;
