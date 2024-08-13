@@ -6,6 +6,7 @@
   --secondary: #ff0000;
   --border: #c5c5c5;
   --alt: #fff;
+  --modal-margin-top: 12vh;
 }
 
 body {

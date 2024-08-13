@@ -31,43 +31,43 @@ function closeSlideNav() {
 
 function openModal(modalId) {
   openingModal = true;
-
   setTimeout(() => {
     openingModal = false;
   }, 100);
-
   let pageOverlay = document.getElementById("overlay");
   if (!pageOverlay) {
     const modalContainer = document.createElement("div");
     modalContainer.setAttribute("id", "modal-container");
     modalContainer.setAttribute("style", "z-index: 9999;");
     body.append(modalContainer);
-
     pageOverlay = document.createElement("div");
     pageOverlay.setAttribute("id", "overlay");
     pageOverlay.setAttribute("style", "z-index: 2");
     body.append(pageOverlay);
-
     const targetModal = getElement(modalId);
     if (!targetModal) return;
-
     const targetModalContent = targetModal.innerHTML;
     targetModal.remove();
-
     const newModal = document.createElement("div");
     newModal.setAttribute("class", "modal");
     newModal.setAttribute("id", modalId);
     newModal.style.zIndex = 4;
     newModal.innerHTML = targetModalContent;
     modalContainer.appendChild(newModal);
-
+    
     // Use requestAnimationFrame to ensure the modal is in the DOM before we try to show it
     requestAnimationFrame(() => {
       newModal.style.display = 'block';
       newModal.style.opacity = 1;
-      newModal.style.marginTop = "12vh";
+      
+      // Get the computed style of the modal
+      const style = getComputedStyle(newModal);
+      
+      // Use the custom property if it's set, otherwise fall back to the default
+      const marginTop = style.getPropertyValue('--modal-margin-top').trim() || '12vh';
+      
+      newModal.style.marginTop = marginTop;
     });
-
     return newModal;
   }
   return null;
