@@ -746,10 +746,15 @@ function attemptInitOnSuccessActions(http, element) {
     }
 }
 
+
 function handleValidationErrors(containingForm, validationErrors) {
-    // First, remove any existing validation error classes
+    // First, remove any existing validation error classes and reports
     containingForm.querySelectorAll('.form-field-validation-error')
         .forEach(field => field.classList.remove('form-field-validation-error'));
+    containingForm.querySelectorAll('.validation-error-report')
+        .forEach(report => report.remove());
+
+    let firstErrorElement = null;
 
     // Loop through the validation errors
     validationErrors.forEach(error => {
@@ -759,56 +764,76 @@ function handleValidationErrors(containingForm, validationErrors) {
             // Add the validation error class to the field
             field.classList.add('form-field-validation-error');
 
-            // Optionally, you can also display the error message
-            // This assumes there's a container for error messages next to each field
-            const errorContainer = field.nextElementSibling;
-            if (errorContainer && errorContainer.classList.contains('error-message')) {
-                errorContainer.textContent = error.messages.join(' ');
+            // Create a new error container
+            const errorContainer = document.createElement('div');
+            errorContainer.className = 'validation-error-report';
+
+            // Add each error message
+            error.messages.forEach(message => {
+                const errorDiv = document.createElement('div');
+                errorDiv.innerHTML = '&#9679; ' + escapeHtml(message);
+                errorContainer.appendChild(errorDiv);
+            });
+
+            // Find the label associated with this field
+            let label = containingForm.querySelector(`label[for="${field.id}"]`);
+            if (!label) {
+                // If there's no 'for' attribute, try to find the previous sibling label
+                label = field.previousElementSibling;
+                while (label && label.tagName.toLowerCase() !== 'label') {
+                    label = label.previousElementSibling;
+                }
+            }
+
+            // Insert the error container after the label if found, otherwise after the field
+            if (label) {
+                label.parentNode.insertBefore(errorContainer, label.nextSibling);
+                if (!firstErrorElement) firstErrorElement = label;
+            } else {
+                field.parentNode.insertBefore(errorContainer, field.nextSibling);
+                if (!firstErrorElement) firstErrorElement = field;
+            }
+
+            // Special handling for checkboxes and radios
+            if (field.type === "checkbox" || field.type === "radio") {
+                let parentContainer = field.closest("div");
+                if (parentContainer) {
+                    parentContainer.classList.add("form-field-validation-error");
+                    parentContainer.style.textIndent = "7px";
+                }
             }
         }
     });
+
+    // Scroll to the first error
+    if (firstErrorElement) {
+        setTimeout(() => {
+            firstErrorElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }, 100);
+    }
+}
+
+// Helper function to escape HTML special characters
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
 }
 
 function attemptDisplayValidationErrors(http, element, containingForm) {
     if (http.status >= 400 && http.status <= 499) {
-
-        try {            
-
-            // Check to see if the containingForm has a class of 'highlight-errors'
+        try {
+            // Check if the containingForm has a class of 'highlight-errors'
             if (containingForm.classList.contains('highlight-errors')) {
-                // Parse the content of the validation-errors div
                 const validationErrors = JSON.parse(http.responseText);
-
-                // Loop through the validation errors
-                validationErrors.forEach(error => {
-                    const field = containingForm.querySelector(`[name="${error.field}"]`);
-                    if (field) {
-                        field.classList.add('form-field-validation-error');
-
-                        // Create error container
-                        const errorContainer = document.createElement('div');
-                        errorContainer.classList.add('validation-error-report');
-                        errorContainer.innerHTML = error.messages.map(msg => `<div>&#9679; ${msg}</div>`).join('');
-
-                        // Find the appropriate place to insert the error message
-                        let insertBeforeElement = field;
-                        let label = field.previousElementSibling;
-
-                        // Insert the error message
-                        insertBeforeElement.parentNode.insertBefore(errorContainer, insertBeforeElement);
-
-                        // Special handling for checkboxes and radios
-                        if (field.type === "checkbox" || field.type === "radio") {
-                            let parentContainer = field.closest("div");
-                            if (parentContainer) {
-                                parentContainer.classList.add("form-field-validation-error");
-                                parentContainer.style.textIndent = "7px";
-                            }
-                        }
-                    }
-                });                
+                handleValidationErrors(containingForm, validationErrors);
             }
-
         } catch (e) {
             console.error('Error parsing validation errors:', e);
         }
@@ -1278,17 +1303,20 @@ function initAnimateSuccess(targetEl, http, element) {
 }
 
 function initAttemptCloseModal(targetEl, http, element) {
-    // Check if we should close on success
-    const closeOnSuccessStr = element.getAttribute('mx-close-on-success');
-    if (closeOnSuccessStr === 'true') {
-        closeModal();
-        return; // Exit function early if closing modal on success
-    }
 
-    // Check if we should close on error
-    const closeOnErrorStr = element.getAttribute('mx-close-on-error');
-    if (closeOnErrorStr === 'true') {
-        closeModal();
+    if (http.status >= 200 && http.status < 300) {
+        // Check if we should close on success
+        const closeOnSuccessStr = element.getAttribute('mx-close-on-success');
+        if (closeOnSuccessStr === 'true') {
+            closeModal();
+            return; // Exit function early if closing modal on success
+        }
+    } else {
+        // Check if we should close on error
+        const closeOnErrorStr = element.getAttribute('mx-close-on-error');
+        if (closeOnErrorStr === 'true') {
+            closeModal();
+        }
     }
 }
 
