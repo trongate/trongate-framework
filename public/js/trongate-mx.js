@@ -467,39 +467,6 @@ function performOobSwap(tempFragment, { select, target, swap = 'innerHTML' }) {
     swapContent(oobTarget, oobSelected.cloneNode(true), swap);
 }
 
-function handleOobSwapsXXX(tempFragment, selectOobStr) {
-    if (!selectOobStr) return;
-
-    // Split the string by commas, but ignore commas within brackets
-    const swapInstructions = selectOobStr.split(/,(?![^[]*\])/);
-
-    swapInstructions.forEach(instruction => {
-        const trimmedInstruction = instruction.trim();
-        const parsedValue = parseAttributeValue(trimmedInstruction);
-
-        if (typeof parsedValue === 'string') {
-            // Handle simple string case (e.g., "h1:h3")
-            const [select, target] = parsedValue.split(':');
-            performOobSwap(tempFragment, { select, target, swap: 'innerHTML' });
-        } else if (typeof parsedValue === 'object' && parsedValue !== null) {
-            // Handle object case (for advanced syntax)
-            performOobSwap(tempFragment, parsedValue);
-        } else {
-            console.error('Invalid mx-select-oob instruction:', trimmedInstruction);
-        }
-    });
-}
-
-function performOobSwapXXX(tempFragment, { select, target, swap = 'innerHTML' }) {
-    const oobSelected = tempFragment.querySelector(select) || tempFragment.firstChild;
-    const oobTarget = document.querySelector(target);
-    if (oobTarget) {
-        swapContent(oobTarget, oobSelected.cloneNode(true), swap);
-    } else {
-        console.error(`Target element not found: ${target}`);
-    }
-}
-
 function swapContent(target, source, swapMethod) {
     // Ensure source is a string
     const sourceString = typeof source === 'string' ? source : source.outerHTML || source.innerHTML;
@@ -746,7 +713,6 @@ function attemptInitOnSuccessActions(http, element) {
     }
 }
 
-
 function handleValidationErrors(containingForm, validationErrors) {
     // First, remove any existing validation error classes and reports
     containingForm.querySelectorAll('.form-field-validation-error')
@@ -975,7 +941,9 @@ function handleTrongateMXEvent(event) {
     // Find which out which kind of HTTP request should be invoked
     const attribute = methodAttributes.find(attr => element.hasAttribute(attr));
 
-    if (element.tagName.toLowerCase() === 'form' || element.closest('form')) {
+    if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) && (attribute !== 'mx-get')) {
+        console.log('AND THIS WENT');
+        console.log(attribute);
         mxSubmitForm(element, triggerEvent, attribute);
     } else {
         initInvokeHttpRequest(element, attribute);
