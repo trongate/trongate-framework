@@ -631,7 +631,19 @@
             // Remove the 'form-field-validation-error' class from form fields
             containingForm.querySelectorAll('.form-field-validation-error')
                 .forEach(el => el.classList.remove('form-field-validation-error'));
+        },
+
+        setChildrenOpacity(overlayTargetEl, opacityValue) {
+            const opacityNumber = parseFloat(opacityValue);
+            if (isNaN(opacityNumber) || opacityNumber < 0 || opacityNumber > 1) {
+                throw new Error('Invalid opacity value. It must be a number between 0 and 1.');
+            }
+            const children = Array.from(overlayTargetEl.children);
+            children.forEach(child => {
+                child.style.opacity = opacityValue;
+            });
         }
+        
     };
 
     const Modal = {
