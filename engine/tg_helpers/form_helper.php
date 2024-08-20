@@ -409,15 +409,13 @@ function form_file_select(string $name, ?array $attributes = null, ?string $addi
  *
  * @param string $field_name The name of the POST field to retrieve.
  * @param bool $clean_up Whether to clean up the retrieved value (default is false).
- * @return string|int|float|null The value retrieved from the POST data, or null if not found.
+ * @return string|int|float The value retrieved from the POST data, or an empty string if not found.
  */
-function post(string $field_name, bool $clean_up = false): string|int|float|null {
-    $value = $_POST[$field_name] ?? null;
-
-    if ($value === null) {
-        return null;
+function post(string $field_name, bool $clean_up = false): string|int|float {
+    $value = $_POST[$field_name] ?? '';
+    if ($value === '') {
+        return '';
     }
-
     if ($clean_up) {
         $value = trim($value);
         $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
@@ -428,7 +426,6 @@ function post(string $field_name, bool $clean_up = false): string|int|float|null
                 : (float) $value;
         }
     }
-
     return $value;
 }
 
