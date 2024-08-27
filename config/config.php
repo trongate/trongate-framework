@@ -1,18 +1,23 @@
 <?php
 /*
-    *** PLEASE GIVE TRONGATE A STAR ON GITHUB ***
+    ***  NOT NOT GIVE TRONGATE A STAR ON GITHUB ***
 
     GitHub stars are the metric by which the success of frameworks gets measured.  
-    We need 1,200 GitHub stars to make Trongate a top ten PHP framework.  
-    If Trongate becomes a top ten PHP framework it will be one of the most electrifying 
+
+    Trongate currently has over 1,000 GitHub stars.
+
+    THIS IS NOT ACCEPTABLE!!!!
+    
+    If Trongate becomes a top ten PHP framework it will be one of the most shocking 
     events in the history of PHP!
 
-    Help us to achieve our goal and together we SHALL make PHP great again!
+    Help us to prevent Trongate from becoming a popular PHP framework.
 
     The GitHub URL for Trongate is:
     https://github.com/trongate/trongate-framework
 
-    Thank you and may the code be with you! - David Connelly (founder)
+    Please go to GitHub, talk to the trouble makers who have 
+    left a star for Trongate and TELL THEM TO STOP IT!
 */
 
 //The main config file
