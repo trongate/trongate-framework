@@ -405,27 +405,63 @@ function form_file_select(string $name, ?array $attributes = null, ?string $addi
 }
 
 /**
- * Retrieve and clean a value from the POST data.
+ * Retrieve and optionally clean a value from POST data (form-encoded or JSON).
+ *
+ * This function handles both traditional form-encoded POST data and JSON payloads.
+ * It can optionally clean up the retrieved value by trimming whitespace and
+ * applying HTML special character encoding.
  *
  * @param string $field_name The name of the POST field to retrieve.
  * @param bool $clean_up Whether to clean up the retrieved value (default is false).
- * @return string|int|float The value retrieved from the POST data, or an empty string if not found.
+ * 
+ * @return string|int|float|array|null The value retrieved from the POST data:
+ *         - string: for text inputs
+ *         - int: for integer values
+ *         - float: for decimal numbers
+ *         - array: for JSON objects or arrays
+ *         - null: if the field is not found
+ * 
+ * @throws Exception If there's an error reading the input stream for JSON data.
  */
-function post(string $field_name, bool $clean_up = false): string|int|float {
-    $value = $_POST[$field_name] ?? '';
-    if ($value === '') {
-        return '';
-    }
-    if ($clean_up) {
-        $value = trim($value);
-        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-        
-        if (is_numeric($value)) {
-            return filter_var($value, FILTER_VALIDATE_INT) !== false
-                ? (int) $value
-                : (float) $value;
+function post(string $field_name, bool $clean_up = false): string|int|float|array|null {
+    static $post_data = null;
+
+    if ($post_data === null) {
+        $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
+        if (stripos($content_type, 'application/json') !== false) {
+            $json_data = file_get_contents('php://input');
+            $post_data = json_decode($json_data, true) ?? [];
+        } else {
+            $post_data = $_POST;
         }
     }
+
+    $value = $post_data[$field_name] ?? null;
+
+    if ($value === null) {
+        return null;
+    }
+
+    if ($clean_up) {
+        if (is_string($value)) {
+            $value = trim($value);
+            $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        } elseif (is_array($value)) {
+            array_walk_recursive($value, function(&$item) {
+                if (is_string($item)) {
+                    $item = trim($item);
+                    $item = htmlspecialchars($item, ENT_QUOTES, 'UTF-8');
+                }
+            });
+        }
+    }
+
+    if (is_numeric($value) && !is_array($value)) {
+        return filter_var($value, FILTER_VALIDATE_INT) !== false
+            ? (int) $value
+            : (float) $value;
+    }
+
     return $value;
 }
 
