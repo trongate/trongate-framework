@@ -411,35 +411,43 @@ function form_file_select(string $name, ?array $attributes = null, ?string $addi
  * It can optionally clean up the retrieved value by trimming whitespace and
  * applying HTML special character encoding.
  *
- * @param string $field_name The name of the POST field to retrieve.
+ * @param string $field_name The name of the POST field to retrieve, supports dot notation for nested fields.
  * @param bool $clean_up Whether to clean up the retrieved value (default is false).
  * 
- * @return string|int|float|array|null The value retrieved from the POST data:
+ * @return string|int|float|array The value retrieved from the POST data:
  *         - string: for text inputs
  *         - int: for integer values
  *         - float: for decimal numbers
  *         - array: for JSON objects or arrays
- *         - null: if the field is not found
+ *         - empty string: if the field is not found
  * 
  * @throws Exception If there's an error reading the input stream for JSON data.
  */
-function post(string $field_name, bool $clean_up = false): string|int|float|array|null {
+function post(string $field_name, bool $clean_up = false): string|int|float|array {
     static $post_data = null;
 
     if ($post_data === null) {
         $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
         if (stripos($content_type, 'application/json') !== false) {
             $json_data = file_get_contents('php://input');
-            $post_data = json_decode($json_data, true) ?? [];
+            $post_data = json_decode($json_data, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Error decoding JSON data: ' . json_last_error_msg());
+            }
         } else {
             $post_data = $_POST;
         }
     }
 
-    $value = $post_data[$field_name] ?? null;
-
-    if ($value === null) {
-        return null;
+    // Handle dot notation for nested fields
+    $fields = explode('.', $field_name);
+    $value = $post_data;
+    foreach ($fields as $field) {
+        if (isset($value[$field])) {
+            $value = $value[$field];
+        } else {
+            return '';
+        }
     }
 
     if ($clean_up) {
