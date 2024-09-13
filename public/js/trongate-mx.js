@@ -163,7 +163,7 @@
                 }
         
                 const responseTarget = element.hasAttribute(httpMethodAttribute) ? element : containingForm;
-                Http.handleHttpResponse(http, responseTarget);
+                Http.handleHttpResponse(http, responseTarget, triggerEvent);
             };
         
             try {
@@ -174,14 +174,14 @@
             }
         },
 
-        invokeHttpRequest(element, httpMethodAttribute) {
+        invokeHttpRequest(element, httpMethodAttribute, event) {
             const { http, formData, targetElement } = Http.commonHttpRequest(element, httpMethodAttribute);
             
             http.setRequestHeader('Accept', 'text/html');
         
             http.onload = function() {
                 Dom.attemptHideLoader(element);
-                Http.handleHttpResponse(http, element);
+                Http.handleHttpResponse(http, element, event);
             };
         
             try {
@@ -192,7 +192,7 @@
             }
         },
 
-        handleHttpResponse(http, element) {
+        handleHttpResponse(http, element, event) {
             Dom.removeCloak();
             Dom.restoreOriginalContent();
             Dom.reEnableDisabledElements();
@@ -210,7 +210,7 @@
                             Animation.initAnimateSuccess(targetEl, http, element);
                         } else {
                             Modal.initAttemptCloseModal(targetEl, http, element);
-                            Dom.populateTargetEl(targetEl, http, element);
+                            Dom.populateTargetEl(targetEl, http, element, event);
                         }
                     }
         
@@ -384,7 +384,7 @@
             return result;
         },
 
-        populateTargetEl(targetEl, http, element) {
+        populateTargetEl(targetEl, http, element, event) {
             const selectStr = element.getAttribute('mx-select');
             const mxSwapStr = Dom.establishSwapStr(element);
             const selectOobStr = element.getAttribute('mx-select-oob');
@@ -399,7 +399,7 @@
                 Dom.handleOobSwaps(tempFragment, selectOobStr);
                 Dom.handleMainSwaps(targetEl, tempFragment, selectStr, mxSwapStr);
                 Modal.attemptAddModalButtons(targetEl, element);
-                Dom.executeAfterSwap(element);
+                Dom.executeAfterSwap(element, event);
         
             } catch (error) {
                 console.error('Error in populateTargetEl:', error);
@@ -503,20 +503,48 @@
             return tempContainer.innerHTML;
         },
 
-        executeAfterSwap(element) {
-            const functionName = element.getAttribute('mx-after-swap');
-            if (functionName) {
-                const cleanFunctionName = functionName.replace(/\(\)$/, '');
-                
-                if (typeof window[cleanFunctionName] === 'function') {
-                    try {
-                        window[cleanFunctionName]();
-                    } catch (error) {
-                        console.error(`Error executing ${cleanFunctionName}:`, error);
-                    }
-                } else {
-                    console.warn(`Function ${cleanFunctionName} not found`);
+        executeAfterSwap(element, event) {
+            const afterSwapValue = element.getAttribute('mx-after-swap');
+            if (!afterSwapValue) return;
+                        
+            const match = afterSwapValue.match(/^(\w+)(?:\((.*?)\))?$/);
+            if (!match) {
+                console.warn(`Invalid mx-after-swap syntax: ${afterSwapValue}`);
+                return;
+            }
+            
+            const [, functionName, argString] = match;
+            
+            if (typeof window[functionName] !== 'function') {
+                console.warn(`Function ${functionName} not found`);
+                return;
+            }
+            
+            let args = [];
+            
+            if (argString === undefined || argString === '') {
+                // Case 1 and 2: No arguments, pass the event object
+                args.push(event);
+            } else if (argString === 'event') {
+                // Case 3: Explicitly pass the event object
+                args.push(event);
+            } else {
+                // Case 4: Parse the argument(s)
+                try {
+                    const parsedArgs = JSON.parse(`[${argString}]`);
+                    args = parsedArgs;
+                    // Always add the event as the last argument
+                    args.push(event);
+                } catch (e) {
+                    // If JSON.parse fails, treat it as a single string argument
+                    args.push(argString, event);
                 }
+            }
+            
+            try {
+                window[functionName].apply(null, args);
+            } catch (error) {
+                console.error(`Error executing ${functionName}:`, error);
             }
         },
 
@@ -643,7 +671,6 @@
                 child.style.opacity = opacityValue;
             });
         }
-        
     };
 
     const Modal = {
@@ -1041,9 +1068,9 @@
                 (attribute !== 'mx-get') &&
                 !element.hasAttribute('mx-vals')
             ) {
-                Main.mxSubmitForm(element, triggerEvent, attribute);
+                Main.mxSubmitForm(element, triggerEvent, attribute, event);
             } else {
-                Main.initInvokeHttpRequest(element, attribute);
+                Main.initInvokeHttpRequest(element, attribute, event);
             }
         },
 
@@ -1068,7 +1095,7 @@
             }
         },
 
-        mxSubmitForm(element, triggerEvent, httpMethodAttribute) {
+        mxSubmitForm(element, triggerEvent, httpMethodAttribute, event) {
             const containingForm = element.closest('form');
             if (!containingForm) {
                 console.error('No containing form found');
@@ -1080,11 +1107,11 @@
             if (CONFIG.REQUIRES_DATA_ATTRIBUTES.includes(httpMethodAttribute)) {
                 Http.invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm);
             } else {
-                Main.initInvokeHttpRequest(containingForm, httpMethodAttribute);
+                Main.initInvokeHttpRequest(containingForm, httpMethodAttribute, event);
             }
         },
 
-        initInvokeHttpRequest(element, httpMethodAttribute) {
+        initInvokeHttpRequest(element, httpMethodAttribute, event) {
             const buildModalStr = element.getAttribute('mx-build-modal');
 
             if (buildModalStr) {
@@ -1104,7 +1131,7 @@
                     Modal.buildMXModal(modalOptions, element, httpMethodAttribute);
                 }
             } else {
-                Http.invokeHttpRequest(element, httpMethodAttribute);
+                Http.invokeHttpRequest(element, httpMethodAttribute, event);
             }
         },
 
