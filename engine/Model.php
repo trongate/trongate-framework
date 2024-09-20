@@ -450,8 +450,9 @@ class Model {
         }
 
         // Construct the SQL query
-        $columns = implode(', ', array_keys($data));
-        $placeholders = ':' . implode(', :', array_keys($data));
+        $keys = array_keys($data);
+        $columns = implode(', ', array_map(fn ($key) => "`$key`", $keys));
+        $placeholders = ':' . implode(', :', $keys);
         $sql = "INSERT INTO $target_table ($columns) VALUES ($placeholders)";
 
         // Prepare and execute the query
