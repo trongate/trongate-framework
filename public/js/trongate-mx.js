@@ -64,12 +64,22 @@
                 return true;
             }
             return false;
+        },
+        parseUrlWithPlaceholders(url, element) {
+            return url.replace(/\$\{([^}]+)\}/g, (match, p1) => {
+                if (p1 === 'this.value') {
+                    return element.value;
+                }
+                // Add more conditions here for other placeholders if needed
+                return match; // Return unchanged if no match
+            });
         }
     };
 
     const Http = {
         setupHttpRequest(element, httpMethodAttribute) {
-            const targetUrl = element.getAttribute(httpMethodAttribute);
+            let targetUrl = element.getAttribute(httpMethodAttribute);
+            targetUrl = Utils.parseUrlWithPlaceholders(targetUrl, element);
             const requestType = httpMethodAttribute.replace('mx-', '').toUpperCase();
             Dom.attemptActivateLoader(element);
             
@@ -163,7 +173,7 @@
                 }
         
                 const responseTarget = element.hasAttribute(httpMethodAttribute) ? element : containingForm;
-                Http.handleHttpResponse(http, responseTarget, triggerEvent);
+                Http.handleHttpResponse(http, responseTarget);
             };
         
             try {
@@ -174,14 +184,14 @@
             }
         },
 
-        invokeHttpRequest(element, httpMethodAttribute, event) {
+        invokeHttpRequest(element, httpMethodAttribute) {
             const { http, formData, targetElement } = Http.commonHttpRequest(element, httpMethodAttribute);
             
             http.setRequestHeader('Accept', 'text/html');
         
             http.onload = function() {
                 Dom.attemptHideLoader(element);
-                Http.handleHttpResponse(http, element, event);
+                Http.handleHttpResponse(http, element);
             };
         
             try {
@@ -192,7 +202,7 @@
             }
         },
 
-        handleHttpResponse(http, element, event) {
+        handleHttpResponse(http, element) {
             Dom.removeCloak();
             Dom.restoreOriginalContent();
             Dom.reEnableDisabledElements();
@@ -210,7 +220,7 @@
                             Animation.initAnimateSuccess(targetEl, http, element);
                         } else {
                             Modal.initAttemptCloseModal(targetEl, http, element);
-                            Dom.populateTargetEl(targetEl, http, element, event);
+                            Dom.populateTargetEl(targetEl, http, element);
                         }
                     }
         
@@ -384,7 +394,7 @@
             return result;
         },
 
-        populateTargetEl(targetEl, http, element, event) {
+        populateTargetEl(targetEl, http, element) {
             const selectStr = element.getAttribute('mx-select');
             const mxSwapStr = Dom.establishSwapStr(element);
             const selectOobStr = element.getAttribute('mx-select-oob');
@@ -399,7 +409,7 @@
                 Dom.handleOobSwaps(tempFragment, selectOobStr);
                 Dom.handleMainSwaps(targetEl, tempFragment, selectStr, mxSwapStr);
                 Modal.attemptAddModalButtons(targetEl, element);
-                Dom.executeAfterSwap(element, event);
+                Dom.executeAfterSwap(element);
         
             } catch (error) {
                 console.error('Error in populateTargetEl:', error);
@@ -503,48 +513,20 @@
             return tempContainer.innerHTML;
         },
 
-        executeAfterSwap(element, event) {
-            const afterSwapValue = element.getAttribute('mx-after-swap');
-            if (!afterSwapValue) return;
-                        
-            const match = afterSwapValue.match(/^(\w+)(?:\((.*?)\))?$/);
-            if (!match) {
-                console.warn(`Invalid mx-after-swap syntax: ${afterSwapValue}`);
-                return;
-            }
-            
-            const [, functionName, argString] = match;
-            
-            if (typeof window[functionName] !== 'function') {
-                console.warn(`Function ${functionName} not found`);
-                return;
-            }
-            
-            let args = [];
-            
-            if (argString === undefined || argString === '') {
-                // Case 1 and 2: No arguments, pass the event object
-                args.push(event);
-            } else if (argString === 'event') {
-                // Case 3: Explicitly pass the event object
-                args.push(event);
-            } else {
-                // Case 4: Parse the argument(s)
-                try {
-                    const parsedArgs = JSON.parse(`[${argString}]`);
-                    args = parsedArgs;
-                    // Always add the event as the last argument
-                    args.push(event);
-                } catch (e) {
-                    // If JSON.parse fails, treat it as a single string argument
-                    args.push(argString, event);
+        executeAfterSwap(element) {
+            const functionName = element.getAttribute('mx-after-swap');
+            if (functionName) {
+                const cleanFunctionName = functionName.replace(/\(\)$/, '');
+                
+                if (typeof window[cleanFunctionName] === 'function') {
+                    try {
+                        window[cleanFunctionName]();
+                    } catch (error) {
+                        console.error(`Error executing ${cleanFunctionName}:`, error);
+                    }
+                } else {
+                    console.warn(`Function ${cleanFunctionName} not found`);
                 }
-            }
-            
-            try {
-                window[functionName].apply(null, args);
-            } catch (error) {
-                console.error(`Error executing ${functionName}:`, error);
             }
         },
 
@@ -671,6 +653,7 @@
                 child.style.opacity = opacityValue;
             });
         }
+        
     };
 
     const Modal = {
@@ -1068,9 +1051,16 @@
                 (attribute !== 'mx-get') &&
                 !element.hasAttribute('mx-vals')
             ) {
-                Main.mxSubmitForm(element, triggerEvent, attribute, event);
+                Main.mxSubmitForm(element, triggerEvent, attribute);
             } else {
-                Main.initInvokeHttpRequest(element, attribute, event);
+                // Special handling for select elements with mx-get and mx-trigger="change"
+                if (element.tagName.toLowerCase() === 'select' && 
+                    attribute === 'mx-get' && 
+                    element.getAttribute('mx-trigger') === 'change') {
+                    Main.initInvokeHttpRequest(element, attribute);
+                } else {
+                    Main.initInvokeHttpRequest(element, attribute);
+                }
             }
         },
 
@@ -1095,7 +1085,7 @@
             }
         },
 
-        mxSubmitForm(element, triggerEvent, httpMethodAttribute, event) {
+        mxSubmitForm(element, triggerEvent, httpMethodAttribute) {
             const containingForm = element.closest('form');
             if (!containingForm) {
                 console.error('No containing form found');
@@ -1107,11 +1097,11 @@
             if (CONFIG.REQUIRES_DATA_ATTRIBUTES.includes(httpMethodAttribute)) {
                 Http.invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm);
             } else {
-                Main.initInvokeHttpRequest(containingForm, httpMethodAttribute, event);
+                Main.initInvokeHttpRequest(containingForm, httpMethodAttribute);
             }
         },
 
-        initInvokeHttpRequest(element, httpMethodAttribute, event) {
+        initInvokeHttpRequest(element, httpMethodAttribute) {
             const buildModalStr = element.getAttribute('mx-build-modal');
 
             if (buildModalStr) {
@@ -1131,7 +1121,7 @@
                     Modal.buildMXModal(modalOptions, element, httpMethodAttribute);
                 }
             } else {
-                Http.invokeHttpRequest(element, httpMethodAttribute, event);
+                Http.invokeHttpRequest(element, httpMethodAttribute);
             }
         },
 
