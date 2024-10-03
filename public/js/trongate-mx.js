@@ -70,16 +70,57 @@
                 if (p1 === 'this.value') {
                     return element.value;
                 }
-                // Add more conditions here for other placeholders if needed
+                return match;
+            });
+        },
+        pushUrl(url) {
+            const normalizedUrl = this.normalizeUrl(url);
+            if (normalizedUrl && window.location.href !== normalizedUrl) {
+                history.pushState({}, '', normalizedUrl);
+            }
+        },
+        getRequestUrl(element) {
+            for (const attr of CONFIG.CORE_MX_ATTRIBUTES) {
+                let url = element.getAttribute(attr);
+                if (url) {
+                    url = this.processDynamicUrl(url, element);
+                    return this.normalizeUrl(url);
+                }
+            }
+            return null;
+        },
+        processDynamicUrl(url, element) {
+            return url.replace(/\${([^}]+)}/g, (match, p1) => {
+                if (p1 === 'this.value') {
+                    return element.value;
+                }
                 return match; // Return unchanged if no match
             });
-        }
+        },
+        normalizeUrl(url) {
+            const baseElement = document.querySelector('base');
+            const baseUrl = baseElement ? baseElement.href : window.location.origin + '/';
+
+            // Check if the url already starts with the base URL
+            if (url.startsWith(baseUrl)) {
+                return url; // Return the url as is if it already includes the base URL
+            }
+
+            // Remove leading slash from url if baseUrl ends with a slash
+            if (baseUrl.endsWith('/') && url.startsWith('/')) {
+                url = url.substring(1);
+            }
+
+            // Ensure there's exactly one slash between base URL and the path
+            return baseUrl.replace(/\/?$/, '/') + url.replace(/^\//, '');
+        },
     };
 
     const Http = {
         setupHttpRequest(element, httpMethodAttribute) {
             let targetUrl = element.getAttribute(httpMethodAttribute);
             targetUrl = Utils.parseUrlWithPlaceholders(targetUrl, element);
+            targetUrl = Utils.normalizeUrl(targetUrl);
             const requestType = httpMethodAttribute.replace('mx-', '').toUpperCase();
             Dom.attemptActivateLoader(element);
             
@@ -188,12 +229,18 @@
             const { http, formData, targetElement } = Http.commonHttpRequest(element, httpMethodAttribute);
             
             http.setRequestHeader('Accept', 'text/html');
-        
+
             http.onload = function() {
                 Dom.attemptHideLoader(element);
                 Http.handleHttpResponse(http, element);
+
+                // Push URL if mx-push-url is true and the request was successful
+                if (element.getAttribute('mx-push-url') === 'true' && http.status >= 200 && http.status < 300) {
+                    const requestUrl = Utils.getRequestUrl(element);
+                    Utils.pushUrl(requestUrl);
+                }
             };
-        
+
             try {
                 http.send(formData);
             } catch (error) {
@@ -1016,6 +1063,8 @@
             document.querySelectorAll('[mx-trigger*="load"]').forEach(Dom.handlePageLoadedEvents);
 
             Main.attemptInitPolling();
+
+            window.addEventListener('popstate', Main.handlePopState);
         },
 
         handleTrongateMXEvent(event) {
@@ -1178,6 +1227,19 @@
                     return;
                 }
                 Main.initInvokeHttpRequest(element, attribute);
+            }
+        },
+        handlePopState(event) {
+            const currentPath = window.location.pathname;
+            const element = document.querySelector(`[mx-get^="${currentPath}"]`);
+
+            if (element) {
+                // Simulate a click on the matching element
+                const clickEvent = new Event('click');
+                element.dispatchEvent(clickEvent);
+            } else {
+                // If no matching element is found, reload the page
+                window.location.reload();
             }
         }
     };
