@@ -253,59 +253,79 @@
             Dom.removeCloak();
             Dom.restoreOriginalContent();
             Dom.reEnableDisabledElements();
-        
+
             element.classList.remove('blink');
-        
+
             if (http.status >= 200 && http.status < 300) {
-                if (http.getResponseHeader('Content-Type').includes('text/html')) {
-                    const targetEl = Dom.establishTargetElement(element);
-        
-                    if (targetEl) {
-                        const successAnimateStr = element.getAttribute('mx-animate-success');
-        
-                        if (successAnimateStr) {
-                            Animation.initAnimateSuccess(targetEl, http, element);
-                        } else {
-                            Modal.initAttemptCloseModal(targetEl, http, element);
-                            Dom.populateTargetEl(targetEl, http, element);
-                        }
+                const contentType = http.getResponseHeader('Content-Type');
+                const targetEl = Dom.establishTargetElement(element);
+
+                if (targetEl) {
+                    const successAnimateStr = element.getAttribute('mx-animate-success');
+                    if (successAnimateStr) {
+                        Animation.initAnimateSuccess(targetEl, http, element);
+                    } else {
+                        Modal.initAttemptCloseModal(targetEl, http, element);
+                        this.updateContent(targetEl, http, element);
                     }
-        
-                    Http.attemptInitOnSuccessActions(http, element);
-        
-                } else {
-                    console.log('Response is not HTML. Handle accordingly.');
                 }
+
+                // Push URL if mx-push-url is true and the request was successful
+                if (element.getAttribute('mx-push-url') === 'true') {
+                    const requestUrl = Utils.getRequestUrl(element);
+                    Utils.pushUrl(requestUrl);
+                }
+
+                this.attemptInitOnSuccessActions(http, element);
             } else {
-                console.error('Request failed with status:', http.status);
-                switch (http.status) {
-                    case 404:
-                        console.error('Resource not found');
-                        break;
-                    case 500:
-                        console.error('Server error');
-                        break;
-                    default:
-                        console.error('An error occurred');
-                }
-        
-                const containingForm = element.closest('form');
-                if (containingForm) {
-                    Http.attemptDisplayValidationErrors(http, element, containingForm);
-                }
-        
-                const errorAnimateStr = element.getAttribute('mx-animate-error');
-        
-                if (errorAnimateStr) {
-                    Animation.initAnimateError(element, http, element);
-                } else {
-                    const targetEl = element ?? targetEl;
-                    Modal.initAttemptCloseModal(targetEl, http, element);
-                    Http.attemptInitOnErrorActions(http, element);
-                }
+                this.handleErrorResponse(http, element);
             }
-        
+
             Dom.attemptHideLoader(element);
+        },
+
+        updateContent(targetEl, http, element) {
+            const contentType = http.getResponseHeader('Content-Type');
+
+            if (contentType.includes('text/html')) {
+                Dom.populateTargetEl(targetEl, http, element);
+            } else if (contentType.includes('application/json')) {
+                try {
+                    const jsonData = JSON.parse(http.responseText);
+                    targetEl.textContent = JSON.stringify(jsonData, null, 2);
+                } catch (error) {
+                    console.error('Error parsing JSON response:', error);
+                }
+            } else if (contentType.startsWith('image/')) {
+                targetEl.style.backgroundImage = `url('${http.responseURL}')`;
+            } else {
+                // For other content types, just set the responseText
+                targetEl.textContent = http.responseText;
+            }
+        },
+
+        handleErrorResponse(http, element) {
+            console.error('Request failed with status:', http.status);
+
+            const containingForm = element.closest('form');
+            if (containingForm) {
+                this.attemptDisplayValidationErrors(http, element, containingForm);
+            }
+
+            const errorAnimateStr = element.getAttribute('mx-animate-error');
+            if (errorAnimateStr) {
+                Animation.initAnimateError(element, http, element);
+            } else {
+                const targetEl = Dom.establishTargetElement(element);
+                Modal.initAttemptCloseModal(targetEl, http, element);
+                this.attemptInitOnErrorActions(http, element);
+            }
+
+            // Display error message in the target element
+            const targetEl = Dom.establishTargetElement(element);
+            if (targetEl) {
+                targetEl.textContent = `Error: ${http.status} ${http.statusText}`;
+            }
         },
 
         attemptInitOnErrorActions(http, element) {
@@ -1064,6 +1084,7 @@
 
             Main.attemptInitPolling();
 
+            // Add this line to initialize the popstate event listener
             window.addEventListener('popstate', Main.handlePopState);
         },
 
