@@ -200,9 +200,9 @@
             return { http, formData, targetElement };
         },
 
-        invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm) {
+        invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm, event) {
             const { http, formData, targetElement } = Http.commonHttpRequest(element, httpMethodAttribute, containingForm);
-        
+
             http.onload = function() {
                 Dom.attemptHideLoader(containingForm);
                 
@@ -212,11 +212,11 @@
                 if (shouldResetForm) {
                     containingForm.reset();
                 }
-        
+
                 const responseTarget = element.hasAttribute(httpMethodAttribute) ? element : containingForm;
-                Http.handleHttpResponse(http, responseTarget);
+                Http.handleHttpResponse(http, responseTarget, event);
             };
-        
+
             try {
                 http.send(formData);
             } catch (error) {
@@ -225,14 +225,38 @@
             }
         },
 
-        invokeHttpRequest(element, httpMethodAttribute) {
+        initInvokeHttpRequest(element, httpMethodAttribute, event) {
+            const buildModalStr = element.getAttribute('mx-build-modal');
+
+            if (buildModalStr) {
+                const modalOptions = Utils.parseAttributeValue(buildModalStr);
+
+                if (modalOptions === false) {
+                    console.warn("Invalid JSON in mx-build-modal:", buildModalStr);
+                    return;
+                }
+
+                if (typeof modalOptions === "string") {
+                    const modalData = {
+                        id: modalOptions
+                    };
+                    Modal.buildMXModal(modalData, element, httpMethodAttribute, event);
+                } else {
+                    Modal.buildMXModal(modalOptions, element, httpMethodAttribute, event);
+                }
+            } else {
+                Http.invokeHttpRequest(element, httpMethodAttribute, event);
+            }
+        },
+
+        invokeHttpRequest(element, httpMethodAttribute, event) {
             const { http, formData, targetElement } = Http.commonHttpRequest(element, httpMethodAttribute);
             
             http.setRequestHeader('Accept', 'text/html');
 
             http.onload = function() {
                 Dom.attemptHideLoader(element);
-                Http.handleHttpResponse(http, element);
+                Http.handleHttpResponse(http, element, event);
 
                 // Push URL if mx-push-url is true and the request was successful
                 if (element.getAttribute('mx-push-url') === 'true' && http.status >= 200 && http.status < 300) {
@@ -249,7 +273,7 @@
             }
         },
 
-        handleHttpResponse(http, element) {
+        handleHttpResponse(http, element, event) {
             Dom.removeCloak();
             Dom.restoreOriginalContent();
             Dom.reEnableDisabledElements();
@@ -266,7 +290,7 @@
                         Animation.initAnimateSuccess(targetEl, http, element);
                     } else {
                         Modal.initAttemptCloseModal(targetEl, http, element);
-                        this.updateContent(targetEl, http, element);
+                        this.updateContent(targetEl, http, element, event);
                     }
                 }
 
@@ -284,7 +308,7 @@
             Dom.attemptHideLoader(element);
         },
 
-        updateContent(targetEl, http, element) {
+        updateContent(targetEl, http, element, event) {
             const contentType = http.getResponseHeader('Content-Type');
 
             if (contentType.includes('text/html')) {
@@ -302,6 +326,9 @@
                 // For other content types, just set the responseText
                 targetEl.textContent = http.responseText;
             }
+
+            // Execute after-swap function for all content types
+            Dom.executeAfterSwap(element, event);
         },
 
         handleErrorResponse(http, element) {
@@ -580,14 +607,18 @@
             return tempContainer.innerHTML;
         },
 
-        executeAfterSwap(element) {
+        executeAfterSwap(element, event) {
             const functionName = element.getAttribute('mx-after-swap');
             if (functionName) {
                 const cleanFunctionName = functionName.replace(/\(\)$/, '');
                 
                 if (typeof window[cleanFunctionName] === 'function') {
                     try {
-                        window[cleanFunctionName]();
+                        // Create a custom event with the original event data
+                        const customEvent = new CustomEvent('afterSwap', {
+                            detail: { originalEvent: event, element: element }
+                        });
+                        window[cleanFunctionName](customEvent);
                     } catch (error) {
                         console.error(`Error executing ${cleanFunctionName}:`, error);
                     }
@@ -724,7 +755,7 @@
     };
 
     const Modal = {
-        buildMXModal(modalData, element, httpMethodAttribute) {
+        buildMXModal(modalData, element, httpMethodAttribute, event) {
             const modalId = typeof modalData === 'string' ? modalData : modalData.id;
 
             const existingEl = document.getElementById(modalId);
@@ -767,7 +798,7 @@
             const modalBodySelector = `#${modalId} .modal-body`;
             element.setAttribute('mx-target', modalBodySelector);
 
-            Http.invokeHttpRequest(element, httpMethodAttribute);
+            Http.invokeHttpRequest(element, httpMethodAttribute, event);
         },
 
         attemptAddModalButtons(targetEl, element) {
@@ -1121,15 +1152,15 @@
                 (attribute !== 'mx-get') &&
                 !element.hasAttribute('mx-vals')
             ) {
-                Main.mxSubmitForm(element, triggerEvent, attribute);
+                Main.mxSubmitForm(element, triggerEvent, attribute, event);
             } else {
                 // Special handling for select elements with mx-get and mx-trigger="change"
                 if (element.tagName.toLowerCase() === 'select' && 
                     attribute === 'mx-get' && 
                     element.getAttribute('mx-trigger') === 'change') {
-                    Main.initInvokeHttpRequest(element, attribute);
+                    Main.initInvokeHttpRequest(element, attribute, event);
                 } else {
-                    Main.initInvokeHttpRequest(element, attribute);
+                    Main.initInvokeHttpRequest(element, attribute, event);
                 }
             }
         },
@@ -1155,7 +1186,7 @@
             }
         },
 
-        mxSubmitForm(element, triggerEvent, httpMethodAttribute) {
+        mxSubmitForm(element, triggerEvent, httpMethodAttribute, event) {
             const containingForm = element.closest('form');
             if (!containingForm) {
                 console.error('No containing form found');
@@ -1165,9 +1196,9 @@
             Dom.clearExistingValidationErrors(containingForm);
 
             if (CONFIG.REQUIRES_DATA_ATTRIBUTES.includes(httpMethodAttribute)) {
-                Http.invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm);
+                Http.invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm, event);
             } else {
-                Main.initInvokeHttpRequest(containingForm, httpMethodAttribute);
+                Main.initInvokeHttpRequest(containingForm, httpMethodAttribute, event);
             }
         },
 
