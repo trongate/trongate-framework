@@ -310,7 +310,6 @@
 
         updateContent(targetEl, http, element, event) {
             const contentType = http.getResponseHeader('Content-Type');
-
             if (contentType.includes('text/html')) {
                 Dom.populateTargetEl(targetEl, http, element);
             } else if (contentType.includes('application/json')) {
@@ -323,12 +322,13 @@
             } else if (contentType.startsWith('image/')) {
                 targetEl.style.backgroundImage = `url('${http.responseURL}')`;
             } else {
-                // For other content types, just set the responseText
                 targetEl.textContent = http.responseText;
             }
-
-            // Execute after-swap function for all content types
-            Dom.executeAfterSwap(element, event);
+            
+            // Dispatch afterSwap event here, since all content handling is complete
+            document.body.dispatchEvent(new CustomEvent('trongate:afterSwap', { 
+                detail: { element: element, http: http, originalEvent: event }
+            }));
         },
 
         handleErrorResponse(http, element) {
@@ -492,19 +492,14 @@
             const selectStr = element.getAttribute('mx-select');
             const mxSwapStr = Dom.establishSwapStr(element);
             const selectOobStr = element.getAttribute('mx-select-oob');
-        
             const tempFragment = document.createDocumentFragment();
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = http.responseText;
-        
             tempFragment.appendChild(tempDiv);
-        
             try {
                 Dom.handleOobSwaps(tempFragment, selectOobStr);
                 Dom.handleMainSwaps(targetEl, tempFragment, selectStr, mxSwapStr);
                 Modal.attemptAddModalButtons(targetEl, element);
-                Dom.executeAfterSwap(element);
-        
             } catch (error) {
                 console.error('Error in populateTargetEl:', error);
             } finally {
@@ -605,27 +600,6 @@
             }
             
             return tempContainer.innerHTML;
-        },
-
-        executeAfterSwap(element, event) {
-            const functionName = element.getAttribute('mx-after-swap');
-            if (functionName) {
-                const cleanFunctionName = functionName.replace(/\(\)$/, '');
-                
-                if (typeof window[cleanFunctionName] === 'function') {
-                    try {
-                        // Create a custom event with the original event data
-                        const customEvent = new CustomEvent('afterSwap', {
-                            detail: { originalEvent: event, element: element }
-                        });
-                        window[cleanFunctionName](customEvent);
-                    } catch (error) {
-                        console.error(`Error executing ${cleanFunctionName}:`, error);
-                    }
-                } else {
-                    console.warn(`Function ${cleanFunctionName} not found`);
-                }
-            }
         },
 
         handleValidationErrors(containingForm, validationErrors) {
@@ -1115,8 +1089,24 @@
 
             Main.attemptInitPolling();
 
-            // Add this line to initialize the popstate event listener
             window.addEventListener('popstate', Main.handlePopState);
+
+            document.body.addEventListener('trongate:afterSwap', function(event) {
+                const element = event.detail.element;
+                const functionName = element.getAttribute('mx-after-swap');
+                if (functionName) {
+                    const cleanFunctionName = functionName.replace(/\(\)$/, '');
+                    if (typeof window[cleanFunctionName] === 'function') {
+                        try {
+                            window[cleanFunctionName](event);
+                        } catch (error) {
+                            console.error(`Error executing ${cleanFunctionName}:`, error);
+                        }
+                    } else {
+                        console.warn(`Function ${cleanFunctionName} not found`);
+                    }
+                }
+            });
         },
 
         handleTrongateMXEvent(event) {
@@ -1130,7 +1120,7 @@
 
             event.preventDefault();
 
-            // Add throttle check here
+            // Throttle check here
             const throttleTime = parseInt(element.getAttribute('mx-throttle')) || 0;
             if (throttleTime > 0 && !Utils.canMakeRequest(throttleTime)) {
                 console.log('Request throttled');
@@ -1272,7 +1262,7 @@
         pollElement(element) {
             const attribute = CONFIG.CORE_MX_ATTRIBUTES.find(attr => element.hasAttribute(attr));
             if (attribute) {
-                // Add throttle check for polling
+                // Throttle check for polling
                 const throttleTime = parseInt(element.getAttribute('mx-throttle')) || 0;
                 if (throttleTime > 0 && !Utils.canMakeRequest(throttleTime)) {
                     console.log('Polling request throttled');
