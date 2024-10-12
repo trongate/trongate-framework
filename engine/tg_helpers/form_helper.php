@@ -381,7 +381,7 @@ function form_dropdown(string $name, array $options, ?string $selected_key = nul
 
     foreach ($options as $option_key => $option_value) {
         $option_attributes = ['value' => $option_key];
-        if ($option_key === $selected_key) {
+        if ($option_key == $selected_key) {
             $option_attributes['selected'] = 'selected';
         }
         $html .= '    <option' . get_attributes_str($option_attributes) . '>' 
