@@ -1109,7 +1109,7 @@
             });
         },
 
-        handleTrongateMXEvent(event) {
+        async handleTrongateMXEvent(event) {
             const element = event.target.closest('[' + CONFIG.CORE_MX_ATTRIBUTES.join('],[') + ']');
 
             if (!element) return;
@@ -1119,6 +1119,24 @@
             if (triggerEvent !== event.type) return;
 
             event.preventDefault();
+
+            // Execute mx-on-trigger function if present
+            const onTriggerFunction = element.getAttribute('mx-on-trigger');
+            if (onTriggerFunction) {
+                const cleanFunctionName = onTriggerFunction.replace(/\(\)$/, '');
+                if (typeof window[cleanFunctionName] === 'function') {
+                    try {
+                        // Wait for the function to complete if it's async
+                        await window[cleanFunctionName](event);
+                    } catch (error) {
+                        console.error(`Error executing ${cleanFunctionName}:`, error);
+                        return; // Stop further processing if the trigger function fails
+                    }
+                } else {
+                    console.warn(`Function ${cleanFunctionName} not found`);
+                    return; // Stop further processing if the function doesn't exist
+                }
+            }
 
             // Throttle check here
             const throttleTime = parseInt(element.getAttribute('mx-throttle')) || 0;
