@@ -386,6 +386,55 @@
     };
 
     const Dom = {
+
+        processedIndicators: new Set(),
+        indicatorObserver: null,
+
+        initializeIndicatorObserver() {
+            if (this.indicatorObserver) return;
+
+            this.indicatorObserver = new MutationObserver((mutations) => {
+                mutations.forEach(mutation => {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.classList?.contains('mx-indicator')) {
+                                this.initializeSingleIndicator(node);
+                            }
+                            // Check children
+                            node.querySelectorAll?.('.mx-indicator')?.forEach(indicator => {
+                                this.initializeSingleIndicator(indicator);
+                            });
+                        }
+                    });
+                    
+                    // Handle removed nodes
+                    mutation.removedNodes.forEach(node => {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.classList?.contains('mx-indicator')) {
+                                this.processedIndicators.delete(node);
+                            }
+                            // Clean up any tracked indicators that were children
+                            node.querySelectorAll?.('.mx-indicator')?.forEach(indicator => {
+                                this.processedIndicators.delete(indicator);
+                            });
+                        }
+                    });
+                });
+            });
+
+            this.indicatorObserver.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        },
+
+        initializeSingleIndicator(element) {
+            if (!element || this.processedIndicators.has(element)) return;
+            this.hideLoader(element);
+            element.style.display = '';
+            this.processedIndicators.add(element);
+        },
+
         handleMxDuringRequest(element, targetElement) {
             const mxDuringRequest = element.getAttribute('mx-during-request');
             if (mxDuringRequest) {
@@ -466,6 +515,7 @@
             if (element && element.classList.contains('mx-indicator')) {
                 element.classList.remove('mx-indicator');
                 element.classList.add('mx-indicator-hidden');
+                // Don't remove from processedIndicators here since the element may be reused
             }
         },
 
@@ -1075,9 +1125,12 @@
 
     const Main = {
         initializeTrongateMX() {
+            // Initialize observer for indicators
+            Dom.initializeIndicatorObserver();
+            
+            // Initialize existing indicators
             document.querySelectorAll('.mx-indicator').forEach(element => {
-                Dom.hideLoader(element);
-                element.style.display = '';
+                Dom.initializeSingleIndicator(element);
             });
 
             const events = ['click', 'dblclick', 'change', 'submit', 'keyup', 'keydown', 'focus', 'blur', 'input'];
