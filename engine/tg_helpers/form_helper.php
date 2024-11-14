@@ -205,17 +205,27 @@ function form_open_upload(string $location, ?array $attributes = null, ?string $
  *
  * @return string The HTML closing tag for the form.
  */
+/**
+ * Generates hidden CSRF token input field and a closing form tag.
+ *
+ * @return string The HTML closing tag for the form.
+ */
 function form_close(): string {
+    // Ensure a CSRF token exists in the session
     if (!isset($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
 
+    // Generate the hidden CSRF token input
     $html = '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') . '">';
     $html .= '</form>';
 
+    // Check if form submission errors exist
     if (isset($_SESSION['form_submission_errors'])) {
-        $errors_json = json_encode($_SESSION['form_submission_errors'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-        $html .= highlight_validation_errors($errors_json);
+        // Pass the error array directly to highlight_validation_errors
+        $html .= highlight_validation_errors($_SESSION['form_submission_errors']);
+        
+        // Clear the session errors after processing
         unset($_SESSION['form_submission_errors']);
     }
 
@@ -225,15 +235,26 @@ function form_close(): string {
 /**
  * Highlight validation errors using provided JSON data.
  *
- * @param string $errors_json JSON data containing validation errors.
+ * @param array $errors_data Array containing validation errors.
  * @return string HTML code for highlighting validation errors.
  */
-function highlight_validation_errors(string $errors_json): string {
+function highlight_validation_errors(array $errors_data): string {
+    // Safely encode the errors data into JSON
+    $errors_json = json_encode($errors_data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+
+    if ($errors_json === false) {
+        error_log('JSON encoding failed for validation errors.');
+        return '';
+    }
+
+    // Read the JavaScript template
     $output_str = file_get_contents(APPPATH . 'engine/views/highlight_errors.txt');
     if ($output_str === false) {
         error_log('Failed to read highlight_errors.txt file');
         return '';
     }
+
+    // Inject JSON data safely into the JavaScript context
     return '<div class="inline-validation-builder"><script>let validationErrorsJson = ' . $errors_json . ';</script><script>' . $output_str . '</script></div>';
 }
 
