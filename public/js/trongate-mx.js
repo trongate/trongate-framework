@@ -114,6 +114,35 @@
             // Ensure there's exactly one slash between base URL and the path
             return baseUrl.replace(/\/?$/, '/') + url.replace(/^\//, '');
         },
+        createMXEvent(element, event, type, extraDetails = {}) {
+            // Always get the closest button/form element as the target
+            const targetElement = element.closest('button, form') || element;
+            
+            return {
+                target: targetElement,
+                type: type,
+                detail: {
+                    element: targetElement,
+                    originalEvent: event,
+                    ...extraDetails
+                }
+            };
+        },
+
+        executeMXFunction(functionName, customEvent) {
+            if (!functionName) return;
+            
+            const cleanFunctionName = functionName.replace(/\(\)$/, '');
+            if (typeof window[cleanFunctionName] === 'function') {
+                try {
+                    window[cleanFunctionName](customEvent);
+                } catch (error) {
+                    console.error(`Error executing ${cleanFunctionName}:`, error);
+                }
+            } else {
+                console.warn(`Function ${cleanFunctionName} not found`);
+            }
+        }
     };
 
     const Http = {
@@ -325,10 +354,12 @@
                 targetEl.textContent = http.responseText;
             }
             
-            // Dispatch afterSwap event here, since all content handling is complete
-            document.body.dispatchEvent(new CustomEvent('trongate:afterSwap', { 
-                detail: { element: element, http: http, originalEvent: event }
-            }));
+            // Handle mx-after-swap with standardized event handling
+            const functionName = element.getAttribute('mx-after-swap');
+            if (functionName) {
+                const customEvent = Utils.createMXEvent(element, event, 'afterSwap', { http });
+                Utils.executeMXFunction(functionName, customEvent);
+            }
         },
 
         handleErrorResponse(http, element) {
@@ -1139,27 +1170,8 @@
             });
 
             document.querySelectorAll('[mx-trigger*="load"]').forEach(Dom.handlePageLoadedEvents);
-
             Main.attemptInitPolling();
-
             window.addEventListener('popstate', Main.handlePopState);
-
-            document.body.addEventListener('trongate:afterSwap', function(event) {
-                const element = event.detail.element;
-                const functionName = element.getAttribute('mx-after-swap');
-                if (functionName) {
-                    const cleanFunctionName = functionName.replace(/\(\)$/, '');
-                    if (typeof window[cleanFunctionName] === 'function') {
-                        try {
-                            window[cleanFunctionName](event);
-                        } catch (error) {
-                            console.error(`Error executing ${cleanFunctionName}:`, error);
-                        }
-                    } else {
-                        console.warn(`Function ${cleanFunctionName} not found`);
-                    }
-                }
-            });
         },
 
         async handleTrongateMXEvent(event) {
@@ -1176,18 +1188,12 @@
             // Execute mx-on-trigger function if present
             const onTriggerFunction = element.getAttribute('mx-on-trigger');
             if (onTriggerFunction) {
-                const cleanFunctionName = onTriggerFunction.replace(/\(\)$/, '');
-                if (typeof window[cleanFunctionName] === 'function') {
-                    try {
-                        // Wait for the function to complete if it's async
-                        await window[cleanFunctionName](event);
-                    } catch (error) {
-                        console.error(`Error executing ${cleanFunctionName}:`, error);
-                        return; // Stop further processing if the trigger function fails
-                    }
-                } else {
-                    console.warn(`Function ${cleanFunctionName} not found`);
-                    return; // Stop further processing if the function doesn't exist
+                const customEvent = Utils.createMXEvent(element, event, 'trigger');
+                try {
+                    await Utils.executeMXFunction(onTriggerFunction, customEvent);
+                } catch (error) {
+                    console.error(`Error executing ${onTriggerFunction}:`, error);
+                    return; // Stop further processing if the trigger function fails
                 }
             }
 
