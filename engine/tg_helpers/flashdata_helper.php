@@ -17,13 +17,14 @@ function set_flashdata(string $msg): void {
  *
  * @param string|null $opening_html Optional HTML opening tag to wrap the flash message. Defaults to null.
  * @param string|null $closing_html Optional HTML closing tag to wrap the flash message. Defaults to null.
+ * @param bool|false $custom allows to add styles to flash message without the defaults. Defaults to false, set to true skips defaults
  * @return void
  */
-function flashdata(?string $opening_html = null, ?string $closing_html = null): void {
+function flashdata(?string $opening_html = null, ?string $closing_html = null, $custom = false): void {
 
     if (isset($_SESSION['flashdata'])) {
 
-        if (!isset($opening_html)) {
+        if (!isset($opening_html) && !$custom) {
             if (defined('FLASHDATA_OPEN') && defined('FLASHDATA_CLOSE')) {
                 $opening_html = FLASHDATA_OPEN;
                 $closing_html = FLASHDATA_CLOSE;
