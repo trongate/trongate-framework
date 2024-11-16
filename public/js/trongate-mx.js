@@ -309,7 +309,23 @@
 
             element.classList.remove('blink');
 
-            if (http.status >= 200 && http.status < 300) {
+            // Handle redirects first based on status and response text
+            const shouldRedirectOnSuccess = element.getAttribute('mx-redirect-on-success') === 'true';
+            const shouldRedirectOnError = element.getAttribute('mx-redirect-on-error') === 'true';
+            
+            const isSuccess = http.status >= 200 && http.status < 300;
+            const redirectUrl = http.responseText.trim();
+
+            // Check if we should redirect
+            if ((isSuccess && shouldRedirectOnSuccess) || (!isSuccess && shouldRedirectOnError)) {
+                if (redirectUrl && !redirectUrl.includes('<')) { // Basic check to ensure it's just a URL
+                    window.location.href = Utils.normalizeUrl(redirectUrl);
+                    return;
+                }
+            }
+
+            // If no redirect, continue with normal response handling
+            if (isSuccess) {
                 const contentType = http.getResponseHeader('Content-Type');
                 const targetEl = Dom.establishTargetElement(element);
 
@@ -323,7 +339,6 @@
                     }
                 }
 
-                // Push URL if mx-push-url is true and the request was successful
                 if (element.getAttribute('mx-push-url') === 'true') {
                     const requestUrl = Utils.getRequestUrl(element);
                     Utils.pushUrl(requestUrl);
