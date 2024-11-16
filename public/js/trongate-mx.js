@@ -1195,7 +1195,6 @@
             if (!element) return;
 
             const triggerEvent = Main.establishTriggerEvent(element);
-
             if (triggerEvent !== event.type) return;
 
             event.preventDefault();
@@ -1249,6 +1248,10 @@
 
         establishTriggerEvent(element) {
             const triggerEventStr = element.getAttribute('mx-trigger');
+
+            if (triggerEventStr === 'activate') {
+                return '__ACTIVATE__';  // A special value that will never match a real event type
+            }
 
             if (triggerEventStr) {
                 return triggerEventStr;
