@@ -393,12 +393,6 @@
                 Modal.initAttemptCloseModal(targetEl, http, element);
                 this.attemptInitOnErrorActions(http, element);
             }
-
-            // Display error message in the target element
-            const targetEl = Dom.establishTargetElement(element);
-            if (targetEl) {
-                targetEl.textContent = `Error: ${http.status} ${http.statusText}`;
-            }
         },
 
         attemptInitOnErrorActions(http, element) {
@@ -482,7 +476,7 @@
         },
 
         handleMxDuringRequest(element, targetElement) {
-            const mxDuringRequest = element.getAttribute('mx-during-request');
+            const mxDuringRequest = element.getAttribute('mx-target-loading');
             if (mxDuringRequest) {
                 if (mxDuringRequest === 'cloak') {
                     targetElement.style.setProperty('opacity', '0', 'important');
@@ -675,6 +669,14 @@
                 case 'delete':
                     target.remove();
                     break;
+                case 'value':
+                    if ('value' in target) {  // Check if target has a value property
+                        target.value = processedSource;
+                    } else {
+                        console.warn('Target element does not support value property');
+                        target.innerHTML = processedSource;  // Fallback to innerHTML
+                    }
+                    break;
                 case 'none':
                     // Do nothing
                     break;
@@ -855,7 +857,7 @@
             modal.appendChild(modalBody);
             document.body.appendChild(modal);
 
-            this.openModal(modalId);
+            this.openModal(modalId, modalData);
 
             const targetModal = document.getElementById(modalId);
             if (typeof modalData === 'object' && modalData.width) {
@@ -885,14 +887,7 @@
                 buttonPara.setAttribute('class', 'text-center');
                 let buttonsAdded = false;
 
-                if (typeof modalOptions === 'string') {
-                    const closeBtn = document.createElement('button');
-                    closeBtn.setAttribute('class', 'alt');
-                    closeBtn.innerText = 'Close';
-                    closeBtn.setAttribute('onclick', 'closeModal()');
-                    buttonPara.appendChild(closeBtn);
-                    buttonsAdded = true;
-                } else if (typeof modalOptions === 'object') {
+                if (typeof modalOptions === 'object') {
                     if (modalOptions.hasOwnProperty('showCloseButton')) {
                         const closeBtn = document.createElement('button');
                         closeBtn.setAttribute('class', 'alt');
@@ -939,7 +934,7 @@
             }
         },
 
-        openModal(modalId) {
+        openModal(modalId, modalData) {
             var body = document.querySelector("body");
             var pageOverlay = document.getElementById("overlay");
 
@@ -967,9 +962,13 @@
                 newModal.innerHTML = targetModalContent;
                 modalContainer.appendChild(newModal);
 
+                const marginTop = typeof modalData === 'object' ? 
+                    (modalData.marginTop || modalData['margin-top'] || '12vh') : 
+                    '12vh';
+
                 setTimeout(() => {
                     newModal.style.opacity = 1;
-                    newModal.style.marginTop = "12vh";
+                    newModal.style.marginTop = marginTop;
                 }, 0);
             }
         },
@@ -1219,9 +1218,18 @@
             }
 
             if (element.hasAttribute('mx-remove')) {
-                const parent = element.closest('.category-level');
-                if (parent) {
-                    parent.remove();
+                const value = element.getAttribute('mx-remove');
+                
+                if (value === 'true') {
+                    const parent = element.parentElement;
+                    if (parent) {
+                        parent.remove();
+                    }
+                } else {
+                    const ancestor = element.closest(value);
+                    if (ancestor) {
+                        ancestor.remove();
+                    }
                 }
                 return;
             }
