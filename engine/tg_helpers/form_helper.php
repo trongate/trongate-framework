@@ -430,7 +430,7 @@ function form_file_select(string $name, ?array $attributes = null, ?string $addi
  *
  * This function handles data from any HTTP method (GET, POST, PUT, PATCH, DELETE)
  * and supports both form-encoded and JSON payloads. It can optionally clean up
- * the retrieved value by trimming whitespace and applying HTML special character encoding.
+ * the retrieved value by trimming whitespace.
  *
  * @param string $field_name The name of the field to retrieve, supports dot notation for nested fields.
  * @param bool $clean_up Whether to clean up the retrieved value (default is false).
@@ -483,12 +483,10 @@ function post(string $field_name, bool $clean_up = false): string|int|float|arra
     if ($clean_up) {
         if (is_string($value)) {
             $value = trim($value);
-            $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
         } elseif (is_array($value)) {
             array_walk_recursive($value, function(&$item) {
                 if (is_string($item)) {
                     $item = trim($item);
-                    $item = htmlspecialchars($item, ENT_QUOTES, 'UTF-8');
                 }
             });
         }
