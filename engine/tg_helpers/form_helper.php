@@ -426,43 +426,51 @@ function form_file_select(string $name, ?array $attributes = null, ?string $addi
 }
 
 /**
- * Retrieve and optionally clean a value from POST data (form-encoded or JSON).
+ * Retrieve and optionally clean a value from request data (form-encoded or JSON).
  *
- * This function handles both traditional form-encoded POST data and JSON payloads.
- * It can optionally clean up the retrieved value by trimming whitespace and
- * applying HTML special character encoding.
+ * This function handles data from any HTTP method (GET, POST, PUT, PATCH, DELETE)
+ * and supports both form-encoded and JSON payloads. It can optionally clean up
+ * the retrieved value by trimming whitespace and applying HTML special character encoding.
  *
- * @param string $field_name The name of the POST field to retrieve, supports dot notation for nested fields.
+ * @param string $field_name The name of the field to retrieve, supports dot notation for nested fields.
  * @param bool $clean_up Whether to clean up the retrieved value (default is false).
  * 
- * @return string|int|float|array The value retrieved from the POST data:
+ * @return string|int|float|array The value retrieved from the request data:
  *         - string: for text inputs
  *         - int: for integer values
  *         - float: for decimal numbers
  *         - array: for JSON objects or arrays
  *         - empty string: if the field is not found
  * 
- * @throws Exception If there's an error reading the input stream for JSON data.
+ * @throws Exception If there's an error reading or decoding the input data.
  */
 function post(string $field_name, bool $clean_up = false): string|int|float|array {
-    static $post_data = null;
-
-    if ($post_data === null) {
+    static $request_data = null;
+    if ($request_data === null) {
         $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
-        if (stripos($content_type, 'application/json') !== false) {
-            $json_data = file_get_contents('php://input');
-            $post_data = json_decode($json_data, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception('Error decoding JSON data: ' . json_last_error_msg());
-            }
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && stripos($content_type, 'application/json') === false) {
+            $request_data = $_POST;  // Standard POST form data
         } else {
-            $post_data = $_POST;
+            // Handle PUT, PATCH, DELETE and JSON requests
+            $raw_data = file_get_contents('php://input');
+            if (empty($raw_data)) {
+                $request_data = [];
+            } elseif (stripos($content_type, 'application/json') !== false) {
+                $request_data = json_decode($raw_data, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new Exception('Error decoding JSON data: ' . json_last_error_msg());
+                }
+            } else {
+                // Handle form-encoded data for PUT/PATCH/DELETE
+                parse_str($raw_data, $request_data);
+            }
         }
     }
 
     // Handle dot notation for nested fields
     $fields = explode('.', $field_name);
-    $value = $post_data;
+    $value = $request_data;
     foreach ($fields as $field) {
         if (isset($value[$field])) {
             $value = $value[$field];
@@ -471,6 +479,7 @@ function post(string $field_name, bool $clean_up = false): string|int|float|arra
         }
     }
 
+    // Clean up the value if requested
     if ($clean_up) {
         if (is_string($value)) {
             $value = trim($value);
@@ -485,12 +494,13 @@ function post(string $field_name, bool $clean_up = false): string|int|float|arra
         }
     }
 
+    // Convert numeric strings to their appropriate type
     if (is_numeric($value) && !is_array($value)) {
         return filter_var($value, FILTER_VALIDATE_INT) !== false
             ? (int) $value
             : (float) $value;
     }
-
+    
     return $value;
 }
 
