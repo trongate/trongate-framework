@@ -16,22 +16,12 @@ class Validation {
      * @return void
      */
     public function set_rules(string $key, string $label, $rules): void {
-
-        if ((!isset($_POST[$key])) && (isset($_FILES[$key]))) {
-
-            if (!isset($_POST[$key])) {
-                $_POST[$key] = '';
-            }
-
+        if (isset($_FILES[$key])) {
+            // File handling
             $posted_value = $_FILES[$key];
             $tests_to_run[] = 'validate_file';
         } else {
-
-            if (isset($_POST[$key])) {
-                $_POST[$key] = trim($_POST[$key]);
-            }
-
-            $posted_value = isset($_POST[$key]) ? $_POST[$key] : '';
+            $posted_value = post($key, true);
             $tests_to_run = $this->get_tests_to_run($rules);
         }
 
@@ -141,18 +131,17 @@ class Validation {
     private function process_validation_array(array $validation_array): void {
 
         foreach ($validation_array as $key => $value) {
-
             if (isset($value['label'])) {
                 $label = $value['label'];
             } else {
                 $label = str_replace('_', ' ', $key);
             }
 
-            if ((!isset($_POST[$key])) && (isset($_FILES[$key]))) {
+            if (isset($_FILES[$key])) {
                 $posted_value = $_FILES[$key];
                 $tests_to_run[] = 'validate_file';
             } else {
-                $posted_value = $_POST[$key];
+                $posted_value = post($key, true);
                 $rules = $this->build_rules_str($value);
                 $tests_to_run = $this->get_tests_to_run($rules);
             }
@@ -206,7 +195,8 @@ class Validation {
      * @return void
      */
     private function check_for_required(array $validation_data): void {
-        extract($validation_data);
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
         $posted_value = trim($validation_data['posted_value']);
 
         if ($posted_value === '') {
@@ -222,7 +212,10 @@ class Validation {
      * @return void
      */
     private function check_for_numeric(array $validation_data): void {
-        extract($validation_data);
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $posted_value = $validation_data['posted_value'];
+
         if ((!is_numeric($posted_value)) && ($posted_value !== '')) {
             $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be numeric.';
         }
@@ -236,9 +229,11 @@ class Validation {
      * @return void
      */
     private function check_for_integer(array $validation_data): void {
-        extract($validation_data);
-        if ($posted_value !== '') {
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $posted_value = $validation_data['posted_value'];
 
+        if ($posted_value !== '') {
             $result = ctype_digit(strval($posted_value));
 
             if ($result === false) {
@@ -255,9 +250,11 @@ class Validation {
      * @return void
      */
     private function check_for_decimal(array $validation_data): void {
-        extract($validation_data);
-        if ($posted_value !== '') {
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $posted_value = $validation_data['posted_value'];
 
+        if ($posted_value !== '') {
             if ((float) $posted_value == floor($posted_value)) {
                 $this->form_submission_errors[$key][] = 'The ' . $label . ' field must contain a number with a decimal.';
             }
@@ -273,7 +270,10 @@ class Validation {
      * @throws Exception If the posted value is not a valid date in the expected format.
      */
     private function valid_datepicker(array $validation_data): bool {
-        extract($validation_data);
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $posted_value = $validation_data['posted_value'];
+
         if ($posted_value !== '') {
             try {
                 $parsed_date = parse_date($posted_value);
@@ -281,7 +281,7 @@ class Validation {
                 if ($parsed_date instanceof DateTime) {
                     return true;
                 } else {
-                    throw new Exception('Invalid date format'); // Triggering catch block if parsing fails
+                    throw new Exception('Invalid date format');
                 }
             } catch (Exception $e) {
                 $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a valid date in the format ' . DEFAULT_DATE_FORMAT . '.';
@@ -289,7 +289,7 @@ class Validation {
             }
         }
 
-        return false; // Return false when $posted_value is empty
+        return false;
     }
 
     /**
@@ -324,7 +324,9 @@ class Validation {
      * @return bool Returns true if the input is a valid date and time, otherwise adds an error message and returns false.
      */
     private function valid_datetimepicker(array $validation_data): bool {
-        extract($validation_data);
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $posted_value = $validation_data['posted_value'];
 
         if ($posted_value !== '') {
             $parsed_datetime = parse_datetime($posted_value);
@@ -337,7 +339,7 @@ class Validation {
             }
         }
 
-        return false; // Return false when $posted_value is empty
+        return false;
     }
 
     /**
@@ -367,7 +369,9 @@ class Validation {
      * @return bool Returns true if the input is a valid time, otherwise adds an error message and returns false.
      */
     private function valid_time(array $validation_data): bool {
-        extract($validation_data);
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $posted_value = $validation_data['posted_value'];
 
         if ($posted_value !== '') {
             $pattern = '/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/'; // Regex pattern for HH:MM format
@@ -380,7 +384,7 @@ class Validation {
             return false;
         }
 
-        return false; // If $posted_value is empty
+        return false;
     }
 
     /**
@@ -394,15 +398,12 @@ class Validation {
      */
     private function matches(string $key, string $label, string $posted_value, string $target_field): void {
         $got_error = false;
-
-        if (!isset($_POST[$target_field])) {
+        
+        $target_value = post($target_field, true);
+        if ($target_value === '') {
             $got_error = true;
-        } else {
-            $target_value = $_POST[$target_field];
-
-            if ($posted_value !== $target_value) {
-                $got_error = true;
-            }
+        } else if ($posted_value !== $target_value) {
+            $got_error = true;
         }
 
         if ($got_error) {
@@ -421,19 +422,13 @@ class Validation {
      * @return void
      */
     private function differs(string $key, string $label, string $posted_value, string $target_field): void {
-        // Initialize error flag
         $got_error = false;
-
-        if (!isset($_POST[$target_field])) {
-            // If target field is not set, consider it different
+        
+        $target_value = post($target_field, true);
+        if ($target_value === '') {
             $got_error = true;
-        } else {
-            $target_value = $_POST[$target_field];
-
-            if ($posted_value == $target_value) {
-                // If posted value matches the target value, set error flag
-                $got_error = true;
-            }
+        } else if ($posted_value == $target_value) {
+            $got_error = true;
         }
 
         if ($got_error) {
@@ -452,7 +447,7 @@ class Validation {
      * @return void
      */
     private function min_length(string $key, string $label, string $posted_value, int $inner_value): void {
-        if ((strlen($_POST[$key]) < $inner_value) && ($posted_value !== '')) {
+        if ((strlen($posted_value) < $inner_value) && ($posted_value !== '')) {
             $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be at least ' . $inner_value . ' characters in length.';
         }
     }
@@ -467,7 +462,7 @@ class Validation {
      * @return void
      */
     private function max_length(string $key, string $label, string $posted_value, int $inner_value): void {
-        if ((strlen($_POST[$key]) > $inner_value) && ($posted_value !== '')) {
+        if ((strlen($posted_value) > $inner_value) && ($posted_value !== '')) {
             $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be no more than  ' . $inner_value . ' characters in length.';
         }
     }
@@ -482,7 +477,7 @@ class Validation {
      * @return void
      */
     private function greater_than(string $key, string $label, string $posted_value, int $inner_value): void {
-        if (((is_numeric($_POST[$key])) && ($_POST[$key] <= $inner_value)) && ($posted_value !== '')) {
+        if ((is_numeric($posted_value) && ($posted_value <= $inner_value)) && ($posted_value !== '')) {
             $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be greater than ' . $inner_value . '.';
         }
     }
@@ -497,7 +492,7 @@ class Validation {
      * @return void
      */
     private function less_than(string $key, string $label, string $posted_value, int $inner_value): void {
-        if (((is_numeric($_POST[$key])) && ($_POST[$key] >= $inner_value)) && ($posted_value !== '')) {
+        if ((is_numeric($posted_value) && ($posted_value >= $inner_value)) && ($posted_value !== '')) {
             $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be less than ' . $inner_value . '.';
         }
     }
@@ -509,7 +504,10 @@ class Validation {
      * @return void
      */
     private function valid_email(array $validation_data): void {
-        extract($validation_data);
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $posted_value = $validation_data['posted_value'];
+
         if ($posted_value !== '') {
             if (!filter_var($posted_value, FILTER_VALIDATE_EMAIL)) {
                 $this->form_submission_errors[$key][] = 'The ' . $label . ' field must contain a valid email address.';
@@ -541,7 +539,7 @@ class Validation {
      * @return void
      */
     private function exact_length(string $key, string $label, string $posted_value, int $inner_value): void {
-        if ((strlen($_POST[$key]) !== $inner_value) && ($posted_value !== '')) {
+        if ((strlen($posted_value) !== $inner_value) && ($posted_value !== '')) {
             $error_msg = 'The ' . $label . ' field must be ' . $inner_value . ' characters in length.';
 
             if ($inner_value == 1) {
@@ -559,11 +557,14 @@ class Validation {
      * @return void
      */
     private function run_special_test(array $validation_data): void {
-        extract($validation_data);
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $posted_value = $validation_data['posted_value'];
+        $test_to_run = $validation_data['test_to_run'];
+
         $pos = strpos($test_to_run, '[');
 
         if (is_numeric($pos)) {
-
             if ($posted_value === '') {
                 return; // No need to perform tests if no value is submitted
             }
