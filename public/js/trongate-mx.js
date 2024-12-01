@@ -197,11 +197,21 @@
             Http.setMXHeaders(http, element);
             Http.setMXHandlers(http, element);
         
-            const isForm = containingForm !== null;
-            let formData = isForm ? new FormData(containingForm) : new FormData();
+            const isFormSubmission = containingForm !== null;
+            let formData;
+            
+            // Always get form data if we have a form, regardless of where the attributes are
+            if (isFormSubmission) {
+                formData = new FormData(containingForm);
+            } else {
+                formData = new FormData();
+            }
         
-            // Process mx-vals
-            const mxValsStr = element.getAttribute('mx-vals');
+            // Process mx-vals from either the form or the triggering element
+            const mxValsStr = isFormSubmission ? 
+                containingForm.getAttribute('mx-vals') || element.getAttribute('mx-vals') : 
+                element.getAttribute('mx-vals');
+
             if (mxValsStr) {
                 const vals = Utils.parseAttributeValue(mxValsStr);
                 if (vals && typeof vals === 'object') {
@@ -530,7 +540,8 @@
         },
 
         attemptActivateLoader(element) {
-            const indicatorSelector = Utils.getAttributeValue(element, 'mx-indicator');
+            // Only check the element itself for mx-indicator, not its ancestors
+            const indicatorSelector = element.getAttribute('mx-indicator');
             if (indicatorSelector) {
                 const loaderEl = document.querySelector(indicatorSelector);
                 if (loaderEl) {
@@ -1206,7 +1217,7 @@
                     await Utils.executeMXFunction(onTriggerFunction, customEvent);
                 } catch (error) {
                     console.error(`Error executing ${onTriggerFunction}:`, error);
-                    return; // Stop further processing if the trigger function fails
+                    return;
                 }
             }
 
@@ -1217,36 +1228,52 @@
                 return;
             }
 
+            const attribute = CONFIG.CORE_MX_ATTRIBUTES.find(attr => element.hasAttribute(attr));
+
+            // Start HTTP request processing before handling mx-remove
+            let httpRequestStarted = false;
+            if (attribute && attribute !== 'mx-remove') {
+                httpRequestStarted = true;
+                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
+                    (attribute !== 'mx-get')) {
+                    Main.mxSubmitForm(element, triggerEvent, attribute, event);
+                } else if (element.tagName.toLowerCase() === 'select' && 
+                           attribute === 'mx-get' && 
+                           element.getAttribute('mx-trigger') === 'change') {
+                    Main.initInvokeHttpRequest(element, attribute, event);
+                } else {
+                    Main.initInvokeHttpRequest(element, attribute, event);
+                }
+            }
+
+            // Handle mx-remove after initiating HTTP request
             if (element.hasAttribute('mx-remove')) {
                 const value = element.getAttribute('mx-remove');
                 
-                if (value === 'true') {
-                    const parent = element.parentElement;
-                    if (parent) {
-                        parent.remove();
+                // Use setTimeout to ensure HTTP request gets processed first
+                setTimeout(() => {
+                    if (value === 'true') {
+                        const parent = element.parentElement;
+                        if (parent) {
+                            parent.remove();
+                        }
+                    } else {
+                        const ancestor = element.closest(value);
+                        if (ancestor) {
+                            ancestor.remove();
+                        }
                     }
-                } else {
-                    const ancestor = element.closest(value);
-                    if (ancestor) {
-                        ancestor.remove();
-                    }
-                }
-                return;
+                }, 0);
             }
 
-            const attribute = CONFIG.CORE_MX_ATTRIBUTES.find(attr => element.hasAttribute(attr));
-
-            if (
-                (element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
-                (attribute !== 'mx-get') &&
-                !element.hasAttribute('mx-vals')
-            ) {
-                Main.mxSubmitForm(element, triggerEvent, attribute, event);
-            } else {
-                // Special handling for select elements with mx-get and mx-trigger="change"
-                if (element.tagName.toLowerCase() === 'select' && 
-                    attribute === 'mx-get' && 
-                    element.getAttribute('mx-trigger') === 'change') {
+            // If no HTTP request was started and no mx-remove was handled, process as normal
+            if (!httpRequestStarted && !element.hasAttribute('mx-remove')) {
+                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
+                    (attribute !== 'mx-get')) {
+                    Main.mxSubmitForm(element, triggerEvent, attribute, event);
+                } else if (element.tagName.toLowerCase() === 'select' && 
+                           attribute === 'mx-get' && 
+                           element.getAttribute('mx-trigger') === 'change') {
                     Main.initInvokeHttpRequest(element, attribute, event);
                 } else {
                     Main.initInvokeHttpRequest(element, attribute, event);
