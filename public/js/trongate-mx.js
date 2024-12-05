@@ -839,6 +839,13 @@
 
     const Modal = {
         buildMXModal(modalData, element, httpMethodAttribute, event) {
+
+            // Is the trigger element inside a modal
+            const containingModal = element.closest('.modal');
+            if (containingModal) {
+                closeModal();
+            }
+
             const modalId = typeof modalData === 'string' ? modalData : modalData.id;
 
             const existingEl = document.getElementById(modalId);
