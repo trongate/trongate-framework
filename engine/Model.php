@@ -52,20 +52,23 @@ class Model {
     /**
      * Retrieves rows from a database table based on optional parameters.
      *
-     * @param string|null $order_by (optional) The column to order results by. Default is 'id'.
+     * @param string|null $order_by (optional) The column to order results by. Default is primary key of the table.
      * @param string|null $target_tbl (optional) The name of the database table to query. Default is null.
      * @param int|null $limit (optional) The maximum number of results to return. Default is null.
      * @param int $offset (optional) The number of rows to skip before fetching results. Default is 0.
      * @return array Returns an array of objects representing the fetched rows.
      */
     public function get(?string $order_by = null, ?string $target_tbl = null, ?int $limit = null, int $offset = 0): array {
-        // Set default order_by if not provided
-        $order_by = $order_by ?? 'id';
-
         // Determine the target table if not provided
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
         }
+
+        // Retrieve primary key name for the table
+        $primary_key = $this->get_primary_key_name($target_tbl);
+
+        // Set default order_by to primary key if not provided
+        $order_by = $order_by ?? $primary_key;
 
         // Build the base SQL query
         $sql = "SELECT * FROM $target_tbl ORDER BY $order_by";
@@ -95,18 +98,26 @@ class Model {
     /**
      * Retrieves rows from a database table based on custom conditions.
      *
-     * @param string $column The name of the table column referred to when fetching results.
-     * @param mixed $value The value that should be matched against the target table column.
+     * @param string $column The name of the table column to use in the condition.
+     * @param mixed $value The value to match against the specified column.
      * @param string $operator (optional) The comparison operator. Default is '='.
      * @param string $order_by (optional) The column to order results by. Default is 'id'.
-     * @param string|null $target_table (optional) The name of the database table to be queried. Default is null.
+     * @param string|null $target_table (optional) The name of the database table to query. Default is null.
      * @param int|null $limit (optional) The maximum number of results to return. Default is null.
      * @param int|null $offset (optional) The number of rows to skip before fetching results. Default is null.
-     * @return array Returns an array of objects representing the fetched rows. If no records are found, an empty array is returned.
+     * @return array Returns an array of objects representing the fetched rows.
      * @throws InvalidArgumentException If an invalid operator is provided.
-     * @throws RuntimeException If the query execution fails.
+     * @throws RuntimeException If query execution fails.
      */
-    public function get_where_custom(string $column, $value, string $operator = '=', string $order_by = 'id', ?string $target_table = null, ?int $limit = null, ?int $offset = null): array {
+    public function get_where_custom(
+        string $column,
+        $value,
+        string $operator = '=',
+        string $order_by = 'id',
+        ?string $target_table = null,
+        ?int $limit = null,
+        ?int $offset = null
+    ): array {
         if (!isset($target_table)) {
             $target_table = $this->get_table_from_url();
         }
@@ -115,6 +126,12 @@ class Model {
         $valid_operators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'LIKE', 'NOT LIKE'];
         if (!in_array($operator, $valid_operators)) {
             throw new InvalidArgumentException("Invalid operator: $operator");
+        }
+
+        // Validate and set order_by column to primary key if default is used and primary key is known
+        if ($order_by === 'id') {
+            $primary_key = $this->get_primary_key_name($target_table);
+            $order_by = $primary_key ?? $order_by;
         }
 
         // Build the SQL query
@@ -166,7 +183,10 @@ class Model {
             $target_table = $this->get_table_from_url();
         }
 
-        $sql = "SELECT * FROM $target_table WHERE id = :id";
+        // Retrieve primary key name for the table
+        $primary_key = $this->get_primary_key_name($target_table);
+
+        $sql = "SELECT * FROM $target_table WHERE $primary_key = :id";
 
         if ($this->debug) {
             $this->show_query($sql, $data, $this->query_caveat);
@@ -465,17 +485,24 @@ class Model {
     }
 
     /**
-     * Update a record in the database table.
+     * Updates a record in a database table.
      *
      * @param int $update_id The ID of the record to update.
-     * @param array $data An associative array containing column names as keys and their corresponding values.
+     * @param array $data An associative array of column names and their new values.
      * @param string|null $target_table (optional) The name of the database table to update. Default is null.
-     * @return bool True if the update was successful, false otherwise.
-     * @throws RuntimeException If the query execution fails.
+     * @return bool Returns true on successful update, false otherwise.
+     * @throws RuntimeException If query execution fails.
      */
     public function update(int $update_id, array $data, ?string $target_table = null): bool {
         if (!isset($target_table)) {
             $target_table = $this->get_table_from_url();
+        }
+
+        // Retrieve primary key name for the table
+        $primary_key = $this->get_primary_key_name($target_table);
+
+        if (!$primary_key) {
+            throw new RuntimeException("Primary key not found for table: $target_table");
         }
 
         // Construct the SET part of the SQL query
@@ -486,7 +513,7 @@ class Model {
         $set_clause = implode(', ', $set_columns);
 
         // Construct the WHERE part of the SQL query
-        $where_clause = "`$target_table`.`id` = :id";
+        $where_clause = "`$target_table`.`$primary_key` = :id";
 
         // Construct the full SQL query
         $sql = "UPDATE `$target_table` SET $set_clause WHERE $where_clause";
@@ -534,21 +561,28 @@ class Model {
     }
 
     /**
-     * Deletes a record from a database table based on its ID.
+     * Deletes a record from a database table.
      *
      * @param int $id The ID of the record to delete.
-     * @param string|null $target_tbl (optional) The name of the database table. Default is null.
-     * @return bool Indicates whether the delete operation was successful.
-     * @throws RuntimeException If the query execution fails.
+     * @param string|null $target_tbl (optional) The name of the database table from which to delete the record. Default is null.
+     * @return bool Returns true on successful deletion, false otherwise.
+     * @throws RuntimeException If query execution fails.
      */
     public function delete(int $id, ?string $target_tbl = null): bool {
         if (!isset($target_tbl)) {
             $target_tbl = $this->get_table_from_url();
         }
 
+        // Retrieve primary key name for the table
+        $primary_key = $this->get_primary_key_name($target_tbl);
+
+        if (!$primary_key) {
+            throw new RuntimeException("Primary key not found for table: $target_tbl");
+        }
+
         // Construct the SQL query
-        $sql = "DELETE FROM `$target_tbl` WHERE id = :id";
-        
+        $sql = "DELETE FROM `$target_tbl` WHERE `$primary_key` = :id";
+
         // Prepare data for execution
         $data = ['id' => $id];
 
@@ -716,8 +750,9 @@ class Model {
      *
      * @param string $table_name The name of the table to resequence IDs for.
      * @return bool True upon successful resequencing, false otherwise.
-     * @throws Exception If the operation fails.
-     *
+     * @throws RuntimeException If query execution fails.
+     * @throws Exception If transaction fails.
+ *
      * @note This method should be used with caution and may produce undesired consequences.
      *       Resequencing IDs can lead to potential data inconsistencies and unexpected behaviors,
      *       especially in systems with complex relationships or when dealing with large datasets.
@@ -726,20 +761,26 @@ class Model {
      *       proper backups of your data before executing this operation.
      */
     public function resequence_ids(string $table_name): bool {
+        // Retrieve primary key name for the table
+        $primary_key = $this->get_primary_key_name($table_name);
+
+        if (!$primary_key) {
+            throw new RuntimeException("Primary key not found for table: $table_name");
+        }
 
         $num_rows = $this->count($table_name);
         if ($num_rows === 0) {
-            $sql = 'ALTER TABLE '.$table_name.' AUTO_INCREMENT = 1';
+            $sql = "ALTER TABLE $table_name AUTO_INCREMENT = 1";
             $this->query($sql);
             return true;
         }
-        
+
         try {
             // Begin transaction
             $this->dbh->beginTransaction();
 
-            // Fetch all rows ordered by current ID
-            $rows = $this->get('id', $table_name);
+            // Fetch all rows ordered by current primary key
+            $rows = $this->get($primary_key, $table_name);
 
             // Initialize new counter starting from 1
             $counter = 1;
@@ -754,9 +795,9 @@ class Model {
 
             // First pass: assign temporary IDs to avoid conflicts
             foreach ($rows as $row) {
-                $id = $row->id;
+                $id = $row->$primary_key;
                 $temp_id = -$counter; // Use negative numbers for temporary IDs
-                $stmt = $this->dbh->prepare("UPDATE $table_name SET id = :temp_id WHERE id = :id");
+                $stmt = $this->dbh->prepare("UPDATE $table_name SET $primary_key = :temp_id WHERE $primary_key = :id");
                 $stmt->execute([':temp_id' => $temp_id, ':id' => $id]);
                 $counter++;
             }
@@ -766,15 +807,16 @@ class Model {
             foreach ($rows as $row) {
                 $temp_id = -$counter; // Temporary IDs were used in the first pass
                 $new_id = $counter;
-                $stmt = $this->dbh->prepare("UPDATE $table_name SET id = :new_id WHERE id = :temp_id");
+                $stmt = $this->dbh->prepare("UPDATE $table_name SET $primary_key = :new_id WHERE $primary_key = :temp_id");
                 $stmt->execute([':new_id' => $new_id, ':temp_id' => $temp_id]);
                 $counter++;
             }
 
             // Commit transaction
             $this->dbh->commit();
-            
-            $sql = 'ALTER TABLE '.$table_name.' AUTO_INCREMENT = 1';
+
+            // Reset auto-increment value to the highest ID + 1
+            $sql = "ALTER TABLE $table_name AUTO_INCREMENT = " . ($counter + 1);
             $this->query($sql);
 
             // Return true upon successful resequencing
@@ -1000,6 +1042,39 @@ class Model {
         }
 
         return $sql;
+    }
+
+    /**
+     * Retrieves the primary key name for a given table.
+     *
+     * @param string $table_name The name of the database table.
+     * @return string The primary key name of the table.
+     */
+    public function get_primary_key_name(string $table_name): string {
+        // Query to get the primary key column for the specified table
+        $query = "
+        SELECT COLUMN_NAME
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_NAME = :table_name AND COLUMN_KEY = 'PRI'
+        LIMIT 1
+    ";
+
+        // Prepare the statement
+        $stmt = $this->dbh->prepare($query);
+        $stmt->bindParam(':table_name', $table_name, PDO::PARAM_STR);
+
+        // Execute the query
+        $stmt->execute();
+
+        // Fetch the primary key name
+        $primary_key = $stmt->fetchColumn();
+
+        // If no primary key is found, throw an exception
+        if (!$primary_key) {
+            throw new Exception("Primary key not found for table $table_name.");
+        }
+
+        return $primary_key;
     }
 
 }
