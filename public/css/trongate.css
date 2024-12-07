@@ -461,16 +461,19 @@ div.modal-body p.text-center {
   height: 100%;
 }
 
+.modal .form-field-validation-error,
 .form-field-validation-error {
   border: 3px #ff0000 solid !important;
   background-color: #ff000011 !important;
 }
 
+.modal .validation-error-alert,
 .validation-error-alert {
   padding: 12px 12px 0 12px;
   border-radius: 12px;
 }
 
+.modal .validation-error-alert h3,
 .validation-error-alert h3 {
   margin-top: 0;
   display: flex;
@@ -478,11 +481,13 @@ div.modal-body p.text-center {
   color: #ff0000;
 }
 
+.modal .validation-error-report,
 .validation-error-report {
   color: #ff0000 !important;
   width: 100%;
 }
 
+.modal .validation-error-report > div,
 .validation-error-report > div {
   margin-bottom: 7px;
   font-size: 16px;
