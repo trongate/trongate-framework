@@ -38,7 +38,7 @@ class Pagination {
     private static $default_settings = [
         'pagination_open' => '<div class="pagination">',
         'pagination_close' => '</div>',
-        'cur_link_open' => '<a href="#" class="active">',
+        'cur_link_open' => '<a class="active">',
         'cur_link_close' => '</a>',
         'num_link_open' => '',
         'num_link_close' => '',
