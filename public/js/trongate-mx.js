@@ -859,10 +859,78 @@
             modal.style.display = 'none';
 
             if (typeof modalData === 'object' && modalData.modalHeading) {
+
                 const modalHeading = document.createElement('div');
                 modalHeading.className = 'modal-heading';
-                modalHeading.innerHTML = modalData.modalHeading;
+                let renderCloseIcon = (modalData.renderCloseIcon) ? modalData.renderCloseIcon : true;
+
+                if (renderCloseIcon === false || renderCloseIcon === 'false') {
+                    modalHeading.innerHTML = modalData.modalHeading;
+                } else {
+                    modalHeading.classList.add('flex-row');
+                    modalHeading.classList.add('align-center');
+                    modalHeading.classList.add('justify-between');
+
+                    const modalHeadingLhs = document.createElement('div');
+                    modalHeadingLhs.innerHTML = modalData.modalHeading;
+                    modalHeading.appendChild(modalHeadingLhs);
+
+                    const modalHeadingRhs = document.createElement('div');
+
+                    // Check if Font Awesome is available
+                    const faIconAvailable = document.querySelector('link[href*="font-awesome"]') !== null || document.querySelector('.fa-times') !== null;
+
+                    if (faIconAvailable) {
+                        // If Font Awesome is available, use the Font Awesome icon
+                        const closeIcon = document.createElement('i');
+                        closeIcon.classList.add('fa', 'fa-times');
+                        closeIcon.style.cursor = 'pointer'; // Add pointer cursor for clickability
+                        closeIcon.setAttribute('onclick', 'closeModal()');
+
+                        modalHeadingRhs.appendChild(closeIcon);
+                    } else {
+                        // If Font Awesome is not available, use SVG that mimics the fa-times icon
+                        const closeIconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        closeIconSvg.setAttribute('width', '16');
+                        closeIconSvg.setAttribute('height', '16');
+                        closeIconSvg.setAttribute('viewBox', '0 0 100 100');
+                        closeIconSvg.setAttribute('fill', 'currentColor');
+                        closeIconSvg.setAttribute('class', 'bi bi-x');
+                        closeIconSvg.style.cursor = 'pointer';
+
+                        const crossGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        crossGroup.setAttribute('transform', 'rotate(45, 50, 50)');
+
+                        const verticalRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        verticalRect.setAttribute('x', '38');
+                        verticalRect.setAttribute('y', '0');
+                        verticalRect.setAttribute('width', '24');
+                        verticalRect.setAttribute('height', '100');
+                        verticalRect.setAttribute('rx', '12');
+                        verticalRect.setAttribute('ry', '12');
+
+                        const horizontalRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        horizontalRect.setAttribute('x', '0');
+                        horizontalRect.setAttribute('y', '38');
+                        horizontalRect.setAttribute('width', '100');
+                        horizontalRect.setAttribute('height', '24');
+                        horizontalRect.setAttribute('rx', '12');
+                        horizontalRect.setAttribute('ry', '12');
+
+                        crossGroup.appendChild(verticalRect);
+                        crossGroup.appendChild(horizontalRect);
+                        closeIconSvg.appendChild(crossGroup);
+
+                        closeIconSvg.setAttribute('onclick', 'closeModal()');
+                        modalHeadingRhs.appendChild(closeIconSvg);
+                    }
+
+                    modalHeading.appendChild(modalHeadingRhs);
+                }
+
                 modal.appendChild(modalHeading);
+
+
             }
 
             const modalBody = document.createElement('div');
