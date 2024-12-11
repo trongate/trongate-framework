@@ -1259,7 +1259,6 @@
             // Initialize observer for indicators
             Dom.initializeIndicatorObserver();
             
-            // Initialize existing indicators
             document.querySelectorAll('.mx-indicator').forEach(element => {
                 Dom.initializeSingleIndicator(element);
             });
@@ -1267,6 +1266,30 @@
             const events = ['click', 'dblclick', 'change', 'submit', 'keyup', 'keydown', 'focus', 'blur', 'input'];
             events.forEach(eventType => {
                 document.body.addEventListener(eventType, Main.handleTrongateMXEvent);
+            });
+
+            // Add modal-specific event listeners
+            document.addEventListener('keydown', (event) => {
+                if (event.key === "Escape") {
+                    const modalContainer = document.getElementById("modal-container");
+                    if (modalContainer) {
+                        TrongateMX.closeModal();
+                    }
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (window.TrongateMX.isOpeningModal) {
+                    return;
+                }
+
+                const modalContainer = document.getElementById("modal-container");
+                if (modalContainer) {
+                    const modal = modalContainer.querySelector(".modal");
+                    if (modal && !modal.contains(event.target)) {
+                        TrongateMX.closeModal();
+                    }
+                }
             });
 
             document.querySelectorAll('[mx-trigger*="load"]').forEach(Dom.handlePageLoadedEvents);
@@ -1498,7 +1521,9 @@
     window.TrongateMX = {
         init: Main.initializeTrongateMX,
         openModal: Modal.openModal,
-        closeModal: Modal.closeModal
+        closeModal: Modal.closeModal,
+        isOpeningModal: false
     };
+
 
 })(window);
