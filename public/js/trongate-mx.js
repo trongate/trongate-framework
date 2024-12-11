@@ -1,3 +1,5 @@
+let trongateMXOpeningModal = false;
+
 (function(window) {
     'use strict';
 
@@ -1021,6 +1023,12 @@
         },
 
         openModal(modalId, modalData) {
+            trongateMXOpeningModal = true;
+
+            setTimeout(() => {
+                trongateMXOpeningModal = false;
+            }, 100);
+
             var body = document.querySelector("body");
             var pageOverlay = document.getElementById("overlay");
 
@@ -1491,8 +1499,39 @@
         }
     };
 
+    function handleEscapeKey(event) {
+        if (event.key === "Escape") {
+            const modalContainer = document.getElementById("modal-container");
+            if (modalContainer) {
+                closeModal();
+            }
+        }
+    }
+
+    function handleModalClick(event) {
+
+        if (trongateMXOpeningModal === true) {
+            return;
+        }
+
+        const modalContainerEl = document.getElementById("modal-container");
+        if (modalContainerEl) {
+            const modal = modalContainerEl.querySelector(".modal");
+            if (modal && !modal.contains(event.target)) {
+                closeModal();
+            }
+        }
+
+    }
+
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
+
+    // Initialize closing of modals upon pressing 'Escape' key.
+    document.addEventListener("keydown", handleEscapeKey);
+
+    // Invoke handleModalClick on every click event
+    document.addEventListener("click", handleModalClick);
 
     // Expose necessary functions to the global scope
     window.TrongateMX = {
@@ -1502,3 +1541,27 @@
     };
 
 })(window);
+
+const _mxCloseModal = function () {
+    const modalContainer = document.getElementById("modal-container");
+    if (modalContainer) {
+        const openModal = modalContainer.firstChild;
+        openModal.style.zIndex = -4;
+        openModal.style.opacity = 0;
+        openModal.style.marginTop = '12vh';
+        openModal.style.display = "none";
+        const tmxBody = document.querySelector('body');
+        tmxBody.appendChild(openModal);
+        modalContainer.remove();
+
+        const overlay = document.getElementById("overlay");
+        if (overlay) {
+            overlay.remove();
+        }
+
+        const event = new Event("modalClosed", { bubbles: true, cancelable: true });
+        document.dispatchEvent(event);
+    }
+};
+
+window.closeModal = window.closeModal || _mxCloseModal;
