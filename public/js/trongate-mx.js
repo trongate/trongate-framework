@@ -1259,6 +1259,7 @@
             // Initialize observer for indicators
             Dom.initializeIndicatorObserver();
             
+            // Initialize existing indicators
             document.querySelectorAll('.mx-indicator').forEach(element => {
                 Dom.initializeSingleIndicator(element);
             });
@@ -1266,30 +1267,6 @@
             const events = ['click', 'dblclick', 'change', 'submit', 'keyup', 'keydown', 'focus', 'blur', 'input'];
             events.forEach(eventType => {
                 document.body.addEventListener(eventType, Main.handleTrongateMXEvent);
-            });
-
-            // Add modal-specific event listeners
-            document.addEventListener('keydown', (event) => {
-                if (event.key === "Escape") {
-                    const modalContainer = document.getElementById("modal-container");
-                    if (modalContainer) {
-                        TrongateMX.closeModal();
-                    }
-                }
-            });
-
-            document.addEventListener('click', (event) => {
-                if (window.TrongateMX.isOpeningModal) {
-                    return;
-                }
-
-                const modalContainer = document.getElementById("modal-container");
-                if (modalContainer) {
-                    const modal = modalContainer.querySelector(".modal");
-                    if (modal && !modal.contains(event.target)) {
-                        TrongateMX.closeModal();
-                    }
-                }
             });
 
             document.querySelectorAll('[mx-trigger*="load"]').forEach(Dom.handlePageLoadedEvents);
@@ -1521,33 +1498,7 @@
     window.TrongateMX = {
         init: Main.initializeTrongateMX,
         openModal: Modal.openModal,
-        closeModal: Modal.closeModal,
-        isOpeningModal: false
+        closeModal: Modal.closeModal
     };
 
-
 })(window);
-
-// Make sure closeModal() works (identical to app.js version)
-const _mxCloseModal = function () {
-    const modalContainer = document.getElementById("modal-container");
-    if (modalContainer) {
-        const openModal = modalContainer.firstChild;
-        openModal.style.zIndex = TGUI_ADMIN.UI_CONSTANTS.MODAL.Z_INDEX_HIDDEN;
-        openModal.style.opacity = 0;
-        openModal.style.marginTop = TGUI_ADMIN.UI_CONSTANTS.MODAL.DEFAULT_MARGIN_TOP;
-        openModal.style.display = "none";
-        TGUI_ADMIN.body.appendChild(openModal);
-        modalContainer.remove();
-
-        const overlay = document.getElementById("overlay");
-        if (overlay) {
-            overlay.remove();
-        }
-
-        const event = new Event("modalClosed", { bubbles: true, cancelable: true });
-        document.dispatchEvent(event);
-    }
-};
-
-window.closeModal = window.closeModal || _mxCloseModal;
