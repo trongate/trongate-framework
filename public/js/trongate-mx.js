@@ -1022,6 +1022,18 @@ let trongateMXOpeningModal = false;
             }
         },
 
+        handleTrongateMXModalClick(event, modalElement) {
+            if (trongateMXOpeningModal === true) {
+                return;
+            }
+
+            if (!modalElement.contains(event.target)) {
+                closeModal();
+                // Remove this specific event listener since we're closing the modal
+                document.removeEventListener('click', modalElement._boundClickHandler);
+            }
+        },
+
         openModal(modalId, modalData) {
             trongateMXOpeningModal = true;
 
@@ -1041,7 +1053,6 @@ let trongateMXOpeningModal = false;
                 var overlay = document.createElement("div");
                 overlay.setAttribute("id", "overlay");
                 overlay.setAttribute("style", "z-index: 2");
-
                 body.prepend(overlay);
 
                 var targetModal = document.getElementById(modalId);
@@ -1051,7 +1062,6 @@ let trongateMXOpeningModal = false;
                 var newModal = document.createElement("div");
                 newModal.setAttribute("class", "modal");
                 newModal.setAttribute("id", modalId);
-
                 newModal.style.zIndex = 4;
                 newModal.innerHTML = targetModalContent;
                 modalContainer.appendChild(newModal);
@@ -1059,6 +1069,12 @@ let trongateMXOpeningModal = false;
                 const marginTop = typeof modalData === 'object' ? 
                     (modalData.marginTop || modalData['margin-top'] || '12vh') : 
                     '12vh';
+
+                // Create a bound version of the click handler specifically for this modal
+                newModal._boundClickHandler = (event) => this.handleTrongateMXModalClick(event, newModal);
+                
+                // Add the click event listener with the bound handler
+                document.addEventListener('click', newModal._boundClickHandler);
 
                 setTimeout(() => {
                     newModal.style.opacity = 1;
@@ -1508,30 +1524,11 @@ let trongateMXOpeningModal = false;
         }
     }
 
-    function handleModalClick(event) {
-
-        if (trongateMXOpeningModal === true) {
-            return;
-        }
-
-        const modalContainerEl = document.getElementById("modal-container");
-        if (modalContainerEl) {
-            const modal = modalContainerEl.querySelector(".modal");
-            if (modal && !modal.contains(event.target)) {
-                closeModal();
-            }
-        }
-
-    }
-
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
 
     // Initialize closing of modals upon pressing 'Escape' key.
     document.addEventListener("keydown", handleEscapeKey);
-
-    // Invoke handleModalClick on every click event
-    document.addEventListener("click", handleModalClick);
 
     // Expose necessary functions to the global scope
     window.TrongateMX = {
