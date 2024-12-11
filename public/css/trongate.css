@@ -581,6 +581,8 @@ div.modal-body p.text-center {
 .flex-wrap { flex-wrap: wrap; }
 .flex-nowrap { flex-wrap: nowrap; }
 
+.cloak { display: none; }
+
 @media screen and (max-width: 550px) {
   button, .button { width: 100%; display: block; }
   .modal { max-height: 85vh; overflow-y: auto; }
