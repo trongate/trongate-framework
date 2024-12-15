@@ -24,11 +24,20 @@ const TGUI_ADMIN = (() => {
     const main = document.querySelector("main");
     let slideNavOpen = false;
     let openingModal = false;
+    let mousedownEl;
+    let mouseupEl;
 
     // Private functions
     function handleSlideNavClick(event) {
         if (slideNavOpen && event.target.id !== "open-btn" && !slideNav.contains(event.target)) {
-            _adminCloseSlideNav();
+
+            const mousedownInsideSlideNav = slideNav.contains(mousedownEl);
+            const mouseupInsideSlideNav = slideNav.contains(mouseupEl);
+
+            if ((!mousedownInsideSlideNav) && (!mouseupInsideSlideNav)) {
+                _adminCloseSlideNav();
+            }
+
         }
     }
 
@@ -42,6 +51,7 @@ const TGUI_ADMIN = (() => {
     }
 
     function handleModalClick(event) {
+
         if (openingModal) {
             return;
         }
@@ -49,9 +59,14 @@ const TGUI_ADMIN = (() => {
         const modalContainer = document.getElementById("modal-container");
         if (modalContainer) {
             const modal = modalContainer.querySelector(".modal");
-            if (modal && !modal.contains(event.target)) {
+            const clickedOutside = modal && !modal.contains(event.target);
+            const mousedownInsideModal = modal && modal.contains(mousedownEl);
+            const mouseupInsideModal = modal && modal.contains(mouseupEl);
+
+            if ((clickedOutside) && (!mousedownInsideModal) && (!mouseupInsideModal)) {
                 _adminCloseModal();
             }
+
         }
     }
 
@@ -72,6 +87,14 @@ const TGUI_ADMIN = (() => {
     body.addEventListener("click", (event) => {
         handleSlideNavClick(event);
         handleModalClick(event);
+    });
+
+    body.addEventListener("mousedown", (event) => {
+        mousedownEl = event.target;
+    });
+
+    body.addEventListener("mouseup", (event) => {
+        mouseupEl = event.target;
     });
 
     document.addEventListener("keydown", handleEscapeKey);
