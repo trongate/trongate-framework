@@ -10,6 +10,8 @@ let trongateMXOpeningModal = false;
     };
 
     let lastRequestTime = 0;
+    let mousedownEl;
+    let mouseupEl;
 
     const Utils = {
         parseAttributeValue(value) {
@@ -1022,65 +1024,54 @@ let trongateMXOpeningModal = false;
             }
         },
 
-        handleTrongateMXModalClick(event, modalElement) {
-            if (trongateMXOpeningModal === true) {
-                return;
-            }
-
-            if (!modalElement.contains(event.target)) {
-                closeModal();
-                // Remove this specific event listener since we're closing the modal
-                document.removeEventListener('click', modalElement._boundClickHandler);
-            }
-        },
-
         openModal(modalId, modalData) {
             trongateMXOpeningModal = true;
 
             setTimeout(() => {
                 trongateMXOpeningModal = false;
-            }, 100);
+            }, 333);
 
-            var body = document.querySelector("body");
-            var pageOverlay = document.getElementById("overlay");
+            const mxPageBody = document.body;
+            let mxPageOverlay = document.getElementById("overlay");
 
-            if (typeof pageOverlay === "undefined" || pageOverlay === null) {
-                var modalContainer = document.createElement("div");
-                modalContainer.setAttribute("id", "modal-container");
-                modalContainer.setAttribute("style", "z-index: 3;");
-                body.prepend(modalContainer);
+            if (typeof mxPageOverlay === "undefined" || mxPageOverlay === null) {
 
-                var overlay = document.createElement("div");
-                overlay.setAttribute("id", "overlay");
-                overlay.setAttribute("style", "z-index: 2");
-                body.prepend(overlay);
+                // Create a modal container div and prepend it to the page.
+                const mxModalContainer = document.createElement("div");
+                mxModalContainer.setAttribute("id", "modal-container");
+                mxModalContainer.setAttribute("style", "z-index: 3;");
+                mxPageBody.prepend(mxModalContainer);
 
-                var targetModal = document.getElementById(modalId);
-                var targetModalContent = targetModal.innerHTML;
-                targetModal.remove();
+                // Create an overlay element.
+                const mxPageOverlay = document.createElement("div");
+                mxPageOverlay.setAttribute("id", "overlay");
+                mxPageOverlay.setAttribute("style", "z-index: 2");
+                mxPageBody.prepend(mxPageOverlay);
 
-                var newModal = document.createElement("div");
-                newModal.setAttribute("class", "modal");
-                newModal.setAttribute("id", modalId);
-                newModal.style.zIndex = 4;
-                newModal.innerHTML = targetModalContent;
-                modalContainer.appendChild(newModal);
+                // Fetch existing modal contents and remove existing modal (if one with the same ID exists).
+                const mxExistingModal = document.getElementById(modalId);
+                const existingMxModalContent = mxExistingModal.innerHTML;
 
-                const marginTop = typeof modalData === 'object' ? 
-                    (modalData.marginTop || modalData['margin-top'] || '12vh') : 
-                    '12vh';
+                // Create a new modal element and append it to the mxModalContainer
+                const newMxModal = document.createElement("div");
+                newMxModal.setAttribute("class", "modal");
+                newMxModal.setAttribute("id", modalId);
+                newMxModal.style.zIndex = 4;
+                newMxModal.innerHTML = existingMxModalContent;
+                mxModalContainer.appendChild(newMxModal);
 
-                // Create a bound version of the click handler specifically for this modal
-                newModal._boundClickHandler = (event) => this.handleTrongateMXModalClick(event, newModal);
-                
-                // Add the click event listener with the bound handler
-                document.addEventListener('click', newModal._boundClickHandler);
+                // Get the top margin for the new modal (attempting to read from modalData)
+                const mxModalMarginTop = typeof modalData === 'object' 
+                  ? (modalData.marginTop || modalData['margin-top'] || '12vh') 
+                  : '12vh';
 
+                // Make the new modal element appear!
                 setTimeout(() => {
-                    newModal.style.opacity = 1;
-                    newModal.style.marginTop = marginTop;
+                    newMxModal.style.opacity = 1;
+                    newMxModal.style.marginTop = mxModalMarginTop;
                 }, 0);
             }
+
         },
 
         closeModal() {
@@ -1524,11 +1515,46 @@ let trongateMXOpeningModal = false;
         }
     }
 
+    function handleMxModalClick(event) {
+
+        if (trongateMXOpeningModal) {
+            return;
+        }
+
+        const preExistingMxModalContainer = document.getElementById("modal-container");
+
+        if (preExistingMxModalContainer) {
+            const preExistingMxModal = preExistingMxModalContainer.querySelector(".modal");
+            const clickedOutside = preExistingMxModal && !preExistingMxModal.contains(event.target);
+            const mousedownInsideModal = preExistingMxModal && preExistingMxModal.contains(mousedownEl);
+            const mouseupInsideModal = preExistingMxModal && preExistingMxModal.contains(mouseupEl);
+
+            if ((clickedOutside) && (!mousedownInsideModal) && (!mouseupInsideModal)) {
+                closeModal();
+            }
+        }
+    }
+
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
 
     // Initialize closing of modals upon pressing 'Escape' key.
     document.addEventListener("keydown", handleEscapeKey);
+
+
+    document.addEventListener("click", (event) => {
+        handleMxModalClick(event);
+    });
+
+    // Establish the target element when mouse down event happens.
+    document.addEventListener("mousedown", (event) => {
+        mousedownEl = event.target;
+    });
+
+    // Establish the target element when mouse down event happens.
+    document.addEventListener("mouseup", (event) => {
+        mouseupEl = event.target;
+    });
 
     // Expose necessary functions to the global scope
     window.TrongateMX = {
@@ -1540,16 +1566,16 @@ let trongateMXOpeningModal = false;
 })(window);
 
 const _mxCloseModal = function () {
-    const modalContainer = document.getElementById("modal-container");
-    if (modalContainer) {
-        const openModal = modalContainer.firstChild;
+    const mxModalContainer = document.getElementById("modal-container");
+    if (mxModalContainer) {
+        const openModal = mxModalContainer.firstChild;
         openModal.style.zIndex = -4;
         openModal.style.opacity = 0;
         openModal.style.marginTop = '12vh';
         openModal.style.display = "none";
         const tmxBody = document.querySelector('body');
         tmxBody.appendChild(openModal);
-        modalContainer.remove();
+        mxModalContainer.remove();
 
         const overlay = document.getElementById("overlay");
         if (overlay) {
