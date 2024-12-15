@@ -1039,6 +1039,7 @@ let trongateMXOpeningModal = false;
                 // Create a modal container div and prepend it to the page.
                 const mxModalContainer = document.createElement("div");
                 mxModalContainer.setAttribute("id", "modal-container");
+                mxModalContainer.setAttribute("class", "mx-modal-container");
                 mxModalContainer.setAttribute("style", "z-index: 3;");
                 mxPageBody.prepend(mxModalContainer);
 
@@ -1521,7 +1522,7 @@ let trongateMXOpeningModal = false;
             return;
         }
 
-        const preExistingMxModalContainer = document.getElementById("modal-container");
+        const preExistingMxModalContainer = document.querySelector('.mx-modal-container');
 
         if (preExistingMxModalContainer) {
             const preExistingMxModal = preExistingMxModalContainer.querySelector(".modal");
