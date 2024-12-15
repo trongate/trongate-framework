@@ -205,17 +205,27 @@ function form_open_upload(string $location, ?array $attributes = null, ?string $
  *
  * @return string The HTML closing tag for the form.
  */
+/**
+ * Generates hidden CSRF token input field and a closing form tag.
+ *
+ * @return string The HTML closing tag for the form.
+ */
 function form_close(): string {
+    // Ensure a CSRF token exists in the session
     if (!isset($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
 
+    // Generate the hidden CSRF token input
     $html = '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') . '">';
     $html .= '</form>';
 
+    // Check if form submission errors exist
     if (isset($_SESSION['form_submission_errors'])) {
-        $errors_json = json_encode($_SESSION['form_submission_errors'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-        $html .= highlight_validation_errors($errors_json);
+        // Pass the error array directly to highlight_validation_errors
+        $html .= highlight_validation_errors($_SESSION['form_submission_errors']);
+        
+        // Clear the session errors after processing
         unset($_SESSION['form_submission_errors']);
     }
 
@@ -225,15 +235,26 @@ function form_close(): string {
 /**
  * Highlight validation errors using provided JSON data.
  *
- * @param string $errors_json JSON data containing validation errors.
+ * @param array $errors_data Array containing validation errors.
  * @return string HTML code for highlighting validation errors.
  */
-function highlight_validation_errors(string $errors_json): string {
+function highlight_validation_errors(array $errors_data): string {
+    // Safely encode the errors data into JSON
+    $errors_json = json_encode($errors_data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+
+    if ($errors_json === false) {
+        error_log('JSON encoding failed for validation errors.');
+        return '';
+    }
+
+    // Read the JavaScript template
     $output_str = file_get_contents(APPPATH . 'engine/views/highlight_errors.txt');
     if ($output_str === false) {
         error_log('Failed to read highlight_errors.txt file');
         return '';
     }
+
+    // Inject JSON data safely into the JavaScript context
     return '<div class="inline-validation-builder"><script>let validationErrorsJson = ' . $errors_json . ';</script><script>' . $output_str . '</script></div>';
 }
 
@@ -405,43 +426,51 @@ function form_file_select(string $name, ?array $attributes = null, ?string $addi
 }
 
 /**
- * Retrieve and optionally clean a value from POST data (form-encoded or JSON).
+ * Retrieve and optionally clean a value from request data (form-encoded or JSON).
  *
- * This function handles both traditional form-encoded POST data and JSON payloads.
- * It can optionally clean up the retrieved value by trimming whitespace and
- * applying HTML special character encoding.
+ * This function handles data from any HTTP method (GET, POST, PUT, PATCH, DELETE)
+ * and supports both form-encoded and JSON payloads. It can optionally clean up
+ * the retrieved value by trimming whitespace and normalizing internal spaces.
  *
- * @param string $field_name The name of the POST field to retrieve, supports dot notation for nested fields.
+ * @param string $field_name The name of the field to retrieve, supports dot notation for nested fields.
  * @param bool $clean_up Whether to clean up the retrieved value (default is false).
  * 
- * @return string|int|float|array The value retrieved from the POST data:
+ * @return string|int|float|array The value retrieved from the request data:
  *         - string: for text inputs
  *         - int: for integer values
  *         - float: for decimal numbers
  *         - array: for JSON objects or arrays
  *         - empty string: if the field is not found
  * 
- * @throws Exception If there's an error reading the input stream for JSON data.
+ * @throws Exception If there's an error reading or decoding the input data.
  */
 function post(string $field_name, bool $clean_up = false): string|int|float|array {
-    static $post_data = null;
-
-    if ($post_data === null) {
+    static $request_data = null;
+    if ($request_data === null) {
         $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
-        if (stripos($content_type, 'application/json') !== false) {
-            $json_data = file_get_contents('php://input');
-            $post_data = json_decode($json_data, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception('Error decoding JSON data: ' . json_last_error_msg());
-            }
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && stripos($content_type, 'application/json') === false) {
+            $request_data = $_POST;  // Standard POST form data
         } else {
-            $post_data = $_POST;
+            // Handle PUT, PATCH, DELETE and JSON requests
+            $raw_data = file_get_contents('php://input');
+            if (empty($raw_data)) {
+                $request_data = [];
+            } elseif (stripos($content_type, 'application/json') !== false) {
+                $request_data = json_decode($raw_data, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new Exception('Error decoding JSON data: ' . json_last_error_msg());
+                }
+            } else {
+                // Handle form-encoded data for PUT/PATCH/DELETE
+                parse_str($raw_data, $request_data);
+            }
         }
     }
 
     // Handle dot notation for nested fields
     $fields = explode('.', $field_name);
-    $value = $post_data;
+    $value = $request_data;
     foreach ($fields as $field) {
         if (isset($value[$field])) {
             $value = $value[$field];
@@ -450,26 +479,26 @@ function post(string $field_name, bool $clean_up = false): string|int|float|arra
         }
     }
 
+    // Clean up the value if requested
     if ($clean_up) {
         if (is_string($value)) {
-            $value = trim($value);
-            $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+            $value = trim(preg_replace('/\s+/', ' ', $value));
         } elseif (is_array($value)) {
             array_walk_recursive($value, function(&$item) {
                 if (is_string($item)) {
-                    $item = trim($item);
-                    $item = htmlspecialchars($item, ENT_QUOTES, 'UTF-8');
+                    $item = trim(preg_replace('/\s+/', ' ', $item));
                 }
             });
         }
     }
 
+    // Convert numeric strings to their appropriate type
     if (is_numeric($value) && !is_array($value)) {
         return filter_var($value, FILTER_VALIDATE_INT) !== false
             ? (int) $value
             : (float) $value;
     }
-
+    
     return $value;
 }
 

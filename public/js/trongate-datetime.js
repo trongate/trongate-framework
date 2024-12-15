@@ -1412,6 +1412,18 @@ async function tgdtInitializeDateTimeConfigurations() {
   }
 }
 
+if (typeof window._ === 'undefined') {
+    window._ = function (str) {
+        var firstChar = str.substring(0, 1);
+        if (firstChar === '.') {
+            str = str.replace('.', '');
+            return document.getElementsByClassName(str);
+        } else {
+            return document.getElementById(str);
+        }
+    };
+}
+
 window.addEventListener("click", (event) => {
   // Remove any unintended or unwanted date/time related popups.
 

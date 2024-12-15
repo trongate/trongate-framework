@@ -1,3 +1,5 @@
+let trongateMXOpeningModal = false;
+
 (function(window) {
     'use strict';
 
@@ -64,12 +66,92 @@
                 return true;
             }
             return false;
+        },
+        parseUrlWithPlaceholders(url, element) {
+            return url.replace(/\$\{([^}]+)\}/g, (match, p1) => {
+                if (p1 === 'this.value') {
+                    return element.value;
+                }
+                return match;
+            });
+        },
+        pushUrl(url) {
+            const normalizedUrl = this.normalizeUrl(url);
+            if (normalizedUrl && window.location.href !== normalizedUrl) {
+                history.pushState({}, '', normalizedUrl);
+            }
+        },
+        getRequestUrl(element) {
+            for (const attr of CONFIG.CORE_MX_ATTRIBUTES) {
+                let url = element.getAttribute(attr);
+                if (url) {
+                    url = this.processDynamicUrl(url, element);
+                    return this.normalizeUrl(url);
+                }
+            }
+            return null;
+        },
+        processDynamicUrl(url, element) {
+            return url.replace(/\${([^}]+)}/g, (match, p1) => {
+                if (p1 === 'this.value') {
+                    return element.value;
+                }
+                return match; // Return unchanged if no match
+            });
+        },
+        normalizeUrl(url) {
+            const baseElement = document.querySelector('base');
+            const baseUrl = baseElement ? baseElement.href : window.location.origin + '/';
+
+            // Check if the url already starts with the base URL
+            if (url.startsWith(baseUrl)) {
+                return url; // Return the url as is if it already includes the base URL
+            }
+
+            // Remove leading slash from url if baseUrl ends with a slash
+            if (baseUrl.endsWith('/') && url.startsWith('/')) {
+                url = url.substring(1);
+            }
+
+            // Ensure there's exactly one slash between base URL and the path
+            return baseUrl.replace(/\/?$/, '/') + url.replace(/^\//, '');
+        },
+        createMXEvent(element, event, type, extraDetails = {}) {
+            // Always get the closest button/form element as the target
+            const targetElement = element.closest('button, form') || element;
+            
+            return {
+                target: targetElement,
+                type: type,
+                detail: {
+                    element: targetElement,
+                    originalEvent: event,
+                    ...extraDetails
+                }
+            };
+        },
+
+        executeMXFunction(functionName, customEvent) {
+            if (!functionName) return;
+            
+            const cleanFunctionName = functionName.replace(/\(\)$/, '');
+            if (typeof window[cleanFunctionName] === 'function') {
+                try {
+                    window[cleanFunctionName](customEvent);
+                } catch (error) {
+                    console.error(`Error executing ${cleanFunctionName}:`, error);
+                }
+            } else {
+                console.warn(`Function ${cleanFunctionName} not found`);
+            }
         }
     };
 
     const Http = {
         setupHttpRequest(element, httpMethodAttribute) {
-            const targetUrl = element.getAttribute(httpMethodAttribute);
+            let targetUrl = element.getAttribute(httpMethodAttribute);
+            targetUrl = Utils.parseUrlWithPlaceholders(targetUrl, element);
+            targetUrl = Utils.normalizeUrl(targetUrl);
             const requestType = httpMethodAttribute.replace('mx-', '').toUpperCase();
             Dom.attemptActivateLoader(element);
             
@@ -117,11 +199,21 @@
             Http.setMXHeaders(http, element);
             Http.setMXHandlers(http, element);
         
-            const isForm = containingForm !== null;
-            let formData = isForm ? new FormData(containingForm) : new FormData();
+            const isFormSubmission = containingForm !== null;
+            let formData;
+            
+            // Always get form data if we have a form, regardless of where the attributes are
+            if (isFormSubmission) {
+                formData = new FormData(containingForm);
+            } else {
+                formData = new FormData();
+            }
         
-            // Process mx-vals
-            const mxValsStr = element.getAttribute('mx-vals');
+            // Process mx-vals from either the form or the triggering element
+            const mxValsStr = isFormSubmission ? 
+                containingForm.getAttribute('mx-vals') || element.getAttribute('mx-vals') : 
+                element.getAttribute('mx-vals');
+
             if (mxValsStr) {
                 const vals = Utils.parseAttributeValue(mxValsStr);
                 if (vals && typeof vals === 'object') {
@@ -149,9 +241,9 @@
             return { http, formData, targetElement };
         },
 
-        invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm) {
+        invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm, event) {
             const { http, formData, targetElement } = Http.commonHttpRequest(element, httpMethodAttribute, containingForm);
-        
+
             http.onload = function() {
                 Dom.attemptHideLoader(containingForm);
                 
@@ -161,11 +253,11 @@
                 if (shouldResetForm) {
                     containingForm.reset();
                 }
-        
+
                 const responseTarget = element.hasAttribute(httpMethodAttribute) ? element : containingForm;
-                Http.handleHttpResponse(http, responseTarget, triggerEvent);
+                Http.handleHttpResponse(http, responseTarget, event);
             };
-        
+
             try {
                 http.send(formData);
             } catch (error) {
@@ -174,16 +266,46 @@
             }
         },
 
+        initInvokeHttpRequest(element, httpMethodAttribute, event) {
+            const buildModalStr = element.getAttribute('mx-build-modal');
+
+            if (buildModalStr) {
+                const modalOptions = Utils.parseAttributeValue(buildModalStr);
+
+                if (modalOptions === false) {
+                    console.warn("Invalid JSON in mx-build-modal:", buildModalStr);
+                    return;
+                }
+
+                if (typeof modalOptions === "string") {
+                    const modalData = {
+                        id: modalOptions
+                    };
+                    Modal.buildMXModal(modalData, element, httpMethodAttribute, event);
+                } else {
+                    Modal.buildMXModal(modalOptions, element, httpMethodAttribute, event);
+                }
+            } else {
+                Http.invokeHttpRequest(element, httpMethodAttribute, event);
+            }
+        },
+
         invokeHttpRequest(element, httpMethodAttribute, event) {
             const { http, formData, targetElement } = Http.commonHttpRequest(element, httpMethodAttribute);
             
             http.setRequestHeader('Accept', 'text/html');
-        
+
             http.onload = function() {
                 Dom.attemptHideLoader(element);
                 Http.handleHttpResponse(http, element, event);
+
+                // Push URL if mx-push-url is true and the request was successful
+                if (element.getAttribute('mx-push-url') === 'true' && http.status >= 200 && http.status < 300) {
+                    const requestUrl = Utils.getRequestUrl(element);
+                    Utils.pushUrl(requestUrl);
+                }
             };
-        
+
             try {
                 http.send(formData);
             } catch (error) {
@@ -196,59 +318,93 @@
             Dom.removeCloak();
             Dom.restoreOriginalContent();
             Dom.reEnableDisabledElements();
-        
+
             element.classList.remove('blink');
-        
-            if (http.status >= 200 && http.status < 300) {
-                if (http.getResponseHeader('Content-Type').includes('text/html')) {
-                    const targetEl = Dom.establishTargetElement(element);
-        
-                    if (targetEl) {
-                        const successAnimateStr = element.getAttribute('mx-animate-success');
-        
-                        if (successAnimateStr) {
-                            Animation.initAnimateSuccess(targetEl, http, element);
-                        } else {
-                            Modal.initAttemptCloseModal(targetEl, http, element);
-                            Dom.populateTargetEl(targetEl, http, element, event);
-                        }
-                    }
-        
-                    Http.attemptInitOnSuccessActions(http, element);
-        
-                } else {
-                    console.log('Response is not HTML. Handle accordingly.');
-                }
-            } else {
-                console.error('Request failed with status:', http.status);
-                switch (http.status) {
-                    case 404:
-                        console.error('Resource not found');
-                        break;
-                    case 500:
-                        console.error('Server error');
-                        break;
-                    default:
-                        console.error('An error occurred');
-                }
-        
-                const containingForm = element.closest('form');
-                if (containingForm) {
-                    Http.attemptDisplayValidationErrors(http, element, containingForm);
-                }
-        
-                const errorAnimateStr = element.getAttribute('mx-animate-error');
-        
-                if (errorAnimateStr) {
-                    Animation.initAnimateError(element, http, element);
-                } else {
-                    const targetEl = element ?? targetEl;
-                    Modal.initAttemptCloseModal(targetEl, http, element);
-                    Http.attemptInitOnErrorActions(http, element);
+
+            // Handle redirects first based on status and response text
+            const shouldRedirectOnSuccess = element.getAttribute('mx-redirect-on-success') === 'true';
+            const shouldRedirectOnError = element.getAttribute('mx-redirect-on-error') === 'true';
+            
+            const isSuccess = http.status >= 200 && http.status < 300;
+            const redirectUrl = http.responseText.trim();
+
+            // Check if we should redirect
+            if ((isSuccess && shouldRedirectOnSuccess) || (!isSuccess && shouldRedirectOnError)) {
+                if (redirectUrl && !redirectUrl.includes('<')) { // Basic check to ensure it's just a URL
+                    window.location.href = Utils.normalizeUrl(redirectUrl);
+                    return;
                 }
             }
-        
+
+            // If no redirect, continue with normal response handling
+            if (isSuccess) {
+                const contentType = http.getResponseHeader('Content-Type');
+                const targetEl = Dom.establishTargetElement(element);
+
+                if (targetEl) {
+                    const successAnimateStr = element.getAttribute('mx-animate-success');
+                    if (successAnimateStr) {
+                        Animation.initAnimateSuccess(targetEl, http, element);
+                    } else {
+                        Modal.initAttemptCloseModal(targetEl, http, element);
+                        this.updateContent(targetEl, http, element, event);
+                    }
+                }
+
+                if (element.getAttribute('mx-push-url') === 'true') {
+                    const requestUrl = Utils.getRequestUrl(element);
+                    Utils.pushUrl(requestUrl);
+                }
+
+                this.attemptInitOnSuccessActions(http, element);
+            } else {
+                this.handleErrorResponse(http, element);
+            }
+
             Dom.attemptHideLoader(element);
+        },
+
+        updateContent(targetEl, http, element, event) {
+            const contentType = http.getResponseHeader('Content-Type');
+            if (contentType.includes('text/html')) {
+                Dom.populateTargetEl(targetEl, http, element);
+            } else if (contentType.includes('application/json')) {
+                try {
+                    const jsonData = JSON.parse(http.responseText);
+                    targetEl.textContent = JSON.stringify(jsonData, null, 2);
+                } catch (error) {
+                    console.error('Error parsing JSON response:', error);
+                }
+            } else if (contentType.startsWith('image/')) {
+                targetEl.style.backgroundImage = `url('${http.responseURL}')`;
+            } else {
+                targetEl.textContent = http.responseText;
+            }
+            
+            // Handle mx-after-swap with standardized event handling
+            const functionName = element.getAttribute('mx-after-swap');
+            if (functionName) {
+                const customEvent = Utils.createMXEvent(element, event, 'afterSwap', { http });
+                Utils.executeMXFunction(functionName, customEvent);
+            }
+        },
+
+        handleErrorResponse(http, element) {
+            console.error('Request failed with status:', http.status);
+
+            const containingForm = element.closest('form');
+            if (containingForm) {
+                this.attemptDisplayValidationErrors(http, element, containingForm);
+            }
+
+            const errorAnimateStr = element.getAttribute('mx-animate-error');
+            if (errorAnimateStr) {
+                Animation.initAnimateError(element, http, element);
+            } else {
+                const targetEl = Dom.establishTargetElement(element);
+                Modal.initAttemptCloseModal(targetEl, http, element);
+                this.attemptInitOnErrorActions(http, element);
+            }
         },
 
         attemptInitOnErrorActions(http, element) {
@@ -282,8 +438,57 @@
     };
 
     const Dom = {
+
+        processedIndicators: new Set(),
+        indicatorObserver: null,
+
+        initializeIndicatorObserver() {
+            if (this.indicatorObserver) return;
+
+            this.indicatorObserver = new MutationObserver((mutations) => {
+                mutations.forEach(mutation => {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.classList?.contains('mx-indicator')) {
+                                this.initializeSingleIndicator(node);
+                            }
+                            // Check children
+                            node.querySelectorAll?.('.mx-indicator')?.forEach(indicator => {
+                                this.initializeSingleIndicator(indicator);
+                            });
+                        }
+                    });
+                    
+                    // Handle removed nodes
+                    mutation.removedNodes.forEach(node => {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.classList?.contains('mx-indicator')) {
+                                this.processedIndicators.delete(node);
+                            }
+                            // Clean up any tracked indicators that were children
+                            node.querySelectorAll?.('.mx-indicator')?.forEach(indicator => {
+                                this.processedIndicators.delete(indicator);
+                            });
+                        }
+                    });
+                });
+            });
+
+            this.indicatorObserver.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        },
+
+        initializeSingleIndicator(element) {
+            if (!element || this.processedIndicators.has(element)) return;
+            this.hideLoader(element);
+            element.style.display = '';
+            this.processedIndicators.add(element);
+        },
+
         handleMxDuringRequest(element, targetElement) {
-            const mxDuringRequest = element.getAttribute('mx-during-request');
+            const mxDuringRequest = element.getAttribute('mx-target-loading');
             if (mxDuringRequest) {
                 if (mxDuringRequest === 'cloak') {
                     targetElement.style.setProperty('opacity', '0', 'important');
@@ -337,7 +542,8 @@
         },
 
         attemptActivateLoader(element) {
-            const indicatorSelector = Utils.getAttributeValue(element, 'mx-indicator');
+            // Only check the element itself for mx-indicator, not its ancestors
+            const indicatorSelector = element.getAttribute('mx-indicator');
             if (indicatorSelector) {
                 const loaderEl = document.querySelector(indicatorSelector);
                 if (loaderEl) {
@@ -362,6 +568,7 @@
             if (element && element.classList.contains('mx-indicator')) {
                 element.classList.remove('mx-indicator');
                 element.classList.add('mx-indicator-hidden');
+                // Don't remove from processedIndicators here since the element may be reused
             }
         },
 
@@ -384,23 +591,18 @@
             return result;
         },
 
-        populateTargetEl(targetEl, http, element, event) {
+        populateTargetEl(targetEl, http, element) {
             const selectStr = element.getAttribute('mx-select');
             const mxSwapStr = Dom.establishSwapStr(element);
             const selectOobStr = element.getAttribute('mx-select-oob');
-        
             const tempFragment = document.createDocumentFragment();
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = http.responseText;
-        
             tempFragment.appendChild(tempDiv);
-        
             try {
                 Dom.handleOobSwaps(tempFragment, selectOobStr);
                 Dom.handleMainSwaps(targetEl, tempFragment, selectStr, mxSwapStr);
                 Modal.attemptAddModalButtons(targetEl, element);
-                Dom.executeAfterSwap(element, event);
-        
             } catch (error) {
                 console.error('Error in populateTargetEl:', error);
             } finally {
@@ -480,6 +682,14 @@
                 case 'delete':
                     target.remove();
                     break;
+                case 'value':
+                    if ('value' in target) {  // Check if target has a value property
+                        target.value = processedSource;
+                    } else {
+                        console.warn('Target element does not support value property');
+                        target.innerHTML = processedSource;  // Fallback to innerHTML
+                    }
+                    break;
                 case 'none':
                     // Do nothing
                     break;
@@ -501,51 +711,6 @@
             }
             
             return tempContainer.innerHTML;
-        },
-
-        executeAfterSwap(element, event) {
-            const afterSwapValue = element.getAttribute('mx-after-swap');
-            if (!afterSwapValue) return;
-                        
-            const match = afterSwapValue.match(/^(\w+)(?:\((.*?)\))?$/);
-            if (!match) {
-                console.warn(`Invalid mx-after-swap syntax: ${afterSwapValue}`);
-                return;
-            }
-            
-            const [, functionName, argString] = match;
-            
-            if (typeof window[functionName] !== 'function') {
-                console.warn(`Function ${functionName} not found`);
-                return;
-            }
-            
-            let args = [];
-            
-            if (argString === undefined || argString === '') {
-                // Case 1 and 2: No arguments, pass the event object
-                args.push(event);
-            } else if (argString === 'event') {
-                // Case 3: Explicitly pass the event object
-                args.push(event);
-            } else {
-                // Case 4: Parse the argument(s)
-                try {
-                    const parsedArgs = JSON.parse(`[${argString}]`);
-                    args = parsedArgs;
-                    // Always add the event as the last argument
-                    args.push(event);
-                } catch (e) {
-                    // If JSON.parse fails, treat it as a single string argument
-                    args.push(argString, event);
-                }
-            }
-            
-            try {
-                window[functionName].apply(null, args);
-            } catch (error) {
-                console.error(`Error executing ${functionName}:`, error);
-            }
         },
 
         handleValidationErrors(containingForm, validationErrors) {
@@ -671,10 +836,18 @@
                 child.style.opacity = opacityValue;
             });
         }
+        
     };
 
     const Modal = {
-        buildMXModal(modalData, element, httpMethodAttribute) {
+        buildMXModal(modalData, element, httpMethodAttribute, event) {
+
+            // Is the trigger element inside a modal
+            const containingModal = element.closest('.modal');
+            if (containingModal) {
+                closeModal();
+            }
+
             const modalId = typeof modalData === 'string' ? modalData : modalData.id;
 
             const existingEl = document.getElementById(modalId);
@@ -688,10 +861,78 @@
             modal.style.display = 'none';
 
             if (typeof modalData === 'object' && modalData.modalHeading) {
+
                 const modalHeading = document.createElement('div');
                 modalHeading.className = 'modal-heading';
-                modalHeading.innerHTML = modalData.modalHeading;
+                let renderCloseIcon = (modalData.renderCloseIcon) ? modalData.renderCloseIcon : true;
+
+                if (renderCloseIcon === false || renderCloseIcon === 'false') {
+                    modalHeading.innerHTML = modalData.modalHeading;
+                } else {
+                    modalHeading.classList.add('flex-row');
+                    modalHeading.classList.add('align-center');
+                    modalHeading.classList.add('justify-between');
+
+                    const modalHeadingLhs = document.createElement('div');
+                    modalHeadingLhs.innerHTML = modalData.modalHeading;
+                    modalHeading.appendChild(modalHeadingLhs);
+
+                    const modalHeadingRhs = document.createElement('div');
+
+                    // Check if Font Awesome is available
+                    const faIconAvailable = document.querySelector('link[href*="font-awesome"]') !== null || document.querySelector('.fa-times') !== null;
+
+                    if (faIconAvailable) {
+                        // If Font Awesome is available, use the Font Awesome icon
+                        const closeIcon = document.createElement('i');
+                        closeIcon.classList.add('fa', 'fa-times');
+                        closeIcon.style.cursor = 'pointer'; // Add pointer cursor for clickability
+                        closeIcon.setAttribute('onclick', 'closeModal()');
+
+                        modalHeadingRhs.appendChild(closeIcon);
+                    } else {
+                        // If Font Awesome is not available, use SVG that mimics the fa-times icon
+                        const closeIconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        closeIconSvg.setAttribute('width', '16');
+                        closeIconSvg.setAttribute('height', '16');
+                        closeIconSvg.setAttribute('viewBox', '0 0 100 100');
+                        closeIconSvg.setAttribute('fill', 'currentColor');
+                        closeIconSvg.setAttribute('class', 'bi bi-x');
+                        closeIconSvg.style.cursor = 'pointer';
+
+                        const crossGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        crossGroup.setAttribute('transform', 'rotate(45, 50, 50)');
+
+                        const verticalRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        verticalRect.setAttribute('x', '38');
+                        verticalRect.setAttribute('y', '0');
+                        verticalRect.setAttribute('width', '24');
+                        verticalRect.setAttribute('height', '100');
+                        verticalRect.setAttribute('rx', '12');
+                        verticalRect.setAttribute('ry', '12');
+
+                        const horizontalRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        horizontalRect.setAttribute('x', '0');
+                        horizontalRect.setAttribute('y', '38');
+                        horizontalRect.setAttribute('width', '100');
+                        horizontalRect.setAttribute('height', '24');
+                        horizontalRect.setAttribute('rx', '12');
+                        horizontalRect.setAttribute('ry', '12');
+
+                        crossGroup.appendChild(verticalRect);
+                        crossGroup.appendChild(horizontalRect);
+                        closeIconSvg.appendChild(crossGroup);
+
+                        closeIconSvg.setAttribute('onclick', 'closeModal()');
+                        modalHeadingRhs.appendChild(closeIconSvg);
+                    }
+
+                    modalHeading.appendChild(modalHeadingRhs);
+                }
+
                 modal.appendChild(modalHeading);
+
+
             }
 
             const modalBody = document.createElement('div');
@@ -704,7 +945,7 @@
             modal.appendChild(modalBody);
             document.body.appendChild(modal);
 
-            this.openModal(modalId);
+            this.openModal(modalId, modalData);
 
             const targetModal = document.getElementById(modalId);
             if (typeof modalData === 'object' && modalData.width) {
@@ -717,7 +958,7 @@
             const modalBodySelector = `#${modalId} .modal-body`;
             element.setAttribute('mx-target', modalBodySelector);
 
-            Http.invokeHttpRequest(element, httpMethodAttribute);
+            Http.invokeHttpRequest(element, httpMethodAttribute, event);
         },
 
         attemptAddModalButtons(targetEl, element) {
@@ -734,14 +975,7 @@
                 buttonPara.setAttribute('class', 'text-center');
                 let buttonsAdded = false;
 
-                if (typeof modalOptions === 'string') {
-                    const closeBtn = document.createElement('button');
-                    closeBtn.setAttribute('class', 'alt');
-                    closeBtn.innerText = 'Close';
-                    closeBtn.setAttribute('onclick', 'closeModal()');
-                    buttonPara.appendChild(closeBtn);
-                    buttonsAdded = true;
-                } else if (typeof modalOptions === 'object') {
+                if (typeof modalOptions === 'object') {
                     if (modalOptions.hasOwnProperty('showCloseButton')) {
                         const closeBtn = document.createElement('button');
                         closeBtn.setAttribute('class', 'alt');
@@ -788,7 +1022,25 @@
             }
         },
 
-        openModal(modalId) {
+        handleTrongateMXModalClick(event, modalElement) {
+            if (trongateMXOpeningModal === true) {
+                return;
+            }
+
+            if (!modalElement.contains(event.target)) {
+                closeModal();
+                // Remove this specific event listener since we're closing the modal
+                document.removeEventListener('click', modalElement._boundClickHandler);
+            }
+        },
+
+        openModal(modalId, modalData) {
+            trongateMXOpeningModal = true;
+
+            setTimeout(() => {
+                trongateMXOpeningModal = false;
+            }, 100);
+
             var body = document.querySelector("body");
             var pageOverlay = document.getElementById("overlay");
 
@@ -801,7 +1053,6 @@
                 var overlay = document.createElement("div");
                 overlay.setAttribute("id", "overlay");
                 overlay.setAttribute("style", "z-index: 2");
-
                 body.prepend(overlay);
 
                 var targetModal = document.getElementById(modalId);
@@ -811,14 +1062,23 @@
                 var newModal = document.createElement("div");
                 newModal.setAttribute("class", "modal");
                 newModal.setAttribute("id", modalId);
-
                 newModal.style.zIndex = 4;
                 newModal.innerHTML = targetModalContent;
                 modalContainer.appendChild(newModal);
 
+                const marginTop = typeof modalData === 'object' ? 
+                    (modalData.marginTop || modalData['margin-top'] || '12vh') : 
+                    '12vh';
+
+                // Create a bound version of the click handler specifically for this modal
+                newModal._boundClickHandler = (event) => this.handleTrongateMXModalClick(event, newModal);
+                
+                // Add the click event listener with the bound handler
+                document.addEventListener('click', newModal._boundClickHandler);
+
                 setTimeout(() => {
                     newModal.style.opacity = 1;
-                    newModal.style.marginTop = "12vh";
+                    newModal.style.marginTop = marginTop;
                 }, 0);
             }
         },
@@ -1020,9 +1280,12 @@
 
     const Main = {
         initializeTrongateMX() {
+            // Initialize observer for indicators
+            Dom.initializeIndicatorObserver();
+            
+            // Initialize existing indicators
             document.querySelectorAll('.mx-indicator').forEach(element => {
-                Dom.hideLoader(element);
-                element.style.display = '';
+                Dom.initializeSingleIndicator(element);
             });
 
             const events = ['click', 'dblclick', 'change', 'submit', 'keyup', 'keydown', 'focus', 'blur', 'input'];
@@ -1031,51 +1294,98 @@
             });
 
             document.querySelectorAll('[mx-trigger*="load"]').forEach(Dom.handlePageLoadedEvents);
-
             Main.attemptInitPolling();
+            window.addEventListener('popstate', Main.handlePopState);
         },
 
-        handleTrongateMXEvent(event) {
+        async handleTrongateMXEvent(event) {
             const element = event.target.closest('[' + CONFIG.CORE_MX_ATTRIBUTES.join('],[') + ']');
 
             if (!element) return;
 
             const triggerEvent = Main.establishTriggerEvent(element);
-
             if (triggerEvent !== event.type) return;
 
             event.preventDefault();
 
-            // Add throttle check here
+            // Execute mx-on-trigger function if present
+            const onTriggerFunction = element.getAttribute('mx-on-trigger');
+            if (onTriggerFunction) {
+                const customEvent = Utils.createMXEvent(element, event, 'trigger');
+                try {
+                    await Utils.executeMXFunction(onTriggerFunction, customEvent);
+                } catch (error) {
+                    console.error(`Error executing ${onTriggerFunction}:`, error);
+                    return;
+                }
+            }
+
+            // Throttle check here
             const throttleTime = parseInt(element.getAttribute('mx-throttle')) || 0;
             if (throttleTime > 0 && !Utils.canMakeRequest(throttleTime)) {
                 console.log('Request throttled');
                 return;
             }
 
-            if (element.hasAttribute('mx-remove')) {
-                const parent = element.closest('.category-level');
-                if (parent) {
-                    parent.remove();
-                }
-                return;
-            }
-
             const attribute = CONFIG.CORE_MX_ATTRIBUTES.find(attr => element.hasAttribute(attr));
 
-            if (
-                (element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
-                (attribute !== 'mx-get') &&
-                !element.hasAttribute('mx-vals')
-            ) {
-                Main.mxSubmitForm(element, triggerEvent, attribute, event);
-            } else {
-                Main.initInvokeHttpRequest(element, attribute, event);
+            // Start HTTP request processing before handling mx-remove
+            let httpRequestStarted = false;
+            if (attribute && attribute !== 'mx-remove') {
+                httpRequestStarted = true;
+                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
+                    (attribute !== 'mx-get')) {
+                    Main.mxSubmitForm(element, triggerEvent, attribute, event);
+                } else if (element.tagName.toLowerCase() === 'select' && 
+                           attribute === 'mx-get' && 
+                           element.getAttribute('mx-trigger') === 'change') {
+                    Main.initInvokeHttpRequest(element, attribute, event);
+                } else {
+                    Main.initInvokeHttpRequest(element, attribute, event);
+                }
+            }
+
+            // Handle mx-remove after initiating HTTP request
+            if (element.hasAttribute('mx-remove')) {
+                const value = element.getAttribute('mx-remove');
+                
+                // Use setTimeout to ensure HTTP request gets processed first
+                setTimeout(() => {
+                    if (value === 'true') {
+                        const parent = element.parentElement;
+                        if (parent) {
+                            parent.remove();
+                        }
+                    } else {
+                        const ancestor = element.closest(value);
+                        if (ancestor) {
+                            ancestor.remove();
+                        }
+                    }
+                }, 0);
+            }
+
+            // If no HTTP request was started and no mx-remove was handled, process as normal
+            if (!httpRequestStarted && !element.hasAttribute('mx-remove')) {
+                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
+                    (attribute !== 'mx-get')) {
+                    Main.mxSubmitForm(element, triggerEvent, attribute, event);
+                } else if (element.tagName.toLowerCase() === 'select' && 
+                           attribute === 'mx-get' && 
+                           element.getAttribute('mx-trigger') === 'change') {
+                    Main.initInvokeHttpRequest(element, attribute, event);
+                } else {
+                    Main.initInvokeHttpRequest(element, attribute, event);
+                }
             }
         },
 
         establishTriggerEvent(element) {
             const triggerEventStr = element.getAttribute('mx-trigger');
+
+            if (triggerEventStr === 'activate') {
+                return '__ACTIVATE__';  // A special value that will never match a real event type
+            }
 
             if (triggerEventStr) {
                 return triggerEventStr;
@@ -1105,13 +1415,13 @@
             Dom.clearExistingValidationErrors(containingForm);
 
             if (CONFIG.REQUIRES_DATA_ATTRIBUTES.includes(httpMethodAttribute)) {
-                Http.invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm);
+                Http.invokeFormPost(element, triggerEvent, httpMethodAttribute, containingForm, event);
             } else {
                 Main.initInvokeHttpRequest(containingForm, httpMethodAttribute, event);
             }
         },
 
-        initInvokeHttpRequest(element, httpMethodAttribute, event) {
+        initInvokeHttpRequest(element, httpMethodAttribute) {
             const buildModalStr = element.getAttribute('mx-build-modal');
 
             if (buildModalStr) {
@@ -1131,7 +1441,7 @@
                     Modal.buildMXModal(modalOptions, element, httpMethodAttribute);
                 }
             } else {
-                Http.invokeHttpRequest(element, httpMethodAttribute, event);
+                Http.invokeHttpRequest(element, httpMethodAttribute);
             }
         },
 
@@ -1181,7 +1491,7 @@
         pollElement(element) {
             const attribute = CONFIG.CORE_MX_ATTRIBUTES.find(attr => element.hasAttribute(attr));
             if (attribute) {
-                // Add throttle check for polling
+                // Throttle check for polling
                 const throttleTime = parseInt(element.getAttribute('mx-throttle')) || 0;
                 if (throttleTime > 0 && !Utils.canMakeRequest(throttleTime)) {
                     console.log('Polling request throttled');
@@ -1189,11 +1499,36 @@
                 }
                 Main.initInvokeHttpRequest(element, attribute);
             }
+        },
+        handlePopState(event) {
+            const currentPath = window.location.pathname;
+            const element = document.querySelector(`[mx-get^="${currentPath}"]`);
+
+            if (element) {
+                // Simulate a click on the matching element
+                const clickEvent = new Event('click');
+                element.dispatchEvent(clickEvent);
+            } else {
+                // If no matching element is found, reload the page
+                window.location.reload();
+            }
         }
     };
 
+    function handleEscapeKey(event) {
+        if (event.key === "Escape") {
+            const modalContainer = document.getElementById("modal-container");
+            if (modalContainer) {
+                closeModal();
+            }
+        }
+    }
+
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
+
+    // Initialize closing of modals upon pressing 'Escape' key.
+    document.addEventListener("keydown", handleEscapeKey);
 
     // Expose necessary functions to the global scope
     window.TrongateMX = {
@@ -1203,3 +1538,27 @@
     };
 
 })(window);
+
+const _mxCloseModal = function () {
+    const modalContainer = document.getElementById("modal-container");
+    if (modalContainer) {
+        const openModal = modalContainer.firstChild;
+        openModal.style.zIndex = -4;
+        openModal.style.opacity = 0;
+        openModal.style.marginTop = '12vh';
+        openModal.style.display = "none";
+        const tmxBody = document.querySelector('body');
+        tmxBody.appendChild(openModal);
+        modalContainer.remove();
+
+        const overlay = document.getElementById("overlay");
+        if (overlay) {
+            overlay.remove();
+        }
+
+        const event = new Event("modalClosed", { bubbles: true, cancelable: true });
+        document.dispatchEvent(event);
+    }
+};
+
+window.closeModal = window.closeModal || _mxCloseModal;
