@@ -37,13 +37,13 @@ function generate_input_element(string $type, string $name, ?string $value = nul
  * Generates a checkbox form field element.
  *
  * @param string $name The name attribute for the input element.
- * @param mixed $value The value attribute for the input element. Default is '1'.
- * @param mixed $checked Whether the checkbox should be checked. Can be boolean, string, or any truthy/falsy value.
- * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
- * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @param string|bool|int|null $value The value attribute for the input element. Defaults to '1'.
+ * @param mixed $checked Whether the checkbox should be checked. Accepts true, 'true', 1, '1', 'on', etc.
+ * @param array|null $attributes Additional attributes for the input element as an associative array.
+ * @param string|null $additional_code Additional HTML code to be included.
  * @return string The generated HTML input element.
  */
-function form_checkbox(string $name, mixed $value = '1', mixed $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
+function form_checkbox(string $name, string|bool|int|null $value = null, mixed $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
     // Convert value to string, defaulting to '1' if null
     $value = $value !== null ? (string) $value : '1';
     
@@ -58,13 +58,13 @@ function form_checkbox(string $name, mixed $value = '1', mixed $checked = false,
  * Generates a radio button form field element.
  *
  * @param string $name The name attribute for the input element.
- * @param mixed $value The value attribute for the input element. Default is null.
- * @param mixed $checked Whether the radio button should be checked. Can be boolean, string, or any truthy/falsy value.
- * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
- * @param string|null $additional_code Additional HTML code to be included. Default is null.
+ * @param string|bool|int|null $value The value attribute for the input element.
+ * @param mixed $checked Whether the radio button should be checked. Accepts true, 'true', 1, '1', 'on', etc.
+ * @param array|null $attributes Additional attributes for the input element as an associative array.
+ * @param string|null $additional_code Additional HTML code to be included.
  * @return string The generated HTML input element.
  */
-function form_radio(string $name, mixed $value = null, mixed $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
+function form_radio(string $name, string|bool|int|null $value = null, mixed $checked = false, ?array $attributes = null, ?string $additional_code = null): string {    
     // Convert value to string if not null
     $value = $value !== null ? (string) $value : null;
     
@@ -334,27 +334,30 @@ function form_textarea(string $name, ?string $value = null, ?array $attributes =
  * Generate an HTML submit button element.
  *
  * @param string $name The name attribute for the button element.
- * @param string|null $value The value of the button. If not provided, defaults to "Submit".
- * @param array|null $attributes An associative array of HTML attributes for the button.
- * @param string|null $additional_code Additional HTML code to append to the button element.
+ * @param string|null $value The value of the button. Defaults to "Submit" if not provided.
+ * @param array $attributes An associative array of additional HTML attributes for the button.
+ * @param string|null $additional_code Extra HTML code to append to the button element.
  * @return string The generated HTML submit button element.
  * 
- * Note: The value is not escaped by default. If using user-generated content,
- * ensure it is properly sanitized before passing it to this function.
+ * Note: Ensure proper sanitisation of user-generated content passed to this function.
  */
-function form_submit(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
+function form_submit(string $name, ?string $value = 'Submit', array $attributes = [], ?string $additional_code = null): string {
+    // Ensure the required attributes are set
     $attributes['type'] = 'submit';
-    $attributes['name'] = $name;
-    $attributes['value'] = $value ?? 'Submit';
+    $attributes['name'] = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
     
-    $html = '<button' . get_attributes_str($attributes);
+    // Start building the button HTML
+    $html = '<button' . get_attributes_str($attributes) . '>';
     
-    if ($additional_code !== null) {
+    // Add the button's displayed text (inner HTML)
+    $html .= htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    
+    // Add additional code, if provided
+    if (!empty($additional_code)) {
         $html .= ' ' . $additional_code;
     }
     
-    $html .= '>' . $value . '</button>';
+    $html .= '</button>';
     
     return $html;
 }
@@ -374,23 +377,34 @@ function form_submit(string $name, ?string $value = null, ?array $attributes = n
 function form_button(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
     $attributes = $attributes ?? [];
     $attributes['type'] = 'button';
+    $attributes['name'] = $name;
     $value = $value ?? 'Submit';
-    return form_submit($name, $value, $attributes, $additional_code);
+    
+    $html = '<button' . get_attributes_str($attributes);
+    
+    if ($additional_code !== null) {
+        $html .= ' ' . $additional_code;
+    }
+    
+    $html .= '>' . $value . '</button>';
+    
+    return $html;
 }
 
 /**
  * Generate an HTML select menu.
  *
  * @param string $name The name attribute for the select element.
- * @param array $options An associative array of options (value => text).
- * @param string|null $selected_key The key of the selected option, if any.
- * @param array|null $attributes An array of HTML attributes for the select element.
- * @param string|null $additional_code Additional HTML code to include in the select element.
- * @return string The generated HTML for the select menu.
+ * @param array<string|int,string> $options Associative array of options where keys are values and values are display text.
+ * @param string|int|null $selected_key The key of the selected option. Can be string or integer.
+ * @param array $attributes An array of HTML attributes for the select element.
+ * @param string|null $additional_code Additional HTML code to include.
+ * @return string The generated HTML select menu.
+ * 
+ * Note: Ensure proper sanitization of user-generated content passed to this function.
  */
-function form_dropdown(string $name, array $options, ?string $selected_key = null, ?array $attributes = null, ?string $additional_code = null): string {
-    $attributes = $attributes ?? [];
-    $attributes['name'] = $name;
+function form_dropdown(string $name, array $options, string|int|null $selected_key = null, array $attributes = [], ?string $additional_code = null): string {
+    $attributes['name'] = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
     
     $html = '<select' . get_attributes_str($attributes);
     
@@ -401,12 +415,12 @@ function form_dropdown(string $name, array $options, ?string $selected_key = nul
     $html .= ">\n";
 
     foreach ($options as $option_key => $option_value) {
-        $option_attributes = ['value' => $option_key];
-        if ($option_key === $selected_key) {
+        $option_attributes = ['value' => htmlspecialchars((string)$option_key, ENT_QUOTES, 'UTF-8')];
+        if ($selected_key !== null && (string)$option_key === (string)$selected_key) {
             $option_attributes['selected'] = 'selected';
         }
         $html .= '    <option' . get_attributes_str($option_attributes) . '>' 
-               . htmlspecialchars($option_value, ENT_QUOTES, 'UTF-8') . "</option>\n";
+               . htmlspecialchars((string)$option_value, ENT_QUOTES, 'UTF-8') . "</option>\n";
     }
 
     $html .= '</select>';
