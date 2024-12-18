@@ -350,8 +350,8 @@ function form_submit(string $name, ?string $value = 'Submit', array $attributes 
     $html = '<button' . get_attributes_str($attributes) . '>';
     
     // Add the button's displayed text (inner HTML)
-    $html .= htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-    
+    $html.= $value;
+
     // Add additional code, if provided
     if (!empty($additional_code)) {
         $html .= ' ' . $additional_code;
