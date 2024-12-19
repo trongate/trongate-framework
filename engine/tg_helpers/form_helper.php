@@ -334,30 +334,27 @@ function form_textarea(string $name, ?string $value = null, ?array $attributes =
  * Generate an HTML submit button element.
  *
  * @param string $name The name attribute for the button element.
- * @param string|null $value The value of the button. Defaults to "Submit" if not provided.
- * @param array $attributes An associative array of additional HTML attributes for the button.
- * @param string|null $additional_code Extra HTML code to append to the button element.
+ * @param string|null $value The value of the button. If not provided, defaults to "Submit".
+ * @param array|null $attributes An associative array of HTML attributes for the button.
+ * @param string|null $additional_code Additional HTML code to append to the button element.
  * @return string The generated HTML submit button element.
  * 
- * Note: Ensure proper sanitisation of user-generated content passed to this function.
+ * Note: The value is not escaped by default. If using user-generated content,
+ * ensure it is properly sanitized before passing it to this function.
  */
-function form_submit(string $name, ?string $value = 'Submit', array $attributes = [], ?string $additional_code = null): string {
-    // Ensure the required attributes are set
+function form_submit(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+    $attributes = $attributes ?? [];
     $attributes['type'] = 'submit';
-    $attributes['name'] = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+    $attributes['name'] = $name;
+    $attributes['value'] = $value ?? 'Submit';
     
-    // Start building the button HTML
-    $html = '<button' . get_attributes_str($attributes) . '>';
+    $html = '<button' . get_attributes_str($attributes);
     
-    // Add the button's displayed text (inner HTML)
-    $html.= $value;
-
-    // Add additional code, if provided
-    if (!empty($additional_code)) {
+    if ($additional_code !== null) {
         $html .= ' ' . $additional_code;
     }
     
-    $html .= '</button>';
+    $html .= '>' . $value . '</button>';
     
     return $html;
 }
