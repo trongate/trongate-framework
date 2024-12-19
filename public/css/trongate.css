@@ -3,10 +3,20 @@
   --primary-dark: #38678f;
   --primary-darker: #294d6b;
   --primary-color: #fff;
-  --secondary: #ff0000;
+  --secondary: #af46b4;
   --border: #c5c5c5;
   --alt: #fff;
   --modal-margin-top: 12vh;
+  --success: #4bb446;
+  --success-dark: #368532;
+  --info: #b2cce1;
+  --warning: #b47846;
+  --danger: #b4464b;
+  --danger-dark: #8f383b;
+  --inverse: #333;
+  --secondary-dark: #943f99;
+  --secondary-darker: #77337a;
+  --neutral: #f5f5f5;
 }
 
 body {
@@ -583,6 +593,18 @@ div.modal-body p.text-center {
 .flex-nowrap { flex-wrap: nowrap; }
 
 .cloak { display: none; }
+
+.gold {
+    background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+    color: #fff;
+    border: 1px #ded4c2 solid;
+}
+
+.silver {
+    background: linear-gradient(to right, #8faab7, #f1f8ff, #9eb2c1, #f0f6f9, #96a2a9);
+    color: #fff;
+    border: 1px #c0cbd1 solid;
+}
 
 @media screen and (max-width: 550px) {
   button, .button { width: 100%; display: block; }
