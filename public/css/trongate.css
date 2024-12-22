@@ -124,6 +124,54 @@ button:hover,
   color: var(--primary-color);
 }
 
+.danger {
+    background-color: var(--danger);
+    border: 1px solid var(--danger-dark);
+    color: var(--primary-color);
+}
+
+.danger:hover {
+    background-color: var(--danger-dark);
+    border: 1px solid var(--danger-dark);
+    color: var(--primary-color);
+}
+
+.warning {
+    background-color: var(--warning);
+    border: 1px solid var(--warning);
+    color: var(--primary-color);
+}
+
+.warning:hover {
+    background-color: #995f36;  /* darker shade of warning */
+    border: 1px solid #995f36;
+    color: var(--primary-color);
+}
+
+.success {
+    background-color: var(--success);
+    border: 1px solid var(--success-dark);
+    color: var(--primary-color);
+}
+
+.success:hover {
+    background-color: var(--success-dark);
+    border: 1px solid var(--success-dark);
+    color: var(--primary-color);
+}
+
+.inverse {
+    background-color: var(--inverse);
+    border: 1px solid #222;
+    color: var(--primary-color);
+}
+
+.inverse:hover {
+    background-color: #222;
+    border: 1px solid #111;
+    color: var(--primary-color);
+}
+
 .alt {
   background-color: transparent;
   border: 1px solid var(--primary);
@@ -385,18 +433,28 @@ div.modal-body p.text-center {
 }
 
 .video-container {
-  position: relative;
-  width: 100%;
-  height: 0;
-  padding-bottom: 56.25%;
+    --aspect-ratio: 16 / 9;  /* Default aspect ratio */
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: calc(100% / var(--aspect-ratio));
+}
+
+.video-container.aspect-4-3 {
+    --aspect-ratio: 4 / 3;
+}
+
+.video-container.aspect-1-1 {
+    --aspect-ratio: 1 / 1;
 }
 
 .video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
 }
 
 .modal .form-field-validation-error,
