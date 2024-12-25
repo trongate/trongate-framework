@@ -769,14 +769,28 @@ class Validation {
     }
 
     /**
-     * Blocks the request in case of a CSRF attack.
+     * Handles blocking of CSRF requests.
+     *
+     * This method is invoked when Trongate's CSRF protection is triggered.
+     * If the request originates from Trongate MX, it sends a 403 response code and provides
+     * additional debugging information in development mode. Otherwise, it redirects to the base URL.
      *
      * @return void
      */
     private function csrf_block_request(): void {
+
+        if (from_trongate_mx() === true) {
+            http_response_code(403);
+            if (strtolower(ENV) === 'dev') {
+                echo 'Trongate\'s CSRF protection has blocked the request. For more details, refer to: https://trongate.io/documentation/read/trongate_mx/trongate-mx-security/csrf-protection ***  This message will NOT be displayed unless ENV is not set to a value of \'DEV\' or \'dev\'';
+            }
+            die();
+        }
+
         header("location: " . BASE_URL);
         die();
     }
+
 }
 
 class Validation_Helper extends Validation {

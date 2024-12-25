@@ -332,7 +332,10 @@ let trongateMXOpeningModal = false;
 
             // Check if we should redirect
             if ((isSuccess && shouldRedirectOnSuccess) || (!isSuccess && shouldRedirectOnError)) {
-                if (redirectUrl && !redirectUrl.includes('<')) { // Basic check to ensure it's just a URL
+                if (redirectUrl && // not empty
+                    !redirectUrl.startsWith('{') && // not JSON
+                    !redirectUrl.startsWith('[') && // not JSON array
+                    !redirectUrl.includes('<')) { // not HTML
                     window.location.href = Utils.normalizeUrl(redirectUrl);
                     return;
                 }
@@ -426,6 +429,11 @@ let trongateMXOpeningModal = false;
         },
 
         attemptDisplayValidationErrors(http, element, containingForm) {
+            // Skip validation handling for authentication/authorization status codes
+            if (http.status === 401 || http.status === 402 || http.status === 403) {
+                return;
+            }
+
             if (http.status >= 400 && http.status <= 499) {
                 try {
                     if (containingForm.classList.contains('highlight-errors')) {
@@ -437,6 +445,7 @@ let trongateMXOpeningModal = false;
                 }
             }
         }
+
     };
 
     const Dom = {
@@ -828,12 +837,12 @@ let trongateMXOpeningModal = false;
                 .forEach(el => el.classList.remove('form-field-validation-error'));
         },
 
-        setChildrenOpacity(overlayTargetEl, opacityValue) {
+        setChildrenOpacity(animationContainer, opacityValue) {
             const opacityNumber = parseFloat(opacityValue);
             if (isNaN(opacityNumber) || opacityNumber < 0 || opacityNumber > 1) {
                 throw new Error('Invalid opacity value. It must be a number between 0 and 1.');
             }
-            const children = Array.from(overlayTargetEl.children);
+            const children = Array.from(animationContainer.children);
             children.forEach(child => {
                 child.style.opacity = opacityValue;
             });
@@ -933,8 +942,6 @@ let trongateMXOpeningModal = false;
                 }
 
                 modal.appendChild(modalHeading);
-
-
             }
 
             const modalBody = document.createElement('div');
@@ -945,8 +952,15 @@ let trongateMXOpeningModal = false;
             modalBody.appendChild(tempSpinner);
 
             modal.appendChild(modalBody);
-            document.body.appendChild(modal);
 
+            if (typeof modalData === 'object' && modalData.modalFooter) {
+                const modalFooter = document.createElement('div');
+                modalFooter.className = 'modal-footer';
+                modalFooter.innerHTML = modalData.modalFooter;
+                modal.appendChild(modalFooter);
+            }
+
+            document.body.appendChild(modal);
             this.openModal(modalId, modalData);
 
             const targetModal = document.getElementById(modalId);
@@ -1013,13 +1027,13 @@ let trongateMXOpeningModal = false;
             if (http.status >= 200 && http.status < 300) {
                 const closeOnSuccessStr = element.getAttribute('mx-close-on-success');
                 if (closeOnSuccessStr === 'true') {
-                    this.closeModal();
+                    window.closeModal();
                     return;
                 }
             } else {
                 const closeOnErrorStr = element.getAttribute('mx-close-on-error');
                 if (closeOnErrorStr === 'true') {
-                    this.closeModal();
+                    window.closeModal();
                 }
             }
         },
@@ -1049,17 +1063,14 @@ let trongateMXOpeningModal = false;
                 mxPageOverlay.setAttribute("style", "z-index: 2");
                 mxPageBody.prepend(mxPageOverlay);
 
-                // Fetch existing modal contents and remove existing modal (if one with the same ID exists).
-                const mxExistingModal = document.getElementById(modalId);
-                const existingMxModalContent = mxExistingModal.innerHTML;
+                // Fetch existing modal (currently hidden and appended onto page).
+                const mxModal = document.getElementById(modalId);
+                mxModal.removeAttribute('style');
 
-                // Create a new modal element and append it to the mxModalContainer
-                const newMxModal = document.createElement("div");
-                newMxModal.setAttribute("class", "modal");
-                newMxModal.setAttribute("id", modalId);
-                newMxModal.style.zIndex = 4;
-                newMxModal.innerHTML = existingMxModalContent;
-                mxModalContainer.appendChild(newMxModal);
+                mxModal.setAttribute("class", "modal");
+                mxModal.setAttribute("id", modalId);
+                mxModal.style.zIndex = 4;
+                mxModalContainer.appendChild(mxModal);
 
                 // Get the top margin for the new modal (attempting to read from modalData)
                 const mxModalMarginTop = typeof modalData === 'object' 
@@ -1068,114 +1079,73 @@ let trongateMXOpeningModal = false;
 
                 // Make the new modal element appear!
                 setTimeout(() => {
-                    newMxModal.style.opacity = 1;
-                    newMxModal.style.marginTop = mxModalMarginTop;
+                    mxModal.style.opacity = 1;
+                    mxModal.style.marginTop = mxModalMarginTop;
                 }, 0);
             }
 
-        },
-
-        closeModal() {
-            var modalContainer = document.getElementById("modal-container");
-            if (modalContainer) {
-                var openModal = modalContainer.firstChild;
-
-                openModal.style.zIndex = -4;
-                openModal.style.opacity = 0;
-                openModal.style.marginTop = "12vh";
-                openModal.style.display = "none";
-                document.body.appendChild(openModal);
-
-                modalContainer.remove();
-
-                var overlay = document.getElementById("overlay");
-                if (overlay) {
-                    overlay.remove();
-                }
-                var event = new Event('modalClosed', { bubbles: true, cancelable: true });
-                document.dispatchEvent(event);
-            }
         }
+
     };
 
     const Animation = {
         initAnimateError(targetEl, http, element) {
-            const overlayTargetEl = this.estOverlayTargetEl(targetEl, element);
-            const overlay = this.mxCreateOverlay(overlayTargetEl);
+            const animationContainer = this.estAnimationContainer(targetEl, element);
+            const animationContainerChildren = animationContainer.children;
+            const tempContainer = document.createElement('div');
+            tempContainer.setAttribute('class', 'mx-temp-container cloak');
+            const bodyEl = document.body;
+            bodyEl.appendChild(tempContainer);
 
-            this.mxDrawBigCross(overlay);
+            // Loop through all the children of animationContainer and move them to tempContainer
+            while (animationContainerChildren.length > 0) {
+                tempContainer.appendChild(animationContainerChildren[0]);
+            }
+
+            this.mxDrawBigCross(animationContainer);
 
             setTimeout(() => {
-                const targetEl = element ?? targetEl;
-                this.mxDestroyAnimation(targetEl, http, element);
-                Dom.setChildrenOpacity(overlayTargetEl, 1);
-
-                if (overlayTargetEl.style.minHeight) {
-                    overlayTargetEl.style.minHeight = '';
-                }
-
+                this.mxDestroyAnimation(animationContainer);
                 Modal.initAttemptCloseModal(targetEl, http, element);
-                Http.attemptInitOnErrorActions(http, element);
-
             }, 1300);
         },
 
         initAnimateSuccess(targetEl, http, element) {
-            const overlayTargetEl = this.estOverlayTargetEl(targetEl, element);
-            const overlay = this.mxCreateOverlay(overlayTargetEl);
+            const animationContainer = this.estAnimationContainer(targetEl, element);
+            const animationContainerChildren = animationContainer.children;
+            const tempContainer = document.createElement('div');
+            tempContainer.setAttribute('class', 'mx-temp-container cloak');
+            const bodyEl = document.body;
+            bodyEl.appendChild(tempContainer);
 
-            this.mxDrawBigTick(element, overlay, targetEl);
+            // Loop through all the children of animationContainer and move them to tempContainer
+            while (animationContainerChildren.length > 0) {
+                tempContainer.appendChild(animationContainerChildren[0]);
+            }
+
+            this.mxDrawBigTick(animationContainer);
 
             setTimeout(() => {
-                this.mxDestroyAnimation(targetEl, http, element);
-                Dom.setChildrenOpacity(overlayTargetEl, 1);
-
-                if (overlayTargetEl.style.minHeight) {
-                    overlayTargetEl.style.minHeight = '';
-                }
-
+                this.mxDestroyAnimation(animationContainer);
                 Modal.initAttemptCloseModal(targetEl, http, element);
-                Dom.populateTargetEl(targetEl, http, element);
             }, 1300);
+
         },
 
-        estOverlayTargetEl(targetEl, element) {
-            let overlayTargetEl = targetEl;
-            const containingModalBody = element.closest('.modal-body');
-            if (containingModalBody) {
-                overlayTargetEl = containingModalBody;
+        estAnimationContainer(targetEl, element) {
+            let animationContainer = targetEl;
+
+            const containingModal = element.closest('.modal');
+            if (containingModal) {
+                const containingModalBody = containingModal.querySelector('.modal-body');
+                animationContainer = containingModalBody;
             } else {
                 const containingForm = element.closest('form');
                 if (containingForm) {
-                    overlayTargetEl = containingForm;
-                }
+                    animationContainer = containingForm;
+                }                
             }
-            return overlayTargetEl;
-        },
-
-        mxCreateOverlay(overlayTargetEl) {
-            const rect = overlayTargetEl.getBoundingClientRect();
-            const overlay = document.createElement('div');
-            overlay.style.position = 'absolute';
-            overlay.style.top = `${rect.top + window.scrollY}px`;
-            overlay.style.left = `${rect.left + window.scrollX}px`;
-            overlay.style.width = `${rect.width}px`;
-            overlay.style.minHeight = `${rect.height}px`;
-            overlay.style.display = 'flex';
-            overlay.style.flexDirection = 'column';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.classList.add('mx-animation');
-            overlay.style.zIndex = '9999';
-            document.body.appendChild(overlay);
-            Dom.setChildrenOpacity(overlayTargetEl, 0);
-            setTimeout(() => {
-                const overlayHeight = overlay.offsetHeight;
-                if (overlayHeight > overlayTargetEl.offsetHeight) {
-                    overlayTargetEl.style.minHeight = overlayHeight + 'px';
-                }
-            }, 1);
-            return overlay;
+            return animationContainer;
         },
 
         mxDrawBigCross(overlay) {
@@ -1223,7 +1193,7 @@ let trongateMXOpeningModal = false;
             }, 100);
         },
 
-        mxDrawBigTick(element, overlay, targetEl) {
+        mxDrawBigTick(animationContainer) {
             const bigTick = document.createElement("div");
             bigTick.setAttribute("style", "display: none");
             const trigger = document.createElement("div");
@@ -1253,7 +1223,7 @@ let trongateMXOpeningModal = false;
             polyline.setAttribute("points", "11.6,20 15.9,24.2 26.4,13.8");
             tickSvg.appendChild(polyline);
 
-            overlay.appendChild(bigTick);
+            animationContainer.appendChild(bigTick);
             bigTick.style.display = "flex";
 
             setTimeout(() => {
@@ -1262,11 +1232,21 @@ let trongateMXOpeningModal = false;
             }, 100);
         },
 
-        mxDestroyAnimation() {
-            const mxAnimationEl = document.querySelector('.mx-animation');
-            if (mxAnimationEl) {
-                mxAnimationEl.remove();
+        mxDestroyAnimation(animationContainer) {
+            while(animationContainer.firstChild) {
+                animationContainer.removeChild(animationContainer.firstChild);
             }
+
+            const tempContainer = document.querySelector('.mx-temp-container');
+
+            if (tempContainer) {
+                const tempContainerChildren = tempContainer.children;
+                while (tempContainerChildren.length > 0) {
+                    animationContainer.appendChild(tempContainerChildren[0]);
+                }
+                tempContainer.remove();
+            }
+
         }
     };
 
@@ -1560,11 +1540,47 @@ let trongateMXOpeningModal = false;
     // Expose necessary functions to the global scope
     window.TrongateMX = {
         init: Main.initializeTrongateMX,
-        openModal: Modal.openModal,
-        closeModal: Modal.closeModal
+        openModal: Modal.openModal
     };
 
+
 })(window);
+
+const _mxOpenModal = function(modalId) {
+    trongateMXOpeningModal = true;
+    setTimeout(() => {
+        trongateMXOpeningModal = false;
+    }, 333);
+
+    const mxPageBody = document.body;
+    let mxPageOverlay = document.getElementById("overlay");
+
+    if (typeof mxPageOverlay === "undefined" || mxPageOverlay === null) {
+        const mxModalContainer = document.createElement("div");
+        mxModalContainer.setAttribute("id", "modal-container");
+        mxModalContainer.setAttribute("class", "mx-modal-container");
+        mxModalContainer.setAttribute("style", "z-index: 3;");
+        mxPageBody.prepend(mxModalContainer);
+
+        const mxPageOverlay = document.createElement("div");
+        mxPageOverlay.setAttribute("id", "overlay");
+        mxPageOverlay.setAttribute("style", "z-index: 2");
+        mxPageBody.prepend(mxPageOverlay);
+
+        const mxModal = document.getElementById(modalId);
+        mxModal.removeAttribute('style');
+
+        mxModal.setAttribute("class", "modal");
+        mxModal.setAttribute("id", modalId);
+        mxModal.style.zIndex = 4;
+        mxModalContainer.appendChild(mxModal);
+
+        setTimeout(() => {
+            mxModal.style.opacity = 1;
+            mxModal.style.marginTop = '12vh';
+        }, 0);
+    }
+};
 
 const _mxCloseModal = function () {
     const mxModalContainer = document.getElementById("modal-container");
@@ -1588,4 +1604,5 @@ const _mxCloseModal = function () {
     }
 };
 
+window.openModal = window.openModal || _mxOpenModal;
 window.closeModal = window.closeModal || _mxCloseModal;
