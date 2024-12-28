@@ -94,50 +94,73 @@ function previous_url(): string {
 }
 
 /**
- * Generate an HTML anchor (link) element.
+ * Generates an anchor (<a>) HTML tag.
  *
- * @param string $target_url The URL to link to.
- * @param mixed $text The link text or boolean value to indicate no link.
- * @param array|null $attributes (Optional) An associative array of HTML attributes for the anchor element.
- * @param string|null $additional_code (Optional) Additional HTML code to append to the anchor element.
- * @return string The HTML anchor element as a string.
+ * This function creates a complete HTML anchor tag with the given URL, optional link text, optional attributes,
+ * and additional code to be inserted inside the anchor tag. If no text is provided, the URL is used as the text.
+ * If $text is explicitly false, an empty anchor text is used.
+ *
+ * @param string $target_url The target URL for the anchor tag. This is the destination for the link.
+ * @param string|null|false $text The text to display for the anchor tag. If empty or not provided, the URL is used as the text.
+ *                               If false, no text is displayed.
+ * @param array|null $attributes Optional associative array of HTML attributes (e.g., ['class' => 'my-class', 'onclick' => 'return confirm("Are you sure?")']).
+ * @param string|null $additional_code Optional additional HTML code to insert inside the anchor tag.
+ *
+ * @return string The generated anchor (<a>) HTML tag or an empty string if the URL is invalid.
+ *                If an invalid URL is provided, it will be logged using PHP's error_log.
  */
-function anchor(string $target_url, $text, ?array $attributes = null, ?string $additional_code = null): string {
-    $str = substr($target_url, 0, 4);
-    if ($str != 'http') {
-        $target_url = BASE_URL . $target_url;
+function anchor(string $target_url, string|null|false $text = '', ?array $attributes = null, ?string $additional_code = null): string {
+    // Sanitize and validate URL
+    $target_url = filter_var(
+        trim($target_url),
+        FILTER_SANITIZE_URL
+    );
+
+    // Check if URL is valid or internal path
+    if (!filter_var($target_url, FILTER_VALIDATE_URL) && !str_starts_with($target_url, '/')) {
+        error_log("Invalid URL provided in anchor function: " . $target_url);
+        return ''; // or '<!-- Invalid URL: ' . htmlspecialchars($target_url) . ' -->' for debugging
     }
 
-    $text_type = gettype($text);
-
-    if ($text_type === 'boolean') {
-        return $target_url;
+    // Check if URL is absolute
+    $is_absolute = preg_match('#^([a-z]+:)?//#i', $target_url);
+    
+    // Normalize URL
+    if (!$is_absolute && !str_starts_with($target_url, '/')) {
+        $target_url = BASE_URL . ltrim($target_url, '/');
     }
 
-    $extra = '';
-    if (isset($attributes)) {
+    // Handle link text
+    $link_text = ($text === false) ? '' : 
+                 (empty($text) ? $target_url : 
+                  htmlspecialchars(trim($text), ENT_QUOTES, 'UTF-8'));
 
-        if (isset($attributes['rewrite_url'])) {
-            unset($attributes['rewrite_url']);
-        } else {
-            //takes an assumed_url and returns the nice_url
-            foreach (CUSTOM_ROUTES as $key => $value) {
-                $pos = strpos($target_url, $value);
-                if (is_numeric($pos)) {
-                    $target_url = str_replace($value, $key, $target_url);
-                }
-            }
-        }
+    // Start building the anchor tag
+    $html = '<a href="' . htmlspecialchars($target_url, ENT_QUOTES, 'UTF-8') . '"';
 
+    // Add security attributes for external links
+    if ($is_absolute) {
+        $external_attrs = ['rel' => 'noopener noreferrer', 'target' => '_blank'];
+        $attributes = is_array($attributes) 
+            ? array_merge($external_attrs, $attributes)
+            : $external_attrs;
+    }
+
+    // Add attributes if they are provided
+    if (is_array($attributes)) {
         foreach ($attributes as $key => $value) {
-            $extra .= ' ' . $key . '="' . $value . '"';
+            $html .= ' ' . htmlspecialchars(trim($key), ENT_QUOTES, 'UTF-8') . 
+                    '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
         }
     }
 
-    if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
+    // Close the opening tag, add the link text, and any additional code
+    $html .= '>' . $link_text;
+    
+    if ($additional_code !== null) {
+        $html .= trim($additional_code);
     }
 
-    $link = '<a href="' . $target_url . '"' . $extra . '>' . $text . '</a>';
-    return $link;
+    $html .= '</a>';
+    return $html;
 }
