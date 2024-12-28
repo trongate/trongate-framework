@@ -93,74 +93,44 @@ function previous_url(): string {
     return $url;
 }
 
+
 /**
- * Generates an anchor (<a>) HTML tag.
+ * Generates an anchor (<a>) tag with optional attributes and XSS protection.
  *
- * This function creates a complete HTML anchor tag with the given URL, optional link text, optional attributes,
- * and additional code to be inserted inside the anchor tag. If no text is provided, the URL is used as the text.
- * If $text is explicitly false, an empty anchor text is used.
+ * This function creates an anchor tag (`<a>`) with a given URL and text. 
+ * The text is HTML-escaped unless it contains HTML content (e.g., Font Awesome icons).
+ * The URL is always escaped to prevent XSS. Optional attributes (such as `rel` for external links) can be provided.
  *
- * @param string $target_url The target URL for the anchor tag. This is the destination for the link.
- * @param string|null|false $text The text to display for the anchor tag. If empty or not provided, the URL is used as the text.
- *                               If false, no text is displayed.
- * @param array|null $attributes Optional associative array of HTML attributes (e.g., ['class' => 'my-class', 'onclick' => 'return confirm("Are you sure?")']).
- * @param string|null $additional_code Optional additional HTML code to insert inside the anchor tag.
+ * @param string $url The URL to link to. This is a required parameter.
+ * @param string|null $text The link's inner text (optional). If null, the URL is used as the text.
+ * @param array $attributes An optional associative array of attributes (e.g., ['rel' => 'noopener noreferrer']).
  *
- * @return string The generated anchor (<a>) HTML tag or an empty string if the URL is invalid.
- *                If an invalid URL is provided, it will be logged using PHP's error_log.
+ * @return string The complete anchor (<a>) tag as a string.
  */
-function anchor(string $target_url, string|null|false $text = '', ?array $attributes = null, ?string $additional_code = null): string {
-    // Sanitize and validate URL
-    $target_url = filter_var(
-        trim($target_url),
-        FILTER_SANITIZE_URL
-    );
-
-    // Check if URL is valid or internal path
-    if (!filter_var($target_url, FILTER_VALIDATE_URL) && !str_starts_with($target_url, '/')) {
-        error_log("Invalid URL provided in anchor function: " . $target_url);
-        return ''; // or '<!-- Invalid URL: ' . htmlspecialchars($target_url) . ' -->' for debugging
+function anchor(string $url, ?string $text = null, array $attributes = []): string {
+    // Default empty text is the same as URL
+    if ($text === null) {
+        $text = $url;
     }
 
-    // Check if URL is absolute
-    $is_absolute = preg_match('#^([a-z]+:)?//#i', $target_url);
-    
-    // Normalize URL
-    if (!$is_absolute && !str_starts_with($target_url, '/')) {
-        $target_url = BASE_URL . ltrim($target_url, '/');
+    // Escape the URL to prevent XSS
+    $escaped_url = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+
+    // If the text contains HTML (e.g., Font Awesome icons), don't escape it
+    if (strpos($text, '<') !== false) {
+        $escaped_text = $text; // Leave HTML content (icons) as is
+    } else {
+        $escaped_text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
     }
 
-    // Handle link text
-    $link_text = ($text === false) ? '' : 
-                 (empty($text) ? $target_url : 
-                  htmlspecialchars(trim($text), ENT_QUOTES, 'UTF-8'));
-
-    // Start building the anchor tag
-    $html = '<a href="' . htmlspecialchars($target_url, ENT_QUOTES, 'UTF-8') . '"';
-
-    // Add security attributes for external links
-    if ($is_absolute) {
-        $external_attrs = ['rel' => 'noopener noreferrer', 'target' => '_blank'];
-        $attributes = is_array($attributes) 
-            ? array_merge($external_attrs, $attributes)
-            : $external_attrs;
-    }
-
-    // Add attributes if they are provided
-    if (is_array($attributes)) {
+    // Add optional attributes (e.g., rel="noopener noreferrer" for external links)
+    $attr_str = '';
+    if (!empty($attributes)) {
         foreach ($attributes as $key => $value) {
-            $html .= ' ' . htmlspecialchars(trim($key), ENT_QUOTES, 'UTF-8') . 
-                    '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
+            $attr_str .= ' ' . $key . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
         }
     }
 
-    // Close the opening tag, add the link text, and any additional code
-    $html .= '>' . $link_text;
-    
-    if ($additional_code !== null) {
-        $html .= trim($additional_code);
-    }
-
-    $html .= '</a>';
-    return $html;
+    // Construct the anchor tag
+    return '<a href="' . $escaped_url . '"' . $attr_str . '>' . $escaped_text . '</a>';
 }
