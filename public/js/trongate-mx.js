@@ -736,36 +736,63 @@ let trongateMXOpeningModal = false;
                 const field = containingForm.querySelector(`[name="${error.field}"]`);
                 if (field) {
                     field.classList.add('form-field-validation-error');
-        
+
                     const errorContainer = document.createElement('div');
                     errorContainer.className = 'validation-error-report';
-        
+
                     error.messages.forEach(message => {
                         const errorDiv = document.createElement('div');
-                        errorDiv.innerHTML = '&#9679; ' + Utils.escapeHtml(message);
+                        errorDiv.innerHTML = '● ' + Utils.escapeHtml(message);
                         errorContainer.appendChild(errorDiv);
                     });
-        
-                    let label = containingForm.querySelector(`label[for="${field.id}"]`);
-                    if (!label) {
-                        label = field.previousElementSibling;
-                        while (label && label.tagName.toLowerCase() !== 'label') {
-                            label = label.previousElementSibling;
+
+                    // Find the closest ancestor with 'flex-row' class that's inside or is the form itself
+                    const closestFlexRow = field.closest('.flex-row');
+                    
+                    if (closestFlexRow && (containingForm === closestFlexRow || containingForm.contains(closestFlexRow))) {
+                        // 1. Traverse back from the erroneous form field to find a 'target label'
+                        let targetLabel = null;
+                        let currentElement = field.previousElementSibling;
+                        
+                        while (currentElement && currentElement.tagName.toLowerCase() !== 'label') {
+                            // If we hit another form field or the start of the form, stop looking for a label
+                            if (currentElement.tagName.toLowerCase().match(/(input|select|textarea)/) || currentElement === null) {
+                                break;
+                            }
+                            currentElement = currentElement.previousElementSibling;
                         }
-                    }
-        
-                    if (label) {
-                        label.parentNode.insertBefore(errorContainer, label.nextSibling);
-                        if (!firstErrorElement) firstErrorElement = label;
+                        
+                        if (currentElement && currentElement.tagName.toLowerCase() === 'label') {
+                            // If a target label is found, insert the errorContainer immediately after the form label
+                            targetLabel.parentNode.insertBefore(errorContainer, targetLabel.nextSibling);
+                        } else {
+                            // OTHERWISE, search for a containing element that is WITHIN containingForm with a class of 'flex-row'
+                            const innerFlexRow = field.closest('.flex-row');
+                            
+                            if (innerFlexRow && containingForm.contains(innerFlexRow)) {
+                                // If found, insert before this containing element
+                                innerFlexRow.parentNode.insertBefore(errorContainer, innerFlexRow);
+                            } else {
+                                // OTHERWISE, insert the errorContainer before the form itself
+                                containingForm.parentNode.insertBefore(errorContainer, containingForm);
+                            }
+                        }
                     } else {
-                        field.parentNode.insertBefore(errorContainer, field.nextSibling);
-                        if (!firstErrorElement) firstErrorElement = field;
+                        // If no flex-row within or as the form, insert before the field itself
+                        field.parentNode.insertBefore(errorContainer, field);
                     }
-        
+
+                    // Set the first error element for potential focus
+                    if (!firstErrorElement) {
+                        firstErrorElement = field;
+                    }
+
+                    // Special handling for checkbox or radio inputs
                     if (field.type === "checkbox" || field.type === "radio") {
-                        let parentContainer = field.closest("div");
+                        let parentContainer = field.closest("div"); // Assuming checkbox/radio is wrapped in a div for styling
                         if (parentContainer) {
                             parentContainer.classList.add("form-field-validation-error");
+                            // Note: Setting inline styles like this is usually not recommended. Consider using CSS classes.
                             parentContainer.style.textIndent = "7px";
                         }
                     }
