@@ -93,51 +93,44 @@ function previous_url(): string {
     return $url;
 }
 
+
 /**
- * Generate an HTML anchor (link) element.
+ * Generates an anchor (<a>) tag with optional attributes and XSS protection.
  *
- * @param string $target_url The URL to link to.
- * @param mixed $text The link text or boolean value to indicate no link.
- * @param array|null $attributes (Optional) An associative array of HTML attributes for the anchor element.
- * @param string|null $additional_code (Optional) Additional HTML code to append to the anchor element.
- * @return string The HTML anchor element as a string.
+ * This function creates an anchor tag (`<a>`) with a given URL and text. 
+ * The text is HTML-escaped unless it contains HTML content (e.g., Font Awesome icons).
+ * The URL is always escaped to prevent XSS. Optional attributes (such as `rel` for external links) can be provided.
+ *
+ * @param string $url The URL to link to. This is a required parameter.
+ * @param string|null $text The link's inner text (optional). If null, the URL is used as the text.
+ * @param array $attributes An optional associative array of attributes (e.g., ['rel' => 'noopener noreferrer']).
+ *
+ * @return string The complete anchor (<a>) tag as a string.
  */
-function anchor(string $target_url, $text, ?array $attributes = null, ?string $additional_code = null): string {
-    $str = substr($target_url, 0, 4);
-    if ($str != 'http') {
-        $target_url = BASE_URL . $target_url;
+function anchor(string $url, ?string $text = null, array $attributes = []): string {
+    // Default empty text is the same as URL
+    if ($text === null) {
+        $text = $url;
     }
 
-    $text_type = gettype($text);
+    // Escape the URL to prevent XSS
+    $escaped_url = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
 
-    if ($text_type === 'boolean') {
-        return $target_url;
+    // If the text contains HTML (e.g., Font Awesome icons), don't escape it
+    if (strpos($text, '<') !== false) {
+        $escaped_text = $text; // Leave HTML content (icons) as is
+    } else {
+        $escaped_text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
     }
 
-    $extra = '';
-    if (isset($attributes)) {
-
-        if (isset($attributes['rewrite_url'])) {
-            unset($attributes['rewrite_url']);
-        } else {
-            //takes an assumed_url and returns the nice_url
-            foreach (CUSTOM_ROUTES as $key => $value) {
-                $pos = strpos($target_url, $value);
-                if (is_numeric($pos)) {
-                    $target_url = str_replace($value, $key, $target_url);
-                }
-            }
-        }
-
+    // Add optional attributes (e.g., rel="noopener noreferrer" for external links)
+    $attr_str = '';
+    if (!empty($attributes)) {
         foreach ($attributes as $key => $value) {
-            $extra .= ' ' . $key . '="' . $value . '"';
+            $attr_str .= ' ' . $key . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
         }
     }
 
-    if (isset($additional_code)) {
-        $extra .= ' ' . $additional_code;
-    }
-
-    $link = '<a href="' . $target_url . '"' . $extra . '>' . $text . '</a>';
-    return $link;
+    // Construct the anchor tag
+    return '<a href="' . $escaped_url . '"' . $attr_str . '>' . $escaped_text . '</a>';
 }

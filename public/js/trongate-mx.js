@@ -1,3 +1,5 @@
+let trongateMXOpeningModal = false;
+
 (function(window) {
     'use strict';
 
@@ -8,6 +10,8 @@
     };
 
     let lastRequestTime = 0;
+    let mousedownEl;
+    let mouseupEl;
 
     const Utils = {
         parseAttributeValue(value) {
@@ -114,6 +118,35 @@
             // Ensure there's exactly one slash between base URL and the path
             return baseUrl.replace(/\/?$/, '/') + url.replace(/^\//, '');
         },
+        createMXEvent(element, event, type, extraDetails = {}) {
+            // Always get the closest button/form element as the target
+            const targetElement = element.closest('button, form') || element;
+            
+            return {
+                target: targetElement,
+                type: type,
+                detail: {
+                    element: targetElement,
+                    originalEvent: event,
+                    ...extraDetails
+                }
+            };
+        },
+
+        executeMXFunction(functionName, customEvent) {
+            if (!functionName) return;
+            
+            const cleanFunctionName = functionName.replace(/\(\)$/, '');
+            if (typeof window[cleanFunctionName] === 'function') {
+                try {
+                    window[cleanFunctionName](customEvent);
+                } catch (error) {
+                    console.error(`Error executing ${cleanFunctionName}:`, error);
+                }
+            } else {
+                console.warn(`Function ${cleanFunctionName} not found`);
+            }
+        }
     };
 
     const Http = {
@@ -168,11 +201,21 @@
             Http.setMXHeaders(http, element);
             Http.setMXHandlers(http, element);
         
-            const isForm = containingForm !== null;
-            let formData = isForm ? new FormData(containingForm) : new FormData();
+            const isFormSubmission = containingForm !== null;
+            let formData;
+            
+            // Always get form data if we have a form, regardless of where the attributes are
+            if (isFormSubmission) {
+                formData = new FormData(containingForm);
+            } else {
+                formData = new FormData();
+            }
         
-            // Process mx-vals
-            const mxValsStr = element.getAttribute('mx-vals');
+            // Process mx-vals from either the form or the triggering element
+            const mxValsStr = isFormSubmission ? 
+                containingForm.getAttribute('mx-vals') || element.getAttribute('mx-vals') : 
+                element.getAttribute('mx-vals');
+
             if (mxValsStr) {
                 const vals = Utils.parseAttributeValue(mxValsStr);
                 if (vals && typeof vals === 'object') {
@@ -280,7 +323,26 @@
 
             element.classList.remove('blink');
 
-            if (http.status >= 200 && http.status < 300) {
+            // Handle redirects first based on status and response text
+            const shouldRedirectOnSuccess = element.getAttribute('mx-redirect-on-success') === 'true';
+            const shouldRedirectOnError = element.getAttribute('mx-redirect-on-error') === 'true';
+            
+            const isSuccess = http.status >= 200 && http.status < 300;
+            const redirectUrl = http.responseText.trim();
+
+            // Check if we should redirect
+            if ((isSuccess && shouldRedirectOnSuccess) || (!isSuccess && shouldRedirectOnError)) {
+                if (redirectUrl && // not empty
+                    !redirectUrl.startsWith('{') && // not JSON
+                    !redirectUrl.startsWith('[') && // not JSON array
+                    !redirectUrl.includes('<')) { // not HTML
+                    window.location.href = Utils.normalizeUrl(redirectUrl);
+                    return;
+                }
+            }
+
+            // If no redirect, continue with normal response handling
+            if (isSuccess) {
                 const contentType = http.getResponseHeader('Content-Type');
                 const targetEl = Dom.establishTargetElement(element);
 
@@ -294,7 +356,6 @@
                     }
                 }
 
-                // Push URL if mx-push-url is true and the request was successful
                 if (element.getAttribute('mx-push-url') === 'true') {
                     const requestUrl = Utils.getRequestUrl(element);
                     Utils.pushUrl(requestUrl);
@@ -325,10 +386,12 @@
                 targetEl.textContent = http.responseText;
             }
             
-            // Dispatch afterSwap event here, since all content handling is complete
-            document.body.dispatchEvent(new CustomEvent('trongate:afterSwap', { 
-                detail: { element: element, http: http, originalEvent: event }
-            }));
+            // Handle mx-after-swap with standardized event handling
+            const functionName = element.getAttribute('mx-after-swap');
+            if (functionName) {
+                const customEvent = Utils.createMXEvent(element, event, 'afterSwap', { http });
+                Utils.executeMXFunction(functionName, customEvent);
+            }
         },
 
         handleErrorResponse(http, element) {
@@ -346,12 +409,6 @@
                 const targetEl = Dom.establishTargetElement(element);
                 Modal.initAttemptCloseModal(targetEl, http, element);
                 this.attemptInitOnErrorActions(http, element);
-            }
-
-            // Display error message in the target element
-            const targetEl = Dom.establishTargetElement(element);
-            if (targetEl) {
-                targetEl.textContent = `Error: ${http.status} ${http.statusText}`;
             }
         },
 
@@ -372,6 +429,11 @@
         },
 
         attemptDisplayValidationErrors(http, element, containingForm) {
+            // Skip validation handling for authentication/authorization status codes
+            if (http.status === 401 || http.status === 402 || http.status === 403) {
+                return;
+            }
+
             if (http.status >= 400 && http.status <= 499) {
                 try {
                     if (containingForm.classList.contains('highlight-errors')) {
@@ -383,11 +445,61 @@
                 }
             }
         }
+
     };
 
     const Dom = {
+
+        processedIndicators: new Set(),
+        indicatorObserver: null,
+
+        initializeIndicatorObserver() {
+            if (this.indicatorObserver) return;
+
+            this.indicatorObserver = new MutationObserver((mutations) => {
+                mutations.forEach(mutation => {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.classList?.contains('mx-indicator')) {
+                                this.initializeSingleIndicator(node);
+                            }
+                            // Check children
+                            node.querySelectorAll?.('.mx-indicator')?.forEach(indicator => {
+                                this.initializeSingleIndicator(indicator);
+                            });
+                        }
+                    });
+                    
+                    // Handle removed nodes
+                    mutation.removedNodes.forEach(node => {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.classList?.contains('mx-indicator')) {
+                                this.processedIndicators.delete(node);
+                            }
+                            // Clean up any tracked indicators that were children
+                            node.querySelectorAll?.('.mx-indicator')?.forEach(indicator => {
+                                this.processedIndicators.delete(indicator);
+                            });
+                        }
+                    });
+                });
+            });
+
+            this.indicatorObserver.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        },
+
+        initializeSingleIndicator(element) {
+            if (!element || this.processedIndicators.has(element)) return;
+            this.hideLoader(element);
+            element.style.display = '';
+            this.processedIndicators.add(element);
+        },
+
         handleMxDuringRequest(element, targetElement) {
-            const mxDuringRequest = element.getAttribute('mx-during-request');
+            const mxDuringRequest = element.getAttribute('mx-target-loading');
             if (mxDuringRequest) {
                 if (mxDuringRequest === 'cloak') {
                     targetElement.style.setProperty('opacity', '0', 'important');
@@ -441,7 +553,8 @@
         },
 
         attemptActivateLoader(element) {
-            const indicatorSelector = Utils.getAttributeValue(element, 'mx-indicator');
+            // Only check the element itself for mx-indicator, not its ancestors
+            const indicatorSelector = element.getAttribute('mx-indicator');
             if (indicatorSelector) {
                 const loaderEl = document.querySelector(indicatorSelector);
                 if (loaderEl) {
@@ -466,6 +579,7 @@
             if (element && element.classList.contains('mx-indicator')) {
                 element.classList.remove('mx-indicator');
                 element.classList.add('mx-indicator-hidden');
+                // Don't remove from processedIndicators here since the element may be reused
             }
         },
 
@@ -579,6 +693,14 @@
                 case 'delete':
                     target.remove();
                     break;
+                case 'value':
+                    if ('value' in target) {  // Check if target has a value property
+                        target.value = processedSource;
+                    } else {
+                        console.warn('Target element does not support value property');
+                        target.innerHTML = processedSource;  // Fallback to innerHTML
+                    }
+                    break;
                 case 'none':
                     // Do nothing
                     break;
@@ -614,36 +736,63 @@
                 const field = containingForm.querySelector(`[name="${error.field}"]`);
                 if (field) {
                     field.classList.add('form-field-validation-error');
-        
+
                     const errorContainer = document.createElement('div');
                     errorContainer.className = 'validation-error-report';
-        
+
                     error.messages.forEach(message => {
                         const errorDiv = document.createElement('div');
-                        errorDiv.innerHTML = '&#9679; ' + Utils.escapeHtml(message);
+                        errorDiv.innerHTML = '● ' + Utils.escapeHtml(message);
                         errorContainer.appendChild(errorDiv);
                     });
-        
-                    let label = containingForm.querySelector(`label[for="${field.id}"]`);
-                    if (!label) {
-                        label = field.previousElementSibling;
-                        while (label && label.tagName.toLowerCase() !== 'label') {
-                            label = label.previousElementSibling;
+
+                    // Find the closest ancestor with 'flex-row' class that's inside or is the form itself
+                    const closestFlexRow = field.closest('.flex-row');
+                    
+                    if (closestFlexRow && (containingForm === closestFlexRow || containingForm.contains(closestFlexRow))) {
+                        // 1. Traverse back from the erroneous form field to find a 'target label'
+                        let targetLabel = null;
+                        let currentElement = field.previousElementSibling;
+                        
+                        while (currentElement && currentElement.tagName.toLowerCase() !== 'label') {
+                            // If we hit another form field or the start of the form, stop looking for a label
+                            if (currentElement.tagName.toLowerCase().match(/(input|select|textarea)/) || currentElement === null) {
+                                break;
+                            }
+                            currentElement = currentElement.previousElementSibling;
                         }
-                    }
-        
-                    if (label) {
-                        label.parentNode.insertBefore(errorContainer, label.nextSibling);
-                        if (!firstErrorElement) firstErrorElement = label;
+                        
+                        if (currentElement && currentElement.tagName.toLowerCase() === 'label') {
+                            // If a target label is found, insert the errorContainer immediately after the form label
+                            targetLabel.parentNode.insertBefore(errorContainer, targetLabel.nextSibling);
+                        } else {
+                            // OTHERWISE, search for a containing element that is WITHIN containingForm with a class of 'flex-row'
+                            const innerFlexRow = field.closest('.flex-row');
+                            
+                            if (innerFlexRow && containingForm.contains(innerFlexRow)) {
+                                // If found, insert before this containing element
+                                innerFlexRow.parentNode.insertBefore(errorContainer, innerFlexRow);
+                            } else {
+                                // OTHERWISE, insert the errorContainer before the form itself
+                                containingForm.parentNode.insertBefore(errorContainer, containingForm);
+                            }
+                        }
                     } else {
-                        field.parentNode.insertBefore(errorContainer, field.nextSibling);
-                        if (!firstErrorElement) firstErrorElement = field;
+                        // If no flex-row within or as the form, insert before the field itself
+                        field.parentNode.insertBefore(errorContainer, field);
                     }
-        
+
+                    // Set the first error element for potential focus
+                    if (!firstErrorElement) {
+                        firstErrorElement = field;
+                    }
+
+                    // Special handling for checkbox or radio inputs
                     if (field.type === "checkbox" || field.type === "radio") {
-                        let parentContainer = field.closest("div");
+                        let parentContainer = field.closest("div"); // Assuming checkbox/radio is wrapped in a div for styling
                         if (parentContainer) {
                             parentContainer.classList.add("form-field-validation-error");
+                            // Note: Setting inline styles like this is usually not recommended. Consider using CSS classes.
                             parentContainer.style.textIndent = "7px";
                         }
                     }
@@ -715,12 +864,12 @@
                 .forEach(el => el.classList.remove('form-field-validation-error'));
         },
 
-        setChildrenOpacity(overlayTargetEl, opacityValue) {
+        setChildrenOpacity(animationContainer, opacityValue) {
             const opacityNumber = parseFloat(opacityValue);
             if (isNaN(opacityNumber) || opacityNumber < 0 || opacityNumber > 1) {
                 throw new Error('Invalid opacity value. It must be a number between 0 and 1.');
             }
-            const children = Array.from(overlayTargetEl.children);
+            const children = Array.from(animationContainer.children);
             children.forEach(child => {
                 child.style.opacity = opacityValue;
             });
@@ -730,6 +879,13 @@
 
     const Modal = {
         buildMXModal(modalData, element, httpMethodAttribute, event) {
+
+            // Is the trigger element inside a modal
+            const containingModal = element.closest('.modal');
+            if (containingModal) {
+                closeModal();
+            }
+
             const modalId = typeof modalData === 'string' ? modalData : modalData.id;
 
             const existingEl = document.getElementById(modalId);
@@ -743,9 +899,75 @@
             modal.style.display = 'none';
 
             if (typeof modalData === 'object' && modalData.modalHeading) {
+
                 const modalHeading = document.createElement('div');
                 modalHeading.className = 'modal-heading';
-                modalHeading.innerHTML = modalData.modalHeading;
+                let renderCloseIcon = (modalData.renderCloseIcon) ? modalData.renderCloseIcon : true;
+
+                if (renderCloseIcon === false || renderCloseIcon === 'false') {
+                    modalHeading.innerHTML = modalData.modalHeading;
+                } else {
+                    modalHeading.classList.add('flex-row');
+                    modalHeading.classList.add('align-center');
+                    modalHeading.classList.add('justify-between');
+
+                    const modalHeadingLhs = document.createElement('div');
+                    modalHeadingLhs.innerHTML = modalData.modalHeading;
+                    modalHeading.appendChild(modalHeadingLhs);
+
+                    const modalHeadingRhs = document.createElement('div');
+
+                    // Check if Font Awesome is available
+                    const faIconAvailable = document.querySelector('link[href*="font-awesome"]') !== null || document.querySelector('.fa-times') !== null;
+
+                    if (faIconAvailable) {
+                        // If Font Awesome is available, use the Font Awesome icon
+                        const closeIcon = document.createElement('i');
+                        closeIcon.classList.add('fa', 'fa-times');
+                        closeIcon.style.cursor = 'pointer'; // Add pointer cursor for clickability
+                        closeIcon.setAttribute('onclick', 'closeModal()');
+
+                        modalHeadingRhs.appendChild(closeIcon);
+                    } else {
+                        // If Font Awesome is not available, use SVG that mimics the fa-times icon
+                        const closeIconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        closeIconSvg.setAttribute('width', '16');
+                        closeIconSvg.setAttribute('height', '16');
+                        closeIconSvg.setAttribute('viewBox', '0 0 100 100');
+                        closeIconSvg.setAttribute('fill', 'currentColor');
+                        closeIconSvg.setAttribute('class', 'bi bi-x');
+                        closeIconSvg.style.cursor = 'pointer';
+
+                        const crossGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        crossGroup.setAttribute('transform', 'rotate(45, 50, 50)');
+
+                        const verticalRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        verticalRect.setAttribute('x', '38');
+                        verticalRect.setAttribute('y', '0');
+                        verticalRect.setAttribute('width', '24');
+                        verticalRect.setAttribute('height', '100');
+                        verticalRect.setAttribute('rx', '12');
+                        verticalRect.setAttribute('ry', '12');
+
+                        const horizontalRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        horizontalRect.setAttribute('x', '0');
+                        horizontalRect.setAttribute('y', '38');
+                        horizontalRect.setAttribute('width', '100');
+                        horizontalRect.setAttribute('height', '24');
+                        horizontalRect.setAttribute('rx', '12');
+                        horizontalRect.setAttribute('ry', '12');
+
+                        crossGroup.appendChild(verticalRect);
+                        crossGroup.appendChild(horizontalRect);
+                        closeIconSvg.appendChild(crossGroup);
+
+                        closeIconSvg.setAttribute('onclick', 'closeModal()');
+                        modalHeadingRhs.appendChild(closeIconSvg);
+                    }
+
+                    modalHeading.appendChild(modalHeadingRhs);
+                }
+
                 modal.appendChild(modalHeading);
             }
 
@@ -757,9 +979,16 @@
             modalBody.appendChild(tempSpinner);
 
             modal.appendChild(modalBody);
-            document.body.appendChild(modal);
 
-            this.openModal(modalId);
+            if (typeof modalData === 'object' && modalData.modalFooter) {
+                const modalFooter = document.createElement('div');
+                modalFooter.className = 'modal-footer';
+                modalFooter.innerHTML = modalData.modalFooter;
+                modal.appendChild(modalFooter);
+            }
+
+            document.body.appendChild(modal);
+            this.openModal(modalId, modalData);
 
             const targetModal = document.getElementById(modalId);
             if (typeof modalData === 'object' && modalData.width) {
@@ -789,14 +1018,7 @@
                 buttonPara.setAttribute('class', 'text-center');
                 let buttonsAdded = false;
 
-                if (typeof modalOptions === 'string') {
-                    const closeBtn = document.createElement('button');
-                    closeBtn.setAttribute('class', 'alt');
-                    closeBtn.innerText = 'Close';
-                    closeBtn.setAttribute('onclick', 'closeModal()');
-                    buttonPara.appendChild(closeBtn);
-                    buttonsAdded = true;
-                } else if (typeof modalOptions === 'object') {
+                if (typeof modalOptions === 'object') {
                     if (modalOptions.hasOwnProperty('showCloseButton')) {
                         const closeBtn = document.createElement('button');
                         closeBtn.setAttribute('class', 'alt');
@@ -832,153 +1054,125 @@
             if (http.status >= 200 && http.status < 300) {
                 const closeOnSuccessStr = element.getAttribute('mx-close-on-success');
                 if (closeOnSuccessStr === 'true') {
-                    this.closeModal();
+                    window.closeModal();
                     return;
                 }
             } else {
                 const closeOnErrorStr = element.getAttribute('mx-close-on-error');
                 if (closeOnErrorStr === 'true') {
-                    this.closeModal();
+                    window.closeModal();
                 }
             }
         },
 
-        openModal(modalId) {
-            var body = document.querySelector("body");
-            var pageOverlay = document.getElementById("overlay");
+        openModal(modalId, modalData) {
+            trongateMXOpeningModal = true;
 
-            if (typeof pageOverlay === "undefined" || pageOverlay === null) {
-                var modalContainer = document.createElement("div");
-                modalContainer.setAttribute("id", "modal-container");
-                modalContainer.setAttribute("style", "z-index: 3;");
-                body.prepend(modalContainer);
+            setTimeout(() => {
+                trongateMXOpeningModal = false;
+            }, 333);
 
-                var overlay = document.createElement("div");
-                overlay.setAttribute("id", "overlay");
-                overlay.setAttribute("style", "z-index: 2");
+            const mxPageBody = document.body;
+            let mxPageOverlay = document.getElementById("overlay");
 
-                body.prepend(overlay);
+            if (typeof mxPageOverlay === "undefined" || mxPageOverlay === null) {
 
-                var targetModal = document.getElementById(modalId);
-                var targetModalContent = targetModal.innerHTML;
-                targetModal.remove();
+                // Create a modal container div and prepend it to the page.
+                const mxModalContainer = document.createElement("div");
+                mxModalContainer.setAttribute("id", "modal-container");
+                mxModalContainer.setAttribute("class", "mx-modal-container");
+                mxModalContainer.setAttribute("style", "z-index: 3;");
+                mxPageBody.prepend(mxModalContainer);
 
-                var newModal = document.createElement("div");
-                newModal.setAttribute("class", "modal");
-                newModal.setAttribute("id", modalId);
+                // Create an overlay element.
+                const mxPageOverlay = document.createElement("div");
+                mxPageOverlay.setAttribute("id", "overlay");
+                mxPageOverlay.setAttribute("style", "z-index: 2");
+                mxPageBody.prepend(mxPageOverlay);
 
-                newModal.style.zIndex = 4;
-                newModal.innerHTML = targetModalContent;
-                modalContainer.appendChild(newModal);
+                // Fetch existing modal (currently hidden and appended onto page).
+                const mxModal = document.getElementById(modalId);
+                mxModal.removeAttribute('style');
 
+                mxModal.setAttribute("class", "modal");
+                mxModal.setAttribute("id", modalId);
+                mxModal.style.zIndex = 4;
+                mxModalContainer.appendChild(mxModal);
+
+                // Get the top margin for the new modal (attempting to read from modalData)
+                const mxModalMarginTop = typeof modalData === 'object' 
+                  ? (modalData.marginTop || modalData['margin-top'] || '12vh') 
+                  : '12vh';
+
+                // Make the new modal element appear!
                 setTimeout(() => {
-                    newModal.style.opacity = 1;
-                    newModal.style.marginTop = "12vh";
+                    mxModal.style.opacity = 1;
+                    mxModal.style.marginTop = mxModalMarginTop;
                 }, 0);
             }
-        },
 
-        closeModal() {
-            var modalContainer = document.getElementById("modal-container");
-            if (modalContainer) {
-                var openModal = modalContainer.firstChild;
-
-                openModal.style.zIndex = -4;
-                openModal.style.opacity = 0;
-                openModal.style.marginTop = "12vh";
-                openModal.style.display = "none";
-                document.body.appendChild(openModal);
-
-                modalContainer.remove();
-
-                var overlay = document.getElementById("overlay");
-                if (overlay) {
-                    overlay.remove();
-                }
-                var event = new Event('modalClosed', { bubbles: true, cancelable: true });
-                document.dispatchEvent(event);
-            }
         }
+
     };
 
     const Animation = {
         initAnimateError(targetEl, http, element) {
-            const overlayTargetEl = this.estOverlayTargetEl(targetEl, element);
-            const overlay = this.mxCreateOverlay(overlayTargetEl);
+            const animationContainer = this.estAnimationContainer(targetEl, element);
+            const animationContainerChildren = animationContainer.children;
+            const tempContainer = document.createElement('div');
+            tempContainer.setAttribute('class', 'mx-temp-container cloak');
+            const bodyEl = document.body;
+            bodyEl.appendChild(tempContainer);
 
-            this.mxDrawBigCross(overlay);
+            // Loop through all the children of animationContainer and move them to tempContainer
+            while (animationContainerChildren.length > 0) {
+                tempContainer.appendChild(animationContainerChildren[0]);
+            }
+
+            this.mxDrawBigCross(animationContainer);
 
             setTimeout(() => {
-                const targetEl = element ?? targetEl;
-                this.mxDestroyAnimation(targetEl, http, element);
-                Dom.setChildrenOpacity(overlayTargetEl, 1);
-
-                if (overlayTargetEl.style.minHeight) {
-                    overlayTargetEl.style.minHeight = '';
-                }
-
+                this.mxDestroyAnimation(animationContainer);
                 Modal.initAttemptCloseModal(targetEl, http, element);
-                Http.attemptInitOnErrorActions(http, element);
-
             }, 1300);
         },
 
         initAnimateSuccess(targetEl, http, element) {
-            const overlayTargetEl = this.estOverlayTargetEl(targetEl, element);
-            const overlay = this.mxCreateOverlay(overlayTargetEl);
+            const animationContainer = this.estAnimationContainer(targetEl, element);
+            const animationContainerChildren = animationContainer.children;
+            const tempContainer = document.createElement('div');
+            tempContainer.setAttribute('class', 'mx-temp-container cloak');
+            const bodyEl = document.body;
+            bodyEl.appendChild(tempContainer);
 
-            this.mxDrawBigTick(element, overlay, targetEl);
+            // Loop through all the children of animationContainer and move them to tempContainer
+            while (animationContainerChildren.length > 0) {
+                tempContainer.appendChild(animationContainerChildren[0]);
+            }
+
+            this.mxDrawBigTick(animationContainer);
 
             setTimeout(() => {
-                this.mxDestroyAnimation(targetEl, http, element);
-                Dom.setChildrenOpacity(overlayTargetEl, 1);
-
-                if (overlayTargetEl.style.minHeight) {
-                    overlayTargetEl.style.minHeight = '';
-                }
-
+                this.mxDestroyAnimation(animationContainer);
                 Modal.initAttemptCloseModal(targetEl, http, element);
-                Dom.populateTargetEl(targetEl, http, element);
             }, 1300);
+
         },
 
-        estOverlayTargetEl(targetEl, element) {
-            let overlayTargetEl = targetEl;
-            const containingModalBody = element.closest('.modal-body');
-            if (containingModalBody) {
-                overlayTargetEl = containingModalBody;
+        estAnimationContainer(targetEl, element) {
+            let animationContainer = targetEl;
+
+            const containingModal = element.closest('.modal');
+            if (containingModal) {
+                const containingModalBody = containingModal.querySelector('.modal-body');
+                animationContainer = containingModalBody;
             } else {
                 const containingForm = element.closest('form');
                 if (containingForm) {
-                    overlayTargetEl = containingForm;
-                }
+                    animationContainer = containingForm;
+                }                
             }
-            return overlayTargetEl;
-        },
-
-        mxCreateOverlay(overlayTargetEl) {
-            const rect = overlayTargetEl.getBoundingClientRect();
-            const overlay = document.createElement('div');
-            overlay.style.position = 'absolute';
-            overlay.style.top = `${rect.top + window.scrollY}px`;
-            overlay.style.left = `${rect.left + window.scrollX}px`;
-            overlay.style.width = `${rect.width}px`;
-            overlay.style.minHeight = `${rect.height}px`;
-            overlay.style.display = 'flex';
-            overlay.style.flexDirection = 'column';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.classList.add('mx-animation');
-            overlay.style.zIndex = '9999';
-            document.body.appendChild(overlay);
-            Dom.setChildrenOpacity(overlayTargetEl, 0);
-            setTimeout(() => {
-                const overlayHeight = overlay.offsetHeight;
-                if (overlayHeight > overlayTargetEl.offsetHeight) {
-                    overlayTargetEl.style.minHeight = overlayHeight + 'px';
-                }
-            }, 1);
-            return overlay;
+            return animationContainer;
         },
 
         mxDrawBigCross(overlay) {
@@ -1026,7 +1220,7 @@
             }, 100);
         },
 
-        mxDrawBigTick(element, overlay, targetEl) {
+        mxDrawBigTick(animationContainer) {
             const bigTick = document.createElement("div");
             bigTick.setAttribute("style", "display: none");
             const trigger = document.createElement("div");
@@ -1056,7 +1250,7 @@
             polyline.setAttribute("points", "11.6,20 15.9,24.2 26.4,13.8");
             tickSvg.appendChild(polyline);
 
-            overlay.appendChild(bigTick);
+            animationContainer.appendChild(bigTick);
             bigTick.style.display = "flex";
 
             setTimeout(() => {
@@ -1065,19 +1259,32 @@
             }, 100);
         },
 
-        mxDestroyAnimation() {
-            const mxAnimationEl = document.querySelector('.mx-animation');
-            if (mxAnimationEl) {
-                mxAnimationEl.remove();
+        mxDestroyAnimation(animationContainer) {
+            while(animationContainer.firstChild) {
+                animationContainer.removeChild(animationContainer.firstChild);
             }
+
+            const tempContainer = document.querySelector('.mx-temp-container');
+
+            if (tempContainer) {
+                const tempContainerChildren = tempContainer.children;
+                while (tempContainerChildren.length > 0) {
+                    animationContainer.appendChild(tempContainerChildren[0]);
+                }
+                tempContainer.remove();
+            }
+
         }
     };
 
     const Main = {
         initializeTrongateMX() {
+            // Initialize observer for indicators
+            Dom.initializeIndicatorObserver();
+            
+            // Initialize existing indicators
             document.querySelectorAll('.mx-indicator').forEach(element => {
-                Dom.hideLoader(element);
-                element.style.display = '';
+                Dom.initializeSingleIndicator(element);
             });
 
             const events = ['click', 'dblclick', 'change', 'submit', 'keyup', 'keydown', 'focus', 'blur', 'input'];
@@ -1086,39 +1293,31 @@
             });
 
             document.querySelectorAll('[mx-trigger*="load"]').forEach(Dom.handlePageLoadedEvents);
-
             Main.attemptInitPolling();
-
             window.addEventListener('popstate', Main.handlePopState);
-
-            document.body.addEventListener('trongate:afterSwap', function(event) {
-                const element = event.detail.element;
-                const functionName = element.getAttribute('mx-after-swap');
-                if (functionName) {
-                    const cleanFunctionName = functionName.replace(/\(\)$/, '');
-                    if (typeof window[cleanFunctionName] === 'function') {
-                        try {
-                            window[cleanFunctionName](event);
-                        } catch (error) {
-                            console.error(`Error executing ${cleanFunctionName}:`, error);
-                        }
-                    } else {
-                        console.warn(`Function ${cleanFunctionName} not found`);
-                    }
-                }
-            });
         },
 
-        handleTrongateMXEvent(event) {
+        async handleTrongateMXEvent(event) {
             const element = event.target.closest('[' + CONFIG.CORE_MX_ATTRIBUTES.join('],[') + ']');
 
             if (!element) return;
 
             const triggerEvent = Main.establishTriggerEvent(element);
-
             if (triggerEvent !== event.type) return;
 
             event.preventDefault();
+
+            // Execute mx-on-trigger function if present
+            const onTriggerFunction = element.getAttribute('mx-on-trigger');
+            if (onTriggerFunction) {
+                const customEvent = Utils.createMXEvent(element, event, 'trigger');
+                try {
+                    await Utils.executeMXFunction(onTriggerFunction, customEvent);
+                } catch (error) {
+                    console.error(`Error executing ${onTriggerFunction}:`, error);
+                    return;
+                }
+            }
 
             // Throttle check here
             const throttleTime = parseInt(element.getAttribute('mx-throttle')) || 0;
@@ -1127,27 +1326,52 @@
                 return;
             }
 
-            if (element.hasAttribute('mx-remove')) {
-                const parent = element.closest('.category-level');
-                if (parent) {
-                    parent.remove();
-                }
-                return;
-            }
-
             const attribute = CONFIG.CORE_MX_ATTRIBUTES.find(attr => element.hasAttribute(attr));
 
-            if (
-                (element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
-                (attribute !== 'mx-get') &&
-                !element.hasAttribute('mx-vals')
-            ) {
-                Main.mxSubmitForm(element, triggerEvent, attribute, event);
-            } else {
-                // Special handling for select elements with mx-get and mx-trigger="change"
-                if (element.tagName.toLowerCase() === 'select' && 
-                    attribute === 'mx-get' && 
-                    element.getAttribute('mx-trigger') === 'change') {
+            // Start HTTP request processing before handling mx-remove
+            let httpRequestStarted = false;
+            if (attribute && attribute !== 'mx-remove') {
+                httpRequestStarted = true;
+                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
+                    (attribute !== 'mx-get')) {
+                    Main.mxSubmitForm(element, triggerEvent, attribute, event);
+                } else if (element.tagName.toLowerCase() === 'select' && 
+                           attribute === 'mx-get' && 
+                           element.getAttribute('mx-trigger') === 'change') {
+                    Main.initInvokeHttpRequest(element, attribute, event);
+                } else {
+                    Main.initInvokeHttpRequest(element, attribute, event);
+                }
+            }
+
+            // Handle mx-remove after initiating HTTP request
+            if (element.hasAttribute('mx-remove')) {
+                const value = element.getAttribute('mx-remove');
+                
+                // Use setTimeout to ensure HTTP request gets processed first
+                setTimeout(() => {
+                    if (value === 'true') {
+                        const parent = element.parentElement;
+                        if (parent) {
+                            parent.remove();
+                        }
+                    } else {
+                        const ancestor = element.closest(value);
+                        if (ancestor) {
+                            ancestor.remove();
+                        }
+                    }
+                }, 0);
+            }
+
+            // If no HTTP request was started and no mx-remove was handled, process as normal
+            if (!httpRequestStarted && !element.hasAttribute('mx-remove')) {
+                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
+                    (attribute !== 'mx-get')) {
+                    Main.mxSubmitForm(element, triggerEvent, attribute, event);
+                } else if (element.tagName.toLowerCase() === 'select' && 
+                           attribute === 'mx-get' && 
+                           element.getAttribute('mx-trigger') === 'change') {
                     Main.initInvokeHttpRequest(element, attribute, event);
                 } else {
                     Main.initInvokeHttpRequest(element, attribute, event);
@@ -1157,6 +1381,10 @@
 
         establishTriggerEvent(element) {
             const triggerEventStr = element.getAttribute('mx-trigger');
+
+            if (triggerEventStr === 'activate') {
+                return '__ACTIVATE__';  // A special value that will never match a real event type
+            }
 
             if (triggerEventStr) {
                 return triggerEventStr;
@@ -1286,14 +1514,122 @@
         }
     };
 
+    function handleEscapeKey(event) {
+        if (event.key === "Escape") {
+            const modalContainer = document.getElementById("modal-container");
+            if (modalContainer) {
+                closeModal();
+            }
+        }
+    }
+
+    function handleMxModalClick(event) {
+
+        if (trongateMXOpeningModal) {
+            return;
+        }
+
+        const preExistingMxModalContainer = document.querySelector('.mx-modal-container');
+
+        if (preExistingMxModalContainer) {
+            const preExistingMxModal = preExistingMxModalContainer.querySelector(".modal");
+            const clickedOutside = preExistingMxModal && !preExistingMxModal.contains(event.target);
+            const mousedownInsideModal = preExistingMxModal && preExistingMxModal.contains(mousedownEl);
+            const mouseupInsideModal = preExistingMxModal && preExistingMxModal.contains(mouseupEl);
+
+            if ((clickedOutside) && (!mousedownInsideModal) && (!mouseupInsideModal)) {
+                closeModal();
+            }
+        }
+    }
+
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
+
+    // Initialize closing of modals upon pressing 'Escape' key.
+    document.addEventListener("keydown", handleEscapeKey);
+
+
+    document.addEventListener("click", (event) => {
+        handleMxModalClick(event);
+    });
+
+    // Establish the target element when mouse down event happens.
+    document.addEventListener("mousedown", (event) => {
+        mousedownEl = event.target;
+    });
+
+    // Establish the target element when mouse down event happens.
+    document.addEventListener("mouseup", (event) => {
+        mouseupEl = event.target;
+    });
 
     // Expose necessary functions to the global scope
     window.TrongateMX = {
         init: Main.initializeTrongateMX,
-        openModal: Modal.openModal,
-        closeModal: Modal.closeModal
+        openModal: Modal.openModal
     };
 
+
 })(window);
+
+const _mxOpenModal = function(modalId) {
+    trongateMXOpeningModal = true;
+    setTimeout(() => {
+        trongateMXOpeningModal = false;
+    }, 333);
+
+    const mxPageBody = document.body;
+    let mxPageOverlay = document.getElementById("overlay");
+
+    if (typeof mxPageOverlay === "undefined" || mxPageOverlay === null) {
+        const mxModalContainer = document.createElement("div");
+        mxModalContainer.setAttribute("id", "modal-container");
+        mxModalContainer.setAttribute("class", "mx-modal-container");
+        mxModalContainer.setAttribute("style", "z-index: 3;");
+        mxPageBody.prepend(mxModalContainer);
+
+        const mxPageOverlay = document.createElement("div");
+        mxPageOverlay.setAttribute("id", "overlay");
+        mxPageOverlay.setAttribute("style", "z-index: 2");
+        mxPageBody.prepend(mxPageOverlay);
+
+        const mxModal = document.getElementById(modalId);
+        mxModal.removeAttribute('style');
+
+        mxModal.setAttribute("class", "modal");
+        mxModal.setAttribute("id", modalId);
+        mxModal.style.zIndex = 4;
+        mxModalContainer.appendChild(mxModal);
+
+        setTimeout(() => {
+            mxModal.style.opacity = 1;
+            mxModal.style.marginTop = '12vh';
+        }, 0);
+    }
+};
+
+const _mxCloseModal = function () {
+    const mxModalContainer = document.getElementById("modal-container");
+    if (mxModalContainer) {
+        const openModal = mxModalContainer.firstChild;
+        openModal.style.zIndex = -4;
+        openModal.style.opacity = 0;
+        openModal.style.marginTop = '12vh';
+        openModal.style.display = "none";
+        const tmxBody = document.querySelector('body');
+        tmxBody.appendChild(openModal);
+        mxModalContainer.remove();
+
+        const overlay = document.getElementById("overlay");
+        if (overlay) {
+            overlay.remove();
+        }
+
+        const event = new Event("modalClosed", { bubbles: true, cancelable: true });
+        document.dispatchEvent(event);
+    }
+};
+
+window.openModal = window.openModal || _mxOpenModal;
+window.closeModal = window.closeModal || _mxCloseModal;
