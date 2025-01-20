@@ -102,12 +102,17 @@ let trongateMXOpeningModal = false;
             });
         },
         normalizeUrl(url) {
+            // Check if the URL is absolute
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return url;
+            }
+
             const baseElement = document.querySelector('base');
             const baseUrl = baseElement ? baseElement.href : window.location.origin + '/';
 
             // Check if the url already starts with the base URL
             if (url.startsWith(baseUrl)) {
-                return url; // Return the url as is if it already includes the base URL
+                return url;
             }
 
             // Remove leading slash from url if baseUrl ends with a slash
