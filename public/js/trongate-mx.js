@@ -812,6 +812,16 @@ let trongateMXOpeningModal = false;
                     });
                 }, 100);
             }
+
+            // Add the following code at the end of the method:
+            const functionName = containingForm.getAttribute('mx-after-validation');
+            if (functionName) {
+                const customEvent = Utils.createMXEvent(containingForm, event, 'afterValidation', {
+                    validationErrors
+                });
+                Utils.executeMXFunction(functionName, customEvent);
+            }
+
         },
 
         removeCloak() {
