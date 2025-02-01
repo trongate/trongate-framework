@@ -589,12 +589,13 @@ let trongateMXOpeningModal = false;
         },
 
         processMXDomVals(element) {
-            const mxDomValsStr = element.getAttribute('mx-dom-vals');
+            // Try both attribute names
+            const mxDomValsStr = element.getAttribute('mx-dom-vals') || element.getAttribute('mx-dom-values');
             if (!mxDomValsStr) return {};
-        
+
             const domVals = Utils.parseAttributeValue(mxDomValsStr);
             if (!domVals || typeof domVals !== 'object') return {};
-        
+
             const result = {};
             Object.entries(domVals).forEach(([key, value]) => {
                 if (typeof value === 'object' && value.selector && value.property) {
