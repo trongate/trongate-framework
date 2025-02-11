@@ -8,10 +8,9 @@
  * @param string|null $value The value of the input element. Default is null.
  * @param bool|string|null $checked Whether the input element should be checked (for radio/checkbox). Default is false.
  * @param array|null $attributes An associative array of HTML attributes for the input. Default is null.
- * @param string|null $additional_code Additional HTML code to append to the input element. Default is null.
  * @return string The generated HTML input element.
  */
-function generate_input_element(string $type, string $name, ?string $value = null, bool|string|null $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
+function generate_input_element(string $type, string $name, ?string $value = null, bool|string|null $checked = false, ?array $attributes = null): string {
     $attributes = $attributes ?? [];
     $attributes['type'] = $type;
     $attributes['name'] = $name;
@@ -26,10 +25,6 @@ function generate_input_element(string $type, string $name, ?string $value = nul
     }
     
     $html = '<input' . get_attributes_str($attributes);
-    
-    if ($additional_code !== null) {
-        $html .= ' ' . $additional_code;
-    }
     return $html . '>';
 }
 
@@ -40,10 +35,9 @@ function generate_input_element(string $type, string $name, ?string $value = nul
  * @param string|bool|int|null $value The value attribute for the input element. Defaults to '1'.
  * @param mixed $checked Whether the checkbox should be checked. Accepts true, 'true', 1, '1', 'on', etc.
  * @param array|null $attributes Additional attributes for the input element as an associative array.
- * @param string|null $additional_code Additional HTML code to be included.
  * @return string The generated HTML input element.
  */
-function form_checkbox(string $name, string|bool|int|null $value = null, mixed $checked = false, ?array $attributes = null, ?string $additional_code = null): string {
+function form_checkbox(string $name, string|bool|int|null $value = null, mixed $checked = false, ?array $attributes = null): string {
     // Convert value to string, defaulting to '1' if null
     $value = $value !== null ? (string) $value : '1';
     
@@ -51,7 +45,7 @@ function form_checkbox(string $name, string|bool|int|null $value = null, mixed $
     $is_checked = filter_var($checked, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
     
     // Generate the checkbox input element
-    return generate_input_element('checkbox', $name, $value, $is_checked, $attributes, $additional_code);
+    return generate_input_element('checkbox', $name, $value, $is_checked, $attributes);
 }
 
 /**
@@ -61,10 +55,9 @@ function form_checkbox(string $name, string|bool|int|null $value = null, mixed $
  * @param string|bool|int|null $value The value attribute for the input element.
  * @param mixed $checked Whether the radio button should be checked. Accepts true, 'true', 1, '1', 'on', etc.
  * @param array|null $attributes Additional attributes for the input element as an associative array.
- * @param string|null $additional_code Additional HTML code to be included.
  * @return string The generated HTML input element.
  */
-function form_radio(string $name, string|bool|int|null $value = null, mixed $checked = false, ?array $attributes = null, ?string $additional_code = null): string {    
+function form_radio(string $name, string|bool|int|null $value = null, mixed $checked = false, ?array $attributes = null): string {    
     // Convert value to string if not null
     $value = $value !== null ? (string) $value : null;
     
@@ -72,7 +65,7 @@ function form_radio(string $name, string|bool|int|null $value = null, mixed $che
     $is_checked = filter_var($checked, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
     
     // Generate the radio input element
-    return generate_input_element('radio', $name, $value, $is_checked, $attributes, $additional_code);
+    return generate_input_element('radio', $name, $value, $is_checked, $attributes);
 }
 
 /**
@@ -81,11 +74,10 @@ function form_radio(string $name, string|bool|int|null $value = null, mixed $che
  * @param string $name The name attribute for the input element.
  * @param string|null $value The value attribute for the input element. Default is null.
  * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
- * @param string|null $additional_code Additional HTML code to be included. Default is null.
  * @return string The generated HTML input element.
  */
-function form_input(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    return generate_input_element('text', $name, $value, false, $attributes, $additional_code);
+function form_input(string $name, ?string $value = null, ?array $attributes = null): string {
+    return generate_input_element('text', $name, $value, false, $attributes);
 }
 
 /**
@@ -94,11 +86,10 @@ function form_input(string $name, ?string $value = null, ?array $attributes = nu
  * @param string $name The name attribute for the input element.
  * @param string|null $value The value attribute for the input element. Default is null.
  * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
- * @param string|null $additional_code Additional HTML code to be included. Default is null.
  * @return string The generated HTML input element.
  */
-function form_email(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    return generate_input_element('email', $name, $value, false, $attributes, $additional_code);
+function form_email(string $name, ?string $value = null, ?array $attributes = null): string {
+    return generate_input_element('email', $name, $value, false, $attributes);
 }
 
 /**
@@ -107,11 +98,10 @@ function form_email(string $name, ?string $value = null, ?array $attributes = nu
  * @param string $name The name attribute for the input element.
  * @param string|null $value The value attribute for the input element. Default is null.
  * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
- * @param string|null $additional_code Additional HTML code to be included. Default is null.
  * @return string The generated HTML input element.
  */
-function form_password(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    return generate_input_element('password', $name, $value, false, $attributes, $additional_code);
+function form_password(string $name, ?string $value = null, ?array $attributes = null): string {
+    return generate_input_element('password', $name, $value, false, $attributes);
 }
 
 /**
@@ -120,11 +110,10 @@ function form_password(string $name, ?string $value = null, ?array $attributes =
  * @param string $name The name attribute for the input element.
  * @param string|null $value The value attribute for the input element. Default is null.
  * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
- * @param string|null $additional_code Additional HTML code to be included. Default is null.
  * @return string The generated HTML input element.
  */
-function form_search(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    return generate_input_element('search', $name, $value, false, $attributes, $additional_code);
+function form_search(string $name, ?string $value = null, ?array $attributes = null): string {
+    return generate_input_element('search', $name, $value, false, $attributes);
 }
 
 /**
@@ -133,11 +122,10 @@ function form_search(string $name, ?string $value = null, ?array $attributes = n
  * @param string $name The name attribute for the input element.
  * @param string|int|float|null $value The value attribute for the input element. Default is null.
  * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
- * @param string|null $additional_code Additional HTML code to be included. Default is null.
  * @return string The generated HTML input element.
  */
-function form_number(string $name, string|int|float|null $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    return generate_input_element('number', $name, $value, false, $attributes, $additional_code);
+function form_number(string $name, string|int|float|null $value = null, ?array $attributes = null): string {
+    return generate_input_element('number', $name, $value, false, $attributes);
 }
 
 /**
@@ -146,11 +134,10 @@ function form_number(string $name, string|int|float|null $value = null, ?array $
  * @param string $name The name attribute for the input element.
  * @param string|int|float|null $value The value attribute for the input element. Default is null.
  * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
- * @param string|null $additional_code Additional HTML code to be included. Default is null.
  * @return string The generated HTML input element.
  */
-function form_hidden(string $name, string|int|float|null $value = null, ?array $attributes = null, ?string $additional_code = null): string {
-    return generate_input_element('hidden', $name, $value, false, $attributes, $additional_code);
+function form_hidden(string $name, string|int|float|null $value = null, ?array $attributes = null): string {
+    return generate_input_element('hidden', $name, $value, false, $attributes);
 }
 
 /**
@@ -158,10 +145,9 @@ function form_hidden(string $name, string|int|float|null $value = null, ?array $
  *
  * @param string $location The URL to which the form will be submitted.
  * @param array|null $attributes An optional array of HTML attributes for the form.
- * @param string|null $additional_code An optional additional code to include in the form tag.
  * @return string The HTML opening tag for the form.
  */
-function form_open(string $location, ?array $attributes = null, ?string $additional_code = null): string {
+function form_open(string $location, ?array $attributes = null): string {
     $extra = '';
     $method = 'post';
 
@@ -179,10 +165,6 @@ function form_open(string $location, ?array $attributes = null, ?string $additio
         $location = BASE_URL . $location;
     }
 
-    if ($additional_code !== null) {
-        $extra .= ' ' . htmlspecialchars($additional_code, ENT_QUOTES, 'UTF-8');
-    }
-
     return '<form action="' . htmlspecialchars($location, ENT_QUOTES, 'UTF-8') . '" method="' . htmlspecialchars($method, ENT_QUOTES, 'UTF-8') . '"' . $extra . '>';
 }
 
@@ -191,20 +173,14 @@ function form_open(string $location, ?array $attributes = null, ?string $additio
  *
  * @param string $location The URL to which the form will be submitted.
  * @param array|null $attributes An optional array of HTML attributes for the form.
- * @param string|null $additional_code An optional additional code to include in the form tag.
  * @return string The HTML opening tag for the form with enctype set to "multipart/form-data."
  */
-function form_open_upload(string $location, ?array $attributes = null, ?string $additional_code = null): string {
+function form_open_upload(string $location, ?array $attributes = null): string {
     $attributes = is_array($attributes) ? $attributes : [];
     $attributes['enctype'] = 'multipart/form-data';
-    return form_open($location, $attributes, $additional_code);
+    return form_open($location, $attributes);
 }
 
-/**
- * Generates hidden CSRF token input field and a closing form tag.
- *
- * @return string The HTML closing tag for the form.
- */
 /**
  * Generates hidden CSRF token input field and a closing form tag.
  *
@@ -288,22 +264,14 @@ function get_attributes_str($attributes): string {
  *
  * @param string $label_text The text or HTML to be used as the label content.
  * @param array|null $attributes An associative array of HTML attributes for the label element. Defaults to null.
- * @param string|null $additional_code Additional HTML code to append to the label element. Defaults to null.
- * @return string The generated HTML label element with attributes and additional code.
+ * @return string The generated HTML label element with attributes.
  * 
  * Note: The label_text is not escaped by default. If using user-generated content,
  * ensure it is properly sanitized before passing it to this function.
  */
-function form_label(string $label_text, ?array $attributes = null, ?string $additional_code = null): string {
+function form_label(string $label_text, ?array $attributes = null): string {
     $attributes_str = get_attributes_str($attributes);
-    
-    $label = '<label' . $attributes_str . '>' . $label_text . '</label>';
-    
-    if ($additional_code !== null) {
-        $label .= $additional_code;
-    }
-    
-    return $label;
+    return '<label' . $attributes_str . '>' . $label_text . '</label>';
 }
 
 /**
@@ -312,20 +280,13 @@ function form_label(string $label_text, ?array $attributes = null, ?string $addi
  * @param string $name The name attribute for the textarea element.
  * @param string|null $value The initial value of the textarea. If not provided, it will be empty.
  * @param array|null $attributes An associative array of HTML attributes for the textarea.
- * @param string|null $additional_code Additional HTML code to append to the textarea element.
  * @return string The generated HTML textarea element.
  */
-function form_textarea(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+function form_textarea(string $name, ?string $value = null, ?array $attributes = null): string {
     $attributes = $attributes ?? [];
     $attributes['name'] = $name;
     
-    $html = '<textarea' . get_attributes_str($attributes);
-    
-    if ($additional_code !== null) {
-        $html .= ' ' . $additional_code;
-    }
-    
-    $html .= '>' . htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8') . '</textarea>';
+    $html = '<textarea' . get_attributes_str($attributes) . '>' . htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8') . '</textarea>';
     
     return $html;
 }
@@ -336,25 +297,18 @@ function form_textarea(string $name, ?string $value = null, ?array $attributes =
  * @param string $name The name attribute for the button element.
  * @param string|null $value The value of the button. If not provided, defaults to "Submit".
  * @param array|null $attributes An associative array of HTML attributes for the button.
- * @param string|null $additional_code Additional HTML code to append to the button element.
  * @return string The generated HTML submit button element.
  * 
  * Note: The value is not escaped by default. If using user-generated content,
  * ensure it is properly sanitized before passing it to this function.
  */
-function form_submit(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+function form_submit(string $name, ?string $value = null, ?array $attributes = null): string {
     $attributes = $attributes ?? [];
     $attributes['type'] = 'submit';
     $attributes['name'] = $name;
     $attributes['value'] = $value ?? 'Submit';
     
-    $html = '<button' . get_attributes_str($attributes);
-    
-    if ($additional_code !== null) {
-        $html .= ' ' . $additional_code;
-    }
-    
-    $html .= '>' . $value . '</button>';
+    $html = '<button' . get_attributes_str($attributes) . '>' . $value . '</button>';
     
     return $html;
 }
@@ -365,25 +319,18 @@ function form_submit(string $name, ?string $value = null, ?array $attributes = n
  * @param string $name The name attribute for the button element.
  * @param string|null $value The value of the button. If not provided, defaults to "Submit".
  * @param array|null $attributes An associative array of HTML attributes for the button.
- * @param string|null $additional_code Additional HTML code to append to the button element.
  * @return string The generated HTML button element.
  * 
  * Note: The value is not escaped by default. If using user-generated content,
  * ensure it is properly sanitized before passing it to this function.
  */
-function form_button(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+function form_button(string $name, ?string $value = null, ?array $attributes = null): string {
     $attributes = $attributes ?? [];
     $attributes['type'] = 'button';
     $attributes['name'] = $name;
     $value = $value ?? 'Submit';
     
-    $html = '<button' . get_attributes_str($attributes);
-    
-    if ($additional_code !== null) {
-        $html .= ' ' . $additional_code;
-    }
-    
-    $html .= '>' . $value . '</button>';
+    $html = '<button' . get_attributes_str($attributes) . '>' . $value . '</button>';
     
     return $html;
 }
@@ -395,21 +342,14 @@ function form_button(string $name, ?string $value = null, ?array $attributes = n
  * @param array<string|int,string> $options Associative array of options where keys are values and values are display text.
  * @param string|int|null $selected_key The key of the selected option. Can be string or integer.
  * @param array $attributes An array of HTML attributes for the select element.
- * @param string|null $additional_code Additional HTML code to include.
  * @return string The generated HTML select menu.
  * 
  * Note: Ensure proper sanitization of user-generated content passed to this function.
  */
-function form_dropdown(string $name, array $options, string|int|null $selected_key = null, array $attributes = [], ?string $additional_code = null): string {
+function form_dropdown(string $name, array $options, string|int|null $selected_key = null, array $attributes = []): string {
     $attributes['name'] = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
     
-    $html = '<select' . get_attributes_str($attributes);
-    
-    if ($additional_code !== null) {
-        $html .= ' ' . $additional_code;
-    }
-    
-    $html .= ">\n";
+    $html = '<select' . get_attributes_str($attributes) . ">\n";
 
     foreach ($options as $option_key => $option_value) {
         $option_attributes = ['value' => htmlspecialchars((string)$option_key, ENT_QUOTES, 'UTF-8')];
@@ -429,11 +369,10 @@ function form_dropdown(string $name, array $options, string|int|null $selected_k
  *
  * @param string $name The name attribute for the file input.
  * @param array|null $attributes An array of HTML attributes for the file input.
- * @param string|null $additional_code Additional HTML code to include in the file input.
  * @return string The generated HTML for the file input element.
  */
-function form_file_select(string $name, ?array $attributes = null, ?string $additional_code = null): string {
-    return generate_input_element('file', $name, null, false, $attributes, $additional_code);
+function form_file_select(string $name, ?array $attributes = null): string {
+    return generate_input_element('file', $name, null, false, $attributes);
 }
 
 /**
