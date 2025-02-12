@@ -140,11 +140,29 @@ let trongateMXOpeningModal = false;
 
         executeMXFunction(functionName, customEvent) {
             if (!functionName) return;
-            
+
             const cleanFunctionName = functionName.replace(/\(\)$/, '');
-            if (typeof window[cleanFunctionName] === 'function') {
+            let func;
+
+            if (cleanFunctionName.includes('.')) {
+                // Handle object.method references
+                const [objectName, methodName] = cleanFunctionName.split('.');
+                const obj = window[objectName];
+
+                if (obj && typeof obj === 'object' && obj[methodName] && typeof obj[methodName] === 'function') {
+                    func = obj[methodName].bind(obj); // Bind the method to the object
+                } else {
+                    console.warn(`Object or method not found: ${cleanFunctionName}`);
+                    return;
+                }
+            } else {
+                // Handle global functions
+                func = window[cleanFunctionName];
+            }
+
+            if (typeof func === 'function') {
                 try {
-                    window[cleanFunctionName](customEvent);
+                    func(customEvent); // Invoke the function with the custom event
                 } catch (error) {
                     console.error(`Error executing ${cleanFunctionName}:`, error);
                 }
