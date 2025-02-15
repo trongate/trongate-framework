@@ -151,18 +151,22 @@ class Image {
     }
 
     /**
-     * Loads an image from a given filename and sets the image type based on the file's format.
-     *
-     * This method first checks if the specified file exists. If it does, it retrieves the image's
-     * metadata to determine its type and then loads the image into memory. Supports JPEG, GIF,
-     * PNG, and WEBP image formats.
-     *
-     * @param string $filename The path to the image file to be loaded.
-     * @throws Not_found_exception If the file does not exist at the specified path.
-     * @return void
-     */
+    * Loads and validates an image file into memory.
+    *
+    * This method performs several steps:
+    * 1. Validates the image file for type, size and memory requirements
+    * 2. Determines the image type (JPEG, GIF, PNG, WEBP)
+    * 3. Creates an appropriate GD image resource based on the type
+    * 
+    * @param string $filename Path to the image file to be loaded
+    * @throws InvalidArgumentException If the image type is unsupported
+    * @throws RuntimeException If WebP support is unavailable or if image resource creation fails
+    * @return void
+    */
     protected function load(string $filename): void {
-        $this->check_file_exists($filename);
+        // Validate file before any operations
+        $this->validate_image($filename);
+        
         $image_info = getimagesize($filename);
         $this->image_type = $image_info[2];
 
@@ -177,10 +181,85 @@ class Image {
                 $this->image = imagecreatefrompng($filename);
                 break;
             case IMAGETYPE_WEBP:
+                if (!function_exists('imagecreatefromwebp')) {
+                    throw new RuntimeException('WebP support not available in this PHP installation');
+                }
                 $this->image = imagecreatefromwebp($filename);
                 break;
             default:
-                throw new Exception("Unsupported image type.");
+                throw new InvalidArgumentException("Unsupported image type");
+        }
+
+        if ($this->image === false) {
+            throw new RuntimeException("Failed to create image resource");
+        }
+    }
+
+    /**
+    * Performs comprehensive validation of an image file.
+    * 
+    * This method executes multiple validation checks on an image file including:
+    * - File existence verification
+    * - MIME type validation using finfo and getimagesize
+    * - File signature/magic number verification
+    * - Memory requirement calculations
+    *
+    * @param string $filename The path to the image file to validate
+    * @throws InvalidArgumentException If the file doesn't exist, has invalid MIME type, or invalid signature
+    * @throws RuntimeException If image info can't be read or memory requirements exceed limits
+    * @return void
+    */
+    private function validate_image(string $filename): void {
+        if (!file_exists($filename)) {
+            throw new InvalidArgumentException("File not found: $filename");
+        }
+
+        // Enhanced MIME validation with double-checking
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime_type = finfo_file($finfo, $filename);
+        finfo_close($finfo);
+
+        $allowed_types = array_values($this->content_type);
+        if (!in_array($mime_type, $allowed_types)) {
+            throw new InvalidArgumentException('Invalid image type');
+        }
+
+        // Additional image validation
+        $image_info = @getimagesize($filename);
+        if ($image_info === false) {
+            throw new RuntimeException('Failed to get image information');
+        }
+
+        // Verify MIME type matches getimagesize result
+        $detected_mime = $image_info['mime'];
+        if ($detected_mime !== $mime_type) {
+            throw new InvalidArgumentException('MIME type mismatch detected');
+        }
+
+        // Validate file signatures
+        $file_content = file_get_contents($filename, false, null, 0, 8);
+        $signatures = [
+            IMAGETYPE_JPEG => ["\xFF\xD8\xFF"],
+            IMAGETYPE_PNG => ["\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"],
+            IMAGETYPE_GIF => ["GIF87a", "GIF89a"],
+            IMAGETYPE_WEBP => ["RIFF", "WEBP"]
+        ];
+        
+        $valid_signature = false;
+        foreach ($signatures[$image_info[2]] ?? [] as $sig) {
+            if (strpos($file_content, $sig) === 0) {
+                $valid_signature = true;
+                break;
+            }
+        }
+        if (!$valid_signature) {
+            throw new InvalidArgumentException('Invalid file signature');
+        }
+
+        // Memory validation (existing code remains the same)
+        $required_memory = $image_info[0] * $image_info[1] * 4 * 1.5;
+        if (memory_get_usage() + $required_memory > $this->get_memory_limit()) {
+            throw new RuntimeException('Image too large to process');
         }
     }
 
@@ -542,6 +621,41 @@ class Image {
     }
 
     /**
+    * Gets the PHP memory limit in bytes.
+    * 
+    * Retrieves and converts the PHP memory_limit configuration value to bytes.
+    * Handles limit values specified with K (Kilobytes), M (Megabytes), or G (Gigabytes) suffixes.
+    * Returns PHP_INT_MAX if memory_limit is set to -1 (unlimited).
+    *
+    * Example values handled:
+    * - "128M" -> 134217728 (bytes)
+    * - "1G" -> 1073741824 (bytes)
+    * - "-1" -> PHP_INT_MAX
+    *
+    * @return int Memory limit in bytes
+    */
+    private function get_memory_limit(): int {
+        $memory_limit = ini_get('memory_limit');
+        if ($memory_limit === '-1') {
+            return PHP_INT_MAX;
+        }
+        
+        $unit = strtolower(substr($memory_limit, -1));
+        $value = (int)substr($memory_limit, 0, -1);
+        
+        switch ($unit) {
+            case 'g':
+                $value *= 1024;
+            case 'm':
+                $value *= 1024;
+            case 'k':
+                $value *= 1024;
+        }
+        
+        return $value;
+    }
+
+    /**
      * Frees up memory allocated to the image resource.
      *
      * This method releases the memory associated with the image resource
@@ -605,96 +719,35 @@ class Image {
     }
 
     /**
-     * Retrieves the MIME type header of the currently loaded image based on its type.
-     *
-     * This method returns the MIME type corresponding to the image format of the loaded image.
-     * It is crucial for setting correct HTTP Content-Type headers when serving images directly
-     * from PHP scripts. If the image type has not been set due to the absence of a loaded image,
-     * this method throws a Nothing_loaded_exception to prevent misuse and to facilitate debugging.
-     *
-     * @throws Nothing_loaded_exception If no image has been loaded or if the image type is not set, indicating
-     *                                  that operations requiring an image cannot proceed.
-     * @return string The MIME type of the image, suitable for HTTP Content-Type headers, e.g., 'image/jpeg'.
-     */
+    * Gets the MIME type header for the currently loaded image.
+    * 
+    * Returns the appropriate MIME type (e.g., 'image/jpeg', 'image/png') for the loaded image.
+    * This MIME type can be used in HTTP Content-Type headers when serving the image.
+    *
+    * @throws InvalidArgumentException If no image has been loaded or image type is not set
+    * @return string The MIME type of the current image (e.g., 'image/jpeg', 'image/png', 'image/gif', 'image/webp')
+    */
     public function get_header(): string {
         if (!$this->image_type) {
-            throw new Nothing_loaded_exception("No image has been loaded, or image type is unset.");
+            throw new InvalidArgumentException("No image has been loaded, or image type is unset.");
         }
         return $this->content_type[$this->image_type];
     }
 
     /**
-     * Validates the existence of a file at the specified path.
-     *
-     * This method is a utility function within the Image class that checks if a file exists at a given path.
-     * It is used internally before performing operations that require the file's presence. If the file does not exist,
-     * a Not_found_exception is thrown to handle the error appropriately within the class's workflow.
-     *
-     * @param string $path The file path to check for existence.
-     * @throws Not_found_exception Thrown if the file does not exist at the specified path, indicating an error in file handling.
-     * @return void
-     */
+    * Validates that a file exists at the specified path.
+    * 
+    * A utility method that checks if a file exists at the given path.
+    * Used for basic file existence validation before attempting file operations.
+    *
+    * @param string $path The filesystem path to check
+    * @throws InvalidArgumentException If no file exists at the specified path
+    * @return void
+    */
     private function check_file_exists(string $path): void {
         if (!file_exists($path)) {
-            throw new Not_found_exception($path);
+            throw new InvalidArgumentException("File not found: $path");
         }
     }
-    // Redirects to ensure backwards compatibility with older modules like the news Module
-    // and the single picture uploader.
-
-    public function getWidth() {
-        $this -> get_width();
-    }
-
-    public function getHeight() {
-        $this -> get_height();
-    }
-
-
-
-    public function resizeToWidth($width) {
-        $this -> resize_to_width($width);
-    }
-
-    public function resizeToHeight($height) {
-        $this -> resize_to_height($height);
-    }
-}
-
-/**
- * Exception thrown when no image or required data is loaded before attempting an operation.
- */
-class Nothing_loaded_exception extends Exception {
-    /**
-     * Constructs the exception with a default message.
-     */
-    public function __construct() {
-        parent::__construct("No valid data loaded to proceed with the operation.");
-    }
-}
-
-/**
- * Exception thrown when a specified file or resource cannot be found.
- */
-class Not_found_exception extends Exception {
-    private $path;
-
-    /**
-     * Constructs the exception with a specific message about the missing file or path.
-     * @param string $path The path or identifier that was not found.
-     */
-    public function __construct($path) {
-        $this->path = $path;
-        parent::__construct("The specified file or resource was not found: $path");
-    }
-
-    /**
-     * Retrieves the path or identifier that caused the exception.
-     * @return string
-     */
-    public function get_path() {
-        return $this->path;
-    }
-
 
 }
