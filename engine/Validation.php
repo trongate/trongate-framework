@@ -15,34 +15,62 @@ class Validation {
      * @param string|array $rules The validation rules for the field.
      * @return void
      */
-    public function set_rules(string $key, string $label, $rules): void {
+    public function set_rules(string $key, string $label, string $rules): void {
         $validation_data['key'] = $key;
         $validation_data['label'] = $label;
 
         if (isset($_FILES[$key])) {
             // File handling
             $file = $_FILES[$key];
+            $file['field_name'] = $key;
+
             if ($file['error'] !== UPLOAD_ERR_OK) {
                 $this->handle_upload_error($key, $label, $file['error']);
                 return;
             }
+
+            // Run security validation
+            try {
+                $this->validate_file_content($file);
+            } catch (Exception $e) {
+                $this->form_submission_errors[$key][] = $e->getMessage();
+                return;
+            }
+
             $validation_data['posted_value'] = $file;
-            $tests_to_run = $this->get_file_validation_tests($rules);
+            $tests_to_run = $this->get_tests_to_run($rules);
+            
+            // Extract and process file-specific rules
+            foreach ($tests_to_run as $test_to_run) {
+                $this->posted_fields[$key] = $label;
+                $validation_data['test_to_run'] = $test_to_run;
+                $this->run_validation_test($validation_data, $rules);
+            }
+
         } else {
             // Normal form field handling
             $validation_data['posted_value'] = post($key, true);
             $tests_to_run = $this->get_tests_to_run($rules);
-        }
 
-        foreach ($tests_to_run as $test_to_run) {
-            $this->posted_fields[$key] = $label;
-            $validation_data['test_to_run'] = $test_to_run;
-            $this->run_validation_test($validation_data, $rules);
+            foreach ($tests_to_run as $test_to_run) {
+                $this->posted_fields[$key] = $label;
+                $validation_data['test_to_run'] = $test_to_run;
+                $this->run_validation_test($validation_data, $rules);
+            }
         }
 
         $_SESSION['form_submission_errors'] = $this->form_submission_errors;
     }
 
+    /**
+     * Handles file upload errors by mapping the error code to a user-friendly message
+     * and storing the error in the form submission errors array.
+     *
+     * @param string $key The key associated with the file upload field.
+     * @param string $label The label/name of the file upload field.
+     * @param int $error_code The error code returned by the file upload process.
+     * @return void
+     */
     private function handle_upload_error(string $key, string $label, int $error_code): void {
         $error_message = match($error_code) {
             UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
@@ -880,6 +908,48 @@ class Validation {
         // Check for square image requirement
         if (strpos($rules, 'square') !== false && $width !== $height) {
             $this->form_submission_errors[$key][] = 'The ' . $label . ' must be square (width must equal height)';
+        }
+    }
+
+    /**
+     * Validates the content of an uploaded file to detect potential security threats.
+     *
+     * This method reads the first 256 bytes of the file and scans for dangerous patterns,
+     * such as PHP code, CDATA sections, or dangerous functions like `eval` and `exec`.
+     * If a threat is detected, an error is added to the form submission errors array.
+     *
+     * @param array $file An associative array containing file information, including:
+     *                    - 'tmp_name': The temporary file path.
+     *                    - 'field_name': The name of the file upload field.
+     * @return void
+     * @throws RuntimeException If the file cannot be opened for scanning.
+     */
+    private function validate_file_content(array $file): void {
+        // This replaces both is_text_file() and scan_text_file() from File class
+        if (($file_handle = @fopen($file['tmp_name'], 'rb')) === FALSE) {
+            throw new RuntimeException('Unable to open file for security scanning');
+        }
+
+        $content = fread($file_handle, 256); // Read first 256 bytes
+        fclose($file_handle);
+
+        // These are the same patterns from the old scan_text_file() method
+        $dangerous_patterns = [
+            '/<\?php/i',
+            '/\<\!\[CDATA\[/i',
+            '/\<\!DOCTYPE/i',
+            '/\<\!ENTITY/i',
+            '/\beval\s*\(/i',
+            '/\bexec\s*\(/i',
+            '/\bshell_exec\s*\(/i'
+        ];
+
+        foreach ($dangerous_patterns as $pattern) {
+            if (preg_match($pattern, $content)) {
+                $this->form_submission_errors[$file['field_name']][] = 
+                    'Potential security threat detected in file';
+                return;
+            }
         }
     }
 

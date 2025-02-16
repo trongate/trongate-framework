@@ -91,6 +91,7 @@ class Image {
      * @throws Exception If the file upload fails or if there are issues during image processing.
      */
     public function upload(array $data): array {
+
         // Extract configuration data
         $destination = $data['destination'] ?? '';
         $max_width = $data['max_width'] ?? 450;
@@ -164,9 +165,10 @@ class Image {
     * @return void
     */
     protected function load(string $filename): void {
+
         // Validate file before any operations
         $this->validate_image($filename);
-        
+
         $image_info = getimagesize($filename);
         $this->image_type = $image_info[2];
 
@@ -193,6 +195,7 @@ class Image {
         if ($this->image === false) {
             throw new RuntimeException("Failed to create image resource");
         }
+
     }
 
     /**
@@ -210,6 +213,7 @@ class Image {
     * @return void
     */
     private function validate_image(string $filename): void {
+
         if (!file_exists($filename)) {
             throw new InvalidArgumentException("File not found: $filename");
         }
@@ -230,9 +234,12 @@ class Image {
             throw new RuntimeException('Failed to get image information');
         }
 
-        // Verify MIME type matches getimagesize result
         $detected_mime = $image_info['mime'];
-        if ($detected_mime !== $mime_type) {
+
+        // Verify MIME type matches getimagesize result
+        $detected_mime_base = strtolower(substr($detected_mime, 0, strpos($detected_mime, '/')));
+        $mime_type_base = strtolower(substr($mime_type, 0, strpos($mime_type, '/')));
+        if ($detected_mime_base !== 'image' || $mime_type_base !== 'image') {
             throw new InvalidArgumentException('MIME type mismatch detected');
         }
 
@@ -244,7 +251,7 @@ class Image {
             IMAGETYPE_GIF => ["GIF87a", "GIF89a"],
             IMAGETYPE_WEBP => ["RIFF", "WEBP"]
         ];
-        
+
         $valid_signature = false;
         foreach ($signatures[$image_info[2]] ?? [] as $sig) {
             if (strpos($file_content, $sig) === 0) {
@@ -256,11 +263,22 @@ class Image {
             throw new InvalidArgumentException('Invalid file signature');
         }
 
-        // Memory validation (existing code remains the same)
+        if (($file = @fopen($filename, 'rb')) === FALSE) {
+            throw new RuntimeException('Unable to analyze image file');
+        }
+        $opening_bytes = fread($file, 256);
+        fclose($file);
+
+        // Enhanced pattern including PHP tags
+        if (preg_match('/<(script|iframe|object|embed|applet)[\s>]|<\?php|<\?/i', $opening_bytes)) {
+            throw new InvalidArgumentException('Potential security threat detected in image');
+        }
+
         $required_memory = $image_info[0] * $image_info[1] * 4 * 1.5;
         if (memory_get_usage() + $required_memory > $this->get_memory_limit()) {
             throw new RuntimeException('Image too large to process');
         }
+
     }
 
     /**
