@@ -292,6 +292,27 @@ function form_textarea(string $name, ?string $value = null, ?array $attributes =
 }
 
 /**
+ * Generates a date input form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param string|null $value The value attribute for the input element. Default is null.
+ * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+ * @return string The generated HTML input element.
+ */
+function form_date(string $name, ?string $value = null, ?array $attributes = null): string {
+    $attributes = $attributes ?? [];
+    $attributes['type'] = 'date';
+    $attributes['name'] = $name;
+    
+    if ($value !== null) {
+        $attributes['value'] = $value;
+    }
+    
+    $html = '<input' . get_attributes_str($attributes) . '>';
+    return $html;
+}
+
+/**
  * Generate an HTML submit button element.
  *
  * @param string $name The name attribute for the button element.
