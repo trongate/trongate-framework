@@ -208,6 +208,32 @@ function form_close(): string {
     return $html;
 }
 
+    /**
+     * Generates a date input form field element.
+     *
+     * @param string $name The name attribute for the input element.
+     * @param string|null $value The value attribute for the input element. Default is null.
+     * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+     * @param string|null $additional_code Additional HTML code to be included. Default is null.
+     * @return string The generated HTML input element.
+     */
+    function form_date(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+        return generate_input_element('date', $name, $value, false, $attributes, $additional_code);
+    }
+
+    /**
+     * Generates a datetime-local input form field element.
+     *
+     * @param string $name The name attribute for the input element.
+     * @param string|null $value The value attribute for the input element. Default is null.
+     * @param array|null $attributes Additional attributes for the input element as an associative array. Default is null.
+     * @param string|null $additional_code Additional HTML code to be included. Default is null.
+     * @return string The generated HTML input element.
+     */
+    function form_datetime(string $name, ?string $value = null, ?array $attributes = null, ?string $additional_code = null): string {
+        return generate_input_element('datetime-local', $name, $value, false, $attributes, $additional_code);
+    }
+
 /**
  * Highlight validation errors using provided JSON data.
  *
