@@ -102,12 +102,17 @@ let trongateMXOpeningModal = false;
             });
         },
         normalizeUrl(url) {
+            // Check if the URL is absolute
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return url;
+            }
+
             const baseElement = document.querySelector('base');
             const baseUrl = baseElement ? baseElement.href : window.location.origin + '/';
 
             // Check if the url already starts with the base URL
             if (url.startsWith(baseUrl)) {
-                return url; // Return the url as is if it already includes the base URL
+                return url;
             }
 
             // Remove leading slash from url if baseUrl ends with a slash
@@ -135,11 +140,29 @@ let trongateMXOpeningModal = false;
 
         executeMXFunction(functionName, customEvent) {
             if (!functionName) return;
-            
+
             const cleanFunctionName = functionName.replace(/\(\)$/, '');
-            if (typeof window[cleanFunctionName] === 'function') {
+            let func;
+
+            if (cleanFunctionName.includes('.')) {
+                // Handle object.method references
+                const [objectName, methodName] = cleanFunctionName.split('.');
+                const obj = window[objectName];
+
+                if (obj && typeof obj === 'object' && obj[methodName] && typeof obj[methodName] === 'function') {
+                    func = obj[methodName].bind(obj); // Bind the method to the object
+                } else {
+                    console.warn(`Object or method not found: ${cleanFunctionName}`);
+                    return;
+                }
+            } else {
+                // Handle global functions
+                func = window[cleanFunctionName];
+            }
+
+            if (typeof func === 'function') {
                 try {
-                    window[cleanFunctionName](customEvent);
+                    func(customEvent); // Invoke the function with the custom event
                 } catch (error) {
                     console.error(`Error executing ${cleanFunctionName}:`, error);
                 }
@@ -584,12 +607,13 @@ let trongateMXOpeningModal = false;
         },
 
         processMXDomVals(element) {
-            const mxDomValsStr = element.getAttribute('mx-dom-vals');
+            // Try both attribute names
+            const mxDomValsStr = element.getAttribute('mx-dom-vals') || element.getAttribute('mx-dom-values');
             if (!mxDomValsStr) return {};
-        
+
             const domVals = Utils.parseAttributeValue(mxDomValsStr);
             if (!domVals || typeof domVals !== 'object') return {};
-        
+
             const result = {};
             Object.entries(domVals).forEach(([key, value]) => {
                 if (typeof value === 'object' && value.selector && value.property) {
@@ -807,6 +831,16 @@ let trongateMXOpeningModal = false;
                     });
                 }, 100);
             }
+
+            // Add the following code at the end of the method:
+            const functionName = containingForm.getAttribute('mx-after-validation');
+            if (functionName) {
+                const customEvent = Utils.createMXEvent(containingForm, event, 'afterValidation', {
+                    validationErrors
+                });
+                Utils.executeMXFunction(functionName, customEvent);
+            }
+
         },
 
         removeCloak() {

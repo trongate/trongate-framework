@@ -409,13 +409,14 @@ div.modal-body p.text-center {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-  border-top: 1px #ccc solid;
+  border: 1px solid;
+  border-color: var(--border) var(--primary-darker) var(--border) var(--primary-darker);
 }
 
 .modal-footer button { margin: 6px 0 0 0.3em; font-size: 16px; }
 .modal-footer button.alt { background-color: #fefefe; }
 .modal-danger { background-color: red !important; border: 1px #990000 solid; }
-.modal-body { padding: 20px; }
+.modal-body { padding: 20px; border-left: 1px solid var(--primary-darker); border-right: 1px solid var(--primary-darker); }
 
 .modal textarea {
   font: inherit;

@@ -15,26 +15,74 @@ class Validation {
      * @param string|array $rules The validation rules for the field.
      * @return void
      */
-    public function set_rules(string $key, string $label, $rules): void {
-        if (isset($_FILES[$key])) {
-            // File handling
-            $posted_value = $_FILES[$key];
-            $tests_to_run[] = 'validate_file';
-        } else {
-            $posted_value = post($key, true);
-            $tests_to_run = $this->get_tests_to_run($rules);
-        }
-
+    public function set_rules(string $key, string $label, string $rules): void {
         $validation_data['key'] = $key;
         $validation_data['label'] = $label;
-        $validation_data['posted_value'] = $posted_value;
 
-        foreach ($tests_to_run as $test_to_run) {
-            $this->posted_fields[$key] = $label;
-            $validation_data['test_to_run'] = $test_to_run;
-            $this->run_validation_test($validation_data, $rules);
+        if (isset($_FILES[$key])) {
+            // File handling
+            $file = $_FILES[$key];
+            $file['field_name'] = $key;
+
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                $this->handle_upload_error($key, $label, $file['error']);
+                return;
+            }
+
+            // Run security validation
+            try {
+                $this->validate_file_content($file);
+            } catch (Exception $e) {
+                $this->form_submission_errors[$key][] = $e->getMessage();
+                return;
+            }
+
+            $validation_data['posted_value'] = $file;
+            $tests_to_run = $this->get_tests_to_run($rules);
+            
+            // Extract and process file-specific rules
+            foreach ($tests_to_run as $test_to_run) {
+                $this->posted_fields[$key] = $label;
+                $validation_data['test_to_run'] = $test_to_run;
+                $this->run_validation_test($validation_data, $rules);
+            }
+
+        } else {
+            // Normal form field handling
+            $validation_data['posted_value'] = post($key, true);
+            $tests_to_run = $this->get_tests_to_run($rules);
+
+            foreach ($tests_to_run as $test_to_run) {
+                $this->posted_fields[$key] = $label;
+                $validation_data['test_to_run'] = $test_to_run;
+                $this->run_validation_test($validation_data, $rules);
+            }
         }
 
+        $_SESSION['form_submission_errors'] = $this->form_submission_errors;
+    }
+
+    /**
+     * Handles file upload errors by mapping the error code to a user-friendly message
+     * and storing the error in the form submission errors array.
+     *
+     * @param string $key The key associated with the file upload field.
+     * @param string $label The label/name of the file upload field.
+     * @param int $error_code The error code returned by the file upload process.
+     * @return void
+     */
+    private function handle_upload_error(string $key, string $label, int $error_code): void {
+        $error_message = match($error_code) {
+            UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
+            UPLOAD_ERR_FORM_SIZE => 'The uploaded file exceeds the MAX_FILE_SIZE directive in the HTML form',
+            UPLOAD_ERR_PARTIAL => 'The uploaded file was only partially uploaded',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+            UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload',
+            default => 'An unknown error occurred during file upload'
+        };
+        $this->form_submission_errors[$key][] = $error_message;
         $_SESSION['form_submission_errors'] = $this->form_submission_errors;
     }
 
@@ -63,9 +111,6 @@ class Validation {
             case 'valid_email':
                 $this->valid_email($validation_data);
                 break;
-            case 'validate_file':
-                $this->validate_file($validation_data['key'], $validation_data['label'], $rules);
-                break;
             case 'valid_datepicker':
                 $this->valid_datepicker($validation_data);
                 break;
@@ -89,6 +134,19 @@ class Validation {
                 break;
             case 'valid_time':
                 $this->valid_time($validation_data);
+                break;
+            case 'allowed_types':
+                $this->check_allowed_file_types($validation_data, $rules);
+                break;
+            case 'max_size':
+                $this->check_file_size($validation_data, $rules);
+                break;
+            case 'max_width':
+            case 'max_height':
+            case 'min_width':
+            case 'min_height':
+            case 'square':
+                $this->check_image_dimensions($validation_data, $rules);
                 break;
             default:
                 $this->run_special_test($validation_data);
@@ -137,14 +195,9 @@ class Validation {
                 $label = str_replace('_', ' ', $key);
             }
 
-            if (isset($_FILES[$key])) {
-                $posted_value = $_FILES[$key];
-                $tests_to_run[] = 'validate_file';
-            } else {
-                $posted_value = post($key, true);
-                $rules = $this->build_rules_str($value);
-                $tests_to_run = $this->get_tests_to_run($rules);
-            }
+            $posted_value = post($key, true);
+            $rules = $this->build_rules_str($value);
+            $tests_to_run = $this->get_tests_to_run($rules);
 
             $validation_data['key'] = $key;
             $validation_data['label'] = $label;
@@ -633,64 +686,6 @@ class Validation {
     }
 
     /**
-     * Validates a file based on the provided rules.
-     *
-     * @param string $key The key associated with the file input.
-     * @param string $label The label for the file input.
-     * @param mixed $rules The rules for file validation.
-     * @return void
-     */
-    private function validate_file(string $key, string $label, $rules): void {
-        if (!isset($_FILES[$key])) {
-            $this->handle_missing_file_error($key, $label);
-            return;
-        }
-        if ($_FILES[$key]['name'] === '') {
-            $this->handle_empty_file_error($key, $label);
-            return;
-        }
-        $this->run_file_validation($key, $rules);
-    }
-
-    /**
-     * Handles the error for a missing file.
-     *
-     * @param string $key The key associated with the file input.
-     * @param string $label The label for the file input.
-     * @return void
-     */
-    private function handle_missing_file_error(string $key, string $label): void {
-        $error_msg = 'You are required to select a file.';
-        $this->form_submission_errors[$key][] = $error_msg;
-    }
-
-    /**
-     * Handles the error for an empty file.
-     *
-     * @param string $key The key associated with the file input.
-     * @param string $label The label for the file input.
-     * @return void
-     */
-    private function handle_empty_file_error(string $key, string $label): void {
-        $error_msg = 'You did not select a file.';
-        $this->form_submission_errors[$key][] = $error_msg;
-    }
-
-    /**
-     * Runs the file validation logic.
-     *
-     * @param string $key The key associated with the file input.
-     * @param mixed $rules The rules for file validation.
-     * @return void
-     */
-    private function run_file_validation(string $key, $rules): void {
-        // File validation logic here
-        require_once 'File_validation.php';
-        $file_validation = new File_validation;
-        $file_validation->run_file_validation($key, $rules);
-    }
-
-    /**
      * Attempts to invoke a callback method for validation.
      *
      * @param string $key The key associated with the input field.
@@ -791,8 +786,171 @@ class Validation {
         die();
     }
 
-}
+    /**
+     * Get file validation tests to run based on provided rules.
+     *
+     * @param string $rules A string containing validation rules separated by '|'.
+     * @return array An array containing file validation tests to run.
+     */
+    private function get_file_validation_tests(string $rules): array {
+        $tests = [];
+        $rules_array = explode('|', $rules);
+        
+        foreach ($rules_array as $rule) {
+            if (strpos($rule, '[') !== false) {
+                // Extract rule name without the parameters
+                $rule_name = substr($rule, 0, strpos($rule, '['));
+                $tests[] = $rule_name;
+            } else {
+                $tests[] = $rule;
+            }
+        }
+        
+        return $tests;
+    }
 
-class Validation_Helper extends Validation {
-    //  Validation_Helper" is deprecated and will be removed in future versions. Use "Validation" instead.
+    /**
+     * Validates if the uploaded file type is allowed.
+     *
+     * @param array $validation_data The validation data array.
+     * @param string $rules The complete rules string.
+     * @return void
+     */
+    private function check_allowed_file_types(array $validation_data, string $rules): void {
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $file = $validation_data['posted_value'];
+        
+        // Extract allowed types from rules string
+        $allowed_types = $this->_extract_content($rules, 'allowed_types[', ']');
+        $allowed_types = explode(',', $allowed_types);
+        
+        $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        
+        if (!in_array($file_extension, $allowed_types)) {
+            $this->form_submission_errors[$key][] = 'The ' . $label . ' must be one of the following types: ' . implode(', ', $allowed_types);
+        }
+    }
+
+    /**
+     * Validates if the uploaded file size is within limits.
+     *
+     * @param array $validation_data The validation data array.
+     * @param string $rules The complete rules string.
+     * @return void
+     */
+    private function check_file_size(array $validation_data, string $rules): void {
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $file = $validation_data['posted_value'];
+        
+        // Extract max size from rules string
+        $max_size = (float) $this->_extract_content($rules, 'max_size[', ']');
+        $file_size = $file['size'] / 1024; // Convert to KB
+        
+        if ($file_size > $max_size) {
+            $this->form_submission_errors[$key][] = 'The ' . $label . ' exceeds the maximum allowed size of ' . $max_size . ' KB';
+        }
+    }
+
+    /**
+     * Validates image dimensions according to the specified rules.
+     *
+     * @param array $validation_data The validation data array.
+     * @param string $rules The complete rules string.
+     * @return void
+     */
+    private function check_image_dimensions(array $validation_data, string $rules): void {
+        $key = $validation_data['key'];
+        $label = $validation_data['label'];
+        $file = $validation_data['posted_value'];
+        
+        // First verify it's an image file
+        if (!getimagesize($file['tmp_name'])) {
+            $this->form_submission_errors[$key][] = 'The ' . $label . ' must be a valid image file';
+            return;
+        }
+        
+        $dimensions = getimagesize($file['tmp_name']);
+        $width = $dimensions[0];
+        $height = $dimensions[1];
+        
+        // Extract dimension rules
+        foreach (['max_width', 'max_height', 'min_width', 'min_height'] as $rule) {
+            if (strpos($rules, $rule) !== false) {
+                $value = (int) $this->_extract_content($rules, $rule . '[', ']');
+                
+                switch ($rule) {
+                    case 'max_width':
+                        if ($width > $value) {
+                            $this->form_submission_errors[$key][] = 'The ' . $label . ' width cannot exceed ' . $value . ' pixels';
+                        }
+                        break;
+                    case 'max_height':
+                        if ($height > $value) {
+                            $this->form_submission_errors[$key][] = 'The ' . $label . ' height cannot exceed ' . $value . ' pixels';
+                        }
+                        break;
+                    case 'min_width':
+                        if ($width < $value) {
+                            $this->form_submission_errors[$key][] = 'The ' . $label . ' width must be at least ' . $value . ' pixels';
+                        }
+                        break;
+                    case 'min_height':
+                        if ($height < $value) {
+                            $this->form_submission_errors[$key][] = 'The ' . $label . ' height must be at least ' . $value . ' pixels';
+                        }
+                        break;
+                }
+            }
+        }
+        
+        // Check for square image requirement
+        if (strpos($rules, 'square') !== false && $width !== $height) {
+            $this->form_submission_errors[$key][] = 'The ' . $label . ' must be square (width must equal height)';
+        }
+    }
+
+    /**
+     * Validates the content of an uploaded file to detect potential security threats.
+     *
+     * This method reads the first 256 bytes of the file and scans for dangerous patterns,
+     * such as PHP code, CDATA sections, or dangerous functions like `eval` and `exec`.
+     * If a threat is detected, an error is added to the form submission errors array.
+     *
+     * @param array $file An associative array containing file information, including:
+     *                    - 'tmp_name': The temporary file path.
+     *                    - 'field_name': The name of the file upload field.
+     * @return void
+     * @throws RuntimeException If the file cannot be opened for scanning.
+     */
+    private function validate_file_content(array $file): void {
+        // This replaces both is_text_file() and scan_text_file() from File class
+        if (($file_handle = @fopen($file['tmp_name'], 'rb')) === FALSE) {
+            throw new RuntimeException('Unable to open file for security scanning');
+        }
+
+        $content = fread($file_handle, 256); // Read first 256 bytes
+        fclose($file_handle);
+
+        // These are the same patterns from the old scan_text_file() method
+        $dangerous_patterns = [
+            '/<\?php/i',
+            '/\<\!\[CDATA\[/i',
+            '/\<\!DOCTYPE/i',
+            '/\<\!ENTITY/i',
+            '/\beval\s*\(/i',
+            '/\bexec\s*\(/i',
+            '/\bshell_exec\s*\(/i'
+        ];
+
+        foreach ($dangerous_patterns as $pattern) {
+            if (preg_match($pattern, $content)) {
+                $this->form_submission_errors[$file['field_name']][] = 
+                    'Potential security threat detected in file';
+                return;
+            }
+        }
+    }
+
 }

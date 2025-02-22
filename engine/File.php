@@ -14,92 +14,99 @@
 class File {
 
     /**
-     * Handles the file upload process.
+     * Handles the file upload process with specified configuration.
      *
-     * This method manages the file upload process including directory validation, file renaming, and moving the file
-     * to its final destination. It allows for optional random renaming of files and supports uploading directly to module-specific directories.
+     * This method validates the upload configuration, processes the uploaded file,
+     * performs security checks, generates a secure filename, and moves the file to the
+     * target destination. It returns an array containing details about the uploaded file.
      *
-     * @param array $config Configuration options for the file upload process. Includes destination directory, module settings, and renaming options.
-     * @return array Returns an array with file upload details including file name, path, type, and size.
-     * @throws Exception If the directory is invalid or if file movement fails.
+     * @param array $config An associative array containing upload configuration options:
+     *                      - 'destination': (string) The target directory for the uploaded file.
+     *                      - 'target_module': (string) The target module name (defaults to the current segment).
+     *                      - 'upload_to_module': (bool) Whether to upload to the module's assets directory (default: false).
+     *                      - 'make_rand_name': (bool) Whether to generate a random filename (default: false).
+     * @return array An associative array containing details about the uploaded file:
+     *               - 'file_name': (string) The name of the uploaded file.
+     *               - 'file_path': (string) The full path to the uploaded file.
+     *               - 'file_type': (string) The MIME type of the uploaded file.
+     *               - 'file_size': (int) The size of the uploaded file in bytes.
+     * @throws Exception If the upload fails due to invalid configuration, file upload errors,
+     *                   security validation failures, or file movement issues.
      */
     public function upload(array $config): array {
-
-        // Declare all inbound variables
-        $destination = $config['destination'] ?? null;
-        $target_module = $config['target_module'] ?? segment(1);
-        $upload_to_module = $config['upload_to_module'] ?? false;
-        $make_rand_name = $config['make_rand_name'] ?? false;
-
-        if (!isset($destination)) {
-            die('ERROR: upload requires inclusion of \'destination\' property. Check documentation for details.');
-        }
-
-        $userfile = array_keys($_FILES)[0];
-        $target_file = $_FILES[$userfile];
-
-        // Initialize the new file name variable (the name of the uploaded file)
-        if ($make_rand_name === true) {
-            $file_name_without_extension = strtolower(make_rand_str(10));
-
-            // Add file extension onto random file name
-            $file_info = return_file_info($target_file['name']);
-            $file_extension = $file_info['file_extension'];
-            $new_file_name = $file_name_without_extension . $file_extension;
-        } else {
-            // Get the file name and extension
-            $file_info = return_file_info($target_file['name']);
-            $file_name = $file_info['file_name'];
-            $file_extension = $file_info['file_extension'];
-
-            // Remove dangerous characters from the file name
-            $file_name = url_title($file_name);
-            $file_name_without_extension = str_replace('-', '_', $file_name);
-            $new_file_name = $file_name_without_extension . $file_extension;
-        }
-
-        // Set the target destination directory
-        if ($upload_to_module === true) {
-            $target_destination = '../modules/' . $target_module . '/assets/' . $destination;
-        } else {
-            // Code here to deal with external URLs (AWS, Google Drive, OneDrive, etc...)
-            $target_destination = $destination;
-        }
-
         try {
-            // Make sure the destination folder exists
-            if (!is_dir($target_destination)) {
-                $error_msg = 'Invalid directory';
-                if (strlen($target_destination) > 0) {
-                    $error_msg .= ': \'' . $target_destination . '\' (string ' . strlen($target_destination) . ')';
-                }
-                throw new Exception($error_msg);
+            // Validate basic config
+            $destination = $config['destination'] ?? null;
+            $target_module = $config['target_module'] ?? segment(1);
+            $upload_to_module = $config['upload_to_module'] ?? false;
+            $make_rand_name = $config['make_rand_name'] ?? false;
+
+            // Validate upload path
+            $this->validate_upload_path($destination, $upload_to_module, $target_module);
+
+            // Get uploaded file
+            if (empty($_FILES)) {
+                throw new Exception('No file was uploaded');
             }
 
-            // Upload the temp file to the destination
-            $new_file_path = $target_destination . '/' . $new_file_name;
-            $i = 2;
-            while (file_exists($new_file_path)) {
-                $new_file_name = $file_name_without_extension . '_' . $i . $file_extension;
-                $new_file_path = $target_destination . '/' . $new_file_name;
-                $i++;
+            $userfile = array_keys($_FILES)[0];
+            $upload = $_FILES[$userfile];
+
+            if ($upload['error'] !== UPLOAD_ERR_OK) {
+                throw new Exception($this->get_upload_error_message($upload['error']));
             }
 
-            if (!move_uploaded_file($target_file['tmp_name'], $new_file_path)) {
-                throw new Exception("Failed to move uploaded file to $new_file_path");
+            // Add new security validation
+            $this->validate_file($upload['tmp_name']);
+
+            // Generate filename
+            $file_info = $this->generate_secure_filename($upload['name'], $make_rand_name);
+
+            // Set target path
+            $target_path = $upload_to_module ? 
+                '../modules/' . $target_module . '/assets/' . $destination :
+                $destination;
+
+            // Ensure unique filename
+            $final_path = $this->ensure_unique_path($target_path, $file_info['name'], $file_info['extension']);
+
+            // Move file
+            if (!move_uploaded_file($upload['tmp_name'], $final_path)) {
+                throw new Exception('Failed to move uploaded file');
             }
 
-            // Create an array to store file information
-            $file_info = [];
-            $file_info['file_name'] = $new_file_name;
-            $file_info['file_path'] = $new_file_path;
-            $file_info['file_type'] = $target_file['type'];
-            $file_info['file_size'] = $target_file['size'];
-            return $file_info;
+            return [
+                'file_name' => basename($final_path),
+                'file_path' => $final_path,
+                'file_type' => $upload['type'],
+                'file_size' => $upload['size']
+            ];
+
         } catch (Exception $e) {
-            echo "An exception occurred: " . $e->getMessage();
-            die();
+            // Log error here if needed
+            throw new Exception('Upload failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+    * Generate a unique file path by appending incremental numbers if the file already exists.
+    *
+    * @param string $directory The target directory path
+    * @param string $base_name The base filename without extension
+    * @param string $extension The file extension including the dot (e.g. '.jpg')
+    * 
+    * @return string The unique file path that does not exist in the directory
+    */
+    private function ensure_unique_path(string $directory, string $base_name, string $extension): string {
+        $counter = 1;
+        $final_path = $directory . '/' . $base_name . $extension;
+        
+        while (file_exists($final_path)) {
+            $final_path = $directory . '/' . $base_name . '_' . $counter . $extension;
+            $counter++;
+        }
+        
+        return $final_path;
     }
 
     /**
@@ -406,6 +413,72 @@ class File {
     }
 
     /**
+    * Validates the upload destination path and ensures it exists and is accessible.
+    *
+    * @param string $destination The target upload directory path
+    * @param bool $upload_to_module Whether to upload to a module's assets directory (default: false)
+    * @param string $target_module The target module name if uploading to module (default: '')
+    * 
+    * @throws Exception If:
+    *                   - Destination is empty
+    *                   - Target path is not a directory
+    *                   - Path validation fails for non-module uploads
+    * 
+    * @return void
+    */
+    private function validate_upload_path(string $destination, bool $upload_to_module = false, string $target_module = ''): void {
+        if (empty($destination)) {
+            throw new Exception('Upload destination not specified');
+        }
+
+        if ($upload_to_module === true) {
+            $target_path = '../modules/' . $target_module . '/assets/' . $destination;
+        } else {
+            $target_path = $destination;
+        }
+
+        if (!is_dir($target_path)) {
+            throw new Exception('Invalid upload destination');
+        }
+
+        // Use existing is_path_valid() as final check if not uploading to module
+        if ($upload_to_module === false && !$this->is_path_valid($target_path)) {
+            throw new Exception('Unauthorized upload location');
+        }
+    }
+
+    /**
+    * Generates a secure filename for an uploaded file, either randomized or based on original name.
+    *
+    * @param string $original_name The original filename from the upload
+    * @param bool $make_rand_name Whether to generate a random filename (default: false)
+    * 
+    * @return array{
+    *    name: string,           The base filename without extension
+    *    extension: string,      The lowercase file extension
+    *    full_name: string      The complete filename with extension
+    * }
+    */
+    private function generate_secure_filename(string $original_name, bool $make_rand_name): array {
+        $file_info = return_file_info($original_name);
+        
+        if ($make_rand_name === true) {
+            $file_name = strtolower(make_rand_str(10));
+        } else {
+            $file_name = url_title($file_info['file_name']); 
+        }
+        
+        // Whitelist of allowed extensions could be added here
+        $extension = strtolower($file_info['file_extension']);
+        
+        return [
+            'name' => $file_name,
+            'extension' => $extension,
+            'full_name' => $file_name . $extension
+        ];
+    }
+
+    /**
      * Checks if a given path is valid based on predefined security rules.
      *
      * This method validates a file path to ensure it does not reside in restricted directories,
@@ -439,6 +512,145 @@ class File {
         }
 
         return true;
+    }
+
+    /**
+     * Validates an uploaded file by checking its existence, memory requirements, and MIME type.
+     *
+     * This method ensures that the file exists, has sufficient memory for processing, and has a valid MIME type.
+     * If any validation fails, an exception is thrown.
+     *
+     * @param string $filename The path to the file to be validated.
+     * @return void
+     * @throws InvalidArgumentException If the file does not exist.
+     * @throws RuntimeException If the file exceeds memory requirements or fails MIME type validation.
+     */
+    private function validate_file(string $filename): void {
+        if (!file_exists($filename)) {
+            throw new InvalidArgumentException("File not found: $filename");
+        }
+
+        // Memory validation for all files
+        $memory_validation = $this->validate_memory_requirements($filename);
+        if (!$memory_validation['status']) {
+            throw new RuntimeException($memory_validation['message']);
+        }
+
+        // Validate MIME type
+        $this->validate_mime_type($filename);
+    }
+
+    /**
+     * Validates the MIME type of a file by comparing the results from `finfo` and the `file` command.
+     *
+     * This method ensures that the MIME type detected by PHP's `finfo` matches the MIME type
+     * reported by the system's `file` command. If a mismatch is detected, an exception is thrown.
+     *
+     * @param string $filename The path to the file to be validated.
+     * @return void
+     * @throws InvalidArgumentException If a MIME type mismatch is detected.
+     */
+    private function validate_mime_type(string $filename): void {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime_type = finfo_file($finfo, $filename);
+        finfo_close($finfo);
+
+        // Additional MIME validation for Unix systems
+        if (DIRECTORY_SEPARATOR !== '\\') {
+            $cmd = 'file --brief --mime ' . escapeshellarg($filename) . ' 2>&1';
+            if (function_exists('exec')) {
+                $native_mime = trim(exec($cmd));
+
+                // Normalize the MIME type by stripping additional metadata
+                $native_mime_base = strtok($native_mime, ';'); // Extract the base MIME type
+                $mime_type_base = strtok($mime_type, ';'); // Extract the base MIME type
+
+                if ($native_mime_base !== false && $native_mime_base !== $mime_type_base) {
+                    throw new InvalidArgumentException('MIME type mismatch detected');
+                }
+            }
+        }
+    }
+
+    /**
+     * Validates whether there is sufficient memory available to process a file.
+     *
+     * This method checks if the system has enough memory to handle the file by comparing
+     * the file size (with a processing buffer) to the available memory. It returns an array
+     * indicating the validation status and an optional error message.
+     *
+     * @param string $filename The path to the file to be validated.
+     * @return array An associative array containing:
+     *               - 'status': (bool) Whether there is sufficient memory (true) or not (false).
+     *               - 'message': (string) An error message if memory is insufficient (empty string otherwise).
+     */
+    private function validate_memory_requirements(string $filename): array {
+        $result = ['status' => true, 'message' => ''];
+        
+        if (!function_exists('memory_get_usage')) {
+            return $result;
+        }
+
+        $memory_limit = ini_get('memory_limit');
+        if ($memory_limit === '-1') {
+            return $result;
+        }
+
+        // Convert memory limit to bytes
+        $memory_limit = $this->convert_to_bytes($memory_limit);
+        $file_size = filesize($filename);
+        $needed_memory = $file_size * 2.1; // Buffer for processing
+
+        $memory_available = $memory_limit - memory_get_usage();
+        
+        if ($needed_memory > $memory_available) {
+            return [
+                'status' => false,
+                'message' => 'Insufficient memory to process file'
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns a user-friendly error message based on the provided file upload error code.
+     *
+     * This method maps PHP's file upload error codes to descriptive error messages.
+     * It is used to provide meaningful feedback when a file upload fails.
+     *
+     * @param int $error_code The file upload error code (e.g., UPLOAD_ERR_INI_SIZE).
+     * @return string A user-friendly error message corresponding to the error code.
+     */
+    private function get_upload_error_message(int $error_code): string {
+        return match($error_code) {
+            UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive',
+            UPLOAD_ERR_FORM_SIZE => 'The uploaded file exceeds the MAX_FILE_SIZE directive',
+            UPLOAD_ERR_PARTIAL => 'The uploaded file was only partially uploaded',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+            UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload',
+            default => 'Unknown upload error'
+        };
+    }
+
+    /**
+     * Converts memory value strings (like '128M', '1G') to bytes
+     * 
+     * @param string $memory_value The memory value with unit suffix
+     * @return int The value in bytes
+     */
+    private function convert_to_bytes(string $memory_value): int {
+        $unit = strtolower(substr($memory_value, -1));
+        $value = (int) substr($memory_value, 0, -1);
+        
+        return match($unit) {
+            'g' => $value * 1024 * 1024 * 1024,
+            'm' => $value * 1024 * 1024,
+            'k' => $value * 1024,
+            default => (int) $memory_value,
+        };
     }
 
 }
