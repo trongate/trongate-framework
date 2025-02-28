@@ -1,0 +1,57 @@
+services:
+  php:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: php-fpm
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
+      - PHP_OPCACHE_MEMORY_CONSUMPTION=128
+    networks:
+      - app-network
+    configs:
+      - source: php-fpm-config
+        target: /usr/local/etc/php-fpm.d/www.conf
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - php
+    networks:
+      - app-network
+    configs:
+      - source: nginx-config
+        target: /etc/nginx/conf.d/app.conf
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: trongate
+      MYSQL_USER: trongate
+      MYSQL_PASSWORD: app_password
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    networks:
+      - app-network
+
+volumes:
+  mariadb_data:
+
+networks:
+  app-network:
+
+configs:
+  php-fpm-config:
+    file: ./docker/php-fpm.conf
+  nginx-config:
+    file: ./docker/nginx.conf

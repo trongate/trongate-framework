@@ -1,7 +1,7 @@
 <?php
 //Database settings
-define('HOST', '127.0.0.1');
+define('HOST', 'mariadb');
 define('PORT', '3306');
-define('USER', 'root');
-define('PASSWORD', '');
-define('DATABASE', '');
+define('USER', 'trongate');
+define('PASSWORD', 'app_password');
+define('DATABASE', 'trongate');
