@@ -169,6 +169,16 @@ let trongateMXOpeningModal = false;
             } else {
                 console.warn(`Function ${cleanFunctionName} not found`);
             }
+        },
+
+        viewTransition(element, callback) {
+            if (element.getAttribute('mx-transition') !== null && document.startViewTransition) {
+                document.startViewTransition(() => {
+                    callback(element);
+                });
+            } else {
+                callback(element);
+            }
         }
     };
 
@@ -375,7 +385,9 @@ let trongateMXOpeningModal = false;
                         Animation.initAnimateSuccess(targetEl, http, element);
                     } else {
                         Modal.initAttemptCloseModal(targetEl, http, element);
-                        this.updateContent(targetEl, http, element, event);
+                        Utils.viewTransition(element, () => {
+                            this.updateContent(targetEl, http, element, event);
+                        });
                     }
                 }
 
@@ -1328,7 +1340,9 @@ let trongateMXOpeningModal = false;
 
             document.querySelectorAll('[mx-trigger*="load"]').forEach(Dom.handlePageLoadedEvents);
             Main.attemptInitPolling();
-            window.addEventListener('popstate', Main.handlePopState);
+            window.addEventListener('popstate', (event) => {
+                Utils.viewTransition(event.target, Main.handlePopState);
+            });
         },
 
         async handleTrongateMXEvent(event) {
@@ -1577,6 +1591,42 @@ let trongateMXOpeningModal = false;
         }
     }
 
+    const mxTransitionAbortController = new AbortController();
+    const parser = new DOMParser();
+
+    function handleMxTransitionClick(event) {
+        if (event.target.hasAttribute('mx-transition') === null) {
+            return;
+        }
+
+        function replaceDocument(html) {
+            const doc = parser.parseFromString(html, 'text/html');
+
+            document.title = doc.title;
+
+            document.documentElement.innerHTML = doc.documentElement.innerHTML;
+        }
+
+        if (!!event.target.href) {
+            event.preventDefault();
+
+            Utils.viewTransition(event.target, ({ href }) => {
+                fetch(href, {
+                    headers: {
+                        'X-View-Transition': true,
+                    },
+                    signal: mxTransitionAbortController.signal
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        replaceDocument(html);
+
+                        window.history.pushState({}, '', href);
+                    });
+            });
+        }
+    }
+
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
 
@@ -1586,6 +1636,8 @@ let trongateMXOpeningModal = false;
 
     document.addEventListener("click", (event) => {
         handleMxModalClick(event);
+
+        handleMxTransitionClick(event);
     });
 
     // Establish the target element when mouse down event happens.
@@ -1604,7 +1656,7 @@ let trongateMXOpeningModal = false;
         openModal: Modal.openModal
     };
 
-
+    
 })(window);
 
 const _mxOpenModal = function(modalId) {
