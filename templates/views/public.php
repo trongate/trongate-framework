@@ -28,9 +28,9 @@
 				</div>
 				<div>
 					<ul id="top-nav">
-						<li><a href="<?= BASE_URL ?>"><i class="fa fa-home"></i> Home</a></li>
-						<li><a href="<?= BASE_URL ?>"><i class="fa fa-lightbulb-o"></i> About Us</a></li>
-						<li><a href="<?= BASE_URL ?>"><i class="fa fa-street-view"></i> Our Values</a></li>
+						<li><a href="<?= BASE_URL ?>" mx-transition><i class="fa fa-home"></i> Home</a></li>
+						<li><a href="<?= BASE_URL ?>about" mx-transition><i class="fa fa-lightbulb-o"></i> About Us</a></li>
+						<li><a href="<?= BASE_URL ?>our_values"><i class="fa fa-street-view"></i> Our Values</a></li>
 						<li><a href="<?= BASE_URL ?>"><i class="fa fa-gears"></i> How We Work</a></li>
 						<li><a href="<?= BASE_URL ?>"><i class="fa fa-send"></i> Get In Touch</a></li>
 					</ul>
@@ -51,5 +51,6 @@
 		<ul auto-populate="true"></ul>
 	</div>
 	<script src="js/app.js"></script>
+	<script src="js/trongate-mx.js"></script>
 </body>
 </html>
