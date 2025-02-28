@@ -195,8 +195,8 @@ class Trongate_pages extends Trongate {
         $this->module('trongate_tokens');
         $trongate_user_id = $this->trongate_tokens->_get_user_id();
 
-        $this->validation_helper->set_rules('page_title', 'page title', 'required|min_length[2]|callback_title_check');
-        $result = $this->validation_helper->run();
+        $this->validation->set_rules('page_title', 'page title', 'required|min_length[2]|callback_title_check');
+        $result = $this->validation->run();
 
         if ($result === true) {
             $data['page_title'] = post('page_title', true);
