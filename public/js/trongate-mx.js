@@ -172,9 +172,24 @@ let trongateMXOpeningModal = false;
         },
 
         viewTransition(element, callback) {
-            if (element.getAttribute('mx-transition') !== null && document.startViewTransition) {
+            const transition = element.getAttribute('mx-transition');
+
+            if (transition !== null && document.startViewTransition) {
+                const hasTransition = transition.length > 0;
+
+                if (hasTransition) {
+                    document.documentElement.dataset.transition = transition;
+                    document.body.classList.add(transition);
+                }
+
                 document.startViewTransition(() => {
                     callback(element);
+
+                    if (hasTransition) {
+                        document.body.classList.remove(transition);
+                    }
+
+                    return Promise.resolve();
                 });
             } else {
                 callback(element);
@@ -1593,7 +1608,6 @@ let trongateMXOpeningModal = false;
         }
     }
 
-    let mxTransitionAbortController = new AbortController();
     const parser = new DOMParser();
 
     function handleMxTransitionClick(event) {
@@ -1601,35 +1615,26 @@ let trongateMXOpeningModal = false;
             return;
         }
 
-        function replaceDocument(html) {
-            const doc = parser.parseFromString(html, 'text/html');
-
-            document.title = doc.title;
-
-            document.documentElement.innerHTML = doc.documentElement.innerHTML;
-
-            Main.initializeTrongateMX();
-        }
-
         if (!!event.target.href) {
             event.preventDefault();
-            // abort other pending, in-flight requests
-            mxTransitionAbortController.abort();
-            mxTransitionAbortController = new AbortController();
-
             Utils.viewTransition(event.target, ({ href }) => {
-                fetch(href, {
-                    headers: {
-                        'X-View-Transition': true,
-                    },
-                    signal: mxTransitionAbortController.signal
-                })
-                    .then(response => response.text())
-                    .then(html => {
-                        replaceDocument(html);
+                const xmlHttpRequest = new XMLHttpRequest();
+                xmlHttpRequest.open('GET', href, true);
+                xmlHttpRequest.setRequestHeader('X-View-Transition', true);
+                
+                xmlHttpRequest.onload = function() {
+                    if (xmlHttpRequest.status >= 200 && xmlHttpRequest.status < 400) {
+                        const doc = parser.parseFromString(xmlHttpRequest.responseText, 'text/html');
+
+                        document.title = doc.title;
+            
+                        document.documentElement.innerHTML = doc.documentElement.innerHTML;
+            
+                        Main.initializeTrongateMX();
 
                         window.history.pushState({}, '', href);
-                    });
+                    }
+                };
             });
         }
     }

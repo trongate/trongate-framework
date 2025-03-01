@@ -20,4 +20,12 @@ class Welcome extends Trongate {
 			'view_file' => 'hello'
 		]);
 	}
+
+	public function reload(): void 
+	{
+		$this->template('public', [
+			'view_module' => 'welcome',
+			'view_file' => 'reload'
+		]);
+	}
 }
