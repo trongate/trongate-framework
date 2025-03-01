@@ -1593,7 +1593,7 @@ let trongateMXOpeningModal = false;
         }
     }
 
-    const mxTransitionAbortController = new AbortController();
+    let mxTransitionAbortController = new AbortController();
     const parser = new DOMParser();
 
     function handleMxTransitionClick(event) {
@@ -1615,6 +1615,7 @@ let trongateMXOpeningModal = false;
             event.preventDefault();
             // abort other pending, in-flight requests
             mxTransitionAbortController.abort();
+            mxTransitionAbortController = new AbortController();
 
             Utils.viewTransition(event.target, ({ href }) => {
                 fetch(href, {
