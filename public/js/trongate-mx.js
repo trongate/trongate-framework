@@ -1335,6 +1335,8 @@ let trongateMXOpeningModal = false;
 
             const events = ['click', 'dblclick', 'change', 'submit', 'keyup', 'keydown', 'focus', 'blur', 'input'];
             events.forEach(eventType => {
+                // Avoid conflicts and stale listeners by removing and re-adding event listeners
+                document.body.removeEventListener(eventType, Main.handleTrongateMXEvent);
                 document.body.addEventListener(eventType, Main.handleTrongateMXEvent);
             });
 
@@ -1605,6 +1607,8 @@ let trongateMXOpeningModal = false;
             document.title = doc.title;
 
             document.documentElement.innerHTML = doc.documentElement.innerHTML;
+
+            Main.initializeTrongateMX();
         }
 
         if (!!event.target.href) {
