@@ -1613,6 +1613,8 @@ let trongateMXOpeningModal = false;
 
         if (!!event.target.href) {
             event.preventDefault();
+            // abort other pending, in-flight requests
+            mxTransitionAbortController.abort();
 
             Utils.viewTransition(event.target, ({ href }) => {
                 fetch(href, {
