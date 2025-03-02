@@ -1,9 +1,10 @@
 services:
   php:
+    image: lotd/trongate-framework
     build:
       context: ./
       dockerfile: Dockerfile
-    container_name: php-fpm
+    container_name: php
     volumes:
       - ./:/var/www/html
     environment:
@@ -14,21 +15,8 @@ services:
     configs:
       - source: php-fpm-config
         target: /usr/local/etc/php-fpm.d/www.conf
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx
     ports:
       - "8080:80"
-    volumes:
-      - ./:/var/www/html
-    depends_on:
-      - php
-    networks:
-      - app-network
-    configs:
-      - source: nginx-config
-        target: /etc/nginx/conf.d/app.conf
 
   mariadb:
     image: mariadb:latest
@@ -53,5 +41,3 @@ networks:
 configs:
   php-fpm-config:
     file: ./docker/php-fpm.conf
-  nginx-config:
-    file: ./docker/nginx.conf
