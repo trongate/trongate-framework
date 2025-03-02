@@ -1,6 +1,6 @@
 <?php
 //The main config file
-define('BASE_URL', $_ENV['BASE_URL'] ?? 'http://localhost/');
+define('BASE_URL', $_ENV['BASE_URL'] ?? '');
 define('ENV', $_ENV['ENV'] ?? 'dev');
 define('DEFAULT_MODULE', 'welcome');
 define('DEFAULT_CONTROLLER', 'Welcome');
