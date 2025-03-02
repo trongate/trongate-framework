@@ -1,7 +1,7 @@
 <?php
 //The main config file
-define('BASE_URL', 'https://sasin91.xyz/');
-define('ENV', 'prod');
+define('BASE_URL', $_ENV['BASE_URL'] ?? 'http://localhost/');
+define('ENV', $_ENV['ENV'] ?? 'dev');
 define('DEFAULT_MODULE', 'welcome');
 define('DEFAULT_CONTROLLER', 'Welcome');
 define('DEFAULT_METHOD', 'index');
