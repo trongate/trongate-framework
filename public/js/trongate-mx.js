@@ -1611,7 +1611,6 @@ let trongateMXOpeningModal = false;
     const parser = new DOMParser();
 
     function handleMxTransitionClick(event) {
-        debugger;
         if (event.target.getAttribute('mx-transition') === null) {
             return;
         }
