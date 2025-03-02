@@ -1635,6 +1635,7 @@ let trongateMXOpeningModal = false;
                         window.history.pushState({}, '', href);
                     }
                 };
+                xmlHttpRequest.send();
             });
         }
     }
