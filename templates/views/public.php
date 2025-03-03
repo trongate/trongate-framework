@@ -7,7 +7,8 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" href="css/trongate.css">
 	<link rel="stylesheet" href="css/app.css">
-	<title>Public</title>
+	<link rel="icon" type="image/x-icon" href="/favicon.png">
+	<title><?= WEBSITE_NAME ?></title>
 </head>
 <body>
 	<div class="wrapper">
