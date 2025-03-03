@@ -13,11 +13,11 @@ class Welcome extends Trongate {
 		]);
 	}
 
-	public function hello(): void
+	public function flip(): void
 	{
 		$this->template('public', [
 			'view_module' => 'welcome',
-			'view_file' => 'hello'
+			'view_file' => 'flip'
 		]);
 	}
 }

@@ -1673,7 +1673,7 @@ let trongateMXOpeningModal = false;
             document.documentElement.dataset.transition = ViewTransition.current;
 
             // Then we wait for the transition to finish
-            await e.viewTransition.finished;
+            await event.viewTransition.finished;
 
             // finally reset the transition state
             delete document.documentElement.dataset.transition;
