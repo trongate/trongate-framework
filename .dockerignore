@@ -1,0 +1,6 @@
+# flyctl launch added from .gitignore
+
+**/\.phpintel
+**/.idea
+**/.vscode
+fly.toml
