@@ -13,6 +13,11 @@ let trongateMXOpeningModal = false;
     let mousedownEl;
     let mouseupEl;
 
+    const ViewTransition = {
+        current: null,
+        default: null
+    };
+
     const Utils = {
         parseAttributeValue(value) {
             value = value.trim();
@@ -172,22 +177,16 @@ let trongateMXOpeningModal = false;
         },
 
         viewTransition(element, callback) {
-            const transition = element.getAttribute('mx-transition');
+            if (document.startViewTransition) {
+                const transition = element.getAttribute('mx-transition') || ViewTransition.default;
 
-            if (transition !== null && document.startViewTransition) {
-                const hasTransition = transition.length > 0;
-
-                if (hasTransition) {
-                    document.documentElement.dataset.transition = transition;
-                    document.body.classList.add(transition);
-                }
+                document.documentElement.dataset.transition = transition;
+                document.body.classList.add(transition);
 
                 document.startViewTransition(() => {
                     callback(element);
 
-                    if (hasTransition) {
-                        document.body.classList.remove(transition);
-                    }
+                    document.body.classList.remove(transition);
 
                     return Promise.resolve();
                 });
@@ -1357,9 +1356,7 @@ let trongateMXOpeningModal = false;
 
             document.querySelectorAll('[mx-trigger*="load"]').forEach(Dom.handlePageLoadedEvents);
             Main.attemptInitPolling();
-            window.addEventListener('popstate', (event) => {
-                Utils.viewTransition(event.target, Main.handlePopState);
-            });
+            window.addEventListener('popstate', Main.handlePopState);
         },
 
         async handleTrongateMXEvent(event) {
@@ -1608,36 +1605,27 @@ let trongateMXOpeningModal = false;
         }
     }
 
-    const parser = new DOMParser();
-
-    function handleMxTransitionClick(event) {
-        if (event.target.getAttribute('mx-transition') === null) {
-            return;
+    /**
+     * Persist the view transition
+     * so we can restore it on page reloads
+     */
+    function persistMxTransition(event) {
+        if (event.target.hasAttribute('mx-transition')) {
+            ViewTransition.current = event.target.getAttribute('mx-transition') || ViewTransition.default;
+        } else {
+            ViewTransition.current = null;
         }
 
-        if (!!event.target.href) {
-            event.preventDefault();
-            Utils.viewTransition(event.target, ({ href }) => {
-                const xmlHttpRequest = new XMLHttpRequest();
-                xmlHttpRequest.open('GET', href, true);
-                xmlHttpRequest.setRequestHeader('X-View-Transition', true);
+        // Persist through page reloads
+        localStorage.setItem('mx-transition', ViewTransition.current);
+    }
 
-                xmlHttpRequest.onload = function() {
-                    if (xmlHttpRequest.status >= 200 && xmlHttpRequest.status < 400) {
-                        const doc = parser.parseFromString(xmlHttpRequest.responseText, 'text/html');
-
-                        document.title = doc.title;
-
-                        document.documentElement.innerHTML = doc.documentElement.innerHTML;
-
-                        Main.initializeTrongateMX();
-
-                        window.history.pushState({}, '', href);
-                    }
-                };
-                xmlHttpRequest.send();
-            });
-        }
+    /**
+     * Restore the persisted view transition
+     */
+    function restoreMxTransition() {
+        ViewTransition.current = localStorage.getItem('mx-transition');
+        localStorage.removeItem('mx-transition');
     }
 
     // Initialize Trongate MX when the DOM is loaded
@@ -1650,7 +1638,7 @@ let trongateMXOpeningModal = false;
     document.addEventListener("click", (event) => {
         handleMxModalClick(event);
 
-        handleMxTransitionClick(event);
+        persistMxTransition(event);
     });
 
     // Establish the target element when mouse down event happens.
@@ -1669,7 +1657,44 @@ let trongateMXOpeningModal = false;
         openModal: Modal.openModal
     };
 
+    window.addEventListener('pagereveal', async (event)  => {
+        restoreMxTransition();
 
+        if (event.viewTransition) {
+            if (ViewTransition.current === 'none') {
+                event.viewTransition.skipTransition();
+                return;
+            }
+
+            // We apply the css class to the document e.g. 'data-transition="reload"' or 'data-transition="flip"'
+            // to signal the transition to the CSS engine which will then apply the transition effect.
+            // @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API
+            // @see https://view-transitions.chrome.dev
+            document.documentElement.dataset.transition = ViewTransition.current;
+
+            // Then we wait for the transition to finish
+            await e.viewTransition.finished;
+
+            // finally reset the transition state
+            delete document.documentElement.dataset.transition;
+        } else {
+            if (document.documentElement.hasAttribute('mx-transition')) {
+                document.documentElement.dataset.transition = document.documentElement.getAttribute('mx-transition') || ViewTransition.default;
+
+                const t = document.startViewTransition(() => {
+                    // NOOP
+                });
+
+                try {
+                    await t.finished;
+                    delete document.documentElement.dataset.transition;
+                } catch (e) {
+                    console.log(e);
+                }
+                return;
+            }
+		}
+    });
 })(window);
 
 const _mxOpenModal = function(modalId) {
