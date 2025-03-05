@@ -677,45 +677,170 @@ div.modal-body p.text-center {
 }
 
 
-/* Turn cross-document view-transitions on */
-/* Note that this at-rule is all that is needed to create the default cross-fade animation  */
-
 @view-transition {
-  navigation: auto;
+	navigation: auto;
 }
 
-/* Customize the default animation behavior */
-
-::view-transition-group(root) {
-  animation-duration: 0.5s;
+@keyframes shrink {
+	to {
+		scale: 0.8;
+		opacity: 0.5;
+	}
+}
+@keyframes grow {
+	from {
+		scale: 0.8;
+		opacity: 0.5;
+	}
+}
+@keyframes slide-in {
+	from {
+		translate: 100vw 0;
+	}
+}
+@keyframes slide-out {
+	to {
+		translate: 100vw 0;
+	}
+}
+@keyframes scale-up {
+	from {
+		scale: 0;
+	}
+}
+@keyframes scale-down {
+	to {
+		scale: 0;
+	}
+}
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+}
+@keyframes fade-out {
+	to {
+		opacity: 0;
+	}
 }
 
-::view-transition-old(root) {
-  animation: slideSwipeOut 0.6s ease-in-out forwards;
-}
-
-::view-transition-new(root) {
-  animation: slideSwipeIn 0.6s ease-in-out forwards;
-}
-
-@keyframes slideSwipeOut {
+@keyframes flipouttoleft {
   from {
-    opacity: 1;
-    transform: translateX(0);
+      transform: rotateY(0);
   }
   to {
-    opacity: 0;
-    transform: translateX(-100%);
+      transform: rotateY(-90deg) scale(0.9);
   }
 }
 
-@keyframes slideSwipeIn {
+@keyframes flipouttoright {
   from {
-    opacity: 0;
-    transform: translateX(100%);
+      transform: rotateY(0);
   }
   to {
-    opacity: 1;
-    transform: translateX(0);
+      transform: rotateY(90deg) scale(0.9);
   }
+}
+
+@keyframes flipintoleft {
+  from {
+      transform: rotateY(-90deg) scale(0.9);
+  }
+  to {
+      transform: rotateY(0);
+  }
+}
+
+@keyframes flipintoright {
+  from {
+      transform: rotateY(90deg) scale(0.9);
+  }
+  to {
+      transform: rotateY(0);
+  }
+}
+
+::view-transition {
+	background: var(--alt);
+}  
+
+::view-transition-group(page) {
+	animation-duration: 0.7s;
+}
+
+:root[data-transition="push"] {
+	&::view-transition-old(page) {
+		&::view-transition-old(page) {
+			animation-name: shrink;
+			transform-origin: 100% 50%;
+		}
+	}
+	&::view-transition-new(page) {
+		animation-name: slide-in;
+	}
+}
+
+:root[data-transition="pop"] {
+	&::view-transition-old(page) {
+		animation-name: slide-out;
+		z-index: 1;
+	}
+	&::view-transition-new(page) {
+		animation-name: grow;
+		transform-origin: 100% 50%;
+	}
+}
+
+/* Forward flip transition (like going to the next page) */
+:root[data-transition="flip"] {
+  perspective: 1200px;
+  
+  &::view-transition-old(page) {
+      animation-name: flipouttoleft;
+      animation-duration: 125ms;
+      backface-visibility: hidden;
+      transform-origin: center right;
+  }
+  
+  &::view-transition-new(page) {
+      animation-name: flipintoright;
+      animation-duration: 250ms;
+      backface-visibility: hidden;
+      transform-origin: center left;
+  }
+}
+
+/* Reverse flip transition (like going back) */
+:root[data-transition="flip-reverse"] {
+  perspective: 1200px;
+  
+  &::view-transition-old(page) {
+      animation-name: flipouttoright;
+      animation-duration: 125ms;
+      backface-visibility: hidden;
+      transform-origin: center left;
+  }
+  
+  &::view-transition-new(page) {
+      animation-name: flipintoleft;
+      animation-duration: 250ms;
+      backface-visibility: hidden;
+      transform-origin: center right;
+  }
+}
+
+:root[data-transition="reload"] {
+	&::view-transition-old(page) {
+		display: none;
+	}
+	&::view-transition-new(page) {
+		animation-name: fade-in, scale-up;
+	}
+}
+
+/* Preferences */
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-group(page) {
+		animation-duration: 0s;
+	}
 }
