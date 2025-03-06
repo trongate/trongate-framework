@@ -948,6 +948,9 @@ class Model {
             case is_null($value):
                 $type = PDO::PARAM_NULL;
                 break;
+            case empty($value):
+                $type = PDO::PARAM_NULL;
+                break;
             default:
                 $type = PDO::PARAM_STR;
         }
