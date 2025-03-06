@@ -61,43 +61,48 @@ class Standard_endpoints extends Trongate {
         }
     }
 
+
     /**
-     * Retrieves data in response to pre-defined HTTP GET requests.
+     * Retrieves records from the database table in response to pre-defined HTTP GET requests.
      *
      * @param bool $return_row_count Optional. Whether to return the row count instead of data. Default is false.
      * @return void
      */
     public function get(bool $return_row_count = false): void {
-        // Get the endpoint from the api.json file (and make sure it's allowed)
-        $endpoint_name =  $return_row_count === true ? 'Count' : 'Get';
-        $table_name = segment(1) === 'api' ? segment(3) : segment(1);
-        $table_name = remove_query_string($table_name);
-        $input = $this->get_target_endpoint($table_name, $endpoint_name);
+            // Get the endpoint from the api.json file (and make sure it's allowed)
+            $endpoint_name = $return_row_count === true ? 'Count' : 'Get';
+            $table_name = segment(1) === 'api' ? segment(3) : segment(1);
+            $table_name = remove_query_string($table_name);
 
-        $before_hook = $input['target_endpoint']['beforeHook'] ?? '';
-        $after_hook = $input['target_endpoint']['afterHook'] ?? '';
-        unset($input['target_endpoint']);
+            // Retrieve primary key name for the table
+            $primary_key = $this->model->get_primary_key_name($table_name);
 
-        if ($before_hook !== '') {
-            $input = $this->attempt_invoke_before_hook($table_name, $before_hook, $input);
+            $input = $this->get_target_endpoint($table_name, $endpoint_name);
+
+            $before_hook = $input['target_endpoint']['beforeHook'] ?? '';
+            $after_hook = $input['target_endpoint']['afterHook'] ?? '';
+            unset($input['target_endpoint']);
+
+            if ($before_hook !== '') {
+                $input = $this->attempt_invoke_before_hook($table_name, $before_hook, $input);
+            }
+
+            $standard_query = "SELECT * FROM $table_name ORDER BY $primary_key";
+            $rows = $this->fetch_rows($standard_query, $input['params']);
+
+            $output['token'] = $input['token'];
+            $output['body'] = $return_row_count === true ? count($rows) : json_encode($rows);
+            $output['code'] = 200;
+
+            if ($after_hook !== '') {
+                $output = $this->attempt_invoke_after_hook($table_name, $after_hook, $output);
+            }
+
+            $output = $this->clean_output($output);
+            http_response_code($output['code']);
+            echo $output['body'];
+            die();
         }
-
-        $standard_query = 'SELECT * FROM ' . $table_name;
-        $rows = $this->fetch_rows($standard_query, $input['params']);
-
-        $output['token'] = $input['token'];
-        $output['body'] = $return_row_count === true ? count($rows) : json_encode($rows);
-        $output['code'] = 200;
-
-        if ($after_hook !== '') {
-            $output = $this->attempt_invoke_after_hook($table_name, $after_hook, $output);
-        }
-
-        $output = $this->clean_output($output);
-        http_response_code($output['code']);
-        echo $output['body'];
-        die();
-    }
 
     /**
      * Searches for records in the database table in response to pre-defined HTTP POST requests.
@@ -116,6 +121,9 @@ class Standard_endpoints extends Trongate {
         $table_name = remove_query_string($table_name);
         $endpoint_name = $return_row_count === true ? 'Count By Post' : 'Search';
 
+        // Retrieve primary key name for the table
+        $primary_key = $this->model->get_primary_key_name($table_name);
+
         $input = $this->get_target_endpoint($table_name, $endpoint_name);
         $before_hook = $input['target_endpoint']['beforeHook'] ?? '';
         $after_hook = $input['target_endpoint']['afterHook'] ?? '';
@@ -125,7 +133,7 @@ class Standard_endpoints extends Trongate {
             $input = $this->attempt_invoke_before_hook($table_name, $before_hook, $input);
         }
 
-        $standard_query = 'SELECT * FROM ' . $table_name;
+        $standard_query = "SELECT * FROM $table_name ORDER BY $primary_key";
         $rows = $this->fetch_rows($standard_query, $input['params']);
 
         $output['token'] = $input['token'];
@@ -485,6 +493,9 @@ class Standard_endpoints extends Trongate {
         $table_name = segment(1) === 'api' ? segment(3) : segment(1);
         $table_name = remove_query_string($table_name);
 
+        // Retrieve primary key name for the table
+        $primary_key = $this->model->get_primary_key_name($table_name);
+
         $input = $this->get_target_endpoint($table_name, 'Destroy');
         $before_hook = $input['target_endpoint']['beforeHook'] ?? '';
         $after_hook = $input['target_endpoint']['afterHook'] ?? '';
@@ -494,18 +505,17 @@ class Standard_endpoints extends Trongate {
             $input = $this->attempt_invoke_before_hook($table_name, $before_hook, $input);
         }
 
-        $standard_query = 'SELECT * FROM ' . $table_name;
+        $standard_query = "SELECT * FROM $table_name";
         $rows = $this->fetch_rows($standard_query, $input['params']);
 
-        // Build an array of items to go, based on 'id'
+        // Build an array of items to delete, based on the primary key
         $update_ids = [];
         foreach ($rows as $row) {
-            $update_ids[] = $row->id;
+            $update_ids[] = $row->$primary_key;
         }
 
         try {
-
-            // Check that all the array values are integers
+            // Check that all array values are integers
             foreach ($update_ids as $update_id) {
                 if (!is_int($update_id)) {
                     $this->api_manager_error(400, 'Invalid input: array contains non-integer value!');
@@ -516,8 +526,8 @@ class Standard_endpoints extends Trongate {
             $update_ids_str = implode(',', $update_ids);
 
             if (count($update_ids) > 0) {
-                // Build the SQL query to delete rows from the table where 'id' values match those in the array
-                $sql = "DELETE FROM $table_name WHERE id IN ({$update_ids_str})";
+                // Build the SQL query to delete rows from the table where primary key values match those in the array
+                $sql = "DELETE FROM $table_name WHERE $primary_key IN ({$update_ids_str})";
                 $this->model->query($sql);
             }
 
