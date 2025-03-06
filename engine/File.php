@@ -486,32 +486,77 @@ class File {
      * The function prevents directory traversal attacks and unauthorized file access by validating
      * against a list of restricted paths and checking the path's relative position to the application's root.
      *
+     * If the path doesn't exist yet, it validates the parent directory instead.
+     *
      * @param string $path The file or directory path to validate.
      * @return bool Returns true if the path is valid, false otherwise.
      */
     private function is_path_valid(string $path): bool {
         $restricted_dirs = [APPPATH . 'config', APPPATH . 'engine', APPPATH . 'templates'];
-        $normalized_path = realpath($path);
-
-        // Check if the path is in a restricted directory
-        foreach ($restricted_dirs as $dir) {
-            if (strpos($normalized_path, $dir) === 0) {
-                return false; // Path is inside a restricted directory
+        
+        // If the path exists, validate it directly
+        if (file_exists($path)) {
+            $normalized_path = realpath($path);
+            
+            // Check if the path is in a restricted directory
+            foreach ($restricted_dirs as $dir) {
+                $restricted_real_path = realpath($dir);
+                if ($restricted_real_path && strpos($normalized_path, $restricted_real_path) === 0) {
+                    return false; // Path is inside a restricted directory
+                }
             }
+            
+            // Prevent manipulation of any files or directories directly under APPPATH
+            $relative_path = str_replace(realpath(APPPATH), '', $normalized_path);
+            if (strpos($relative_path, DIRECTORY_SEPARATOR) === false) {
+                return false; // Path is directly under the root directory
+            }
+            
+            // Ensure the path is within the application directory to avoid external access
+            if (strpos($normalized_path, realpath(APPPATH)) !== 0) {
+                return false;
+            }
+            
+            return true;
+        } 
+        
+        // If the path doesn't exist, validate its parent directory
+        else {
+            // Get the parent directory path
+            $parent_path = dirname($path);
+            
+            // If parent path doesn't exist either, return false
+            if (!file_exists($parent_path)) {
+                // We could recursively check parent paths here, but that might introduce
+                // security issues. Better to ensure parent directories exist first.
+                return false;
+            }
+            
+            // Validate the parent directory
+            $parent_normalized_path = realpath($parent_path);
+            
+            // Check if the parent path is in a restricted directory
+            foreach ($restricted_dirs as $dir) {
+                $restricted_real_path = realpath($dir);
+                if ($restricted_real_path && strpos($parent_normalized_path, $restricted_real_path) === 0) {
+                    return false; // Parent path is inside a restricted directory
+                }
+            }
+            
+            // Prevent manipulation of any files or directories directly under APPPATH
+            $parent_relative_path = str_replace(realpath(APPPATH), '', $parent_normalized_path);
+            if (strpos($parent_relative_path, DIRECTORY_SEPARATOR) === false) {
+                return false; // Parent path is directly under the root directory
+            }
+            
+            // Ensure the parent path is within the application directory to avoid external access
+            if (strpos($parent_normalized_path, realpath(APPPATH)) !== 0) {
+                return false;
+            }
+            
+            // The target path inherits validity from its parent
+            return true;
         }
-
-        // Prevent manipulation of any files or directories directly under APPPATH
-        $relative_path = str_replace(APPPATH, '', $normalized_path);
-        if (strpos($relative_path, DIRECTORY_SEPARATOR) === false) {
-            return false; // Path is directly under the root directory
-        }
-
-        // Ensure the path is within the application directory to avoid external access
-        if (strpos($normalized_path, APPPATH) !== 0) {
-            return false;
-        }
-
-        return true;
     }
 
     /**
