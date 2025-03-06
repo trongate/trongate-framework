@@ -116,7 +116,13 @@ class Core {
                 try {
                     $asset_path = $this->sanitize_file_path($asset_path, '../modules/');
                     
-                    if (file_exists($asset_path)) {
+                    if (is_file($asset_path)) {
+                        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && 
+                            strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= filemtime($asset_path)) {
+                                header('Last-Modified: '.gmdate('D, d M Y H:i:s',  filemtime($asset_path)).' GMT', true, 304);
+                                die;
+                        }
+                        
                         $content_type = mime_content_type($asset_path);
 
                         if ($content_type === 'text/plain' || $content_type === 'text/html') {
@@ -133,14 +139,14 @@ class Core {
 
                         // Make sure it's not a PHP file or api.json
                         if (strpos($content_type, 'php') !== false || $file_name === 'api.json') {
-                            http_response_code(422);
+                            http_response_code(403);
                             die();
                         }
 
                         header('Content-type: ' . $content_type);
-                        $contents = file_get_contents($asset_path);
-                        echo $contents;
-                        die();
+                        header('Last-Modified: ' . gmdate('D, d M Y H:i:s', filemtime($asset_path)) . ' GMT');
+                        readfile($asset_path);
+                        die;
                     } 
                 } catch (Exception $e) {
                     die($e->getMessage());
