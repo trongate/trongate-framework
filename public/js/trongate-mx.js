@@ -13,6 +13,11 @@ let trongateMXOpeningModal = false;
     let mousedownEl;
     let mouseupEl;
 
+    const ViewTransition = {
+        current: null,
+        default: null
+    };
+
     const Utils = {
         parseAttributeValue(value) {
             value = value.trim();
@@ -50,10 +55,10 @@ let trongateMXOpeningModal = false;
         parsePollingInterval(intervalString) {
             const match = intervalString.match(/^(\d+)(s|m|h|d)$/);
             if (!match) return null;
-        
+
             const value = parseInt(match[1], 10);
             const unit = match[2];
-        
+
             switch (unit) {
                 case 's': return value * 1000;
                 case 'm': return value * 60 * 1000;
@@ -126,7 +131,7 @@ let trongateMXOpeningModal = false;
         createMXEvent(element, event, type, extraDetails = {}) {
             // Always get the closest button/form element as the target
             const targetElement = element.closest('button, form') || element;
-            
+
             return {
                 target: targetElement,
                 type: type,
@@ -169,6 +174,24 @@ let trongateMXOpeningModal = false;
             } else {
                 console.warn(`Function ${cleanFunctionName} not found`);
             }
+        },
+
+        viewTransition(element, callback) {
+            if (document.startViewTransition) {
+                const transition = element.getAttribute('mx-transition') || ViewTransition.default;
+
+                document.documentElement.dataset.transition = transition;
+
+                document.startViewTransition(() => {
+                    callback(element);
+
+                    delete document.documentElement.dataset.transition;
+
+                    return Promise.resolve();
+                });
+            } else {
+                callback(element);
+            }
         }
     };
 
@@ -179,12 +202,12 @@ let trongateMXOpeningModal = false;
             targetUrl = Utils.normalizeUrl(targetUrl);
             const requestType = httpMethodAttribute.replace('mx-', '').toUpperCase();
             Dom.attemptActivateLoader(element);
-            
+
             const http = new XMLHttpRequest();
             http.open(requestType, targetUrl);
             http.setRequestHeader('Trongate-MX-Request', 'true');
             http.timeout = CONFIG.DEFAULT_TIMEOUT;
-            
+
             return http;
         },
 
@@ -223,20 +246,20 @@ let trongateMXOpeningModal = false;
             const http = Http.setupHttpRequest(element, httpMethodAttribute);
             Http.setMXHeaders(http, element);
             Http.setMXHandlers(http, element);
-        
+
             const isFormSubmission = containingForm !== null;
             let formData;
-            
+
             // Always get form data if we have a form, regardless of where the attributes are
             if (isFormSubmission) {
                 formData = new FormData(containingForm);
             } else {
                 formData = new FormData();
             }
-        
+
             // Process mx-vals from either the form or the triggering element
-            const mxValsStr = isFormSubmission ? 
-                containingForm.getAttribute('mx-vals') || element.getAttribute('mx-vals') : 
+            const mxValsStr = isFormSubmission ?
+                containingForm.getAttribute('mx-vals') || element.getAttribute('mx-vals') :
                 element.getAttribute('mx-vals');
 
             if (mxValsStr) {
@@ -247,22 +270,22 @@ let trongateMXOpeningModal = false;
                     });
                 }
             }
-        
+
             // Process mx-dom-vals
             const domVals = Dom.processMXDomVals(element);
             Object.entries(domVals).forEach(([key, value]) => {
                 formData.append(key, value);
             });
-        
+
             let targetElement;
             if ((containingForm) && (!element.hasAttribute(httpMethodAttribute))) {
                 targetElement = Dom.establishTargetElement(containingForm);
             } else {
                 targetElement = Dom.establishTargetElement(element);
             }
-        
+
             Dom.handleMxDuringRequest(element, targetElement);
-        
+
             return { http, formData, targetElement };
         },
 
@@ -271,10 +294,10 @@ let trongateMXOpeningModal = false;
 
             http.onload = function() {
                 Dom.attemptHideLoader(containingForm);
-                
+
                 const isSuccessfulResponse = http.status >= 200 && http.status < 300;
                 const shouldResetForm = isSuccessfulResponse && !element.hasAttribute(httpMethodAttribute);
-                
+
                 if (shouldResetForm) {
                     containingForm.reset();
                 }
@@ -317,7 +340,7 @@ let trongateMXOpeningModal = false;
 
         invokeHttpRequest(element, httpMethodAttribute, event) {
             const { http, formData, targetElement } = Http.commonHttpRequest(element, httpMethodAttribute);
-            
+
             http.setRequestHeader('Accept', 'text/html');
 
             http.onload = function() {
@@ -349,7 +372,7 @@ let trongateMXOpeningModal = false;
             // Handle redirects first based on status and response text
             const shouldRedirectOnSuccess = element.getAttribute('mx-redirect-on-success') === 'true';
             const shouldRedirectOnError = element.getAttribute('mx-redirect-on-error') === 'true';
-            
+
             const isSuccess = http.status >= 200 && http.status < 300;
             const redirectUrl = http.responseText.trim();
 
@@ -375,7 +398,9 @@ let trongateMXOpeningModal = false;
                         Animation.initAnimateSuccess(targetEl, http, element);
                     } else {
                         Modal.initAttemptCloseModal(targetEl, http, element);
-                        this.updateContent(targetEl, http, element, event);
+                        Utils.viewTransition(element, () => {
+                            this.updateContent(targetEl, http, element, event);
+                        });
                     }
                 }
 
@@ -408,7 +433,7 @@ let trongateMXOpeningModal = false;
             } else {
                 targetEl.textContent = http.responseText;
             }
-            
+
             // Handle mx-after-swap with standardized event handling
             const functionName = element.getAttribute('mx-after-swap');
             if (functionName) {
@@ -492,7 +517,7 @@ let trongateMXOpeningModal = false;
                             });
                         }
                     });
-                    
+
                     // Handle removed nodes
                     mutation.removedNodes.forEach(node => {
                         if (node.nodeType === 1) { // Element node
@@ -549,29 +574,29 @@ let trongateMXOpeningModal = false;
 
         establishTargetElement(element) {
             const mxTargetStr = Utils.getAttributeValue(element, 'mx-target');
-        
+
             if (!mxTargetStr || mxTargetStr === 'this') {
                 return element;
             }
-            
+
             if (mxTargetStr === 'none') {
                 return null;
             }
-            
+
             if (mxTargetStr === 'body') {
                 return document.body;
             }
-            
+
             if (mxTargetStr.startsWith('closest ')) {
                 const selector = mxTargetStr.replace('closest ', '');
                 return element.closest(selector);
             }
-            
+
             if (mxTargetStr.startsWith('find ')) {
                 const selector = mxTargetStr.replace('find ', '');
                 return element.querySelector(selector);
             }
-            
+
             return document.querySelector(mxTargetStr);
         },
 
@@ -657,9 +682,9 @@ let trongateMXOpeningModal = false;
 
         handleOobSwaps(tempFragment, selectOobStr) {
             if (!selectOobStr) return;
-        
+
             const parsedValue = Utils.parseAttributeValue(selectOobStr);
-        
+
             if (typeof parsedValue === 'string') {
                 const swapInstructions = parsedValue.split(/,(?![^[]*\])/);
                 swapInstructions.forEach(instruction => {
@@ -681,20 +706,20 @@ let trongateMXOpeningModal = false;
                 console.error(`Source element not found: ${select}`);
                 return;
             }
-        
+
             const oobTarget = document.querySelector(target);
             if (!oobTarget) {
                 console.error(`Target element not found: ${target}`);
                 return;
             }
-        
+
             this.swapContent(oobTarget, oobSelected.cloneNode(true), swap);
         },
 
         swapContent(target, source, swapMethod) {
             const sourceString = typeof source === 'string' ? source : source.outerHTML || source.innerHTML;
             const processedSource = this.removeOutermostDiv(sourceString);
-            
+
             switch (swapMethod) {
                 case 'outerHTML':
                     target.outerHTML = processedSource;
@@ -736,7 +761,7 @@ let trongateMXOpeningModal = false;
         removeOutermostDiv(htmlString) {
             const tempContainer = document.createElement('div');
             tempContainer.innerHTML = htmlString.trim();
-            
+
             if (tempContainer.firstElementChild && tempContainer.firstElementChild.tagName.toLowerCase() === 'div') {
                 const firstDiv = tempContainer.firstElementChild;
                 while (firstDiv.firstChild) {
@@ -744,7 +769,7 @@ let trongateMXOpeningModal = false;
                 }
                 tempContainer.removeChild(firstDiv);
             }
-            
+
             return tempContainer.innerHTML;
         },
 
@@ -753,9 +778,9 @@ let trongateMXOpeningModal = false;
                 .forEach(field => field.classList.remove('form-field-validation-error'));
             containingForm.querySelectorAll('.validation-error-report')
                 .forEach(report => report.remove());
-        
+
             let firstErrorElement = null;
-        
+
             validationErrors.forEach(error => {
                 const field = containingForm.querySelector(`[name="${error.field}"]`);
                 if (field) {
@@ -772,12 +797,12 @@ let trongateMXOpeningModal = false;
 
                     // Find the closest ancestor with 'flex-row' class that's inside or is the form itself
                     const closestFlexRow = field.closest('.flex-row');
-                    
+
                     if (closestFlexRow && (containingForm === closestFlexRow || containingForm.contains(closestFlexRow))) {
                         // 1. Traverse back from the erroneous form field to find a 'target label'
                         let targetLabel = null;
                         let currentElement = field.previousElementSibling;
-                        
+
                         while (currentElement && currentElement.tagName.toLowerCase() !== 'label') {
                             // If we hit another form field or the start of the form, stop looking for a label
                             if (currentElement.tagName.toLowerCase().match(/(input|select|textarea)/) || currentElement === null) {
@@ -785,14 +810,14 @@ let trongateMXOpeningModal = false;
                             }
                             currentElement = currentElement.previousElementSibling;
                         }
-                        
+
                         if (currentElement && currentElement.tagName.toLowerCase() === 'label') {
                             // If a target label is found, insert the errorContainer immediately after the form label
                             targetLabel.parentNode.insertBefore(errorContainer, targetLabel.nextSibling);
                         } else {
                             // OTHERWISE, search for a containing element that is WITHIN containingForm with a class of 'flex-row'
                             const innerFlexRow = field.closest('.flex-row');
-                            
+
                             if (innerFlexRow && containingForm.contains(innerFlexRow)) {
                                 // If found, insert before this containing element
                                 innerFlexRow.parentNode.insertBefore(errorContainer, innerFlexRow);
@@ -822,7 +847,7 @@ let trongateMXOpeningModal = false;
                     }
                 }
             });
-        
+
             if (firstErrorElement) {
                 setTimeout(() => {
                     firstErrorElement.scrollIntoView({
@@ -888,7 +913,7 @@ let trongateMXOpeningModal = false;
             if (validationErrorsAlert) {
                 validationErrorsAlert.remove();
             }
-            
+
             // Remove 'validation-error-report' elements within the form
             containingForm.querySelectorAll('.validation-error-report')
                 .forEach(el => el.remove());
@@ -908,7 +933,7 @@ let trongateMXOpeningModal = false;
                 child.style.opacity = opacityValue;
             });
         }
-        
+
     };
 
     const Modal = {
@@ -1134,8 +1159,8 @@ let trongateMXOpeningModal = false;
                 mxModalContainer.appendChild(mxModal);
 
                 // Get the top margin for the new modal (attempting to read from modalData)
-                const mxModalMarginTop = typeof modalData === 'object' 
-                  ? (modalData.marginTop || modalData['margin-top'] || '12vh') 
+                const mxModalMarginTop = typeof modalData === 'object'
+                  ? (modalData.marginTop || modalData['margin-top'] || '12vh')
                   : '12vh';
 
                 // Make the new modal element appear!
@@ -1204,7 +1229,7 @@ let trongateMXOpeningModal = false;
                 const containingForm = element.closest('form');
                 if (containingForm) {
                     animationContainer = containingForm;
-                }                
+                }
             }
             return animationContainer;
         },
@@ -1315,7 +1340,7 @@ let trongateMXOpeningModal = false;
         initializeTrongateMX() {
             // Initialize observer for indicators
             Dom.initializeIndicatorObserver();
-            
+
             // Initialize existing indicators
             document.querySelectorAll('.mx-indicator').forEach(element => {
                 Dom.initializeSingleIndicator(element);
@@ -1323,6 +1348,8 @@ let trongateMXOpeningModal = false;
 
             const events = ['click', 'dblclick', 'change', 'submit', 'keyup', 'keydown', 'focus', 'blur', 'input'];
             events.forEach(eventType => {
+                // Avoid conflicts and stale listeners by removing and re-adding event listeners
+                document.body.removeEventListener(eventType, Main.handleTrongateMXEvent);
                 document.body.addEventListener(eventType, Main.handleTrongateMXEvent);
             });
 
@@ -1366,11 +1393,11 @@ let trongateMXOpeningModal = false;
             let httpRequestStarted = false;
             if (attribute && attribute !== 'mx-remove') {
                 httpRequestStarted = true;
-                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
+                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) &&
                     (attribute !== 'mx-get')) {
                     Main.mxSubmitForm(element, triggerEvent, attribute, event);
-                } else if (element.tagName.toLowerCase() === 'select' && 
-                           attribute === 'mx-get' && 
+                } else if (element.tagName.toLowerCase() === 'select' &&
+                           attribute === 'mx-get' &&
                            element.getAttribute('mx-trigger') === 'change') {
                     Main.initInvokeHttpRequest(element, attribute, event);
                 } else {
@@ -1381,7 +1408,7 @@ let trongateMXOpeningModal = false;
             // Handle mx-remove after initiating HTTP request
             if (element.hasAttribute('mx-remove')) {
                 const value = element.getAttribute('mx-remove');
-                
+
                 // Use setTimeout to ensure HTTP request gets processed first
                 setTimeout(() => {
                     if (value === 'true') {
@@ -1400,11 +1427,11 @@ let trongateMXOpeningModal = false;
 
             // If no HTTP request was started and no mx-remove was handled, process as normal
             if (!httpRequestStarted && !element.hasAttribute('mx-remove')) {
-                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) && 
+                if ((element.tagName.toLowerCase() === 'form' || element.closest('form')) &&
                     (attribute !== 'mx-get')) {
                     Main.mxSubmitForm(element, triggerEvent, attribute, event);
-                } else if (element.tagName.toLowerCase() === 'select' && 
-                           attribute === 'mx-get' && 
+                } else if (element.tagName.toLowerCase() === 'select' &&
+                           attribute === 'mx-get' &&
                            element.getAttribute('mx-trigger') === 'change') {
                     Main.initInvokeHttpRequest(element, attribute, event);
                 } else {
@@ -1577,6 +1604,29 @@ let trongateMXOpeningModal = false;
         }
     }
 
+    /**
+     * Persist the view transition
+     * so we can restore it on page reloads
+     */
+    function persistMxTransition(event) {
+        if (event.target.hasAttribute('mx-transition')) {
+            ViewTransition.current = event.target.getAttribute('mx-transition') || ViewTransition.default;
+        } else {
+            ViewTransition.current = null;
+        }
+
+        // Persist through page reloads
+        localStorage.setItem('mx-transition', ViewTransition.current);
+    }
+
+    /**
+     * Restore the persisted view transition
+     */
+    function restoreMxTransition() {
+        ViewTransition.current = localStorage.getItem('mx-transition');
+        localStorage.removeItem('mx-transition');
+    }
+
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
 
@@ -1586,6 +1636,8 @@ let trongateMXOpeningModal = false;
 
     document.addEventListener("click", (event) => {
         handleMxModalClick(event);
+
+        persistMxTransition(event);
     });
 
     // Establish the target element when mouse down event happens.
@@ -1604,7 +1656,44 @@ let trongateMXOpeningModal = false;
         openModal: Modal.openModal
     };
 
+    window.addEventListener('pagereveal', async (event)  => {
+        restoreMxTransition();
 
+        if (event.viewTransition) {
+            if (ViewTransition.current === 'none') {
+                event.viewTransition.skipTransition();
+                return;
+            }
+
+            // We apply the css class to the document e.g. 'data-transition="reload"' or 'data-transition="flip"'
+            // to signal the transition to the CSS engine which will then apply the transition effect.
+            // @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API
+            // @see https://view-transitions.chrome.dev
+            document.documentElement.dataset.transition = ViewTransition.current;
+
+            // Then we wait for the transition to finish
+            await event.viewTransition.finished;
+
+            // finally reset the transition state
+            delete document.documentElement.dataset.transition;
+        } else {
+            if (document.documentElement.hasAttribute('mx-transition')) {
+                document.documentElement.dataset.transition = document.documentElement.getAttribute('mx-transition') || ViewTransition.default;
+
+                const t = document.startViewTransition(() => {
+                    // NOOP
+                });
+
+                try {
+                    await t.finished;
+                    delete document.documentElement.dataset.transition;
+                } catch (e) {
+                    console.log(e);
+                }
+                return;
+            }
+		}
+    });
 })(window);
 
 const _mxOpenModal = function(modalId) {
