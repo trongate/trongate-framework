@@ -99,7 +99,7 @@ label span { color: green; }
 
 .button {
   text-align: center;
-  width: auto !important;
+  width: auto;
   display: inline-block;
 }
 
@@ -234,20 +234,14 @@ hr {
 
 .modal p { text-align: center; }
 
-.text-left,
-div.modal-body p.text-left {
-  text-align: left !important;
-}
+.text-left, div.modal-body p.text-left { text-align: left; }
+body .text-left, html .text-left { text-align: left; }
 
-.text-right,
-div.modal-body p.text-right {
-  text-align: right !important;
-}
+.text-right, div.modal-body p.text-right { text-align: right; }
+body .text-right, html .text-right { text-align: right; }
 
-.text-center,
-div.modal-body p.text-center {
-  text-align: center !important;
-}
+.text-center, div.modal-body p.text-center { text-align: center; }
+body .text-center, html .text-center { text-align: center; }
 
 .container {
   width: 90%;
@@ -415,8 +409,13 @@ div.modal-body p.text-center {
 
 .modal-footer button { margin: 6px 0 0 0.3em; font-size: 16px; }
 .modal-footer button.alt { background-color: #fefefe; }
-.modal-danger { background-color: red !important; border: 1px #990000 solid; }
+.modal-danger { background-color: red; border: 1px #990000 solid; }
 .modal-body { padding: 20px; border-left: 1px solid var(--primary-darker); border-right: 1px solid var(--primary-darker); }
+
+.modal .modal-danger,
+button.modal-danger {
+  background-color: red;
+}
 
 .modal textarea {
   font: inherit;
@@ -425,12 +424,19 @@ div.modal-body p.text-center {
   overflow: auto;
   padding: 8px;
   display: block;
-  border: 1px solid #ccc !important;
-  color: #000 !important;
-  background-color: #fdf5e6 !important;
+  border: 1px solid #ccc;
+  color: #000;
+  background-color: #fdf5e6;
   min-height: 7em;
   resize: none;
   line-height: 1.5em;
+}
+
+body .modal textarea,
+form .modal textarea {
+  border: 1px solid #ccc;
+  color: #000;
+  background-color: #fdf5e6;
 }
 
 .video-container {
@@ -669,13 +675,20 @@ div.modal-body p.text-center {
 }
 
 @media screen and (max-width: 550px) {
-  button, .button { width: 100%; display: block; }
+  button, 
+  button.button, 
+  a.button,
+  .button { 
+    width: 100%; 
+    display: block; 
+    box-sizing: border-box;
+    margin: 0.5em 0;
+  }
   .modal { max-height: 85vh; overflow-y: auto; }
   .modal-footer { flex-direction: column-reverse; }
   .modal-footer button:last-child { margin: 0 0 0 0.3em; }
   p.button-container { display: flex; flex-direction: column-reverse; }
 }
-
 
 @view-transition {
 	navigation: auto;
