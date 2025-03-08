@@ -8,9 +8,7 @@ class Pagination {
     // Required properties with their expected types
     private static $required_properties = [
         "total_rows" => "int",
-        "page_num_segment" => "int",
         "limit" => "int",
-        "pagination_root" => "string",
         "record_name_plural" => "string"
     ];
 
@@ -20,7 +18,8 @@ class Pagination {
         "include_css" => ["default" => false, "type" => "bool"],
         "num_links_per_page" => ["default" => 10, "type" => "int"],
         "settings" => ["default" => [], "type" => "array"],
-        "enable_infinite_scrolling" => ["default" => true, "type" => "bool"]
+        "page_num_segment" => ["default" => null, "type" => "int"], // Now optional
+        "pagination_root" => ["default" => null, "type" => "string"] // Now optional
     ];
 
     // Derived properties with their default values
@@ -177,28 +176,15 @@ class Pagination {
                 .pagination a:last-child {
                     border-top-right-radius: 5px;
                     border-bottom-right-radius: 5px;
+                }
+                @media screen and (max-width: 550px) {
+                    .pagination a {
+                        padding: 10px 14px; /* Larger touch targets on mobile */
+                    }
                 }';
 
             // Concatenate CSS code into HTML string
             $html .= PHP_EOL . '<style>' . $css_code . '</style>' . PHP_EOL;
-        }
-
-        $enable_infinite_scrolling = (bool) $pagination_data['enable_infinite_scrolling'] ?? true;
-        if ($enable_infinite_scrolling === true) {
-
-            $scroll_js_file_path = APPPATH . 'public/js/infinite-scroll.js';
-
-            if (file_exists($scroll_js_file_path)) {
-                echo '<script id="init-infinite-scroll">' . PHP_EOL;
-                echo 'if (!document.getElementById(\'infinite-scroll-script\')) {' . PHP_EOL;
-                echo '    const infiniteScrollEl = document.createElement(\'script\');' . PHP_EOL;
-                echo '    infiniteScrollEl.src = \'' . BASE_URL . 'js/infinite-scroll.js\';' . PHP_EOL;
-                echo '    infiniteScrollEl.id = \'infinite-scroll-script\';' . PHP_EOL;
-                echo '    document.body.appendChild(infiniteScrollEl);' . PHP_EOL;
-                echo '}' . PHP_EOL;
-                echo '</script>' . PHP_EOL;
-            }
-
         }
 
         echo $html;
@@ -366,10 +352,43 @@ class Pagination {
      * - 'next' (mixed): The next page number, or the last page number if not applicable.
      * - 'showing_statement' (string|null): The showing statement, or null if not applicable.
      *
+     * If page_num_segment is not specified, the current page number is automatically determined from the last URL segment.
+     * If pagination_root is not specified, it is automatically determined based on the current URL.
+     *
      * @param array $pagination_data The pagination data array.
      * @return array The pagination data array with derived properties initialized.
+     * @throws InvalidArgumentException If required properties are missing.
      */
     private static function init_derived_properties(array $pagination_data): array {
+        $limit = $pagination_data['limit'] ?? null; // Ensure limit is set
+        $total_rows = $pagination_data['total_rows'] ?? null; // Ensure total_rows is set
+
+        // Check if required properties are set
+        if ($limit === null || $total_rows === null) {
+            // Throw an exception or handle the error appropriately
+            throw new InvalidArgumentException('Required properties (limit, total_rows) are missing.');
+        }
+
+        // Auto-detect pagination_root if not provided
+        if (!isset($pagination_data['pagination_root']) || $pagination_data['pagination_root'] === null) {
+            $current_url = current_url();
+            $last_segment = get_last_segment();
+            
+            if (is_numeric($last_segment)) {
+                // If last segment is numeric, remove it to get the base URL
+                $last_segment_pos = strrpos($current_url, '/');
+                $base_url = ($last_segment_pos !== false) ? substr($current_url, 0, $last_segment_pos + 1) : $current_url;
+            } else {
+                // If not numeric, use current URL with trailing slash
+                $base_url = rtrim($current_url, '/') . '/';
+            }
+            
+            // Remove query string if present
+            $base_url = remove_query_string($base_url);
+            
+            // Convert to relative URL by removing BASE_URL
+            $pagination_data['pagination_root'] = str_replace(BASE_URL, '', $base_url);
+        }
 
         // Make sure last character of 'pagination_root' is a '/'
         if (substr($pagination_data['pagination_root'], -1) !== '/') {
@@ -379,21 +398,26 @@ class Pagination {
 
         $pagination_root = rtrim(BASE_URL, '/') . '/' . ltrim($pagination_data['pagination_root'], '/');
 
-        $page_num_segment = $pagination_data['page_num_segment'] ?? null; // Ensure page_num_segment is set
-        $limit = $pagination_data['limit'] ?? null; // Ensure limit is set
-        $total_rows = $pagination_data['total_rows'] ?? null; // Ensure total_rows is set
-
-        // Check if required properties are set
-        if ($page_num_segment === null || $limit === null || $total_rows === null) {
-            // Throw an exception or handle the error appropriately
-            throw new InvalidArgumentException('Required properties (page_num_segment, limit, total_rows) are missing.');
-        }
-
         // Calculate num_pages
         $num_pages = ceil($total_rows / $limit);
 
+        // Determine current_page based on whether page_num_segment is provided
+        if (!isset($pagination_data['page_num_segment']) || $pagination_data['page_num_segment'] === null) {
+            // Get the last segment from URL
+            $last_segment = get_last_segment();
+            
+            // Check if the last segment is numeric
+            if (is_numeric($last_segment)) {
+                $current_page = max((int)$last_segment, 1);
+            } else {
+                $current_page = 1; // Default to page 1 if not numeric
+            }
+        } else {
+            // Use the traditional approach if page_num_segment is specified
+            $current_page = max(segment($pagination_data['page_num_segment'], 'int'), 1);
+        }
+
         // Calculate other derived properties
-        $current_page = max(segment($pagination_data['page_num_segment'], 'int'), 1);
         $start = 1;
         $end = min($pagination_data['num_links_per_page'] ?? 10, $num_pages);
         $num_links_to_side = ($pagination_data['num_links_per_page'] ?? 10) / 2;
