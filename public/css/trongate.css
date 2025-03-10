@@ -690,6 +690,7 @@ form .modal textarea {
   p.button-container { display: flex; flex-direction: column-reverse; }
 }
 
+
 @view-transition {
 	navigation: auto;
 }
@@ -773,12 +774,76 @@ form .modal textarea {
   }
 }
 
-::view-transition {
-	background: var(--alt);
-}  
+@keyframes pop-in {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
 
-::view-transition-group(page) {
-	animation-duration: 0.7s;
+@keyframes pop-out {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* Pop Transition */
+:root[data-transition="pop"] {
+    &::view-transition-old(page) {
+        opacity: 0;
+        animation: pop-out 100ms ease-in;
+    }
+    &::view-transition-new(page) {
+        animation: pop-in 350ms ease-out;
+    }
+}
+
+/* Pop Reverse */
+:root[data-transition="pop-reverse"] {
+    &::view-transition-old(page) {
+        opacity: 0;
+        animation: pop-out 225ms ease-in;
+    }
+    &::view-transition-new(page) {
+        animation: pop-in 350ms ease-out;
+    }
+}
+
+/* Fade Transition */
+:root[data-transition="fade"] {
+    &::view-transition-old(page) {
+        animation: fade-out 125ms ease-in;
+    }
+    &::view-transition-new(page) {
+        animation: fade-in 225ms ease-out;
+    }
 }
 
 :root[data-transition="push"] {
@@ -793,53 +858,231 @@ form .modal textarea {
 	}
 }
 
-:root[data-transition="pop"] {
-	&::view-transition-old(page) {
-		animation-name: slide-out;
-		z-index: 1;
-	}
-	&::view-transition-new(page) {
-		animation-name: grow;
-		transform-origin: 100% 50%;
-	}
-}
-
-/* Forward flip transition (like going to the next page) */
+/* Flip Animations */
 :root[data-transition="flip"] {
-  perspective: 1200px;
-  
-  &::view-transition-old(page) {
-      animation-name: flipouttoleft;
-      animation-duration: 125ms;
-      backface-visibility: hidden;
-      transform-origin: center right;
-  }
-  
-  &::view-transition-new(page) {
-      animation-name: flipintoright;
-      animation-duration: 250ms;
-      backface-visibility: hidden;
-      transform-origin: center left;
-  }
+    perspective: 3000px; /* Big depth is important to give the book-like experience */ 
+
+    &::view-transition-old(page) {
+        transform-style: preserve-3d;
+        backface-visibility: hidden;       
+        animation: flip-out 300ms cubic-bezier(0.4, 0.2, 0.3, 1) forwards;
+        transform-origin: left center;
+    }
+
+    &::view-transition-new(page) {
+        transform-style: preserve-3d;
+        backface-visibility: hidden;
+        animation: flip-in 300ms cubic-bezier(0.4, 0.2, 0.3, 1) forwards;
+        transform-origin: right center;
+    }
 }
 
-/* Reverse flip transition (like going back) */
+@keyframes flip-out {
+    from {
+        transform: rotateY(0deg) translateZ(0);
+        opacity: 1;
+    }
+    to {
+        transform: rotateY(-90deg) translateZ(-50px); /* Move slightly backward */
+        opacity: 0;
+    }
+}
+
+@keyframes flip-in {
+    from {
+        transform: rotateY(90deg) translateZ(-50px); /* Start slightly back */
+        opacity: 0;
+    }
+    to {
+        transform: rotateY(0deg) translateZ(0);
+        opacity: 1;
+    }
+}
+
 :root[data-transition="flip-reverse"] {
-  perspective: 1200px;
-  
-  &::view-transition-old(page) {
-      animation-name: flipouttoright;
-      animation-duration: 125ms;
-      backface-visibility: hidden;
-      transform-origin: center left;
-  }
-  
-  &::view-transition-new(page) {
-      animation-name: flipintoleft;
-      animation-duration: 250ms;
-      backface-visibility: hidden;
-      transform-origin: center right;
-  }
+    perspective: 2000px;
+    
+    &::view-transition-old(page),
+    &::view-transition-new(page) {
+        transform-style: preserve-3d;
+        backface-visibility: hidden;
+    }
+    
+    &::view-transition-old(page) {
+        animation: flip-out-reverse 300ms ease-in forwards;
+        transform-origin: right center;
+    }
+    
+    &::view-transition-new(page) {
+        animation: flip-in-reverse 300ms ease-out forwards;
+        transform-origin: left center;
+    }
+}
+
+@keyframes flip-out-reverse {
+    from {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+    to {
+        transform: rotateY(180deg);
+        opacity: 0;
+    }
+}
+
+@keyframes flip-in-reverse {
+    from {
+        transform: rotateY(-180deg);
+        opacity: 0;
+    }
+    to {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+:root[data-transition="fade-slide"] {
+    perspective: 2000px;
+
+    &::view-transition-old(page),
+    &::view-transition-new(page) {
+        transform-style: preserve-3d;
+        backface-visibility: hidden;
+    }
+
+    &::view-transition-old(page) {
+        animation: fade-slide-out 350ms ease-in forwards;
+        transform-origin: left center;
+    }
+
+    &::view-transition-new(page) {
+        animation: fade-slide-in 350ms ease-out forwards;
+        transform-origin: right center;
+    }
+}
+
+@keyframes fade-slide-out {
+    from {
+        transform: rotateY(0deg) translateX(0) scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: rotateY(-30deg) translateX(-50%) scale(0.9); /* Move left & shrink */
+        opacity: 0;
+    }
+}
+
+@keyframes fade-slide-in {
+    from {
+        transform: rotateY(15deg) translateX(50%) scale(1.1); /* Slight skew & scale */
+        opacity: 0;
+    }
+    to {
+        transform: rotateY(0deg) translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+:root[data-transition="flow"] {
+    &::view-transition-old(page) {
+        animation: flow-out 350ms ease-in forwards;
+        transform-origin: center center;
+    }
+
+    &::view-transition-new(page) {
+        animation: flow-in 350ms ease-out forwards;
+        transform-origin: center center;
+    }
+}
+
+@keyframes flow-out {
+    from {
+        transform: scale(1) translateX(0); /* Initial state */
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.7) translateX(-100%); /* Shrink and slide out */
+        opacity: 0;
+    }
+}
+
+@keyframes flow-in {
+    from {
+        transform: scale(0.7) translateX(100%); /* Start small and off-screen */
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateX(0); /* Zoom in and slide to center */
+        opacity: 1;
+    }
+}
+
+:root[data-transition="slide-up"] {
+    &::view-transition-old(page) {
+        animation: slide-up-out 300ms ease-in forwards;
+        transform-origin: center center;
+    }
+
+    &::view-transition-new(page) {
+        animation: slide-up-in 300ms ease-out forwards;
+        transform-origin: center center;
+    }
+}
+
+@keyframes slide-up-out {
+    from {
+        transform: translateY(0); /* Initial position */
+        opacity: 1;
+    }
+    to {
+        transform: translateY(100%); /* Slide up and fade out */
+        opacity: 0;
+    }
+}
+
+@keyframes slide-up-in {
+    from {
+        transform: translateY(100%); /* Start from below the screen */
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0); /* Slide up to normal position */
+        opacity: 1;
+    }
+}
+
+:root[data-transition="slide-down"] {
+    &::view-transition-old(page) {
+        animation: slide-down-out 300ms ease-in forwards;
+        transform-origin: center center;
+    }
+
+    &::view-transition-new(page) {
+        animation: slide-down-in 300ms ease-out forwards;
+        transform-origin: center center;
+    }
+}
+
+@keyframes slide-down-out {
+    from {
+        transform: translateY(0); /* Initial position */
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-100%); /* Slide down and fade out */
+        opacity: 0;
+    }
+}
+
+@keyframes slide-down-in {
+    from {
+        transform: translateY(-100%); /* Start from above the screen */
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0); /* Slide down to normal position */
+        opacity: 1;
+    }
 }
 
 :root[data-transition="reload"] {
