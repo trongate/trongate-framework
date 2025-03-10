@@ -176,22 +176,30 @@ let trongateMXOpeningModal = false;
             }
         },
 
-        viewTransition(element, callback) {
-            if (document.startViewTransition) {
-                const transition = element.getAttribute('mx-transition') || ViewTransition.default;
+        async viewTransition(element, callback = undefined) {
+          if (callback === undefined) {
+            callback = () => {
+              // no-op
+            };
+          }
 
-                document.documentElement.dataset.transition = transition;
+          if (document.startViewTransition === undefined) {
+            callback(element);
+            return;
+          }
 
-                document.startViewTransition(() => {
-                    callback(element);
+          const transition = element.getAttribute('mx-transition');
 
-                    delete document.documentElement.dataset.transition;
+          document.documentElement.dataset.transition = transition;
 
-                    return Promise.resolve();
-                });
-            } else {
-                callback(element);
-            }
+          const viewTransition = document.startViewTransition(() => {
+            callback(element);
+
+            return Promise.resolve();
+          });
+
+          await viewTransition.finished;
+          delete document.documentElement.dataset.transition;
         }
     };
 
@@ -1656,43 +1664,13 @@ let trongateMXOpeningModal = false;
         openModal: Modal.openModal
     };
 
-    window.addEventListener('pagereveal', async (event)  => {
-        restoreMxTransition();
+    window.addEventListener('pagereveal', (event) => {
+      document.documentElement.dataset.transition = localStorage.getItem('mx-transition');
 
-        if (event.viewTransition) {
-            if (ViewTransition.current === 'none') {
-                event.viewTransition.skipTransition();
-                return;
-            }
-
-            // We apply the css class to the document e.g. 'data-transition="reload"' or 'data-transition="flip"'
-            // to signal the transition to the CSS engine which will then apply the transition effect.
-            // @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API
-            // @see https://view-transitions.chrome.dev
-            document.documentElement.dataset.transition = ViewTransition.current;
-
-            // Then we wait for the transition to finish
-            await event.viewTransition.finished;
-
-            // finally reset the transition state
-            delete document.documentElement.dataset.transition;
-        } else {
-            if (document.documentElement.hasAttribute('mx-transition')) {
-                document.documentElement.dataset.transition = document.documentElement.getAttribute('mx-transition') || ViewTransition.default;
-
-                const t = document.startViewTransition(() => {
-                    // NOOP
-                });
-
-                try {
-                    await t.finished;
-                    delete document.documentElement.dataset.transition;
-                } catch (e) {
-                    console.log(e);
-                }
-                return;
-            }
-		}
+      if (document.documentElement.dataset.transition === 'none') {
+        event.viewTransition?.skipTransition();
+        return;
+      }
     });
 })(window);
 
