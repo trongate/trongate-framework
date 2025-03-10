@@ -13,11 +13,6 @@ let trongateMXOpeningModal = false;
     let mousedownEl;
     let mouseupEl;
 
-    const ViewTransition = {
-        current: null,
-        default: null
-    };
-
     const Utils = {
         parseAttributeValue(value) {
             value = value.trim();
@@ -1612,29 +1607,6 @@ let trongateMXOpeningModal = false;
         }
     }
 
-    /**
-     * Persist the view transition
-     * so we can restore it on page reloads
-     */
-    function persistMxTransition(event) {
-        if (event.target.hasAttribute('mx-transition')) {
-            ViewTransition.current = event.target.getAttribute('mx-transition') || ViewTransition.default;
-        } else {
-            ViewTransition.current = null;
-        }
-
-        // Persist through page reloads
-        localStorage.setItem('mx-transition', ViewTransition.current);
-    }
-
-    /**
-     * Restore the persisted view transition
-     */
-    function restoreMxTransition() {
-        ViewTransition.current = localStorage.getItem('mx-transition');
-        localStorage.removeItem('mx-transition');
-    }
-
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
 
@@ -1645,7 +1617,9 @@ let trongateMXOpeningModal = false;
     document.addEventListener("click", (event) => {
         handleMxModalClick(event);
 
-        persistMxTransition(event);
+      if (event.target && event.target.hasAttribute('mx-transition')) {
+        localStorage.setItem('mx-transition', event.target.getAttribute('mx-transition'));
+      }
     });
 
     // Establish the target element when mouse down event happens.
