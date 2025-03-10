@@ -17,6 +17,7 @@
   --secondary-dark: #943f99;
   --secondary-darker: #77337a;
   --neutral: #f5f5f5;
+  view-transition-name: none;
 }
 
 body {
@@ -25,6 +26,7 @@ body {
   padding: 0;
   color: #555;
   font-size: 1rem;
+  view-transition-name: page;
 }
 
 h1 {
