@@ -33,7 +33,6 @@ class Pagination {
         "double" => "float"
     ];
 
-    // Default pagination settings
     private static $default_settings = [
         'pagination_open' => '<div class="pagination">',
         'pagination_close' => '</div>',
@@ -44,15 +43,19 @@ class Pagination {
         'first_link' => 'First',
         'first_link_open' => '',
         'first_link_close' => '',
+        'first_link_aria_label' => 'First page', // New: ARIA label for "First" link
         'last_link' => 'Last',
         'last_link_open' => '',
         'last_link_close' => '',
+        'last_link_aria_label' => 'Last page', // New: ARIA label for "Last" link
         'prev_link' => '&laquo;',
         'prev_link_open' => '',
         'prev_link_close' => '',
+        'prev_link_aria_label' => 'Previous page', // New: ARIA label for "Previous" link
         'next_link' => '&raquo;',
         'next_link_open' => '',
-        'next_link_close' => ''
+        'next_link_close' => '',
+        'next_link_aria_label' => 'Next page' // New: ARIA label for "Next" link
     ];
 
     /**
@@ -205,16 +208,20 @@ class Pagination {
 
         switch ($value) {
             case 'first_link':
-                $html = '<a href="' . $pagination_root_url . '">' . $settings['first_link'] . '</a>';
+                $aria_label = ' aria-label="' . $settings['first_link_aria_label'] . '"';
+                $html = '<a href="' . $pagination_root_url . '"' . $aria_label . '>' . $settings['first_link'] . '</a>';
                 break;
             case 'last_link':
-                $html = '<a href="' . $pagination_root_url . $pagination_data['num_pages'] . '">' . $settings['last_link'] . '</a>';
+                $aria_label = ' aria-label="' . $settings['last_link_aria_label'] . '"';
+                $html = '<a href="' . $pagination_root_url . $pagination_data['num_pages'] . '"' . $aria_label . '>' . $settings['last_link'] . '</a>';
                 break;
             case 'prev_link':
-                $html = '<a href="' . $pagination_root_url . $current_page-1 . '">' . $settings['prev_link'] . '</a>';
+                $aria_label = ' aria-label="' . $settings['prev_link_aria_label'] . '"';
+                $html = '<a href="' . $pagination_root_url . $current_page-1 . '"' . $aria_label . '>' . $settings['prev_link'] . '</a>';
                 break;
             case 'next_link':
-                $html = '<a href="' . $pagination_root_url . $current_page+1 . '">' . $settings['next_link'] . '</a>';
+                $aria_label = ' aria-label="' . $settings['next_link_aria_label'] . '"';
+                $html = '<a href="' . $pagination_root_url . $current_page+1 . '"' . $aria_label . '>' . $settings['next_link'] . '</a>';
                 break;
             default:
                 $html = '<a href="' . $pagination_root_url . $value . '">' . $value . '</a>';
@@ -222,7 +229,6 @@ class Pagination {
         }
 
         return $html;
-
     }
 
     /**
@@ -333,6 +339,14 @@ class Pagination {
 
             $error_message .= implode(', ', $required_settings);
             die($error_message);
+        }
+
+        // Ensure ARIA labels are set (fallback to defaults if not provided)
+        $aria_labels = ['first_link_aria_label', 'last_link_aria_label', 'prev_link_aria_label', 'next_link_aria_label'];
+        foreach ($aria_labels as $aria_label) {
+            if (!isset($settings[$aria_label])) {
+                $settings[$aria_label] = self::$default_settings[$aria_label];
+            }
         }
 
         return $settings;
