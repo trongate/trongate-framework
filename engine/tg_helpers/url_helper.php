@@ -93,12 +93,11 @@ function previous_url(): string {
     return $url;
 }
 
-
 /**
- * Generates an anchor (<a>) tag with optional attributes and XSS protection.
+ * Generates an anchor (<a>) tag with optional attributes and partial XSS protection.
  *
  * This function creates an anchor tag (`<a>`) with a given URL and text. 
- * The text is HTML-escaped unless it contains HTML content (e.g., Font Awesome icons).
+ * The text is NOT escaped, allowing HTML content (e.g., links, Font Awesome icons) to be rendered as-is.
  * The URL is always escaped to prevent XSS. Optional attributes (such as `rel` for external links) can be provided.
  *
  * @param string $url The URL to link to. This is a required parameter.
@@ -116,13 +115,6 @@ function anchor(string $url, ?string $text = null, array $attributes = []): stri
     // Escape the URL to prevent XSS
     $escaped_url = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
 
-    // If the text contains HTML (e.g., Font Awesome icons), don't escape it
-    if (strpos($text, '<') !== false) {
-        $escaped_text = $text; // Leave HTML content (icons) as is
-    } else {
-        $escaped_text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-    }
-
     // Add optional attributes (e.g., rel="noopener noreferrer" for external links)
     $attr_str = '';
     if (!empty($attributes)) {
@@ -132,5 +124,5 @@ function anchor(string $url, ?string $text = null, array $attributes = []): stri
     }
 
     // Construct the anchor tag
-    return '<a href="' . $escaped_url . '"' . $attr_str . '>' . $escaped_text . '</a>';
+    return '<a href="' . $escaped_url . '"' . $attr_str . '>' . $text . '</a>';
 }
