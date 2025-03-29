@@ -13,11 +13,6 @@ let trongateMXOpeningModal = false;
     let mousedownEl;
     let mouseupEl;
 
-    const ViewTransition = {
-        current: null,
-        default: null
-    };
-
     const Utils = {
         parseAttributeValue(value) {
             value = value.trim();
@@ -176,22 +171,30 @@ let trongateMXOpeningModal = false;
             }
         },
 
-        viewTransition(element, callback) {
-            if (document.startViewTransition) {
-                const transition = element.getAttribute('mx-transition') || ViewTransition.default;
+        async viewTransition(element, callback = undefined) {
+          if (callback === undefined) {
+            callback = () => {
+              // no-op
+            };
+          }
 
-                document.documentElement.dataset.transition = transition;
+          if (document.startViewTransition === undefined) {
+            callback(element);
+            return;
+          }
 
-                document.startViewTransition(() => {
-                    callback(element);
+          const transition = element.getAttribute('mx-transition');
 
-                    delete document.documentElement.dataset.transition;
+          document.documentElement.dataset.transition = transition;
 
-                    return Promise.resolve();
-                });
-            } else {
-                callback(element);
-            }
+          const viewTransition = document.startViewTransition(() => {
+            callback(element);
+
+            return Promise.resolve();
+          });
+
+          await viewTransition.finished;
+          delete document.documentElement.dataset.transition;
         }
     };
 
@@ -1604,29 +1607,6 @@ let trongateMXOpeningModal = false;
         }
     }
 
-    /**
-     * Persist the view transition
-     * so we can restore it on page reloads
-     */
-    function persistMxTransition(event) {
-        if (event.target.hasAttribute('mx-transition')) {
-            ViewTransition.current = event.target.getAttribute('mx-transition') || ViewTransition.default;
-        } else {
-            ViewTransition.current = null;
-        }
-
-        // Persist through page reloads
-        localStorage.setItem('mx-transition', ViewTransition.current);
-    }
-
-    /**
-     * Restore the persisted view transition
-     */
-    function restoreMxTransition() {
-        ViewTransition.current = localStorage.getItem('mx-transition');
-        localStorage.removeItem('mx-transition');
-    }
-
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
 
@@ -1637,7 +1617,9 @@ let trongateMXOpeningModal = false;
     document.addEventListener("click", (event) => {
         handleMxModalClick(event);
 
-        persistMxTransition(event);
+      if (event.target && event.target.hasAttribute('mx-transition')) {
+        localStorage.setItem('mx-transition', event.target.getAttribute('mx-transition'));
+      }
     });
 
     // Establish the target element when mouse down event happens.
@@ -1656,43 +1638,13 @@ let trongateMXOpeningModal = false;
         openModal: Modal.openModal
     };
 
-    window.addEventListener('pagereveal', async (event)  => {
-        restoreMxTransition();
+    window.addEventListener('pagereveal', (event) => {
+      document.documentElement.dataset.transition = localStorage.getItem('mx-transition');
 
-        if (event.viewTransition) {
-            if (ViewTransition.current === 'none') {
-                event.viewTransition.skipTransition();
-                return;
-            }
-
-            // We apply the css class to the document e.g. 'data-transition="reload"' or 'data-transition="flip"'
-            // to signal the transition to the CSS engine which will then apply the transition effect.
-            // @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API
-            // @see https://view-transitions.chrome.dev
-            document.documentElement.dataset.transition = ViewTransition.current;
-
-            // Then we wait for the transition to finish
-            await event.viewTransition.finished;
-
-            // finally reset the transition state
-            delete document.documentElement.dataset.transition;
-        } else {
-            if (document.documentElement.hasAttribute('mx-transition')) {
-                document.documentElement.dataset.transition = document.documentElement.getAttribute('mx-transition') || ViewTransition.default;
-
-                const t = document.startViewTransition(() => {
-                    // NOOP
-                });
-
-                try {
-                    await t.finished;
-                    delete document.documentElement.dataset.transition;
-                } catch (e) {
-                    console.log(e);
-                }
-                return;
-            }
-		}
+      if (document.documentElement.dataset.transition === 'none') {
+        event.viewTransition?.skipTransition();
+        return;
+      }
     });
 })(window);
 
