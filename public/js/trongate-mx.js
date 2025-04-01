@@ -13,11 +13,6 @@ let trongateMXOpeningModal = false;
     let mousedownEl;
     let mouseupEl;
 
-    const ViewTransition = {
-        current: null,
-        default: null
-    };
-
     const Utils = {
         parseAttributeValue(value) {
             value = value.trim();
@@ -38,7 +33,7 @@ let trongateMXOpeningModal = false;
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+                .replace(/'/g, "&#39;");
         },
 
         getAttributeValue(element, attributeName) {
@@ -173,24 +168,6 @@ let trongateMXOpeningModal = false;
                 }
             } else {
                 console.warn(`Function ${cleanFunctionName} not found`);
-            }
-        },
-
-        viewTransition(element, callback) {
-            if (document.startViewTransition) {
-                const transition = element.getAttribute('mx-transition') || ViewTransition.default;
-
-                document.documentElement.dataset.transition = transition;
-
-                document.startViewTransition(() => {
-                    callback(element);
-
-                    delete document.documentElement.dataset.transition;
-
-                    return Promise.resolve();
-                });
-            } else {
-                callback(element);
             }
         }
     };
@@ -398,9 +375,7 @@ let trongateMXOpeningModal = false;
                         Animation.initAnimateSuccess(targetEl, http, element);
                     } else {
                         Modal.initAttemptCloseModal(targetEl, http, element);
-                        Utils.viewTransition(element, () => {
-                            this.updateContent(targetEl, http, element, event);
-                        });
+                        this.updateContent(targetEl, http, element, event);
                     }
                 }
 
@@ -1604,29 +1579,6 @@ let trongateMXOpeningModal = false;
         }
     }
 
-    /**
-     * Persist the view transition
-     * so we can restore it on page reloads
-     */
-    function persistMxTransition(event) {
-        if (event.target.hasAttribute('mx-transition')) {
-            ViewTransition.current = event.target.getAttribute('mx-transition') || ViewTransition.default;
-        } else {
-            ViewTransition.current = null;
-        }
-
-        // Persist through page reloads
-        localStorage.setItem('mx-transition', ViewTransition.current);
-    }
-
-    /**
-     * Restore the persisted view transition
-     */
-    function restoreMxTransition() {
-        ViewTransition.current = localStorage.getItem('mx-transition');
-        localStorage.removeItem('mx-transition');
-    }
-
     // Initialize Trongate MX when the DOM is loaded
     document.addEventListener('DOMContentLoaded', Main.initializeTrongateMX);
 
@@ -1636,8 +1588,6 @@ let trongateMXOpeningModal = false;
 
     document.addEventListener("click", (event) => {
         handleMxModalClick(event);
-
-        persistMxTransition(event);
     });
 
     // Establish the target element when mouse down event happens.
@@ -1656,44 +1606,6 @@ let trongateMXOpeningModal = false;
         openModal: Modal.openModal
     };
 
-    window.addEventListener('pagereveal', async (event)  => {
-        restoreMxTransition();
-
-        if (event.viewTransition) {
-            if (ViewTransition.current === 'none') {
-                event.viewTransition.skipTransition();
-                return;
-            }
-
-            // We apply the css class to the document e.g. 'data-transition="reload"' or 'data-transition="flip"'
-            // to signal the transition to the CSS engine which will then apply the transition effect.
-            // @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API
-            // @see https://view-transitions.chrome.dev
-            document.documentElement.dataset.transition = ViewTransition.current;
-
-            // Then we wait for the transition to finish
-            await event.viewTransition.finished;
-
-            // finally reset the transition state
-            delete document.documentElement.dataset.transition;
-        } else {
-            if (document.documentElement.hasAttribute('mx-transition')) {
-                document.documentElement.dataset.transition = document.documentElement.getAttribute('mx-transition') || ViewTransition.default;
-
-                const t = document.startViewTransition(() => {
-                    // NOOP
-                });
-
-                try {
-                    await t.finished;
-                    delete document.documentElement.dataset.transition;
-                } catch (e) {
-                    console.log(e);
-                }
-                return;
-            }
-		}
-    });
 })(window);
 
 const _mxOpenModal = function(modalId) {
