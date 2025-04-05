@@ -95,22 +95,94 @@ class Transferer {
     }
 
     /**
-     * Runs the given SQL command after replacing a specific placeholder string with a random string.
+     * Executes provided SQL after ensuring the database exists.
+     * If no database name is defined, an error is shown with a suggestion.
+     * If the database doesn't exist, it will be created using the defined or default charset.
      *
-     * @param string $sql The SQL command to execute.
+     * @param string $sql The SQL command(s) to execute.
      * @return void
      */
     private function run_sql(string $sql): void {
-        $model_file = '../engine/Model.php';
+        if (DATABASE === '') {
+            $this->handle_missing_db_config();
+        }
 
+        $db_name = DATABASE;
+        $charset = defined('CHARSET') ? CHARSET : 'utf8mb4';
+
+        // Try connecting to the database
+        $pdo = $this->get_pdo_connection($db_name, $charset);
+
+        // Proceed with SQL import if connected
+        $model_file = '../engine/Model.php';
         $rand_str = make_rand_str(32);
         $sql = str_replace('Tz8tehsWsTPUHEtzfbYjXzaKNqLmfAUz', $rand_str, $sql);
 
         require_once $model_file;
         $model = new Model;
         $model->exec($sql);
+
         http_response_code(200);
         echo 'Finished.';
+    }
+
+    /**
+     * Handles the case where DATABASE is not defined in the config.
+     * Suggests a default database name based on the app folder name.
+     *
+     * @return void
+     */
+    private function handle_missing_db_config(): void {
+        $suggested_db = basename(rtrim(APPPATH, '/\\'));
+        echo "Error: Please define your database name in config" . DIRECTORY_SEPARATOR . "database.php.\n\n";
+        echo "Suggested definition:\n\n";
+        echo "\tdefine('DATABASE', '{$suggested_db}');\n";
+        http_response_code(500);
+        exit;
+    }
+
+    /**
+     * Attempts to establish a PDO connection to the database.
+     * If the database doesn't exist, it attempts to create it.
+     *
+     * @param string $db_name The database name to connect to.
+     * @param string $charset The character set to use.
+     * @return PDO The PDO instance connected to the database.
+     */
+    private function get_pdo_connection(string $db_name, string $charset): PDO {
+        try {
+            // First try connecting to the database directly
+            $dsn = 'mysql:host=' . HOST . ';dbname=' . $db_name . ';charset=' . $charset;
+            return new PDO($dsn, USER, PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        } catch (PDOException $e) {
+            // If database doesn't exist, attempt to create it
+            if (str_contains($e->getMessage(), 'Unknown database')) {
+                $this->create_database($db_name, $charset);
+                return new PDO('mysql:host=' . HOST . ';dbname=' . $db_name . ';charset=' . $charset, USER, PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            } else {
+                http_response_code(500);
+                echo 'Database connection failed: ' . $e->getMessage();
+                die();
+            }
+        }
+    }
+
+    /**
+     * Creates the database if it doesn't exist.
+     *
+     * @param string $db_name The name of the database to create.
+     * @param string $charset The character set to use.
+     * @return void
+     */
+    private function create_database(string $db_name, string $charset): void {
+        try {
+            $pdo = new PDO('mysql:host=' . HOST . ';charset=' . $charset, USER, PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db_name` CHARACTER SET $charset COLLATE {$charset}_unicode_ci;");
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo 'Database creation failed: ' . $e->getMessage();
+            die();
+        }
     }
 
     /**
@@ -161,5 +233,4 @@ class Transferer {
             echo BASE_URL;
         }
     }
-
 }
