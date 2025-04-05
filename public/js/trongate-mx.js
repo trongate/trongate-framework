@@ -6,7 +6,8 @@ let trongateMXOpeningModal = false;
     const CONFIG = {
         CORE_MX_ATTRIBUTES: ['mx-get', 'mx-post', 'mx-put', 'mx-delete', 'mx-patch', 'mx-remove'],
         REQUIRES_DATA_ATTRIBUTES: ['mx-post', 'mx-put', 'mx-patch'],
-        DEFAULT_TIMEOUT: 10000
+        DEFAULT_TIMEOUT: 10000,
+        POLLING_INTERVALS: new WeakMap() // Tracks polling timers
     };
 
     let lastRequestTime = 0;
@@ -478,7 +479,7 @@ let trongateMXOpeningModal = false;
 
         initializeIndicatorObserver() {
             if (this.indicatorObserver) return;
-
+        
             this.indicatorObserver = new MutationObserver((mutations) => {
                 mutations.forEach(mutation => {
                     mutation.addedNodes.forEach(node => {
@@ -492,22 +493,25 @@ let trongateMXOpeningModal = false;
                             });
                         }
                     });
-
-                    // Handle removed nodes
+        
                     mutation.removedNodes.forEach(node => {
                         if (node.nodeType === 1) { // Element node
+                            // Clean up indicators (original logic)
                             if (node.classList?.contains('mx-indicator')) {
                                 this.processedIndicators.delete(node);
                             }
-                            // Clean up any tracked indicators that were children
                             node.querySelectorAll?.('.mx-indicator')?.forEach(indicator => {
                                 this.processedIndicators.delete(indicator);
                             });
+                            // Stop polling (new logic)
+                            if (CONFIG.POLLING_INTERVALS.has(node)) {
+                                Main.stopPolling(node); // Stop polling for removed elements
+                            }
                         }
                     });
                 });
             });
-
+        
             this.indicatorObserver.observe(document.body, {
                 childList: true,
                 subtree: true
@@ -1489,39 +1493,88 @@ let trongateMXOpeningModal = false;
         },
 
         setupPolling(element, triggerAttr) {
+            Main.stopPolling(element); // Clear existing polling first
+        
             const basicPollingMatch = triggerAttr.match(/^every\s+(\d+[smhd])$/);
             if (basicPollingMatch) {
                 const interval = Utils.parsePollingInterval(basicPollingMatch[1]);
                 if (interval) {
-                    setInterval(() => Main.pollElement(element), interval);
+                    const intervalId = setInterval(() => Main.pollElement(element), interval);
+                    CONFIG.POLLING_INTERVALS.set(element, intervalId);
                 }
                 return;
             }
-
+        
             const loadPollingMatch = triggerAttr.match(/^load\s+delay:(\d+[smhd])$/);
             if (loadPollingMatch) {
                 const delay = Utils.parsePollingInterval(loadPollingMatch[1]);
                 if (delay) {
-                    setTimeout(() => {
+                    const timeoutId = setTimeout(() => {
                         Main.pollElement(element);
-                        setInterval(() => Main.pollElement(element), delay);
+                        const intervalId = setInterval(() => Main.pollElement(element), delay);
+                        CONFIG.POLLING_INTERVALS.set(element, intervalId);
                     }, delay);
+                    CONFIG.POLLING_INTERVALS.set(element, { timeoutId });
                 }
                 return;
             }
-
+        
             const delayedPollingMatch = triggerAttr.match(/^load\s+delay:(\d+[smhd]),\s*every\s+(\d+[smhd])$/);
             if (delayedPollingMatch) {
                 const initialDelay = Utils.parsePollingInterval(delayedPollingMatch[1]);
                 const interval = Utils.parsePollingInterval(delayedPollingMatch[2]);
                 if (initialDelay && interval) {
-                    setTimeout(() => {
+                    const timeoutId = setTimeout(() => {
                         Main.pollElement(element);
-                        setInterval(() => Main.pollElement(element), interval);
+                        const intervalId = setInterval(() => Main.pollElement(element), interval);
+                        CONFIG.POLLING_INTERVALS.set(element, intervalId);
                     }, initialDelay);
+                    CONFIG.POLLING_INTERVALS.set(element, { timeoutId });
                 }
                 return;
             }
+        },
+        startPolling(element, intervalStr = '5s') {
+            if (!element) {
+                console.error('startPolling: No element provided');
+                return false;
+            }
+            Main.stopPolling(element); // Clear any existing polling
+            const interval = Utils.parsePollingInterval(intervalStr);
+            if (!interval) {
+                console.error(`startPolling: Invalid interval format: ${intervalStr}`);
+                return false;
+            }
+            const intervalId = setInterval(() => Main.pollElement(element), interval);
+            CONFIG.POLLING_INTERVALS.set(element, intervalId);
+            element.setAttribute('data-polling-active', 'true'); // Add state tracking
+            return true; // Success
+        },
+        stopPolling(element) {
+            const timer = CONFIG.POLLING_INTERVALS.get(element);
+            if (timer) {
+                if (typeof timer === 'number') {
+                    clearInterval(timer);
+                } else if (timer && typeof timer === 'object' && timer.timeoutId) {
+                    clearTimeout(timer.timeoutId);
+                }
+                CONFIG.POLLING_INTERVALS.delete(element);
+                element.removeAttribute('mx-trigger');
+                element.removeAttribute('data-polling-active'); // Remove state tracking
+                return true; // Success
+            }
+            return false; // No polling to stop
+        },
+        stopAllPolling() {
+            CONFIG.POLLING_INTERVALS.forEach((timer, element) => {
+                if (typeof timer === 'number') {
+                    clearInterval(timer);
+                } else if (timer && typeof timer === 'object' && timer.timeoutId) {
+                    clearTimeout(timer.timeoutId);
+                }
+                element.removeAttribute('mx-trigger');
+            });
+            CONFIG.POLLING_INTERVALS = new WeakMap(); // Reset the WeakMap
         },
         pollElement(element) {
             const attribute = CONFIG.CORE_MX_ATTRIBUTES.find(attr => element.hasAttribute(attr));
@@ -1603,7 +1656,10 @@ let trongateMXOpeningModal = false;
     // Expose necessary functions to the global scope
     window.TrongateMX = {
         init: Main.initializeTrongateMX,
-        openModal: Modal.openModal
+        openModal: Modal.openModal,
+        startPolling: Main.startPolling.bind(Main),
+        stopPolling: Main.stopPolling.bind(Main),
+        stopAllPolling: Main.stopAllPolling.bind(Main)
     };
 
 })(window);
