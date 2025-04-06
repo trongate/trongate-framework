@@ -317,21 +317,23 @@ let trongateMXOpeningModal = false;
         },
 
         invokeHttpRequest(element, httpMethodAttribute, event) {
+            
             const { http, formData, targetElement } = Http.commonHttpRequest(element, httpMethodAttribute);
-
+        
             http.setRequestHeader('Accept', 'text/html');
-
+        
             http.onload = function() {
+                
                 Dom.attemptHideLoader(element);
                 Http.handleHttpResponse(http, element, event);
-
+        
                 // Push URL if mx-push-url is true and the request was successful
                 if (element.getAttribute('mx-push-url') === 'true' && http.status >= 200 && http.status < 300) {
                     const requestUrl = Utils.getRequestUrl(element);
                     Utils.pushUrl(requestUrl);
                 }
             };
-
+        
             try {
                 http.send(formData);
             } catch (error) {
@@ -344,32 +346,40 @@ let trongateMXOpeningModal = false;
             Dom.removeCloak();
             Dom.restoreOriginalContent();
             Dom.reEnableDisabledElements();
-
+        
             element.classList.remove('blink');
-
+        
             // Handle redirects first based on status and response text
             const shouldRedirectOnSuccess = element.getAttribute('mx-redirect-on-success') === 'true';
             const shouldRedirectOnError = element.getAttribute('mx-redirect-on-error') === 'true';
-
+        
             const isSuccess = http.status >= 200 && http.status < 300;
             const redirectUrl = http.responseText.trim();
-
+        
             // Check if we should redirect
             if ((isSuccess && shouldRedirectOnSuccess) || (!isSuccess && shouldRedirectOnError)) {
-                if (redirectUrl && // not empty
-                    !redirectUrl.startsWith('{') && // not JSON
-                    !redirectUrl.startsWith('[') && // not JSON array
-                    !redirectUrl.includes('<')) { // not HTML
+                if (redirectUrl && !redirectUrl.startsWith('{') && !redirectUrl.startsWith('[') && !redirectUrl.includes('<')) {
                     window.location.href = Utils.normalizeUrl(redirectUrl);
                     return;
                 }
             }
-
+        
             // If no redirect, continue with normal response handling
             if (isSuccess) {
                 const contentType = http.getResponseHeader('Content-Type');
                 const targetEl = Dom.establishTargetElement(element);
-
+                
+                // ADDITION: Process OOB swaps regardless of target
+                const selectOobStr = element.getAttribute('mx-select-oob');
+                if (selectOobStr) {
+                    const tempFragment = document.createDocumentFragment();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = http.responseText;
+                    tempFragment.appendChild(tempDiv);
+                    Dom.handleOobSwaps(tempFragment, selectOobStr);
+                }
+        
+                // Continue with regular content update if target exists
                 if (targetEl) {
                     const successAnimateStr = element.getAttribute('mx-animate-success');
                     if (successAnimateStr) {
@@ -379,17 +389,17 @@ let trongateMXOpeningModal = false;
                         this.updateContent(targetEl, http, element, event);
                     }
                 }
-
+        
                 if (element.getAttribute('mx-push-url') === 'true') {
                     const requestUrl = Utils.getRequestUrl(element);
                     Utils.pushUrl(requestUrl);
                 }
-
+        
                 this.attemptInitOnSuccessActions(http, element);
             } else {
                 this.handleErrorResponse(http, element);
             }
-
+        
             Dom.attemptHideLoader(element);
         },
 
@@ -496,14 +506,14 @@ let trongateMXOpeningModal = false;
         
                     mutation.removedNodes.forEach(node => {
                         if (node.nodeType === 1) { // Element node
-                            // Clean up indicators (original logic)
+
                             if (node.classList?.contains('mx-indicator')) {
                                 this.processedIndicators.delete(node);
                             }
                             node.querySelectorAll?.('.mx-indicator')?.forEach(indicator => {
                                 this.processedIndicators.delete(indicator);
                             });
-                            // Stop polling (new logic)
+                            // Stop polling
                             if (CONFIG.POLLING_INTERVALS.has(node)) {
                                 Main.stopPolling(node); // Stop polling for removed elements
                             }
@@ -637,6 +647,7 @@ let trongateMXOpeningModal = false;
             const tempFragment = document.createDocumentFragment();
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = http.responseText;
+
             tempFragment.appendChild(tempDiv);
             try {
                 Dom.handleOobSwaps(tempFragment, selectOobStr);
@@ -681,6 +692,7 @@ let trongateMXOpeningModal = false;
 
         performOobSwap(tempFragment, { select, target, swap = 'innerHTML' }) {
             const oobSelected = tempFragment.querySelector(select);
+
             if (!oobSelected) {
                 console.error(`Source element not found: ${select}`);
                 return;
@@ -836,7 +848,6 @@ let trongateMXOpeningModal = false;
                 }, 100);
             }
 
-            // Add the following code at the end of the method:
             const functionName = containingForm.getAttribute('mx-after-validation');
             if (functionName) {
                 const customEvent = Utils.createMXEvent(containingForm, event, 'afterValidation', {
@@ -1539,18 +1550,32 @@ let trongateMXOpeningModal = false;
                 console.error('startPolling: No element provided');
                 return false;
             }
+            
             Main.stopPolling(element); // Clear any existing polling
             const interval = Utils.parsePollingInterval(intervalStr);
             if (!interval) {
                 console.error(`startPolling: Invalid interval format: ${intervalStr}`);
                 return false;
             }
+            
+            // Store all original attributes that need to be preserved
+            const attributesToPreserve = ['mx-get', 'mx-select-oob', 'mx-target'];
+            attributesToPreserve.forEach(attr => {
+                if (element.hasAttribute(attr)) {
+                    element.setAttribute(`data-original-${attr}`, element.getAttribute(attr));
+                }
+            });
+            
+            // Set mx-trigger to 'polling' to prevent user events
+            element.setAttribute('mx-trigger', 'polling');
             const intervalId = setInterval(() => Main.pollElement(element), interval);
             CONFIG.POLLING_INTERVALS.set(element, intervalId);
-            element.setAttribute('data-polling-active', 'true'); // Add state tracking
-            return true; // Success
+            element.setAttribute('data-polling-active', 'true');
+            
+            return true;
         },
         stopPolling(element) {
+            
             const timer = CONFIG.POLLING_INTERVALS.get(element);
             if (timer) {
                 if (typeof timer === 'number') {
@@ -1559,11 +1584,28 @@ let trongateMXOpeningModal = false;
                     clearTimeout(timer.timeoutId);
                 }
                 CONFIG.POLLING_INTERVALS.delete(element);
-                element.removeAttribute('mx-trigger');
-                element.removeAttribute('data-polling-active'); // Remove state tracking
-                return true; // Success
+                
+                // Restore all original attributes
+                const attributesToRestore = ['mx-get', 'mx-select-oob', 'mx-target'];
+                attributesToRestore.forEach(attr => {
+                    const originalAttrName = `data-original-${attr}`;
+                    if (element.hasAttribute(originalAttrName)) {
+                        element.setAttribute(attr, element.getAttribute(originalAttrName));
+                        element.removeAttribute(originalAttrName);
+                    }
+                });
+                
+                if (element.hasAttribute('data-original-mx-trigger')) {
+                    element.setAttribute('mx-trigger', element.getAttribute('data-original-mx-trigger'));
+                    element.removeAttribute('data-original-mx-trigger');
+                } else {
+                    element.removeAttribute('mx-trigger');
+                }
+                element.removeAttribute('data-polling-active');
+                
+                return true;
             }
-            return false; // No polling to stop
+            return false;
         },
         stopAllPolling() {
             CONFIG.POLLING_INTERVALS.forEach((timer, element) => {
@@ -1577,15 +1619,20 @@ let trongateMXOpeningModal = false;
             CONFIG.POLLING_INTERVALS = new WeakMap(); // Reset the WeakMap
         },
         pollElement(element) {
+            
             const attribute = CONFIG.CORE_MX_ATTRIBUTES.find(attr => element.hasAttribute(attr));
             if (attribute) {
+                
                 // Throttle check for polling
                 const throttleTime = parseInt(element.getAttribute('mx-throttle')) || 0;
                 if (throttleTime > 0 && !Utils.canMakeRequest(throttleTime)) {
                     console.log('Polling request throttled');
                     return;
                 }
+                
                 Main.initInvokeHttpRequest(element, attribute);
+            } else {
+                console.log('No polling attribute found on element');
             }
         },
         handlePopState(event) {
