@@ -377,6 +377,15 @@ let trongateMXOpeningModal = false;
                     tempDiv.innerHTML = http.responseText;
                     tempFragment.appendChild(tempDiv);
                     Dom.handleOobSwaps(tempFragment, selectOobStr);
+                    
+                    // This block handles mx-after-swap for OOB swaps with mx-target="none"
+                    if (!targetEl && element.hasAttribute('mx-after-swap')) {
+                        const functionName = element.getAttribute('mx-after-swap');
+                        if (functionName) {
+                            const customEvent = Utils.createMXEvent(element, event, 'afterSwap', { http });
+                            Utils.executeMXFunction(functionName, customEvent);
+                        }
+                    }
                 }
         
                 // Continue with regular content update if target exists
