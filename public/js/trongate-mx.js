@@ -38,7 +38,10 @@ let trongateMXOpeningModal = false;
         },
 
         getAttributeValue(element, attributeName) {
-            let current = element;
+            if (element.hasAttribute(attributeName)) {
+                return element.getAttribute(attributeName);
+            }
+            let current = element.parentElement;
             while (current) {
                 if (current.hasAttribute(attributeName)) {
                     return current.getAttribute(attributeName);
