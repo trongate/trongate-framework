@@ -285,14 +285,19 @@ class Core {
         }
     }
 
-
     private function invoke_controller_method(): void {
         if (method_exists($this->current_controller, $this->current_method)) {
             $target_method = $this->current_method;
             $this->current_controller = new $this->current_controller($this->current_module);
             $this->current_controller->$target_method($this->current_value);
         } else {
-            $this->handle_standard_endpoints();
+            // If the specified method doesn't exist, try 'index' as fallback
+            if (method_exists($this->current_controller, 'index')) {
+                $this->current_controller = new $this->current_controller($this->current_module);
+                $this->current_controller->index($this->current_value);
+            } else {
+                $this->handle_standard_endpoints();
+            }
         }
     }
 
