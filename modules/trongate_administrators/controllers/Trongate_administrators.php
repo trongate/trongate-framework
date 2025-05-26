@@ -292,14 +292,30 @@ class Trongate_administrators extends Trongate {
     }
 
     /**
-     * Handles user logout by destroying tokens and redirects based on existence of the secret login segment.
+     * Handles user logout by destroying tokens, clearing session and cookie data, and redirecting appropriately.
      *
      * @return void
      */
     public function logout(): void {
         $this->module('trongate_tokens');
+        
+        // Destroy all tokens for the user
         $this->trongate_tokens->_destroy();
-
+        
+        // Unset the session token
+        if (isset($_SESSION['trongatetoken'])) {
+            unset($_SESSION['trongatetoken']);
+        }
+        
+        // Delete the cookie if it exists
+        if (isset($_COOKIE['trongatetoken'])) {
+            setcookie('trongatetoken', '', time() - 3600, '/');
+        }
+        
+        // Regenerate session ID to prevent session fixation
+        session_regenerate_id(true);
+        
+        // Redirect based on secret_login_segment
         if (isset($this->secret_login_segment)) {
             redirect(BASE_URL);
         } else {

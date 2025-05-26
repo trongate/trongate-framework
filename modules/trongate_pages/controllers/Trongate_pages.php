@@ -1188,7 +1188,7 @@ class Trongate_pages extends Trongate {
      * This method is part of the Trongate Pages class. It iterates through an array of website page objects and assigns
      * a 'webpage_url_public' property to each. The value of this property is determined based on whether a module exists
      * with the same name as the URL string of the page. If such a module does not exist, a simplified URL is assigned;
-     * otherwise, the existing 'website_url' is used.
+     * otherwise, the existing 'webpage_url' is used.
      *
      * @param array $rows An array of website page objects.
      * @return array The modified array of website page objects, each with a 'webpage_url_public' property.
@@ -1200,7 +1200,7 @@ class Trongate_pages extends Trongate {
             if ($module_exists === false) {
                 $rows[$key]->webpage_url_public = BASE_URL . $url_string;
             } else {
-                $rows[$key]->webpage_url_public = $value->website_url;
+                $rows[$key]->webpage_url_public = $value->webpage_url;
             }
         }
 
