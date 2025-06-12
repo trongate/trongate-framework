@@ -1058,26 +1058,53 @@ class Standard_endpoints extends Trongate {
     }
 
     /**
-     * Fetches query parameters from the POST request.
-     *
-     * @return array|null An array containing the fetched query parameters, or null if an error occurs.
+     * Fetches query parameters from POST request data.
+     * 
+     * This method provides flexible handling of POST data by supporting multiple input formats:
+     * - JSON data from php://input (Content-Type: application/json)
+     * - Form-encoded data from php://input (raw form data)
+     * - Standard POST data from $_POST superglobal (application/x-www-form-urlencoded)
+     * 
+     * The method processes the retrieved data to extract query parameters with operators
+     * for database filtering, supporting comparison operators like >=, <=, !=, etc.
+     * It also handles logical operators (OR, AND) for complex query construction.
+     * 
+     * @return array An array of query parameter objects, each containing:
+     *               - 'key' (string): The field name, possibly prefixed with 'OR'
+     *               - 'operator' (string): The comparison operator (=, !=, >, <, >=, <=)
+     *               - 'value' (mixed): The value to compare against
+     * 
+     * @throws Exception When data format is invalid or cannot be parsed (via api_manager_error)
      */
-    private function fetch_query_params_from_post(): ?array {
+    private function fetch_query_params_from_post(): array {
         $query_params = [];
 
-        //get posted params
+        // Get posted params
         $post = file_get_contents('php://input');
 
-        if ($post === '') {
+        // Check for standard POST data first (when php://input is empty)
+        if ($post === '' && !empty($_POST)) {
+            $posted_args = $_POST;
+        } elseif ($post === '') {
             return $query_params;
+        } else {
+            // Try to decode as JSON first
+            $posted_args = json_decode($post, true);
+            
+            // If JSON decode failed, try form-encoded data from php://input
+            if ($posted_args === null) {
+                parse_str($post, $posted_args);
+                
+                // If parsing failed, it's invalid data
+                if (empty($posted_args)) {
+                    $this->api_manager_error(400, 'Invalid data format! Expected JSON or form-encoded data.');
+                }
+            }
         }
 
-        $posted_args = json_decode($post, true);
+
+
         $operators = $this->operators;
-
-        if (!isset($posted_args)) {
-            $this->api_manager_error(400, 'Invalid JSON!');
-        }
 
         foreach ($posted_args as $key => $value) {
             $key = str_replace('>=', ' >=', $key);
@@ -1094,7 +1121,7 @@ class Standard_endpoints extends Trongate {
 
             $row_data['key'] = trim($key_string);
 
-            //figure out what the operator is
+            // Figure out what the operator is
             $key_bits = explode(' ', trim($key));
             if (count($key_bits) === 1) {
                 $row_data['operator'] = '=';
@@ -1113,7 +1140,7 @@ class Standard_endpoints extends Trongate {
 
             if (strlen($key) > 3) {
                 $first_three = substr($key, 0, 3);
-                if (strtoupper($first_three === 'OR ')) {
+                if (strtoupper($first_three) === 'OR ') {
                     $row_data['key'] = 'OR ' . $row_data['key'];
                 }
             }
