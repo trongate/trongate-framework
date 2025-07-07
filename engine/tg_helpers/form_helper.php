@@ -397,34 +397,35 @@ function form_file_select(string $name, ?array $attributes = null): string {
 }
 
 /**
- * Retrieve and optionally clean a value from request data (form-encoded or JSON).
+ * Retrieve a specific value or all request data from form-encoded or JSON input.
  *
- * This function handles data from any HTTP method (GET, POST, PUT, PATCH, DELETE)
- * and supports both form-encoded and JSON payloads. It can optionally clean up
- * the retrieved value by trimming whitespace and normalizing internal spaces.
+ * This function supports dot notation for nested fields and can optionally clean up
+ * retrieved values. When called with no arguments, it returns all parsed request data.
+ * If a boolean is passed as the first argument, it returns all request data with cleanup.
  *
- * @param string $field_name The name of the field to retrieve, supports dot notation for nested fields.
- * @param bool $clean_up Whether to clean up the retrieved value (default is false).
- * 
- * @return string|int|float|array The value retrieved from the request data:
- *         - string: for text inputs
- *         - int: for integer values
- *         - float: for decimal numbers
- *         - array: for JSON objects or arrays
- *         - empty string: if the field is not found
- * 
- * @throws Exception If there's an error reading or decoding the input data.
+ * @param string|bool|null $field_name The field name to retrieve (dot notation allowed), or:
+ *                                     - null: return all raw request data
+ *                                     - true: return all request data with cleanup
+ * @param bool $clean_up Whether to clean the value(s). Only applies to string(s) or arrays of strings.
+ *
+ * @return string|int|float|array The requested value or the entire input payload:
+ *         - string/int/float for individual values
+ *         - array for entire input set
+ *         - empty string if field not found
+ *
+ * @throws Exception If there's an error reading or decoding JSON input
  */
-function post(string $field_name, bool $clean_up = false): string|int|float|array {
+function post(string|bool|null $field_name = null, bool $clean_up = false): string|int|float|array {
     static $request_data = null;
+
     if ($request_data === null) {
         $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
-        
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && stripos($content_type, 'application/json') === false) {
             $request_data = $_POST;  // Standard POST form data
         } else {
-            // Handle PUT, PATCH, DELETE and JSON requests
             $raw_data = file_get_contents('php://input');
+
             if (empty($raw_data)) {
                 $request_data = [];
             } elseif (stripos($content_type, 'application/json') !== false) {
@@ -433,10 +434,24 @@ function post(string $field_name, bool $clean_up = false): string|int|float|arra
                     throw new Exception('Error decoding JSON data: ' . json_last_error_msg());
                 }
             } else {
-                // Handle form-encoded data for PUT/PATCH/DELETE
                 parse_str($raw_data, $request_data);
             }
         }
+    }
+
+    // Return all request data (optionally cleaned) if no field name is specified
+    if (is_null($field_name) || is_bool($field_name)) {
+        $return_data = $request_data;
+
+        if ($field_name === true || $clean_up === true) {
+            array_walk_recursive($return_data, function (&$item) {
+                if (is_string($item)) {
+                    $item = trim(preg_replace('/\s+/', ' ', $item));
+                }
+            });
+        }
+
+        return $return_data;
     }
 
     // Handle dot notation for nested fields
@@ -455,7 +470,7 @@ function post(string $field_name, bool $clean_up = false): string|int|float|arra
         if (is_string($value)) {
             $value = trim(preg_replace('/\s+/', ' ', $value));
         } elseif (is_array($value)) {
-            array_walk_recursive($value, function(&$item) {
+            array_walk_recursive($value, function (&$item) {
                 if (is_string($item)) {
                     $item = trim(preg_replace('/\s+/', ' ', $item));
                 }
@@ -463,13 +478,13 @@ function post(string $field_name, bool $clean_up = false): string|int|float|arra
         }
     }
 
-    // Convert numeric strings to their appropriate type
+    // Convert numeric strings to appropriate type
     if (is_numeric($value) && !is_array($value)) {
         return filter_var($value, FILTER_VALIDATE_INT) !== false
             ? (int) $value
             : (float) $value;
     }
-    
+
     return $value;
 }
 

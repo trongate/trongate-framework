@@ -349,16 +349,16 @@ let trongateMXOpeningModal = false;
             Dom.removeCloak();
             Dom.restoreOriginalContent();
             Dom.reEnableDisabledElements();
-        
+
             element.classList.remove('blink');
-        
+
             // Handle redirects first based on status and response text
             const shouldRedirectOnSuccess = element.getAttribute('mx-redirect-on-success') === 'true';
             const shouldRedirectOnError = element.getAttribute('mx-redirect-on-error') === 'true';
-        
+
             const isSuccess = http.status >= 200 && http.status < 300;
             const redirectUrl = http.responseText.trim();
-        
+
             // Check if we should redirect
             if ((isSuccess && shouldRedirectOnSuccess) || (!isSuccess && shouldRedirectOnError)) {
                 if (redirectUrl && !redirectUrl.startsWith('{') && !redirectUrl.startsWith('[') && !redirectUrl.includes('<')) {
@@ -366,7 +366,7 @@ let trongateMXOpeningModal = false;
                     return;
                 }
             }
-        
+
             // If no redirect, continue with normal response handling
             if (isSuccess) {
                 const contentType = http.getResponseHeader('Content-Type');
@@ -390,28 +390,33 @@ let trongateMXOpeningModal = false;
                         }
                     }
                 }
-        
-                // Continue with regular content update if target exists
-                if (targetEl) {
-                    const successAnimateStr = element.getAttribute('mx-animate-success');
-                    if (successAnimateStr) {
-                        Animation.initAnimateSuccess(targetEl, http, element);
-                    } else {
+
+                // Handle both animation and content updates
+                const successAnimateStr = element.getAttribute('mx-animate-success');
+                
+                if (successAnimateStr && targetEl) {
+                    // Start the animation AND handle content updates
+                    Animation.initAnimateSuccessWithCallback(targetEl, http, element, () => {
+                        // This callback runs after animation completes
                         Modal.initAttemptCloseModal(targetEl, http, element);
                         this.updateContent(targetEl, http, element, event);
-                    }
+                    });
+                } else if (targetEl) {
+                    // No animation, proceed normally
+                    Modal.initAttemptCloseModal(targetEl, http, element);
+                    this.updateContent(targetEl, http, element, event);
                 }
-        
+
                 if (element.getAttribute('mx-push-url') === 'true') {
                     const requestUrl = Utils.getRequestUrl(element);
                     Utils.pushUrl(requestUrl);
                 }
-        
+
                 this.attemptInitOnSuccessActions(http, element);
             } else {
                 this.handleErrorResponse(http, element);
             }
-        
+
             Dom.attemptHideLoader(element);
         },
 
@@ -1177,6 +1182,37 @@ let trongateMXOpeningModal = false;
     };
 
     const Animation = {
+        // Animation with callback support
+        initAnimateSuccessWithCallback(targetEl, http, element, callback) {
+            const animationContainer = this.estAnimationContainer(targetEl, element);
+            const animationContainerChildren = animationContainer.children;
+            const tempContainer = document.createElement('div');
+            tempContainer.setAttribute('class', 'mx-temp-container cloak');
+            const bodyEl = document.body;
+            bodyEl.appendChild(tempContainer);
+
+            // Loop through all the children of animationContainer and move them to tempContainer
+            while (animationContainerChildren.length > 0) {
+                tempContainer.appendChild(animationContainerChildren[0]);
+            }
+
+            this.mxDrawBigTick(animationContainer);
+
+            setTimeout(() => {
+                this.mxDestroyAnimation(animationContainer);
+                // Execute the callback after animation cleanup
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
+            }, 1300);
+        },
+
+        initAnimateSuccess(targetEl, http, element) {
+            this.initAnimateSuccessWithCallback(targetEl, http, element, () => {
+                Modal.initAttemptCloseModal(targetEl, http, element);
+            });
+        },
+
         initAnimateError(targetEl, http, element) {
             const animationContainer = this.estAnimationContainer(targetEl, element);
             const animationContainerChildren = animationContainer.children;
@@ -1191,27 +1227,6 @@ let trongateMXOpeningModal = false;
             }
 
             this.mxDrawBigCross(animationContainer);
-
-            setTimeout(() => {
-                this.mxDestroyAnimation(animationContainer);
-                Modal.initAttemptCloseModal(targetEl, http, element);
-            }, 1300);
-        },
-
-        initAnimateSuccess(targetEl, http, element) {
-            const animationContainer = this.estAnimationContainer(targetEl, element);
-            const animationContainerChildren = animationContainer.children;
-            const tempContainer = document.createElement('div');
-            tempContainer.setAttribute('class', 'mx-temp-container cloak');
-            const bodyEl = document.body;
-            bodyEl.appendChild(tempContainer);
-
-            // Loop through all the children of animationContainer and move them to tempContainer
-            while (animationContainerChildren.length > 0) {
-                tempContainer.appendChild(animationContainerChildren[0]);
-            }
-
-            this.mxDrawBigTick(animationContainer);
 
             setTimeout(() => {
                 this.mxDestroyAnimation(animationContainer);
