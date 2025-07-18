@@ -397,75 +397,112 @@ function form_file_select(string $name, ?array $attributes = null): string {
 }
 
 /**
- * Retrieve a specific value or all request data from form-encoded or JSON input.
+ * Retrieve a specific value or the entire request payload.
  *
- * This function supports dot notation for nested fields and can optionally clean up
- * retrieved values. When called with no arguments, it returns all parsed request data.
- * If a boolean is passed as the first argument, it returns all request data with cleanup.
+ * Accepts application/x-www-form-urlencoded, multipart/form-data, or
+ * application/json input. Nested keys may be addressed with dot notation
+ * (user.profile.name) or bracket notation (user[profile][name]).
  *
- * @param string|bool|null $field_name The field name to retrieve (dot notation allowed), or:
- *                                     - null: return all raw request data
- *                                     - true: return all request data with cleanup
- * @param bool $clean_up Whether to clean the value(s). Only applies to string(s) or arrays of strings.
+ * Values keep their original type unless casting is explicitly requested.
+ * Missing keys yield an empty string.
  *
- * @return string|int|float|array The requested value or the entire input payload:
- *         - string/int/float for individual values
- *         - array for entire input set
- *         - empty string if field not found
+ * @param string|bool|null $field_name   Key to fetch, or null/true for all data
+ * @param bool             $clean_up     Trim and collapse whitespace
+ * @param bool             $cast_numeric Allow numeric strings to become int|float
  *
- * @throws Exception If there's an error reading or decoding JSON input
+ * @return string|int|float|array
+ * @throws Exception If JSON input is malformed
  */
-function post(string|bool|null $field_name = null, bool $clean_up = false): string|int|float|array {
+function post(
+    string|bool|null $field_name = null,
+    bool $clean_up = false,
+    bool $cast_numeric = false
+): string|int|float|array {
+
     static $request_data = null;
 
+    /* ---------- One-time parse ---------- */
     if ($request_data === null) {
-        $content_type = $_SERVER['CONTENT_TYPE'] ?? '';
+        $content_type   = $_SERVER['CONTENT_TYPE'] ?? '';
+        $request_method = $_SERVER['REQUEST_METHOD'] ?? '';
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && stripos($content_type, 'application/json') === false) {
-            $request_data = $_POST;  // Standard POST form data
+        $is_json = stripos($content_type, 'application/json') !== false;
+
+        if ($request_method === 'POST' && !$is_json) {
+            $request_data = $_POST;
         } else {
-            $raw_data = file_get_contents('php://input');
-
-            if (empty($raw_data)) {
+            $raw = file_get_contents('php://input');
+            if ($raw === '' || $raw === false) {
                 $request_data = [];
-            } elseif (stripos($content_type, 'application/json') !== false) {
-                $request_data = json_decode($raw_data, true);
+            } elseif ($is_json) {
+                $request_data = json_decode($raw, true);
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    throw new Exception('Error decoding JSON data: ' . json_last_error_msg());
+                    throw new Exception('Invalid JSON: ' . json_last_error_msg());
                 }
             } else {
-                parse_str($raw_data, $request_data);
+                parse_str($raw, $request_data);
             }
         }
+        $request_data = $request_data ?? [];
     }
 
-    // Return all request data (optionally cleaned) if no field name is specified
+    /* ---------- Return whole payload ---------- */
     if (is_null($field_name) || is_bool($field_name)) {
-        $return_data = $request_data;
+        $output = $request_data;
 
         if ($field_name === true || $clean_up === true) {
-            array_walk_recursive($return_data, function (&$item) {
+            array_walk_recursive($output, function (&$item) {
                 if (is_string($item)) {
                     $item = trim(preg_replace('/\s+/', ' ', $item));
                 }
             });
         }
 
-        return $return_data;
+        return $output;
     }
 
-    // Handle dot notation for nested fields
-    $fields = explode('.', $field_name);
-    $value = $request_data;
-    foreach ($fields as $field) {
-        if (isset($value[$field])) {
-            $value = $value[$field];
-        } else {
-            return '';
+    /* ---------- Fetch single key ---------- */
+    $value = '';
+
+    // Dot notation
+    if (strpos($field_name, '.') !== false) {
+        $keys  = explode('.', $field_name);
+        $level = $request_data;
+        foreach ($keys as $key) {
+            if (is_array($level) && array_key_exists($key, $level)) {
+                $level = $level[$key];
+            } else {
+                return '';
+            }
         }
+        $value = $level;
+    }
+    // Bracket notation
+    elseif (preg_match_all('/(?:^[^\[]+)|\[[^\]]*\]/', $field_name, $matches) > 1) {
+        $level = $request_data;
+        foreach ($matches[0] as $part) {
+            $key = trim($part, '[]');
+            if ($key === '') {
+                break;
+            }
+            if (is_array($level) && array_key_exists($key, $level)) {
+                $level = $level[$key];
+            } else {
+                return '';
+            }
+        }
+        $value = $level;
+    }
+    // Simple key
+    else {
+        $value = array_key_exists($field_name, $request_data) ? $request_data[$field_name] : '';
     }
 
-    // Clean up the value if requested
+    if ($value === '') {
+        return '';
+    }
+
+    /* ---------- Cleanup ---------- */
     if ($clean_up) {
         if (is_string($value)) {
             $value = trim(preg_replace('/\s+/', ' ', $value));
@@ -478,8 +515,8 @@ function post(string|bool|null $field_name = null, bool $clean_up = false): stri
         }
     }
 
-    // Convert numeric strings to appropriate type
-    if (is_numeric($value) && !is_array($value)) {
+    /* ---------- Optional numeric cast ---------- */
+    if ($cast_numeric && is_string($value) && is_numeric($value) && !str_starts_with($value, '0')) {
         return filter_var($value, FILTER_VALIDATE_INT) !== false
             ? (int) $value
             : (float) $value;
