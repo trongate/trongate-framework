@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Class Modules - Handles serving controller content from a given view file.
  */

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * File management class for handling file operations within the application.
  *

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * This class provides methods for handling standard endpoints configuration.
  * Standard endpoints are predefined API endpoints with common functionalities such as fetching, searching,

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Class Pagination - Handles pagination functionality for displaying paginated data.
  */

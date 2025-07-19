@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Class Api - Handles API-related functionalities.
  */

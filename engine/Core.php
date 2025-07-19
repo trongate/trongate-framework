@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Class Core
  * Manages the serving of assets for the Trongate framework.

@@ -1,4 +1,15 @@
 <?php
+/**
+ * Trongate Validation Class
+ *
+ * Provides server-side form and file validation with built-in CSRF protection.
+ * To bypass CSRF for API endpoints:
+ *     define('API_SKIP_CSRF', true);
+ *
+ * All input is retrieved via the global post() helper so JSON,
+ * multipart/form-data, x-www-form-urlencoded and dot/bracket notation all work
+ * identically.
+ */
 class Validation {
 
     /** @var array Holds the form submission errors. */
@@ -748,18 +759,23 @@ class Validation {
      * @return void
      */
     private function csrf_protect(): void {
-        // Make sure they have posted csrf_token
-        if (!isset($_POST['csrf_token'])) {
+        // 1. Fast exit if the opt-out constant exists and is boolean true.
+        if (defined('API_SKIP_CSRF') && constant('API_SKIP_CSRF') === true) {
+            return;
+        }
+
+        // 2. Standard CSRF check for everything else.
+        $posted_csrf_token = post('csrf_token');
+
+        if ($posted_csrf_token === '') {
             $this->csrf_block_request();
         } else {
-            $posted_csrf_token = $_POST['csrf_token'];
-            $expected_csrf_token = $_SESSION['csrf_token'];
+            $expected = $_SESSION['csrf_token'] ?? '';
 
-            if (!hash_equals($expected_csrf_token, $posted_csrf_token)) {
+            if (!is_string($posted_csrf_token) || !hash_equals($expected, $posted_csrf_token)) {
                 $this->csrf_block_request();
             }
 
-            unset($_POST['csrf_token']);
         }
     }
 

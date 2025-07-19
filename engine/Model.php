@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Provides database interaction functionalities including
  * fetching, inserting, updating, and resequencing records. This class is 

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * dynamic_properties.php
  *
