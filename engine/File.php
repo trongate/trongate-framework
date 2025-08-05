@@ -490,7 +490,7 @@ class File {
      * @param string $path The file or directory path to validate.
      * @return bool Returns true if the path is valid, false otherwise.
      */
-    private function is_path_valid(string $path): bool {
+    protected function is_path_valid(string $path): bool {
         $restricted_dirs = [APPPATH . 'config', APPPATH . 'engine', APPPATH . 'templates'];
         
         // If the path exists, validate it directly
@@ -594,7 +594,7 @@ class File {
      * @return void
      * @throws InvalidArgumentException If a MIME type mismatch is detected.
      */
-    private function validate_mime_type(string $filename): void {
+    protected function validate_mime_type(string $filename): void {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime_type = finfo_file($finfo, $filename);
         finfo_close($finfo);
@@ -628,7 +628,7 @@ class File {
      *               - 'status': (bool) Whether there is sufficient memory (true) or not (false).
      *               - 'message': (string) An error message if memory is insufficient (empty string otherwise).
      */
-    private function validate_memory_requirements(string $filename): array {
+    protected function validate_memory_requirements(string $filename): array {
         $result = ['status' => true, 'message' => ''];
         
         if (!function_exists('memory_get_usage')) {
@@ -685,7 +685,7 @@ class File {
      * @param string $memory_value The memory value with unit suffix
      * @return int The value in bytes
      */
-    private function convert_to_bytes(string $memory_value): int {
+    protected function convert_to_bytes(string $memory_value): int {
         $unit = strtolower(substr($memory_value, -1));
         $value = (int) substr($memory_value, 0, -1);
         
