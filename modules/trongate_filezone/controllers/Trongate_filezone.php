@@ -79,7 +79,8 @@ class Trongate_filezone extends Trongate {
      * @return void
      */
     public function upload(): void {
-        api_auth();
+        $this->module('trongate_security');
+        $this->trongate_security->_make_sure_allowed();
 
         $request_type = $_SERVER['REQUEST_METHOD'];
         $target_module = segment(3);
@@ -99,7 +100,9 @@ class Trongate_filezone extends Trongate {
      * @return void
      */
     public function ditch(): void {
-        api_auth();
+        $this->module('trongate_security');
+        $this->trongate_security->_make_sure_allowed();
+        
         $post = file_get_contents('php://input');
         $posted_data = json_decode($post, true);
 

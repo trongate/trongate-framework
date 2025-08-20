@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Manages loading and displaying of content within HTML templates.
  */

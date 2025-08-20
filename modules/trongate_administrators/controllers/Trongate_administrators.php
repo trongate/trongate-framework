@@ -17,7 +17,7 @@ class Trongate_administrators extends Trongate {
      *
      * @var string
      */
-    private $dashboard_home = 'trongate_pages/manage';
+    private $dashboard_home = 'trongate_administrators/manage';
 
     /**
      * Renders a login page for administrators.

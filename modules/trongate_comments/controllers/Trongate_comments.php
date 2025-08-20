@@ -63,32 +63,4 @@ class Trongate_comments extends Trongate {
         return $output;
     }
 
-    /**
-     * Pre-insert hook to be invoked by API manager before inserting a comment.
-     *
-     * @param array $input The input data for insertion.
-     *                     Expected structure:
-     *                     [
-     *                         'token' => string, // The token associated with the user.
-     *                         'params' => array[ // Additional parameters for insertion.
-     *                             'user_id' => int,      // ID of the user.
-     *                             'date_created' => int, // Unix timestamp of creation date.
-     *                             'code' => string,      // Randomly generated code.
-     *                         ],
-     *                     ]
-     * @return array Processed input data with additional parameters.
-     */
-    public function _pre_insert(array $input): array {
-        // Extract token from input and retrieve user ID using the Trongate tokens module.
-        $token = $input['token'];
-        $this->module('trongate_tokens');
-        $input['params']['user_id'] = $this->trongate_tokens->_get_user_id($token);
-
-        // Add date_created and generate a random code for insertion.
-        $input['params']['date_created'] = time();
-        $input['params']['code'] = make_rand_str(6);
-
-        return $input;
-    }
-
 }

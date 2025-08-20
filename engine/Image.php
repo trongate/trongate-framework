@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Image manipulation class to handle loading, resizing, and saving images.
  * Supports JPEG, GIF, PNG, and WEBP image formats using PHP's GD library.
