@@ -3,7 +3,7 @@
  *
  * An open source PHP framework for web developers who like to break the rules
  *
- * Version: 1.4.0
+ * Version: 1.4.001
  *
  * This product is released under the MIT License (MIT)
  *

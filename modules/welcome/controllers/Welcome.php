@@ -7,7 +7,7 @@ class Welcome extends Trongate {
 	 * @return void
 	 */
 	public function index(): void {
-		$this->view('welcome', $data);
+		$this->view('welcome');
 	}
 
 }
