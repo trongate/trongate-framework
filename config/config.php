@@ -1,6 +1,6 @@
 <?php
 //The main config file
-define('BASE_URL', 'http://localhost/t2/');
+define('BASE_URL', '');
 define('ENV', 'dev');
 define('DEFAULT_MODULE', 'welcome');
 define('DEFAULT_CONTROLLER', 'Welcome');
