@@ -19,7 +19,8 @@
 
         <p>
             <a href="https://trongate.io/" target="_blank">Trongate</a> is an open-source PHP framework.  
-            The GitHub repository can be found <a href="https://github.com/trongate/trongate-framework" target="_blank">here</a>.  
+            The GitHub repository can be found 
+            <a href="https://github.com/trongate/trongate-framework" target="_blank">here</a>.  
             Contributions are welcome! If you enjoy working with Trongate, please consider giving the project a ⭐ on GitHub.
         </p>
 
@@ -28,25 +29,21 @@
                 ⭐ Please give Trongate a star on GitHub
             </a>
         </p>
+
         <hr>
 
-        <?php
-        if (DATABASE === '') {
-            ?>
-            <h2>Database Setup (Optional)</h2>
-            <p>
-                With Trongate, you can build powerful web applications with or without a database.  
-                If your project requires storing or retrieving data, you can connect Trongate to a MySQL or MariaDB database.  
-                If you do not need a database, you can safely skip this step.
-            </p>
+        <h2>Database Setup (Optional)</h2>
+        <p>
+            With Trongate, you can build powerful web applications with or without a database.  
+            If your project requires storing or retrieving data, you can connect Trongate to a MySQL or MariaDB database.  
+            If you do not need a database, you can safely skip this step.
+        </p>
 
-            <p class="text-center">
-                <?= anchor('welcome/database_setup', 'Set Up Your Database', array('class' => 'button')) ?>
-            </p>
-            <hr>
-            <?php
-        }
-        ?>
+        <p class="text-center">
+            <?= anchor('welcome/database_setup', 'Set Up Your Database', array('class' => 'button')) ?>
+        </p>
+
+        <hr>
 
         <h2>Need a Hand?</h2>
         <p>
@@ -59,7 +56,6 @@
             <a class="button" href="https://trongate.io/documentation" target="_blank">Documentation</a>
             <a class="button alt" href="https://trongate.io/forums" target="_blank">Discussion Forums</a>
         </p>
-
     </main>
 </body>
 </html>
