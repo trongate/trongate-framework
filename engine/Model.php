@@ -424,6 +424,10 @@ class Model {
         // Construct the SQL query to fetch the maximum 'id' value
         $sql = "SELECT MAX(id) AS max_id FROM $target_table";
 
+        if ($this->debug) {
+            $this->show_query($sql, $data, $this->query_caveat);
+        }
+
         // Prepare and execute the query
         $stmt = $this->dbh->prepare($sql);
         $stmt->execute();
@@ -453,6 +457,10 @@ class Model {
         $columns = implode(', ', array_keys($data));
         $placeholders = ':' . implode(', :', array_keys($data));
         $sql = "INSERT INTO $target_table ($columns) VALUES ($placeholders)";
+
+        if ($this->debug) {
+            $this->show_query($sql, $data, $this->query_caveat);
+        }
 
         // Prepare and execute the query
         $result = $this->prepare_and_execute($sql, $data);
@@ -495,6 +503,10 @@ class Model {
         // Include the update ID in the data array
         $data['id'] = $update_id;
 
+        if ($this->debug) {
+            $this->show_query($sql, $data, $this->query_caveat);
+        }
+
         // Prepare and execute the query
         return $this->prepare_and_execute($sql, $data);
     }
@@ -525,6 +537,10 @@ class Model {
         // Append the column value to the data array
         $data['value'] = $column_value;
 
+        if ($this->debug) {
+            $this->show_query($sql, $data, $this->query_caveat);
+        }
+
         // Execute the query
         try {
             $this->prepare_and_execute($sql, $data);
@@ -552,6 +568,10 @@ class Model {
         
         // Prepare data for execution
         $data = ['id' => $id];
+
+        if ($this->debug) {
+            $this->show_query($sql, $data, $this->query_caveat);
+        }
 
         // Execute the query
         try {
