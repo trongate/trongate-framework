@@ -27,9 +27,9 @@ class Modules {
 
         if (!is_file($controller_path)) {
             // Try parent-child path
-            $parts = split_parent_child($target_module);
+            $parts = self::split_parent_child($target_module);
             if ($parts) {
-                $controller_path = child_controller_path($parts['parent'], $parts['child']);
+                $controller_path = self::child_controller_path($parts['parent'], $parts['child']);
                 $target_controller = ucfirst($parts['child']);
             }
         }
@@ -51,10 +51,10 @@ class Modules {
 
         if (!is_file($target_controller_path)) {
             // Check for parent-child
-            $parts = split_parent_child($target_module);
+            $parts = self::split_parent_child($target_module);
             if ($parts) {
                 $child = $parts['child'];
-                $target_controller_path = child_controller_path($parts['parent'], $child);
+                $target_controller_path = self::child_controller_path($parts['parent'], $child);
                 $target_module = $child;
             }
         }
@@ -105,6 +105,40 @@ class Modules {
     public function list($recursive = false) {
         $file = new File;
         return $file->list_directory(APPPATH . 'modules', $recursive);
+    }
+
+    /**
+     * Split a parent-child module token into components.
+     * 
+     * @param string $module_token The module identifier (e.g., 'dealfinder-page_watcher').
+     * @return array|false Array with 'parent' and 'child' keys, or false if not a child module format.
+     */
+    private static function split_parent_child($module_token) {
+        if (strpos($module_token, '-') === false) {
+            return false;
+        }
+        
+        $parts = explode('-', $module_token);
+        if (count($parts) !== 2 || empty($parts[0]) || empty($parts[1])) {
+            return false;
+        }
+        
+        return [
+            'parent' => strtolower($parts[0]),
+            'child' => strtolower($parts[1])
+        ];
+    }
+
+    /**
+     * Get the controller path for a child module.
+     * 
+     * @param string $parent The parent module name.
+     * @param string $child The child module name.
+     * @return string The path to the child controller file.
+     */
+    private static function child_controller_path($parent, $child) {
+        $child_controller = ucfirst($child);
+        return '../modules/' . $parent . '/' . $child . '/controllers/' . $child_controller . '.php';
     }
 
 }
