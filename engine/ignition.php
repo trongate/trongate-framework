@@ -51,7 +51,7 @@ spl_autoload_register(function ($class_name) {
 /* --------------------------------------------------------------
  * 3a.  Core helper functions
  * -------------------------------------------------------------- */
-require_once ENGPATH . 'module_path.php';
+require_once ENGPATH . 'Module_path.php';
 
 /* --------------------------------------------------------------
  * 4.  Interceptor execution (early hooks)
