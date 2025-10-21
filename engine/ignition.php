@@ -110,28 +110,40 @@ function get_segments() {
  * Cached custom-route matching
  */
 function attempt_custom_routing($url) {
-    static $routes = null;
+    static $routes = [];
 
-    if ($routes === null && defined('CUSTOM_ROUTES')) {
+    if (empty($routes)) {
+        if (!defined('CUSTOM_ROUTES') || empty(CUSTOM_ROUTES)) {
+            return $url;
+        }
+
         foreach (CUSTOM_ROUTES as $pattern => $dest) {
-            $regex = '#^' . str_replace(
-                ['/', '(:num)', '(:any)'],
-                ['\/', '(\d+)', '([^\/]+)'],
-                $pattern
-            ) . '$#';
+            $regex = '#^' . strtr($pattern, [
+                '/'      => '\/',
+                '(:num)' => '(\d+)',
+                '(:any)' => '([^\/]+)',
+            ]) . '$#';
             $routes[] = [$regex, $dest];
         }
     }
 
     $path = ltrim(parse_url($url, PHP_URL_PATH) ?: '/', '/');
-    foreach ($routes ?? [] as [$regex, $dest]) {
-        if (preg_match($regex, $path, $m)) {
-            for ($i = 1, $c = count($m); $i < $c; $i++) {
-                $dest = str_replace('$' . $i, $m[$i], $dest);
+    $base_path = ltrim(parse_url(BASE_URL, PHP_URL_PATH) ?: '/', '/');
+
+    if ($base_path !== '' && strpos($path, $base_path) === 0) {
+        $path = substr($path, strlen($base_path));
+    }
+
+    foreach ($routes as [$regex, $dest]) {
+        if (preg_match($regex, $path, $matches)) {
+            $match_count = count($matches);
+            for ($i = 1; $i < $match_count; $i++) {
+                $dest = str_replace('$' . $i, $matches[$i], $dest);
             }
             return rtrim(BASE_URL . $dest, '/');
         }
     }
+
     return $url;
 }
 
