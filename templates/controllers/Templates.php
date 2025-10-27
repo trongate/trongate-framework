@@ -14,10 +14,11 @@ class Templates extends Trongate {
     /**
      * Loads the 'error_404' view with provided data.
      *
-     * @param mixed $data Data array to be passed to the view.
+     * @param array $data Data array to be passed to the view.
      * @return void
      */
-    function error_404($data): void {
+    function error_404(array $data = []): void {
+        http_response_code(404);
         load('error_404', $data);
     }
 

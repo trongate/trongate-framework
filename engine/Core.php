@@ -314,8 +314,20 @@ class Core {
      * @return void
      */
     private function draw_error_page(): void {
-        load('error_404');
-        die(); //end of the line (all possible scenarios tried)
+        // Load the Templates controller
+        $template_controller_path = '../templates/Templates.php';
+
+        if (!file_exists($template_controller_path)) {
+            // Fallback if Templates.php doesn't exist
+            die('404 - Page Not Found');
+        }
+
+        require_once $template_controller_path;
+        $templates = new Templates();
+
+        // Call the error_404 method without any arguments
+        $templates->error_404();
+        die();
     }
 
 }
