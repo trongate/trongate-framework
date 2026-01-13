@@ -1,0 +1,108 @@
+/* Trongate Icons - v0.1.0 (Beta) */
+
+/* Base icon class */
+.tg {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    /* Improve rendering quality */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+/* Individual icon styles */
+.tg-envelope {
+    -webkit-mask-image: url('../trongate-icons/envelope.svg');
+    mask-image: url('../trongate-icons/envelope.svg');
+    transform: translateY(0.12em);
+}
+
+.tg-envelope-open {
+    -webkit-mask-image: url('../trongate-icons/envelope-open.svg');
+    mask-image: url('../trongate-icons/envelope-open.svg');
+    transform: translateY(0.06em);
+}
+
+.tg-home {
+    -webkit-mask-image: url('../trongate-icons/home.svg');
+    mask-image: url('../trongate-icons/home.svg');
+    transform: translateY(0.03em) scale(1.2);
+}
+
+.tg-padlock {
+    -webkit-mask-image: url('../trongate-icons/padlock.svg');
+    mask-image: url('../trongate-icons/padlock.svg');
+    margin-left: 0.1em;
+    margin-right: -0.1em;
+}
+
+.tg-shopping-basket {
+    -webkit-mask-image: url('../trongate-icons/shopping-basket.svg');
+    mask-image: url('../trongate-icons/shopping-basket.svg');
+    transform: translateY(0.10em) scale(1.2);
+}
+
+.tg-shopping-cart {
+    -webkit-mask-image: url('../trongate-icons/shopping-cart.svg');
+    mask-image: url('../trongate-icons/shopping-cart.svg');
+    transform: translateY(0.133em) scale(1.2);
+}
+
+.tg-sign-in {
+    -webkit-mask-image: url('../trongate-icons/sign-in.svg');
+    mask-image: url('../trongate-icons/sign-in.svg');
+    transform: translateY(0.10em) scale(1.2);
+}
+
+.tg-sign-out {
+    -webkit-mask-image: url('../trongate-icons/sign-out.svg');
+    mask-image: url('../trongate-icons/sign-out.svg');
+    transform: translateY(-0.03em) scale(1.2);
+    margin-left: 0.25em;
+    margin-right: -0.25em;
+}
+
+.tg-star {
+    -webkit-mask-image: url('../trongate-icons/star.svg');
+    mask-image: url('../trongate-icons/star.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.25em;
+    margin-right: -0.25em;
+}
+
+.tg-star-half {
+    -webkit-mask-image: url('../trongate-icons/star-half.svg');
+    mask-image: url('../trongate-icons/star-half.svg');
+    margin-left: 0.25em;
+    margin-right: -0.25em;
+}
+
+.tg-user {
+    -webkit-mask-image: url('../trongate-icons/user.svg');
+    mask-image: url('../trongate-icons/user.svg');
+}
+
+.tg-user-circle {
+    -webkit-mask-image: url('../trongate-icons/user-circle.svg');
+    mask-image: url('../trongate-icons/user-circle.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}
+
+.tg-users {
+    -webkit-mask-image: url('../trongate-icons/users.svg');
+    mask-image: url('../trongate-icons/users.svg');
+    transform: translateY(0.06em) scale(1.33);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}

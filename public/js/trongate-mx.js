@@ -6,7 +6,7 @@ let trongateMXOpeningModal = false;
     const CONFIG = {
         CORE_MX_ATTRIBUTES: ['mx-get', 'mx-post', 'mx-put', 'mx-delete', 'mx-patch', 'mx-remove'],
         REQUIRES_DATA_ATTRIBUTES: ['mx-post', 'mx-put', 'mx-patch'],
-        DEFAULT_TIMEOUT: 10000,
+        DEFAULT_TIMEOUT: 60000,
         POLLING_INTERVALS: new WeakMap() // Tracks polling timers
     };
 
@@ -187,7 +187,25 @@ let trongateMXOpeningModal = false;
             const http = new XMLHttpRequest();
             http.open(requestType, targetUrl);
             http.setRequestHeader('Trongate-MX-Request', 'true');
-            http.timeout = CONFIG.DEFAULT_TIMEOUT;
+            
+            // Check for custom timeout value
+            const customTimeout = element.getAttribute('mx-timeout');
+            if (customTimeout !== null) {
+                const timeoutValue = customTimeout.toLowerCase();
+                if (timeoutValue === 'none' || timeoutValue === '0') {
+                    http.timeout = 0; // Disable timeout
+                } else {
+                    const parsedTimeout = parseInt(customTimeout, 10);
+                    if (!isNaN(parsedTimeout) && parsedTimeout > 0) {
+                        http.timeout = parsedTimeout;
+                    } else {
+                        console.warn('Invalid mx-timeout value, using default timeout');
+                        http.timeout = CONFIG.DEFAULT_TIMEOUT;
+                    }
+                }
+            } else {
+                http.timeout = CONFIG.DEFAULT_TIMEOUT;
+            }
 
             return http;
         },
@@ -219,7 +237,14 @@ let trongateMXOpeningModal = false;
 
             http.ontimeout = function() {
                 Dom.attemptHideLoader(element);
-                console.error('Request timed out');
+                console.warn('HTTP request timed out.');
+                
+                // Execute mx-on-timeout function if specified
+                const onTimeoutFunction = element.getAttribute('mx-on-timeout');
+                if (onTimeoutFunction) {
+                    const customEvent = Utils.createMXEvent(element, event, 'timeout', { http });
+                    Utils.executeMXFunction(onTimeoutFunction, customEvent);
+                }
             };
         },
 
@@ -346,12 +371,6 @@ let trongateMXOpeningModal = false;
         },
 
         handleHttpResponse(http, element, event) {
-            Dom.removeCloak();
-            Dom.restoreOriginalContent();
-            Dom.reEnableDisabledElements();
-
-            element.classList.remove('blink');
-
             // Handle redirects first based on status and response text
             const shouldRedirectOnSuccess = element.getAttribute('mx-redirect-on-success') === 'true';
             const shouldRedirectOnError = element.getAttribute('mx-redirect-on-error') === 'true';
@@ -366,6 +385,13 @@ let trongateMXOpeningModal = false;
                     return;
                 }
             }
+
+            // Only cleanup loading states if NOT redirecting
+            Dom.removeCloak();
+            Dom.restoreOriginalContent();
+            Dom.reEnableDisabledElements();
+
+            element.classList.remove('blink');
 
             // If no redirect, continue with normal response handling
             if (isSuccess) {
