@@ -9,7 +9,7 @@
  */
 
 //The main config file
-define('BASE_URL', 'http://localhost/trongate_v2b/');
+define('BASE_URL', 'http://localhost/trongate_v2/');
 define('ENV', 'dev');
 define('DEFAULT_MODULE', 'welcome');
 define('DEFAULT_METHOD', 'index');
