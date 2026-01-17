@@ -139,6 +139,11 @@ button:hover,
   color: var(--primary-color);
 }
 
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .danger {
     background-color: var(--danger);
     border: 1px solid var(--danger-dark);
