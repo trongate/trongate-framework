@@ -31,7 +31,7 @@ class Trongate_control_model extends Model {
      * Execute SQL code
      */
     public function execute_sql(string $sql): void {
-        $this->db->exec($sql);
+        $this->db->query($sql);
         
         http_response_code(200);
         echo 'Finished.';
