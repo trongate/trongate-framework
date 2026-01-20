@@ -1,0 +1,85 @@
+body {
+    font-size: 2em;
+    background: #636ec6;
+    color: #ddd;
+    text-align: center;
+    font-family: "Lucida Console", Monaco, monospace;
+}
+
+ul {
+    list-style-type: none;
+}
+
+li {
+    margin-bottom: 0.5em;
+}
+
+button {
+    font-size: 0.7em;
+    font-weight: bold;
+    padding: 0.6em;
+    margin-left: 1em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+h1 {
+    margin-top: 2em;
+}
+
+h1,
+h2 {
+    text-transform: uppercase;
+}
+
+textarea {
+    width: 80%;
+    margin: 0 auto;
+    height: 50vh;
+    font-size: 0.6em;
+}
+
+.warning {
+    background: orange;
+    color: white;
+}
+
+.danger {
+    background: red;
+    color: white;
+}
+
+.success {
+    background: green;
+    color: white;
+}
+
+p {
+    max-width: 70vw;
+    margin-bottom: 1em;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 2em;
+}
+
+a:link {
+    color: white;
+}
+
+@-webkit-keyframes blinker {
+    from {
+        opacity: 1.0;
+    }
+    to {
+        opacity: 0.0;
+    }
+}
+
+.blink {
+    text-decoration: blink;
+    -webkit-animation-name: blinker;
+    -webkit-animation-duration: 0.5s;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: ease-in-out;
+    -webkit-animation-direction: alternate;
+}

@@ -1,11 +1,12 @@
 /**
  * Trongate
  *
- * An open source PHP framework for web developers who like to break the rules
+ * Version: 2.0.0-beta.1
  *
- * Version: 1.4.004
+ * This is a pre-release version of Trongate v2.
+ * It is intended for testing and evaluation and may contain bugs or breaking changes.
  *
- * This product is released under the MIT License (MIT)
+ * This product is released under the MIT License (MIT).
  *
  * Copyright (c) 2019, David Connelly
  *

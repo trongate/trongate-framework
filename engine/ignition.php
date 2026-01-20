@@ -1,64 +1,126 @@
 <?php
-/**
- * Trongate Ignition
- * Single entry-point for every HTTP request.
- * Responsibilities:
- *   1. Load configuration
- *   2. Register autoloader
- *   3. Load core helpers
- *   4. Run user interceptors (early hooks)
- *   5. Bootstrap routing helpers
- */
 session_start();
 
-/* --------------------------------------------------------------
- * 1.  Path constants (earliest possible)
- * -------------------------------------------------------------- */
-define('APPPATH', str_replace('\\', '/', dirname(__DIR__) . '/'));
-define('ENGPATH', __DIR__ . '/');
-define('REQUEST_TYPE', $_SERVER['REQUEST_METHOD'] ?? 'CLI');
+// Config files
+require_once '../config/config.php';
+require_once '../config/custom_routing.php';
+require_once '../config/database.php';
+require_once '../config/site_owner.php';
 
-/* --------------------------------------------------------------
- * 2.  Configuration files
- * -------------------------------------------------------------- */
-$config_files = [
-    APPPATH . 'config/config.php',
-    APPPATH . 'config/custom_routing.php',
-    APPPATH . 'config/database.php',
-    APPPATH . 'config/site_owner.php',
-    APPPATH . 'config/themes.php'
-];
-
-foreach ($config_files as $file) {
-    if (!is_file($file)) {
-        throw new RuntimeException('Missing config file: ' . $file);
-    }
-    require_once $file;
+// Make the $databases array globally accessible
+// This is required for multi-database functionality
+if (isset($databases)) {
+    $GLOBALS['databases'] = $databases;
 }
 
-/* --------------------------------------------------------------
- * 3.  Autoloader for core/engine classes
- * -------------------------------------------------------------- */
+// Enhanced autoloader - supports both engine classes and module classes
 spl_autoload_register(function ($class_name) {
-    $file = ENGPATH . $class_name . '.php';
-    if (is_file($file)) {
+    // Priority 1: Check engine directory for core framework classes
+    $file = __DIR__ . '/' . $class_name . '.php';
+    if (file_exists($file)) {
         require_once $file;
         return true;
     }
+    
+    // Priority 2: Check modules directory for module-based classes
+    // This enables "everything is a module" philosophy (e.g., Db, future SQLite, Postgres, etc.)
+    $module_name = strtolower($class_name);
+    $module_file = __DIR__ . '/../modules/' . $module_name . '/' . $class_name . '.php';
+    if (file_exists($module_file)) {
+        require_once $module_file;
+        return true;
+    }
+    
     return false;
 });
 
-/* --------------------------------------------------------------
- * 3a.  Core helper functions
- * -------------------------------------------------------------- */
-require_once ENGPATH . 'Module_path.php';
+/**
+ * Retrieves the URL segments after processing custom routes.
+ *
+ * @return array Returns an associative array with 'assumed_url' and 'segments'.
+ */
+function get_segments(): array {
+    // Figure out how many segments need to be ditched
+    $pseudo_url = str_replace('://', '', BASE_URL);
+    $pseudo_url = rtrim($pseudo_url, '/');
+    $bits = explode('/', $pseudo_url);
+    $num_bits = count($bits);
+    if ($num_bits > 1) {
+        $num_segments_to_ditch = $num_bits - 1;
+    } else {
+        $num_segments_to_ditch = 0;
+    }
+    $assumed_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    $assumed_url = attempt_custom_routing($assumed_url);
+    $data['assumed_url'] = $assumed_url;
+    $assumed_url = str_replace('://', '', $assumed_url);
+    $assumed_url = rtrim($assumed_url, '/');
+    $segments = explode('/', $assumed_url);
+    // Remove base segments efficiently
+    $data['segments'] = array_slice($segments, $num_segments_to_ditch);
+    return $data;
+}
+
+/**
+ * Cached custom-route matching
+ *
+ * @param string $url The original target URL to potentially replace.
+ * @return string Returns the updated URL if a custom route match is found, otherwise returns the original URL.
+ */
+function attempt_custom_routing(string $url): string {
+    static $routes = [];
+    if (empty($routes)) {
+        if (!defined('CUSTOM_ROUTES') || empty(CUSTOM_ROUTES)) {
+            return $url;
+        }
+        foreach (CUSTOM_ROUTES as $pattern => $dest) {
+            $regex = '#^' . strtr($pattern, [
+                '/' => '\/',
+                '(:num)' => '(\d+)',
+                '(:any)' => '([^\/]+)'
+            ]) . '$#';
+            $routes[] = [$regex, $dest];
+        }
+    }
+    $path = ltrim(parse_url($url, PHP_URL_PATH) ?: '/', '/');
+    $base_path = ltrim(parse_url(BASE_URL, PHP_URL_PATH) ?: '/', '/');
+    if ($base_path !== '' && strpos($path, $base_path) === 0) {
+        $path = substr($path, strlen($base_path));
+    }
+    foreach ($routes as [$regex, $dest]) {
+        if (preg_match($regex, $path, $matches)) {
+            $match_count = count($matches);
+            for ($i = 1; $i < $match_count; $i++) {
+                $dest = str_replace('$' . $i, $matches[$i], $dest);
+            }
+            return rtrim(BASE_URL . $dest, '/');
+        }
+    }
+    return $url;
+}
+
+// Define core constants
+define('APPPATH', str_replace("\\", "/", dirname(dirname(__FILE__)) . '/'));
+define('REQUEST_TYPE', $_SERVER['REQUEST_METHOD']);
+
+// Process URL and routing
+$data = get_segments();
+define('SEGMENTS', $data['segments']);
+define('ASSUMED_URL', $data['assumed_url']);
+
+// Helper files - Load after constants are defined
+require_once 'tg_helpers/flashdata_helper.php';
+require_once 'tg_helpers/form_helper.php';
+require_once 'tg_helpers/string_helper.php';
+require_once 'tg_helpers/url_helper.php';
+require_once 'tg_helpers/utilities_helper.php';
 
 /* --------------------------------------------------------------
- * 4.  Interceptor execution (early hooks)
+ * Interceptor execution (early hooks)
  * -------------------------------------------------------------- */
 if (defined('INTERCEPTORS') && is_array(INTERCEPTORS)) {
     foreach (INTERCEPTORS as $module => $method) {
-        $controller_path = APPPATH . "modules/{$module}/controllers/" . ucfirst($module) . '.php';
+        $controller_path = APPPATH . "modules/{$module}/" . ucfirst($module) . '.php';
 
         if (!is_file($controller_path)) {
             throw new RuntimeException("Interceptor controller not found: {$controller_path}");
@@ -79,90 +141,4 @@ if (defined('INTERCEPTORS') && is_array(INTERCEPTORS)) {
 
         $instance->{$method}();
     }
-}
-
-/* --------------------------------------------------------------
- * 5.  URL & routing helpers
- * -------------------------------------------------------------- */
-
-/**
- * Returns cleaned URL and segments after custom routing
- * @return array ['assumed_url' => string, 'segments' => array]
- */
-function get_segments() {
-    $base = rtrim(str_replace('://', '', BASE_URL), '/');
-    $discard = max(0, substr_count($base, '/'));
-
-    $scheme = (($_SERVER['HTTPS'] ?? '') === 'on') ? 'https' : 'http';
-    $assumed = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQUEST_URI'] ?? '/');
-    $assumed = attempt_custom_routing($assumed);
-
-    $clean = trim(str_replace('://', '', $assumed), '/');
-    $segments = explode('/', $clean);
-
-    return [
-        'assumed_url' => $assumed,
-        'segments' => array_slice($segments, $discard)
-    ];
-}
-
-/**
- * Cached custom-route matching
- */
-function attempt_custom_routing($url) {
-    static $routes = [];
-
-    if (empty($routes)) {
-        if (!defined('CUSTOM_ROUTES') || empty(CUSTOM_ROUTES)) {
-            return $url;
-        }
-
-        foreach (CUSTOM_ROUTES as $pattern => $dest) {
-            $regex = '#^' . strtr($pattern, [
-                '/'      => '\/',
-                '(:num)' => '(\d+)',
-                '(:any)' => '([^\/]+)',
-            ]) . '$#';
-            $routes[] = [$regex, $dest];
-        }
-    }
-
-    $path = ltrim(parse_url($url, PHP_URL_PATH) ?: '/', '/');
-    $base_path = ltrim(parse_url(BASE_URL, PHP_URL_PATH) ?: '/', '/');
-
-    if ($base_path !== '' && strpos($path, $base_path) === 0) {
-        $path = substr($path, strlen($base_path));
-    }
-
-    foreach ($routes as [$regex, $dest]) {
-        if (preg_match($regex, $path, $matches)) {
-            $match_count = count($matches);
-            for ($i = 1; $i < $match_count; $i++) {
-                $dest = str_replace('$' . $i, $matches[$i], $dest);
-            }
-            return rtrim(BASE_URL . $dest, '/');
-        }
-    }
-
-    return $url;
-}
-
-/* --------------------------------------------------------------
- * 6.  Final constants & helpers
- * -------------------------------------------------------------- */
-$segments = get_segments();
-define('SEGMENTS', $segments['segments']);
-define('ASSUMED_URL', $segments['assumed_url']);
-
-$helpers = [
-    'tg_helpers/flashdata_helper.php',
-    'tg_helpers/form_helper.php',
-    'tg_helpers/string_helper.php',
-    'tg_helpers/timedate_helper.php',
-    'tg_helpers/url_helper.php',
-    'tg_helpers/utilities_helper.php'
-];
-
-foreach ($helpers as $helper) {
-    require_once ENGPATH . $helper;
 }

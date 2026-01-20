@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="115 150 2170 2064" width="24" height="24">
+	<defs>
+		<clipPath id="half-clip">
+			<rect x="115" y="150" width="1085" height="2064"/>
+		</clipPath>
+	</defs>
+	<g clip-path="url(#half-clip)">
+		<path d="M1200 200l247 750h788l-638 464 244 750-641-466-641 466 244-750-638-464h788z"/>
+	</g>
+	<line x1="1200" y1="200" x2="1200" y2="2164" stroke="currentColor" stroke-width="2"/>
+</svg>

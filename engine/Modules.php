@@ -1,144 +1,93 @@
 <?php
 /**
- * Class Modules - Handles loading and running modules
+ * Class Modules - Invokes a controller's method from a given view file.
+ * Optimized for Trongate v2 performance and AI-readability.
  */
 class Modules {
 
-    private $modules = [];
+    private array $modules = [];
 
     /**
-     * Statically run a controller action.
-     * Format: "Module/Controller/Action"
+     * Run a module's controller action.
+     * Optimized for v2: Explicit data passing with zero "segment guessing".
      *
-     * @param string $module_controller_action
-     * @param mixed  $first_value
-     * @param mixed  $second_value
-     * @param mixed  $third_value
+     * @param string $module_method The format is "Module/Method"
+     * @param mixed $data Optional data to pass to the method
      * @return mixed
+     * @throws Exception If the format is invalid or controller/method is missing.
      */
-    public static function run($module_controller_action, $first_value = null, $second_value = null, $third_value = null) {
-        $debris = explode('/', $module_controller_action);
-        $target_module = $debris[0];
+    public static function run(string $module_method, mixed $data = null): mixed {
+        $debris = explode('/', $module_method);
+        
+        if (count($debris) !== 2) {
+            throw new Exception('Invalid format. Expected: "Module/Method"');
+        }
+        
+        $target_module = strtolower($debris[0]);
         $target_controller = ucfirst($target_module);
-        $target_method = $debris[1];
+        $target_method = strtolower($debris[1]);
+        $controller_path = '../modules/' . $target_module . '/' . $target_controller . '.php';
 
-        // Try normal module path first
-        $controller_path = '../modules/' . $target_module . '/controllers/' . $target_controller . '.php';
-
-        if (!is_file($controller_path)) {
-            // Try parent-child path
-            $parts = self::split_parent_child($target_module);
-            if ($parts) {
-                $controller_path = self::child_controller_path($parts['parent'], $parts['child']);
-                $target_controller = ucfirst($parts['child']);
+        // Check for parent-child module structure if standard path fails
+        if (!file_exists($controller_path)) {
+            $bits = explode('-', $target_module);
+            if (count($bits) === 2 && strlen($bits[1]) > 0) {
+                $parent_module = $bits[0];
+                $child_module = $bits[1];
+                $target_controller = ucfirst($child_module);
+                $controller_path = '../modules/' . $parent_module . '/' . $child_module . '/' . $target_controller . '.php';
             }
         }
 
+        if (!file_exists($controller_path)) {
+            throw new Exception("Controller not found at: $controller_path");
+        }
+
         require_once $controller_path;
+        
+        if (!class_exists($target_controller)) {
+            throw new Exception("Controller class '$target_controller' not found");
+        }
+        
         $controller = new $target_controller($target_module);
-        return $controller->$target_method($first_value, $second_value, $third_value);
+
+        if (!method_exists($controller, $target_method)) {
+            throw new Exception("Method '$target_method' not found in '$target_controller'");
+        }
+
+        // Pass data if provided, otherwise call without parameters
+        return ($data !== null) ? $controller->$target_method($data) : $controller->$target_method();
     }
 
     /**
-     * Load a module and keep its instance.
+     * Loads a module by instantiating its controller and storing it in the modules array.
      *
-     * @param string $target_module
+     * @param string $target_module The name of the target module.
      * @return void
+     * @throws Exception If the module cannot be located.
      */
-    public function load($target_module) {
+    public function load(string $target_module): void {
+        $target_module = strtolower($target_module);
         $target_controller = ucfirst($target_module);
-        $target_controller_path = '../modules/' . $target_module . '/controllers/' . $target_controller . '.php';
+        $target_controller_path = '../modules/' . $target_module . '/' . $target_controller . '.php';
 
-        if (!is_file($target_controller_path)) {
-            // Check for parent-child
-            $parts = self::split_parent_child($target_module);
-            if ($parts) {
-                $child = $parts['child'];
-                $target_controller_path = self::child_controller_path($parts['parent'], $child);
-                $target_module = $child;
+        if (!file_exists($target_controller_path)) {
+            $bits = explode('-', $target_module);
+
+            if (count($bits) === 2 && strlen($bits[1]) > 0) {
+                $parent_module = $bits[0];
+                $child_module = $bits[1];
+                $target_controller = ucfirst($child_module);
+                $target_controller_path = '../modules/' . $parent_module . '/' . $child_module . '/' . $target_controller . '.php';
+                $target_module = $child_module;
+            }
+
+            if (!file_exists($target_controller_path)) {
+                throw new Exception("Unable to locate '{$target_module}' module at: {$target_controller_path}");
             }
         }
 
         require_once $target_controller_path;
         $this->modules[$target_module] = new $target_controller($target_module);
     }
-
-    /**
-     * Loads a module and returns the instance directly.
-     *
-     * @param string $target_module The name of the target module.
-     * @return object The loaded module instance.
-     * @throws Exception If the module cannot be loaded.
-     */
-    public function load_and_return(string $target_module): object {
-        $path_info = Module_path::resolve($target_module);
-        
-        if ($path_info['type'] === 'not_found') {
-            throw new Exception("Module controller not found: {$target_module}");
-        }
-        
-        $access_key = $path_info['access_key'];
-        
-        // Return existing instance if already loaded
-        if (isset($this->modules[$access_key])) {
-            return $this->modules[$access_key];
-        }
-        
-        require_once $path_info['controller_path'];
-        
-        if (!class_exists($path_info['controller_class'])) {
-            throw new Exception("Module class not found: {$path_info['controller_class']}");
-        }
-        
-        $instance = new $path_info['controller_class']($target_module);
-        $this->modules[$access_key] = $instance;
-        
-        return $instance;
-    }
-
-    /**
-     * List all existing modules.
-     *
-     * @param bool $recursive
-     * @return array
-     */
-    public function list($recursive = false) {
-        $file = new File;
-        return $file->list_directory(APPPATH . 'modules', $recursive);
-    }
-
-    /**
-     * Split a parent-child module token into components.
-     * 
-     * @param string $module_token The module identifier (e.g., 'dealfinder-page_watcher').
-     * @return array|false Array with 'parent' and 'child' keys, or false if not a child module format.
-     */
-    private static function split_parent_child($module_token) {
-        if (strpos($module_token, '-') === false) {
-            return false;
-        }
-        
-        $parts = explode('-', $module_token);
-        if (count($parts) !== 2 || empty($parts[0]) || empty($parts[1])) {
-            return false;
-        }
-        
-        return [
-            'parent' => strtolower($parts[0]),
-            'child' => strtolower($parts[1])
-        ];
-    }
-
-    /**
-     * Get the controller path for a child module.
-     * 
-     * @param string $parent The parent module name.
-     * @param string $child The child module name.
-     * @return string The path to the child controller file.
-     */
-    private static function child_controller_path($parent, $child) {
-        $child_controller = ucfirst($child);
-        return '../modules/' . $parent . '/' . $child . '/controllers/' . $child_controller . '.php';
-    }
-
 }

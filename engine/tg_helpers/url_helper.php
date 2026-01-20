@@ -10,14 +10,44 @@ function current_url(): string {
 }
 
 /**
- * Get a specific URL segment.
+ * Retrieve a segment from the current URL path, with optional type casting.
  *
- * @param int $num The segment number to retrieve.
- * @param string|null $var_type (Optional) The desired data type of the segment value. Default is null.
- * @return mixed The value of the specified URL segment.
+ * This function fetches a specific segment from the URL based on its
+ * 1-based position. URL segments are not implicitly injected into controller
+ * methods; they must be explicitly retrieved using this helper.
+ *
+ * Example URL:
+ * example.com/users/profile/123
+ *
+ * Segment values:
+ * - segment(1) returns "users"
+ * - segment(2) returns "profile"
+ * - segment(3) returns "123"
+ *
+ * Optional type casting is performed using PHP's native settype() function,
+ * allowing input to be coerced at the point of retrieval. This encourages
+ * explicit handling, improves clarity, and strengthens security by ensuring
+ * predictable data types.
+ *
+ * Supported types include:
+ * "int", "integer", "float", "double",
+ * "string", "bool", "boolean",
+ * "array", "object", "null"
+ *
+ * @param int $num
+ * The 1-based index of the URL segment to retrieve.
+ *
+ * @param string|null $var_type
+ * Optional. A PHP data type to cast the segment value to.
+ * If null, the segment is returned as a string.
+ *
+ * @return mixed
+ * The value of the requested URL segment, cast to the specified type
+ * if provided. Returns an empty string if the segment does not exist.
  */
-function segment(int $num, ?string $var_type = null) {
+function segment(int $num, ?string $var_type = null): mixed {
     $segments = SEGMENTS;
+
     if (isset($segments[$num])) {
         $value = $segments[$num];
     } else {
@@ -65,8 +95,10 @@ function get_last_segment(): string {
 
 /**
  * Perform an HTTP redirect to the specified URL.
+ * * If the provided target URL does not start with 'http', it is assumed
+ * to be an internal route, and the BASE_URL is automatically prepended.
  *
- * @param string $target_url The URL to which the redirect should occur.
+ * @param string $target_url The URL or internal route to redirect to.
  * @return void
  */
 function redirect(string $target_url): void {
@@ -82,7 +114,7 @@ function redirect(string $target_url): void {
 /**
  * Get the URL of the previous page, if available.
  *
- * @return string The URL of the previous page as a string.
+ * @return string The URL of the previous page or an empty string.
  */
 function previous_url(): string {
     if (isset($_SERVER['HTTP_REFERER'])) {
@@ -94,34 +126,31 @@ function previous_url(): string {
 }
 
 /**
- * Generates an HTML anchor tag with the given URL, text, and attributes.
+ * Generates an HTML anchor tag with optional URL resolution and XSS protection.
  *
- * This function creates an anchor tag (<a>) with the specified URL and text.
- * If the URL is relative (does not start with 'http://', 'https://', or '//'),
- * it prepends the BASE_URL constant to make it absolute.
- * The URL is escaped using htmlspecialchars to prevent XSS attacks.
- * The text is not escaped, allowing for HTML content.
- * Additional attributes can be provided as an associative array.
+ * This function creates an anchor tag (<a>). If the URL is relative (does not 
+ * start with 'http://', 'https://', or '//'), the BASE_URL constant is 
+ * prepended to ensure the link points to the correct internal route.
  *
- * Note: This function assumes that the BASE_URL constant is defined.
+ * Attributes and URLs are automatically escaped to prevent XSS attacks.
  *
- * @param string $url The URL for the anchor tag. Can be relative or absolute.
- * @param string|null $text The inner HTML of the anchor tag. If null, the original $url is used.
- * @param array $attributes Associative array of additional attributes (e.g., ['class' => 'btn']).
+ * @param string $url The destination URL. Can be relative or absolute.
+ * @param string|null $text The visible link text. If null, the URL is used.
+ * @param array $attributes Associative array of HTML attributes (e.g., ['class' => 'btn']).
  * @return string The generated HTML anchor tag.
  */
 function anchor(string $url, ?string $text = null, array $attributes = []): string {
-    // Determine if the URL is absolute (starts with http://, https://, or //)
+    // Determine if the URL is absolute or relative
     if (preg_match('/^(https?:\/\/|\/\/)/i', $url)) {
-        $full_url = $url; // Use the URL as is
+        $full_url = $url;
     } else {
-        $full_url = BASE_URL . $url; // Prepend BASE_URL for relative paths
+        $full_url = BASE_URL . $url;
     }
 
-    // Escape the full URL for safe use in HTML attributes
+    // Escape the full URL for attribute safety
     $escaped_url = htmlspecialchars($full_url, ENT_QUOTES, 'UTF-8');
 
-    // Use provided text, or fall back to the original $url if text is null
+    // Use provided text or fallback to URL
     $text_to_use = $text ?? $url;
 
     // Build the attributes string
@@ -131,7 +160,6 @@ function anchor(string $url, ?string $text = null, array $attributes = []): stri
         $attr_string .= ' ' . $key . '="' . $escaped_value . '"';
     }
 
-    // Construct and return the anchor tag
     $tag = '<a href="' . $escaped_url . '"' . $attr_string . '>' . $text_to_use . '</a>';
     return $tag;
 }
