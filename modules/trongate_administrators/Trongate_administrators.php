@@ -498,7 +498,9 @@ class Trongate_administrators extends Trongate {
      * @param string $submitted_username The username submitted in the login form
      * @return string|bool True if credentials are valid, error message otherwise
      */
-    public function _login_check(string $submitted_username): string|bool {
+    public function login_check(string $submitted_username): string|bool {
+        block_url('trongate_administrators/login_check');
+
         $submitted_password = post('password');
         $validate_credentials = $this->model->validate_credentials($submitted_username, $submitted_password);
 
@@ -541,7 +543,8 @@ class Trongate_administrators extends Trongate {
      * 
      * @return string|null The authentication token if access is granted, null otherwise
      */
-    public function _make_sure_allowed(): ?string {
+    public function make_sure_allowed(): ?string {
+        block_url('trongate_administrators/make_sure_allowed');
         $token = $this->trongate_tokens->attempt_get_valid_token(1);
 
         // Handle API/MX requests
@@ -659,7 +662,9 @@ class Trongate_administrators extends Trongate {
      * @return string|bool Returns true if validation passes, 
      *                     or an error message string if validation fails
      */
-    public function _username_check(string $str): string|bool {
+    public function username_check(string $str): string|bool {
+        block_url('trongate_administrators/username_check');
+
         if ($str === '') {
             return true;
         }

@@ -16,7 +16,7 @@ class File {
      */
     public function __construct() {
         // Protect this module from unwanted browser access
-        block_url_invocation('file');
+        block_url('file');
     }
 
     /**

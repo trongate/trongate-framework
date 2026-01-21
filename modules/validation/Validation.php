@@ -21,7 +21,7 @@ class Validation extends Trongate {
      */
     public function __construct(?string $module_name = null) {
         parent::__construct($module_name);
-        block_url_invocation($this->module_name);
+        block_url($this->module_name);
     }
 
     /**
@@ -461,11 +461,11 @@ class Validation extends Trongate {
         $posted_value = $validation_data['posted_value'];
         $test_to_run = $validation_data['test_to_run'];
 
-        $inner_bracket_contents = $this->_extract_content($test_to_run, '[', ']');
+        $inner_bracket_contents = $this->extract_content($test_to_run, '[', ']');
 
         if ($inner_bracket_contents !== '') {
-            $test_name = $this->_get_test_name($test_to_run);
-            $inner_value = $this->_extract_content($test_to_run, '[', ']');
+            $test_name = $this->get_test_name($test_to_run);
+            $inner_value = $this->extract_content($test_to_run, '[', ']');
 
             switch ($test_name) {
                 case 'matches':
@@ -503,7 +503,7 @@ class Validation extends Trongate {
      * @param string $end The ending string to search for.
      * @return string Returns the extracted content.
      */
-    private function _extract_content(string $string, string $start, string $end): string {
+    private function extract_content(string $string, string $start, string $end): string {
         $pos = stripos($string, $start);
         $str = substr($string, $pos);
         $str_two = substr($str, strlen($start));
@@ -519,7 +519,7 @@ class Validation extends Trongate {
      * @param string $test_to_run The string containing the test name and parameters.
      * @return string Returns the extracted test name.
      */
-    private function _get_test_name(string $test_to_run): string {
+    private function get_test_name(string $test_to_run): string {
         $pos = stripos($test_to_run, '[');
         $test_name = substr($test_to_run, 0, $pos);
         return $test_name;
@@ -647,7 +647,7 @@ class Validation extends Trongate {
         $chars = substr($test_to_run, 0, 9);
         if ($chars === 'callback_') {
             $target_module = ucfirst(segment(1));
-            $target_method = '_' . str_replace('callback_', '', $test_to_run);
+            $target_method = str_replace('callback_', '', $test_to_run);
             
             // Store the module name for constructor (lowercase, full path including hyphens)
             $module_name = strtolower(segment(1));

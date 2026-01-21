@@ -48,7 +48,7 @@ class Image {
     public function __construct(?string $filename = null) {
 
         // Protect this module from unwanted browser access
-        block_url_invocation('image');
+        block_url('image');
         
         if (!extension_loaded('gd')) {
             echo "<h1 style='color: red;'>*** Warning ***</h1>";

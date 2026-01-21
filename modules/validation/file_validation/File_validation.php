@@ -29,7 +29,7 @@ class File_validation extends Trongate {
      */
     public function __construct(?string $module_name = null) {
         parent::__construct($module_name);
-        block_url_invocation($this->module_name);
+        block_url($this->module_name);
     }
 
     /**

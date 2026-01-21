@@ -1,15 +1,40 @@
 <?php
 /**
- * Blocks direct URL access to a module while allowing internal code access.
- * Optimized for maximum performance, case-insensitivity, and AI-readability.
+ * Blocks direct browser access to a module or a specific module-method combination.
  *
- * @param string $module_name The module name to protect (must be lowercase)
+ * This helper function prevents certain code from being invoked via URL access while 
+ * allowing unrestricted internal PHP calls. It compares the current URL segments 
+ * against the supplied target path and returns a 403 Forbidden response if a match is found.
+ *
+ * Usage:
+ *  - block_url('module') → blocks all methods in the module
+ *  - block_url('module/method') → blocks only that specific method
+ *
+ * @param string $block_path The module or module/method string to block.
  * @return void
  */
-function block_url_invocation(string $module_name): void {
-    if ($module_name !== '' && strcasecmp(segment(1), $module_name) === 0) {
-        http_response_code(403);
-        die('403 Forbidden');
+function block_url(string $block_path = ''): void {
+    if ($block_path === '') {
+        return; // Nothing to block
+    }
+
+    // Split into module and optional method
+    $bits = explode('/', $block_path);
+    $target_module = $bits[0];
+    $target_method = $bits[1] ?? '';
+
+    if ($target_method === '') {
+        // Block entire module
+        if (segment(1) === $target_module) {
+            http_response_code(403);
+            die('403 Forbidden - Direct URL access not permitted');
+        }
+    } else {
+        // Block specific method
+        if (segment(1) === $target_module && segment(2) === $target_method) {
+            http_response_code(403);
+            die('403 Forbidden - Direct URL access not permitted');
+        }
     }
 }
 
