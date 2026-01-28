@@ -1,10 +1,7 @@
 /**
  * Trongate
  *
- * Version: 2.0.0-beta.1
- *
- * This is a pre-release version of Trongate v2.
- * It is intended for testing and evaluation and may contain bugs or breaking changes.
+ * Version: 2.2026.0128
  *
  * This product is released under the MIT License (MIT).
  *

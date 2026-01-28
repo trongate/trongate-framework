@@ -11,6 +11,7 @@
   --success-dark: #368532;
   --info: #b2cce1;
   --warning: #b47846;
+  --warning-dark: #995f36;
   --danger: #b4464b;
   --danger-dark: #8f383b;
   --inverse: #333;
@@ -163,8 +164,8 @@ button:disabled {
 }
 
 .warning:hover {
-    background-color: #995f36;  /* darker shade of warning */
-    border: 1px solid #995f36;
+    background-color: var(--warning-dark);
+    border: 1px solid var(--warning-dark);
     color: var(--primary-color);
 }
 
@@ -349,6 +350,22 @@ body .text-center, html .text-center { text-align: center; }
   border: 1px solid var(--primary-darker);
 }
 
+/* Card heading color variants */
+.card-heading.danger {
+  background-color: var(--danger);
+  border: 1px solid var(--danger-dark);
+}
+
+.card-heading.success {
+  background-color: var(--success);
+  border: 1px solid var(--success-dark);
+}
+
+.card-heading.warning {
+  background-color: var(--warning);
+  border: 1px solid var(--warning-dark);
+}
+
 .card-body { padding: 20px; background-color: #fff; }
 
 .card {
@@ -414,6 +431,22 @@ body .text-center, html .text-center { text-align: center; }
   color: var(--primary-color);
   border: 1px solid var(--primary-darker);
   text-transform: uppercase;
+}
+
+/* Modal heading color variants */
+.modal-heading.danger {
+  background-color: var(--danger);
+  border: 1px solid var(--danger-dark);
+}
+
+.modal-heading.success {
+  background-color: var(--success);
+  border: 1px solid var(--success-dark);
+}
+
+.modal-heading.warning {
+  background-color: var(--warning);
+  border: 1px solid var(--warning-dark);
 }
 
 .modal-footer {
@@ -745,12 +778,12 @@ form .modal textarea {
       padding: 10px 14px;
   }
 
-  button, 
-  button.button, 
+  button,
+  button.button,
   a.button,
-  .button { 
-    width: 100%; 
-    display: block; 
+  .button {
+    width: 100%;
+    display: block;
     box-sizing: border-box;
     margin: 0.5em 0;
   }

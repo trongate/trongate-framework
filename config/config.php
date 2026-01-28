@@ -1,13 +1,4 @@
 <?php
-/**
- * Trongate v2 – Pre-release Notice
- *
- * This is a pre-release version of Trongate v2.
- * It may contain bugs, incomplete features, or breaking changes.
- *
- * Use in production environments is not yet recommended.
- */
-
 //The main config file
 define('BASE_URL', 'http://localhost/trongate_v2/');
 define('ENV', 'dev');
