@@ -55,6 +55,9 @@ class Db extends Trongate {
     public function __construct(?string $module_name = null, ?string $db_group = null) {
         // Call parent constructor first - REQUIRED by framework!
         parent::__construct($module_name);
+
+        // Block all direct URL access to this module
+        block_url('db');
         
         // Determine environment mode
         $this->is_dev_mode = defined('ENV') && strtolower(ENV) === 'dev';
@@ -483,6 +486,86 @@ class Db extends Trongate {
         return ($return_type === 'object') 
             ? $this->stmt->fetchAll(PDO::FETCH_OBJ) 
             : $this->stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Resequence IDs of a specified table.
+     *
+     * This method resequences the IDs in the given table, assigning new sequential IDs
+     * starting from 1. It uses a temporary column to store the new IDs and avoid
+     * potential ID conflicts. If the table is empty, the method resets the auto-increment
+     * value to 1.
+     *
+     * @param string $table_name The name of the table to resequence IDs for.
+     * @return bool True upon successful resequencing, false otherwise.
+     * @throws Exception If the operation fails.
+     *
+     * @note This method should be used with caution and may produce undesired consequences.
+     *       Resequencing IDs can lead to potential data inconsistencies and unexpected behaviors,
+     *       especially in systems with complex relationships or when dealing with large datasets.
+     *       It's recommended to thoroughly test this method in a controlled environment
+     *       before applying it to a production system. Additionally, make sure to take
+     *       proper backups of your data before executing this operation.
+     */
+    public function resequence_ids(string $table_name): bool {
+
+        $num_rows = $this->count($table_name);
+        if ($num_rows === 0) {
+            $sql = 'ALTER TABLE '.$table_name.' AUTO_INCREMENT = 1';
+            $this->query($sql);
+            return true;
+        }
+        
+        try {
+            // Begin transaction
+            $this->dbh->beginTransaction();
+
+            // Fetch all rows ordered by current ID
+            $rows = $this->get('id', $table_name);
+
+            // Initialize new counter starting from 1
+            $counter = 1;
+
+            // If the table is empty, reset auto-increment value to 1
+            if (empty($rows)) {
+                $this->dbh->exec("ALTER TABLE $table_name AUTO_INCREMENT = 1");
+                // Commit transaction and exit
+                $this->dbh->commit();
+                return true;
+            }
+
+            // First pass: assign temporary IDs to avoid conflicts
+            foreach ($rows as $row) {
+                $id = $row->id;
+                $temp_id = -$counter; // Use negative numbers for temporary IDs
+                $stmt = $this->dbh->prepare("UPDATE $table_name SET id = :temp_id WHERE id = :id");
+                $stmt->execute([':temp_id' => $temp_id, ':id' => $id]);
+                $counter++;
+            }
+
+            // Second pass: assign new sequential IDs
+            $counter = 1;
+            foreach ($rows as $row) {
+                $temp_id = -$counter; // Temporary IDs were used in the first pass
+                $new_id = $counter;
+                $stmt = $this->dbh->prepare("UPDATE $table_name SET id = :new_id WHERE id = :temp_id");
+                $stmt->execute([':new_id' => $new_id, ':temp_id' => $temp_id]);
+                $counter++;
+            }
+
+            // Commit transaction
+            $this->dbh->commit();
+            
+            $sql = 'ALTER TABLE '.$table_name.' AUTO_INCREMENT = 1';
+            $this->query($sql);
+
+            // Return true upon successful resequencing
+            return true;
+        } catch (Exception $e) {
+            // Rollback transaction in case of error
+            $this->dbh->rollBack();
+            throw $e;
+        }
     }
 
     /**
