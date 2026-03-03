@@ -269,6 +269,52 @@ class File {
     }
 
     /**
+     * Deletes a directory and all of its contents recursively.
+     *
+     * This method removes a directory and all files and subdirectories within it.
+     * Use with caution as this operation is irreversible.
+     *
+     * @param string $directory_path The path to the directory to delete.
+     * @return bool Returns true if the directory is successfully deleted.
+     * @throws Exception If the directory does not exist or deletion fails.
+     */
+    public function delete_directory(string $directory_path): bool {
+        // Validate the path to ensure it's allowed based on predefined security rules
+        if (!$this->is_path_valid($directory_path)) {
+            throw new Exception("Access to this path is restricted: $directory_path");
+        }
+
+        if (!is_dir($directory_path)) {
+            throw new Exception("The specified path is not a directory: $directory_path");
+        }
+
+        $items = new DirectoryIterator($directory_path);
+
+        foreach ($items as $item) {
+            if ($item->isDot()) {
+                continue;
+            }
+
+            $path = $item->getPathname();
+
+            if ($item->isDir()) {
+                // Recursively delete subdirectories
+                $this->delete_directory($path);
+            } else {
+                // Delete files
+                unlink($path);
+            }
+        }
+
+        // Delete the now-empty directory
+        if (!rmdir($directory_path)) {
+            throw new Exception("Failed to delete directory: $directory_path");
+        }
+
+        return true;
+    }
+
+    /**
      * Initiates a file download or displays inline from the server or an external URL.
      *
      * This method prepares and sends headers based on the parameters to either initiate a file download
