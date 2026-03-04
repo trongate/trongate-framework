@@ -640,6 +640,53 @@ class Db extends Trongate {
     }
 
     /**
+     * Attempt to truncate a table if it contains no rows.
+     * 
+     * This method checks if the specified table is empty. If the table has no rows,
+     * it executes a TRUNCATE statement to clear the table and reset the auto-increment counter.
+     * If the table contains rows, no action is taken and false is returned.
+     * 
+     * @param string $table Table name
+     * @param bool $validate_table Whether to validate table existence before truncating (default: true)
+     * @return bool Returns true if the table was truncated, false if the table contains rows
+     * 
+     * Examples:
+     * if ($db->attempt_truncate('sessions')) {
+     *     echo "Sessions table was truncated";
+     * } else {
+     *     echo "Sessions table still has records";
+     * }
+     * 
+     * // Skip validation if you're certain the table exists
+     * $db->attempt_truncate('sessions', false);
+     * 
+     * @throws RuntimeException If table does not exist (when $validate_table is true)
+     */
+    public function attempt_truncate(string $table, bool $validate_table = true): bool {
+        if ($validate_table) {
+            $this->validate_table_exists($table);
+        }
+        
+        // Check if table has rows
+        $row_count = $this->count($table);
+        
+        if ($row_count === 0) {
+            // Table is empty, proceed with truncate
+            $sql = "TRUNCATE TABLE `$table`";
+            
+            if ($this->debug) {
+                $this->show_query($sql, []);
+            }
+            
+            $this->prepare_and_execute($sql, []);
+            return true;
+        }
+        
+        // Table has rows, do not truncate
+        return false;
+    }
+
+    /**
      * Validate that a table exists
      * 
      * @throws RuntimeException If table does not exist
