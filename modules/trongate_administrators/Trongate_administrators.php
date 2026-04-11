@@ -7,6 +7,7 @@ class Trongate_administrators extends Trongate {
 
     // NOTE: Uncomment the line below to enforce a custom login segment.
     // private string $secret_login_segment = "tg-admin";
+    private string $admin_theme = '';
     private int $default_limit = 20;
     private array $per_page_options = [10, 20, 50, 100];
     private string $dashboard_home;
@@ -50,6 +51,7 @@ class Trongate_administrators extends Trongate {
 
         $data['update_password_url'] = str_replace('/create', '/update_password', current_url());
         $data['form_location'] = BASE_URL . $this->module_name . '/submit/' . $update_id;
+        $data['theme'] = $this->admin_theme;
         $data['view_module'] = $this->module_name;
         $data['view_file'] = 'create';
         
@@ -87,6 +89,7 @@ class Trongate_administrators extends Trongate {
         $data['headline'] = $is_own_account ? 'Your Account Details' : 'Record Details';
         $data['is_own_account'] = $is_own_account;
         $data['back_url'] = $this->get_back_url();
+        $data['theme'] = $this->admin_theme;
         $data['view_module'] = $this->module_name;
         $data['view_file'] = 'show';
         
@@ -141,6 +144,7 @@ class Trongate_administrators extends Trongate {
         $data['headline'] = 'Delete Record';
         $data['cancel_url'] = BASE_URL . $this->module_name . '/show/' . $update_id;
         $data['form_location'] = BASE_URL . $this->module_name . '/submit_delete/' . $update_id;
+        $data['theme'] = $this->admin_theme;
         $data['view_module'] = $this->module_name;
         $data['view_file'] = 'delete_conf';
         $this->templates->admin($data);
@@ -172,6 +176,7 @@ class Trongate_administrators extends Trongate {
             : BASE_URL . $this->module_name . '/manage';
 
         $data['form_location'] = str_replace('/update_password/', '/submit_update_password/', current_url());
+        $data['theme'] = $this->admin_theme;
         $data['view_module'] = $this->module_name;
         $data['view_file'] = 'update_password';
         $this->templates->admin($data);
@@ -233,6 +238,7 @@ class Trongate_administrators extends Trongate {
      */
     public function not_found(): void {
         $data = [
+            'theme' => $this->admin_theme,
             'headline' => 'Record Not Found',
             'message' => 'The record you\'re looking for doesn\'t exist or has been deleted.',
             'back_url' => $this->get_back_url(),
@@ -527,6 +533,7 @@ class Trongate_administrators extends Trongate {
         $total_rows = $this->model->count_all();
   
         $data = [
+            'theme' => $this->admin_theme,
             'rows' => $rows,
             'pagination_data' => $this->get_pagination_data($limit, $total_rows),
             'view_module' => $this->module_name,
