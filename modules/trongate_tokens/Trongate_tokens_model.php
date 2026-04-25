@@ -45,9 +45,9 @@ class Trongate_tokens_model extends Model {
      *
      * @param array $user_tokens An array of user tokens to search
      * @param int $user_level The user level to filter tokens
-     * @return string|false The valid token if found, or false if none is found
+     * @return string|bool The valid token if found, or false if none is found
      */
-    public function validate_token_single_level(array $user_tokens, int $user_level): string|false {
+    public function validate_token_single_level(array $user_tokens, int $user_level): string|bool {
         $where_condition = ' WHERE trongate_tokens.token = :token ';
         $params['user_level_id'] = $user_level;
         $params['nowtime'] = time();
@@ -84,9 +84,9 @@ class Trongate_tokens_model extends Model {
      *
      * @param array $user_tokens An array of user tokens to search
      * @param array $user_levels An array of user levels to filter tokens
-     * @return string|false The valid token if found, or false if none is found
+     * @return string|bool The valid token if found, or false if none is found
      */
-    public function validate_token_multi_level(array $user_tokens, array $user_levels): string|false {
+    public function validate_token_multi_level(array $user_tokens, array $user_levels): string|bool {
         $where_condition = ' WHERE trongate_tokens.token = :token ';
         $params['nowtime'] = time();
 
@@ -138,9 +138,9 @@ class Trongate_tokens_model extends Model {
      * Validate token for any user level type.
      *
      * @param array $user_tokens An array of user tokens to search
-     * @return string|false The valid token if found, or false if none is found
+     * @return string|bool The valid token if found, or false if none is found
      */
-    public function validate_token_any_level(array $user_tokens): string|false {
+    public function validate_token_any_level(array $user_tokens): string|bool {
         $where_condition = ' WHERE trongate_tokens.token = :token ';
         $params['nowtime'] = time();
 
@@ -208,9 +208,9 @@ class Trongate_tokens_model extends Model {
      * or it checks session, cookie, and page header values if no token is provided.
      *
      * @param string|null $token Optional. The token to retrieve the user ID for
-     * @return int|false The Trongate user ID if found, or false if not found
+     * @return int|bool The Trongate user ID if found, or false if not found
      */
-    public function get_user_id(?string $token = null): int|false {
+    public function get_user_id(?string $token = null): int|bool {
         $tokens = $this->build_token_array($token);
 
         if (empty($tokens)) {
@@ -240,9 +240,9 @@ class Trongate_tokens_model extends Model {
      * or it checks session, cookie, and page header values if no token is provided.
      *
      * @param string|null $token Optional. The token to use for fetching the user object
-     * @return object|false The Trongate user object if found, or false if not found
+     * @return object|bool The Trongate user object if found, or false if not found
      */
-    public function get_user_obj(?string $token = null): object|false {
+    public function get_user_obj(?string $token = null): object|bool {
         $tokens = $this->build_token_array($token);
 
         if (empty($tokens)) {
@@ -331,9 +331,9 @@ class Trongate_tokens_model extends Model {
      * 
      * @param string $old_token The old token to replace
      * @param int $expiry_date The new expiration date as Unix timestamp
-     * @return string|false The new token if successful, or false if old token not found
+     * @return string|bool The new token if successful, or false if old token not found
      */
-    public function regenerate_token(string $old_token, int $expiry_date): string|false {
+    public function regenerate_token(string $old_token, int $expiry_date): string|bool {
         // Check if the token exists
         $sql = 'SELECT * FROM trongate_tokens WHERE token = :token LIMIT 1';
         $rows = $this->db->query_bind($sql, ['token' => $old_token], 'object');

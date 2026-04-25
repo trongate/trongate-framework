@@ -164,8 +164,13 @@ class Core {
             try {
                 $controller_instance->{$this->current_method}();
             } catch (\ArgumentCountError) {
-                http_response_code(403);
-                die('403 Forbidden - Direct URL access not permitted');
+                if (defined('ENV') && strtolower(ENV) === 'dev') {
+                    http_response_code(500);
+                    die('ArgumentCountError: Direct URL access not permitted or method called with wrong number of parameters. Check method signatures.');
+                } else {
+                    http_response_code(403);
+                    die('403 Forbidden - Direct URL access not permitted');
+                }
             }
         } else {
             $this->draw_error_page();

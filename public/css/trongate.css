@@ -521,37 +521,40 @@ form .modal textarea {
     border: 0;
 }
 
-.modal .form-field-validation-error,
-.form-field-validation-error {
-  border: 3px #ff0000 solid !important;
-  background-color: #ff000011 !important;
+form .form-field-validation-error,
+form .form-field-validation-error:focus {
+  border: 3px solid var(--danger);
+  background-color: #ff000011;
 }
 
-.modal .validation-error-alert,
-.validation-error-alert {
-  padding: 12px 12px 0 12px;
-  border-radius: 12px;
+.validation-errors {
+  margin: 0.5em 0 1em 0;
+  padding: 0.3em 1em;
+  border: 1px solid var(--danger);
+  background-color: #ff000011;
+  color: var(--danger);
+  border-radius: 6px;
+  font-size: .9em;
 }
 
-.modal .validation-error-alert h3,
-.validation-error-alert h3 {
-  margin-top: 0;
-  display: flex;
-  align-items: center;
-  color: #ff0000;
+/* Target the list items directly */
+.validation-errors li {
+  margin-left: 1.2em;  /* Adjust this value to reduce/increase gap */
+  padding-left: 0;      /* Remove any default padding */
 }
 
-.modal .validation-error-report,
-.validation-error-report {
-  color: #ff0000 !important;
-  width: 100%;
-  text-align: left;
+.shake {
+  animation: form-shake 0.35s ease-in-out;
 }
 
-.modal .validation-error-report > div,
-.validation-error-report > div {
-  margin-bottom: 7px;
-  font-size: 16px;
+/* Shake animation for forms with errors */
+@keyframes form-shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
 }
 
 .spinner {

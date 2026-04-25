@@ -679,7 +679,6 @@ class File {
     private function validate_mime_type(string $filename): void {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime_type = finfo_file($finfo, $filename);
-        finfo_close($finfo);
 
         // Additional MIME validation for Unix systems
         if (DIRECTORY_SEPARATOR !== '\\') {

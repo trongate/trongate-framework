@@ -91,6 +91,14 @@
     mask-image: url('../trongate-icons/user.svg');
 }
 
+.tg-trash {
+    -webkit-mask-image: url('../trongate-icons/trash.svg');
+    mask-image: url('../trongate-icons/trash.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}
+
 .tg-user-circle {
     -webkit-mask-image: url('../trongate-icons/user-circle.svg');
     mask-image: url('../trongate-icons/user-circle.svg');

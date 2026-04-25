@@ -810,23 +810,30 @@ let trongateMXOpeningModal = false;
         handleValidationErrors(containingForm, validationErrors) {
             containingForm.querySelectorAll('.form-field-validation-error')
                 .forEach(field => field.classList.remove('form-field-validation-error'));
-            containingForm.querySelectorAll('.validation-error-report')
+            containingForm.querySelectorAll('.validation-errors')
                 .forEach(report => report.remove());
 
             let firstErrorElement = null;
 
-            validationErrors.forEach(error => {
+            // Convert the object to an array of error objects
+            const errorArray = Object.entries(validationErrors).map(([field, messages]) => ({
+                field: field,
+                messages: Array.isArray(messages) ? messages : [messages]
+            }));
+
+            errorArray.forEach(error => {
                 const field = containingForm.querySelector(`[name="${error.field}"]`);
                 if (field) {
                     field.classList.add('form-field-validation-error');
 
-                    const errorContainer = document.createElement('div');
-                    errorContainer.className = 'validation-error-report';
+                    // Create validation errors list matching PHP framework structure
+                    const errorContainer = document.createElement('ul');
+                    errorContainer.className = 'validation-errors validation-errors--inline';
 
                     error.messages.forEach(message => {
-                        const errorDiv = document.createElement('div');
-                        errorDiv.innerHTML = '● ' + Utils.escapeHtml(message);
-                        errorContainer.appendChild(errorDiv);
+                        const listItem = document.createElement('li');
+                        listItem.textContent = message;
+                        errorContainer.appendChild(listItem);
                     });
 
                     // Find the closest ancestor with 'flex-row' class that's inside or is the form itself
@@ -847,7 +854,7 @@ let trongateMXOpeningModal = false;
 
                         if (currentElement && currentElement.tagName.toLowerCase() === 'label') {
                             // If a target label is found, insert the errorContainer immediately after the form label
-                            targetLabel.parentNode.insertBefore(errorContainer, targetLabel.nextSibling);
+                            currentElement.parentNode.insertBefore(errorContainer, currentElement.nextSibling);
                         } else {
                             // OTHERWISE, search for a containing element that is WITHIN containingForm with a class of 'flex-row'
                             const innerFlexRow = field.closest('.flex-row');
@@ -875,7 +882,6 @@ let trongateMXOpeningModal = false;
                         let parentContainer = field.closest("div"); // Assuming checkbox/radio is wrapped in a div for styling
                         if (parentContainer) {
                             parentContainer.classList.add("form-field-validation-error");
-                            // Note: Setting inline styles like this is usually not recommended. Consider using CSS classes.
                             parentContainer.style.textIndent = "7px";
                         }
                     }
@@ -898,7 +904,6 @@ let trongateMXOpeningModal = false;
                 });
                 Utils.executeMXFunction(functionName, customEvent);
             }
-
         },
 
         removeCloak() {
@@ -947,8 +952,8 @@ let trongateMXOpeningModal = false;
                 validationErrorsAlert.remove();
             }
 
-            // Remove 'validation-error-report' elements within the form
-            containingForm.querySelectorAll('.validation-error-report')
+            // Remove 'validation-errors' elements within the form
+            containingForm.querySelectorAll('.validation-errors')
                 .forEach(el => el.remove());
 
             // Remove the 'form-field-validation-error' class from form fields

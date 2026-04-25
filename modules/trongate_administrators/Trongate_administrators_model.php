@@ -11,9 +11,9 @@ class Trongate_administrators_model extends Model {
 	 *
 	 * @param string $column The column name to match
 	 * @param mixed $value The value to match
-	 * @return object|false Returns record object if found, false otherwise
+	 * @return object|bool Returns record object if found, false otherwise
 	 */
-	private function find_one(string $column, $value): object|false {
+	private function find_one(string $column, $value): object|bool {
 	    $sql = "SELECT * FROM {$this->table_name} WHERE {$column} = :{$column} LIMIT 1";
 	    $params = [$column => $value];
 	    
@@ -28,10 +28,10 @@ class Trongate_administrators_model extends Model {
      * Returns false if record not found.
      * 
      * @param int $record_id The record ID to fetch
-     * @return array<string, mixed>|false Record data formatted for form display
+     * @return array<string, mixed>|bool Record data formatted for form display
      *                                    Returns false if record not found
      */
-    public function get_data_from_db(int $record_id): array|false {
+    public function get_data_from_db(int $record_id): array|bool {
         $record = $this->find_one('id', $record_id);
         
         if ($record === false) {
@@ -352,9 +352,9 @@ class Trongate_administrators_model extends Model {
 	 * Fetch a user record by ID.
 	 *
 	 * @param int $user_id The user identifier to look up
-	 * @return object|false Returns user object if found, false otherwise
+	 * @return object|bool Returns user object if found, false otherwise
 	 */
-	public function get_user_by_id(int $user_id): object|false {
+	public function get_user_by_id(int $user_id): object|bool {
 	    return $this->find_one('id', $user_id);
 	}
 
@@ -362,9 +362,9 @@ class Trongate_administrators_model extends Model {
 	 * Fetch a user record by authentication token.
 	 * 
 	 * @param string $token The authentication token to look up
-	 * @return object|false Returns user object if found, false otherwise
+	 * @return object|bool Returns user object if found, false otherwise
 	 */
-	public function get_user_by_token(string $token): object|false {
+	public function get_user_by_token(string $token): object|bool {
 	    $params['token'] = $token;
 	    $sql = 'SELECT
 	                    '.$this->table_name.'.* 
@@ -389,9 +389,9 @@ class Trongate_administrators_model extends Model {
 	/**
 	 * Fetch any active user.
 	 *
-	 * @return object|false Returns user object if found, false otherwise
+	 * @return object|bool Returns user object if found, false otherwise
 	 */
-	public function get_any_active_user(): object|false {
+	public function get_any_active_user(): object|bool {
 	    $sql = "SELECT * FROM {$this->table_name} WHERE active = 1 ORDER BY id LIMIT 1";
 	    $rows = $this->db->query_bind($sql, [], 'object');
 	    return !empty($rows) ? $rows[0] : false;
