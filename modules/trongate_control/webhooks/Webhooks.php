@@ -3,10 +3,64 @@ class Webhooks extends Trongate {
 
     public function __construct(?string $module_name = null) {
         parent::__construct($module_name);
+        $this->set_cors_headers();
         if (strtolower(ENV) !== 'dev') {
             http_response_code(403);
             echo '403 Forbidden - Endpoint disabled since not in dev mode';
             die();
+        }
+    }
+
+    /**
+     * Set CORS headers to allow cross-origin requests from trusted origins.
+     *
+     * The query builder runs inside an iframe on trongate.io and makes AJAX
+     * requests back to this local webhook endpoint. Without these headers,
+     * the browser blocks the cross-origin request.
+     *
+     * Dynamically allows only whitelisted origins, with a fallback error
+     * response for unauthorized origins.
+     *
+     * @return void
+     */
+    private function set_cors_headers(): void {
+        header('Vary: Origin');
+
+        $allowed_origins = [
+            'https://trongate.io',
+            'http://localhost'
+        ];
+
+        if (!isset($_SERVER['HTTP_ORIGIN'])) {
+            return;
+        }
+
+        $origin = $_SERVER['HTTP_ORIGIN'];
+
+        if (in_array($origin, $allowed_origins, true)) {
+            header("Access-Control-Allow-Origin: $origin");
+            header('Access-Control-Allow-Credentials: true');
+        } else {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'CORS origin not allowed']);
+            exit;
+        }
+
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, trongate-mx-request, X-Window-Type');
+        header('Access-Control-Allow-Private-Network: true');
+        header('Access-Control-Max-Age: 86400');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            // Chrome's Private Network Access requires the preflight to
+            // explicitly echo back the Access-Control-Request-Private-Network
+            // header with a value of "true" to allow loopback requests.
+            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK'])) {
+                header('Access-Control-Allow-Private-Network: true');
+            }
+            http_response_code(204);
+            exit;
         }
     }
 

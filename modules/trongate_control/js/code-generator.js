@@ -21,6 +21,60 @@ const CodeGenerator = {
                 CodeGenerator.openCodeGenerator();
             });
         }
+
+        // Listen for postMessage from cross-origin iframes
+        window.addEventListener('message', (event) => {
+
+            // Only accept messages from trusted origins
+            const trustedOrigins = [
+                CodeGenerator.apiBaseUrl ? CodeGenerator.apiBaseUrl.replace(/\/+$/, '') : null,
+                'https://trongate.io'
+            ].filter(Boolean);
+
+            if (!trustedOrigins.includes(event.origin)) {
+                return;
+            }
+
+            // Handle fetch proxy requests from the iframe
+            if (event.data && event.data.type === 'FLO_FETCH') {
+                CodeGenerator._handleFetchProxy(event);
+                return;
+            }
+
+            var action = event.data.action || event.data;
+
+            switch (action) {
+                case 'open_query_builder':
+                    CodeGenerator.openQueryBuilder();
+                    break;
+                case 'reset':
+                    CodeGenerator.reset();
+                    break;
+                case 'close':
+                    CodeGenerator.close();
+                    break;
+                case 'close_query_builder':
+                    CodeGenerator.closeQueryBuilder();
+                    break;
+                case 'go_back':
+                    CodeGenerator.reset();
+                    break;
+                default:
+                    if (typeof action === 'string' && action.startsWith('open_url:')) {
+                        var url = action.substring('open_url:'.length);
+                        var newTab = url.indexOf('new_tab') > -1;
+                        CodeGenerator.openUrl(url.replace('|new_tab', ''), newTab);
+                    } else if (typeof action === 'string' && action.startsWith('reload_iframe:')) {
+                        var parts = action.substring('reload_iframe:'.length).split('|');
+                        var url = parts[0] || '';
+                        var width = parts[1] ? parseInt(parts[1]) : null;
+                        var height = parts[2] ? parseInt(parts[2]) : null;
+                        var template = parts[3] || null;
+                        CodeGenerator.reloadIframe(url, width, height, template);
+                    }
+                    break;
+            }
+        });
     },
 
     openCodeGenerator() {
@@ -52,8 +106,13 @@ const CodeGenerator = {
 
         iframe.src = targetUrl;
 
+        // Append embedder origin for CSP frame-ancestors support
+        var embedderOrigin = window.location.origin;
+        var sep = (targetUrl.indexOf('?') > -1) ? '&' : '?';
+        iframe.src += sep + 'embedder=' + encodeURIComponent(embedderOrigin);
+
         if (templateName) {
-            iframe.src += '?template=' + templateName;
+            iframe.src += '&template=' + templateName;
         }
 
         this._attachModalEventListeners(overlay);
@@ -111,7 +170,6 @@ const CodeGenerator = {
             `;
         }
 
-        // Create Trongate CSS spinner container
         const spinnerContainer = document.createElement("div");
         spinnerContainer.className = "codegen-spinner-container";
         spinnerContainer.style.cssText = `
@@ -155,7 +213,6 @@ const CodeGenerator = {
 
         document.addEventListener("keydown", (event) => {
             if (event.key === "Escape") {
-                // Check if the Query Builder iframe is open
                 var modalIframe = document.querySelector('#' + this.MODAL_ID + ' iframe');
                 if (modalIframe && modalIframe.src && modalIframe.src.indexOf('query_builder') !== -1) {
                     this.closeQueryBuilder();
@@ -174,6 +231,53 @@ const CodeGenerator = {
     },
 
     // ============================================
+    // Fetch Proxy Bridge
+    // ============================================
+    _handleFetchProxy(event) {
+        const messageId = event.data.messageId;
+        const payload = event.data.payload;
+        const url = payload.url;
+        const method = payload.method || 'GET';
+        const headers = payload.headers || {};
+        const body = payload.body || null;
+        var fetchUrl = url;
+
+        if (url.indexOf('://') === -1) {
+            var baseUrl = document.querySelector('base').getAttribute('href');
+            fetchUrl = baseUrl.replace(/\/+$/, '') + '/' + url.replace(/^\//, '');
+        }
+
+        fetch(fetchUrl, {
+            method: method,
+            headers: headers,
+            body: body
+        })
+        .then(function(response) {
+            return response.text().then(function(responseBody) {
+                event.source.postMessage({
+                    type: 'FLO_RESPONSE',
+                    messageId: messageId,
+                    payload: {
+                        status: response.status,
+                        body: responseBody
+                    }
+                }, event.origin);
+            });
+        })
+        .catch(function(error) {
+            event.source.postMessage({
+                type: 'FLO_RESPONSE',
+                messageId: messageId,
+                payload: {
+                    status: 0,
+                    body: null,
+                    error: error.message
+                }
+            }, event.origin);
+        });
+    },
+
+    // ============================================
     // Modal Operations
     // ============================================
     reloadIframe(targetUrl, width = null, height = null, templateName = null) {
@@ -187,24 +291,19 @@ const CodeGenerator = {
     },
 
     closeQueryBuilder() {
-        // Close all modals first, then reopen Flo home
         this.close();
 
-        // Use setTimeout to ensure DOM is clean before creating the new modal
         var self = this;
         setTimeout(function() {
             CodeGenerator.openCodeGenerator();
         }, 50);
     },
 
-
     openUrl(targetUrl, openInNewTab = false) {
         openInNewTab ? window.open(targetUrl, "_blank") : window.location.href = targetUrl;
     }
-
 }
 
-// Make CodeGenerator globally accessible
 window.CodeGenerator = CodeGenerator;
 
 CodeGenerator.activateTriggers();
