@@ -87,6 +87,6 @@ class Language extends Trongate {
 
         require $full_path;
 
-        return $validation_errors ?? [];
+        return $phrases ?? [];
     }
 }
