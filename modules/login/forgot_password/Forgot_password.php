@@ -251,13 +251,13 @@ class Forgot_password extends Trongate {
         if ($segment > 0 && isset($levels[$segment])) {
             // Only reject numeric access if this specific level has a secret
             if (!empty($levels[$segment]['secret_login_word'])) {
-                show_404();
+                $this->login->show_404();
                 die();
             }
             return $segment;
         }
 
-        show_404();
+        $this->login->show_404();
         die();
     }
 

@@ -47,14 +47,14 @@ class Login extends Trongate {
         if ($segment > 0 && isset($levels[$segment])) {
             // Only reject numeric access if this specific level has a secret
             if (!empty($levels[$segment]['secret_login_word'])) {
-                show_404();
+                $this->show_404();
                 die();
             }
             return $segment;
         }
 
         // No level could be determined
-        show_404();
+        $this->show_404();
         die();
     }
 
@@ -316,7 +316,7 @@ class Login extends Trongate {
         $config = $this->model->get_level_config($user_level_id);
 
         if (empty($config['enable_forgot_password'])) {
-            show_404();
+            $this->show_404();
             die();
         }
 
@@ -336,7 +336,7 @@ class Login extends Trongate {
         $config = $this->model->get_level_config($user_level_id);
 
         if (empty($config['enable_forgot_password'])) {
-            show_404();
+            $this->show_404();
             die();
         }
 
@@ -366,7 +366,7 @@ class Login extends Trongate {
         $config = $this->model->get_level_config($user_level_id);
 
         if (empty($config['enable_forgot_password'])) {
-            show_404();
+            $this->show_404();
             die();
         }
 
@@ -395,7 +395,7 @@ class Login extends Trongate {
         $config = $this->model->get_level_config($user_level_id);
 
         if (empty($config['enable_forgot_password'])) {
-            show_404();
+            $this->show_404();
             die();
         }
 
@@ -429,6 +429,15 @@ class Login extends Trongate {
         }
 
         return 'The {label} and/or password you entered is incorrect.';
+    }
+
+    /**
+     * Display the 404 error page.
+     *
+     * @return void
+     */
+    public function show_404(): void {
+        $this->templates->error_404();
     }
 
 }
