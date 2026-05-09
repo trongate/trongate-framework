@@ -69,7 +69,7 @@ class Login extends Trongate {
      * @return int The resolved user level ID
      */
     private function resolve_level_from_secret(array $levels, int $matched_level): int {
-        $last = $this->url->get_last_segment();
+        $last = get_last_segment();
         $level = (int) $last;
 
         if ($level > 0 && isset($levels[$level])) {
