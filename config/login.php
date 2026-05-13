@@ -34,6 +34,24 @@ $config['login'] = [
     'reset_token_lifespan' => 3600,
 
     // -----------------------------------------------------------------
+    // Optional password-strength rules
+    // -----------------------------------------------------------------
+    //
+    // Settings under 'password' control the password-strength validator
+    // provided by the password_handler child module. All keys are optional;
+    // any key you omit falls back to the default shown below. Rules apply
+    // globally to every user level — per-level overrides are not supported.
+    //
+    //   'password' => [
+    //       'min_length'      => 8,        // Minimum password length
+    //       'require_upper'   => false,    // Require at least one A-Z
+    //       'require_lower'   => false,    // Require at least one a-z
+    //       'require_digit'   => false,    // Require at least one digit
+    //       'require_special' => false,    // Require at least one non-alphanumeric
+    //       'deny_common'     => [],       // Array of disallowed passwords
+    //   ],
+
+    // -----------------------------------------------------------------
     // User-level definitions
     // -----------------------------------------------------------------
     //

@@ -192,9 +192,12 @@ class Forgot_password extends Trongate {
             return;
         }
 
-        // Validate password
-        if (empty($password) || strlen($password) < 8) {
-            $data['error_message'] = 'Password must be at least 8 characters long.';
+        // Validate password strength via the password_handler child module
+        $this->module('login-password_handler');
+        $strength = $this->password_handler->validate_strength($password);
+
+        if ($strength !== true) {
+            $data['error_message'] = $strength;
             $data['token'] = $token;
             $data['form_location'] = BASE_URL . 'login/submit_reset_password';
             $this->view('reset_password_form', $data);

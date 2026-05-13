@@ -184,7 +184,8 @@ class Login_model extends Model {
             $hash_to_verify = $user->{$password_field};
         }
 
-        $password_valid = password_verify($password, $hash_to_verify);
+        $this->module('login-password_handler');
+        $password_valid = $this->password_handler->verify_password($password, $hash_to_verify);
 
         return ($user !== false)
             && !empty($user->{$password_field})
@@ -283,27 +284,20 @@ class Login_model extends Model {
     /**
      * Get a timing-safe bcrypt hash for the given user level.
      *
+     * Resolves the target table and password column from the level config,
+     * then delegates to the password_handler child module.
+     *
      * @param int $user_level_id The user level
      * @return string A valid bcrypt hash
      */
     private function get_timing_safe_hash(int $user_level_id): string {
         $config = $this->get_level_config($user_level_id);
-        $table = $config['target_table'];
-        $pw_field = $config['fields']['password']['column'];
-        $cost = $this->get_global_config('password_hash_cost') ?? 11;
+        $this->module('login-password_handler');
 
-        $sql = 'SELECT ' . $this->quote_id($pw_field)
-             . ' FROM ' . $this->quote_id($table)
-             . ' WHERE ' . $this->quote_id($pw_field) . ' IS NOT NULL'
-             . ' AND ' . $this->quote_id($pw_field) . " != '' LIMIT 1";
-
-        $rows = $this->db->query_bind($sql, [], 'object');
-
-        if (!empty($rows) && !empty($rows[0]->{$pw_field})) {
-            return $rows[0]->{$pw_field};
-        }
-
-        return password_hash('timing_protection_dummy', PASSWORD_BCRYPT, ['cost' => $cost]);
+        return $this->password_handler->get_timing_safe_hash(
+            $config['target_table'],
+            $config['fields']['password']['column']
+        );
     }
 
     // -----------------------------------------------------------------
@@ -560,6 +554,9 @@ class Login_model extends Model {
     /**
      * Generate a password reset token and return it.
      *
+     * Resolves the user's target table from the level config, then delegates
+     * token creation to the password_handler child module.
+     *
      * @param string $identifier The user's identifier (e.g., email)
      * @param int $user_level_id The user level
      * @return string|bool The reset token string, or false if user not found
@@ -572,20 +569,9 @@ class Login_model extends Model {
         }
 
         $config = $this->get_level_config($user_level_id);
-        $lifespan = $this->get_global_config('reset_token_lifespan') ?? 3600;
+        $this->module('login-password_handler');
 
-        $token = make_rand_str(64);
-
-        $this->db->insert([
-            'target_table' => $config['target_table'],
-            'identifier'   => $identifier,
-            'token'        => $token,
-            'expiry_date'  => time() + $lifespan,
-            'used'         => 0,
-            'created_at'   => time()
-        ], 'password_resets');
-
-        return $token;
+        return $this->password_handler->generate_reset_token($identifier, $config['target_table']);
     }
 
     /**
@@ -595,36 +581,31 @@ class Login_model extends Model {
      * @return object|bool The reset record, or false if invalid/expired
      */
     public function validate_reset_token(string $token): object|bool {
-        $sql = 'SELECT * FROM password_resets'
-             . ' WHERE token = :token'
-             . '   AND used = 0'
-             . '   AND expiry_date > :now'
-             . ' LIMIT 1';
-
-        $rows = $this->db->query_bind($sql, [
-            'token' => $token,
-            'now' => time()
-        ], 'object');
-
-        return !empty($rows) ? $rows[0] : false;
+        $this->module('login-password_handler');
+        return $this->password_handler->validate_reset_token($token);
     }
 
     /**
      * Update a user's password using a validated reset token.
+     *
+     * Orchestrates the login-specific reset flow: delegates the password
+     * write and token consumption to the password_handler child module,
+     * then wipes existing auth tokens for the user so all sessions are
+     * forced to re-authenticate.
      *
      * @param string $token The valid reset token
      * @param string $new_password The new plain-text password
      * @return bool True on success
      */
     public function reset_password(string $token, string $new_password): bool {
-        $reset = $this->validate_reset_token($token);
+        $this->module('login-password_handler');
+        $handler = $this->password_handler;
+
+        $reset = $handler->validate_reset_token($token);
 
         if ($reset === false) {
             return false;
         }
-
-        $cost = $this->get_global_config('password_hash_cost') ?? 11;
-        $hash = password_hash($new_password, PASSWORD_BCRYPT, ['cost' => $cost]);
 
         // Find the password field and primary identifier column for this target table
         $full = $this->load_config();
@@ -647,19 +628,19 @@ class Login_model extends Model {
             }
         }
 
-        // Update password in target table
-        $sql = 'UPDATE ' . $this->quote_id($reset->target_table)
-             . ' SET ' . $this->quote_id($pw_field) . ' = :hash'
-             . ' WHERE ' . $this->quote_id($ident_field) . ' = :identifier';
+        $success = $handler->update_password_for_identifier(
+            $reset->target_table,
+            $ident_field,
+            $reset->identifier,
+            $pw_field,
+            $new_password
+        );
 
-        $this->db->query_bind($sql, [
-            'hash' => $hash,
-            'identifier' => $reset->identifier
-        ]);
+        if ($success === false) {
+            return false;
+        }
 
-        // Mark token as used
-        $sql = 'UPDATE password_resets SET used = 1 WHERE token = :token';
-        $this->db->query_bind($sql, ['token' => $token]);
+        $handler->consume_reset_token($token);
 
         // Delete existing auth tokens for this user (force re-login)
         $user = $this->find_user($reset->identifier, $this->get_level_id_for_table($reset->target_table));
@@ -679,33 +660,15 @@ class Login_model extends Model {
     }
 
     /**
-     * Send a password reset email via the trongate_email module.
-     *
-     * Builds a plain-text message and delegates delivery to the
-     * dedicated Trongate email module, which handles SMTP
-     * communication, MIME formatting, and connection management.
+     * Send a password reset email via the password_handler child module.
      *
      * @param string $to_email The recipient email address
      * @param string $reset_link The full reset URL
      * @return bool True if sent successfully
      */
     public function send_reset_email(string $to_email, string $reset_link): bool {
-        $body = "Hello,\n\n";
-        $body .= "We received a request to reset your password.\n\n";
-        $body .= "Click the link below to reset your password:\n";
-        $body .= $reset_link . "\n\n";
-        $body .= "This link will expire in 1 hour.\n\n";
-        $body .= "If you did not request a password reset, you can safely ignore this email.\n";
-
-        $html_body = nl2br($body);
-
-        $this->module('trongate_email');
-
-        return $this->trongate_email->send([
-            'to_email' => $to_email,
-            'subject' => 'Password Reset Request',
-            'body_html' => '<p>' . $html_body . '</p>'
-        ]);
+        $this->module('login-password_handler');
+        return $this->password_handler->send_reset_email($to_email, $reset_link);
     }
 
     // -----------------------------------------------------------------
@@ -735,6 +698,30 @@ class Login_model extends Model {
     }
 
     /**
+     * Get the user level ID associated with a reset token, ignoring state.
+     *
+     * Unlike get_level_id_for_token(), this still resolves the level when
+     * the token has been used or has expired — used by the
+     * consumed/expired-token error page so it can link back to the correct
+     * forgot-password form.
+     *
+     * @param string $token The reset token
+     * @return int|null The user level ID, or null if the token is unknown
+     */
+    public function get_level_id_for_token_any(string $token): ?int {
+        $this->module('login-password_handler');
+        $reset = $this->password_handler->find_reset_token_row($token);
+
+        if ($reset === false) {
+            return null;
+        }
+
+        $level_id = $this->get_level_id_for_table($reset->target_table);
+
+        return ($level_id > 0) ? $level_id : null;
+    }
+
+    /**
      * Get the user level ID for a given target table name.
      *
      * @param string $table_name
@@ -755,12 +742,15 @@ class Login_model extends Model {
     /**
      * Hash a password using bcrypt.
      *
+     * Delegates to the password_handler child module so the same cost
+     * factor and bcrypt configuration is used everywhere.
+     *
      * @param string $password Plain-text password
      * @return string bcrypt hash
      */
     public function hash_password(string $password): string {
-        $cost = $this->get_global_config('password_hash_cost') ?? 11;
-        return password_hash($password, PASSWORD_BCRYPT, ['cost' => $cost]);
+        $this->module('login-password_handler');
+        return $this->password_handler->hash_password($password);
     }
 
     /**
