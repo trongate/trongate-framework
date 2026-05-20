@@ -114,3 +114,27 @@
     margin-left: 0.15em;
     margin-right: -0.15em;
 }
+
+.tg-pencil {
+    -webkit-mask-image: url('../trongate-icons/pencil.svg');
+    mask-image: url('../trongate-icons/pencil.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}
+
+.tg-eye {
+    -webkit-mask-image: url('../trongate-icons/eye.svg');
+    mask-image: url('../trongate-icons/eye.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}
+
+.tg-search {
+    -webkit-mask-image: url('../trongate-icons/search.svg');
+    mask-image: url('../trongate-icons/search.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}
