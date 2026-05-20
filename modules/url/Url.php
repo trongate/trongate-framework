@@ -44,7 +44,9 @@ class Url extends Trongate {
         $segments = SEGMENTS;
 
         if (isset($segments[$num])) {
-            $value = $segments[$num];
+            // Strip any query string from the segment value.
+            // e.g. 'manage?search_query=foo' becomes 'manage'
+            $value = explode('?', $segments[$num], 2)[0];
         } else {
             $value = '';
         }

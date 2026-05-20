@@ -381,11 +381,14 @@ body.nav-open {
     line-height: 1.5;
 }
 
+#record-preview-modal .modal-footer {
+    justify-content: center;
+}
+
 /* ======================================== RECORDS TABLE ======================================== */
 .records-table th {
   background-color: var(--primary);
   border: 1px solid var(--primary-darker);
-  text-align: left;
   font-weight: normal;
   color: #fff;
   font-size: 0.8em;
@@ -418,11 +421,18 @@ body.nav-open {
   width: 5em;
 }
 
-.records-table td:last-child {
-  font-size: 0.8em;
-  padding: 0;
-  vertical-align: middle;
-  text-align: center;
+.records-table td {
+  font-size: .9em;
+}
+
+.records-table td a {
+  font-weight: bold;
+  text-decoration: none;
+  color: var(--primary-darker);
+}
+
+.records-table td a:hover {
+  color: var(--primary);
 }
 
 .records-table td:last-child button,
@@ -432,6 +442,28 @@ body.nav-open {
 
 .records-table td:nth-child(2) a {
   margin: 4px;
+}
+
+.records-table td .actions {
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+}
+
+.records-table td > div.actions > a:nth-child(2) {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.button-round{
+    border-radius: 33%;
+    padding: 3px 4px;
+    margin: 0;
+    border: 1px var(--primary) solid;
+}
+
+.button-round i {
+    margin: 0;
 }
 
 .options-card .card-body > div a,

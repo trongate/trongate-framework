@@ -66,22 +66,23 @@ class Pagination extends Trongate {
     private function render_pagination(array $data): void {
         $html = PHP_EOL . $data['settings']['pagination_open'] . PHP_EOL;
 
-        $max_links = $data['num_links_per_page'];  // NOW CONFIGURABLE
+        $max_links = $data['num_links_per_page'];
         $num_links_to_side = (int) floor($max_links / 2);
         
         $current_page = (int) $data['current_page'];
         $total_pages = (int) $data['total_pages'];
         $pagination_root = $data['pagination_root'];
+        $pagination_query = $data['pagination_query'] ?? '';
         $settings = $data['settings'];
 
         // First and Previous links (only if not on page 1)
         if ($current_page > 1) {
             $html .= $settings['first_link_open'];
-            $html .= $this->build_link(1, $pagination_root, $settings['first_link'], $settings['first_link_aria_label']);
+            $html .= $this->build_link(1, $pagination_root, $pagination_query, $settings['first_link'], $settings['first_link_aria_label']);
             $html .= $settings['first_link_close'] . PHP_EOL;
 
             $html .= $settings['prev_link_open'];
-            $html .= $this->build_link($current_page - 1, $pagination_root, $settings['prev_link'], $settings['prev_link_aria_label']);
+            $html .= $this->build_link($current_page - 1, $pagination_root, $pagination_query, $settings['prev_link'], $settings['prev_link_aria_label']);
             $html .= $settings['prev_link_close'] . PHP_EOL;
         }
 
@@ -102,7 +103,7 @@ class Pagination extends Trongate {
                 $html .= $settings['cur_link_close'] . PHP_EOL;
             } else {
                 $html .= $settings['num_link_open'];
-                $html .= $this->build_link($i, $pagination_root, (string) $i);
+                $html .= $this->build_link($i, $pagination_root, $pagination_query, (string) $i);
                 $html .= $settings['num_link_close'] . PHP_EOL;
             }
         }
@@ -110,11 +111,11 @@ class Pagination extends Trongate {
         // Next and Last links (only if not on last page)
         if ($current_page < $total_pages) {
             $html .= $settings['next_link_open'];
-            $html .= $this->build_link($current_page + 1, $pagination_root, $settings['next_link'], $settings['next_link_aria_label']);
+            $html .= $this->build_link($current_page + 1, $pagination_root, $pagination_query, $settings['next_link'], $settings['next_link_aria_label']);
             $html .= $settings['next_link_close'] . PHP_EOL;
 
             $html .= $settings['last_link_open'];
-            $html .= $this->build_link($total_pages, $pagination_root, $settings['last_link'], $settings['last_link_aria_label']);
+            $html .= $this->build_link($total_pages, $pagination_root, $pagination_query, $settings['last_link'], $settings['last_link_aria_label']);
             $html .= $settings['last_link_close'] . PHP_EOL;
         }
 
@@ -131,18 +132,24 @@ class Pagination extends Trongate {
     /**
      * Build a pagination link.
      *
-     * @param int $page Page number
-     * @param string $pagination_root Base URL for pagination
-     * @param string $label Link label/text
-     * @param string|null $aria_label Optional ARIA label for accessibility
+     * @param int         $page             Page number
+     * @param string      $pagination_root  Base URL path for pagination
+     * @param string      $pagination_query Optional query string (module never inspects it)
+     * @param string      $label            Link label/text
+     * @param string|null $aria_label       Optional ARIA label for accessibility
      * @return string The HTML link
      */
-    private function build_link(int $page, string $pagination_root, string $label, ?string $aria_label = null): string {
+    private function build_link(int $page, string $pagination_root, string $pagination_query, string $label, ?string $aria_label = null): string {
         // For page 1, use the root URL without the page number
         if ($page === 1) {
             $url = BASE_URL . rtrim($pagination_root, '/');
         } else {
             $url = BASE_URL . $pagination_root . $page;
+        }
+
+        // Append query string if one was provided (module never inspects it)
+        if ($pagination_query !== '') {
+            $url .= '?' . $pagination_query;
         }
         
         $aria = $aria_label ? ' aria-label="' . htmlspecialchars($aria_label, ENT_QUOTES, 'UTF-8') . '"' : '';

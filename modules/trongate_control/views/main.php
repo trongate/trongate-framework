@@ -6,8 +6,10 @@
     <link rel="stylesheet" href="trongate_control_module/css/transferer.css">
 </head>
 <body>
-    <h1 id="headline">SQL Files Found</h1>
-    <div id="info"><?= $file_list_html ?></div>
+    <main>
+        <h1 id="headline">SQL Files Found</h1>
+        <div id="info"><?= $file_list_html ?></div>
+    </main>
     
     <script>
         // Pass PHP variables to JavaScript

@@ -59,6 +59,9 @@ const CodeGenerator = {
                 case 'go_back':
                     CodeGenerator.reset();
                     break;
+                case 'initGenerateModule':
+                    CodeGenerator.initGenerateModule();
+                    break;
                 default:
                     if (typeof action === 'string' && action.startsWith('open_url:')) {
                         var url = action.substring('open_url:'.length);
@@ -230,7 +233,138 @@ const CodeGenerator = {
         });
     },
 
-    // ============================================
+    initGenerateModule() {
+        this.renderingLoadingPage();
+        this.postLocalStorageToUrl('trongate_control-site_builder/submit_generate_mod');
+    },
+
+    postLocalStorageToUrl(url) {
+        const params = new URLSearchParams();
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            params.append(key, localStorage.getItem(key));
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params.toString()
+        })
+        .then(response => {
+            return response.json().then(data => ({
+                ...data,
+                httpStatus: response.status
+            }));
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        this.renderOutputSuccess(data.redirect_url);
+                        resolve();
+                    }, 33);
+                });
+            } else {
+                this.renderOutputError(data.httpStatus, data.headline, data.message, data.more_info_url || null);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    },
+
+    renderingLoadingPage() {
+        const iframe = document.querySelector('#codegen-iframe-modal iframe');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+        const btnContainers = iframeDoc.querySelectorAll('.mt-1');
+        for (var i = btnContainers.length - 1; i >= 0; i--) {
+            btnContainers[i].remove();
+        }
+
+        const footer = iframeDoc.querySelector('footer');
+        //footer.remove();
+      footer.style.display = 'none';
+
+        const loadingContainer = iframeDoc.querySelector('#loading');
+        loadingContainer.style.display = 'block';
+    },
+
+    renderOutputSuccess(targetUrl) {
+
+        const iframe = document.querySelector('#codegen-iframe-modal iframe');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+        const mainEl = iframeDoc.querySelector('main');
+        while (mainEl.firstChild) {
+            mainEl.removeChild(mainEl.firstChild);
+        }
+
+        fetch(targetUrl)
+            .then(response => response.text())
+            .then(html => {
+                mainEl.innerHTML = html;
+            })
+            .catch(error => {
+                mainEl.innerHTML = '<p>Failed to load content.</p>';
+                console.error('Error fetching target URL:', error);
+            });
+
+        // Show the existing footer (hidden during loading).
+        const footer = iframeDoc.querySelector('footer');
+        if (footer) {
+            footer.style.display = 'flex';
+        }
+    },
+
+    renderOutputError(statusCode, headline, message, moreInfoUrl) {
+
+        const iframe = document.querySelector('#codegen-iframe-modal iframe');
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+        const mainEl = iframeDoc.querySelector('main');
+        while (mainEl.firstChild) {
+            mainEl.removeChild(mainEl.firstChild);
+        }
+
+        const errorPara = document.createElement('p');
+        errorPara.classList.add('error-msg');
+        errorPara.innerText = message;
+        mainEl.appendChild(errorPara);
+        let confirmDivClass = 'mt-0';
+
+        if (moreInfoUrl) {
+            const learnMoreDiv = document.createElement('div');
+            learnMoreDiv.classList.add('mt-0');
+            const learnMoreBtn = document.createElement('button');
+            learnMoreBtn.setAttribute('class', 'learn-more');
+            learnMoreBtn.innerText = 'Learn More About This Error';
+            learnMoreBtn.setAttribute('onclick', `window.parent.postMessage('open_url:${moreInfoUrl}|new_tab', '*'); setTimeout(function() { window.parent.postMessage('reset', '*'); }, 1000);`);
+            learnMoreDiv.appendChild(learnMoreBtn);
+            mainEl.appendChild(learnMoreDiv);
+            confirmDivClass = 'mt-1';
+        }
+
+        const confirmDiv = document.createElement('div');
+        confirmDiv.classList.add(confirmDivClass);
+        const confirmBtn = document.createElement('button');
+        confirmBtn.innerText = 'Okay';
+        confirmBtn.setAttribute('onclick', "window.parent.postMessage('reset', '*')");
+        confirmDiv.appendChild(confirmBtn);
+        mainEl.appendChild(confirmDiv);
+
+        // Show the existing footer (hidden during loading).
+        const footer = iframeDoc.querySelector('footer');
+        if (footer) {
+            footer.style.display = 'flex';
+        }
+
+    },
+
+  
+
+  // ============================================
     // Fetch Proxy Bridge
     // ============================================
     _handleFetchProxy(event) {

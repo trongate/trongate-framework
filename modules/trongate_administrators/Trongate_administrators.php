@@ -387,9 +387,11 @@ class Trongate_administrators extends Trongate {
 
         // Handle API/MX requests
         if (from_trongate_mx() === true) {
-            http_response_code($token ? 200 : 401);
-            echo $token ?: '';
-            die();
+            if ($token === false) {
+                http_response_code(401);
+                echo '';
+                die();
+            }
         }
 
         // Handle web requests with no valid token
