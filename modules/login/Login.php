@@ -300,6 +300,21 @@ class Login extends Trongate {
         return 'You must be logged in to access this page.';
     }
 
+    /**
+     * Hash a plain-text password using the configured bcrypt cost.
+     *
+     * Thin controller wrapper around Login_model::hash_password() so other
+     * modules (e.g. a future signup/JOIN module) can hash passwords using
+     * the same algorithm and cost factor as login. Not accessible via URL.
+     *
+     * @param string $password Plain-text password
+     * @return string bcrypt hash
+     */
+    public function hash_password(string $password): string {
+        block_url('login/hash_password');
+        return $this->model->hash_password($password);
+    }
+
     // -----------------------------------------------------------------
     // Forgot Password (delegates to child module)
     // -----------------------------------------------------------------
