@@ -1211,8 +1211,8 @@ let trongateMXOpeningModal = false;
             modalBody.appendChild(spinnerContainer);
 
             const iframe = document.createElement('iframe');
-            iframe.style.width  = modalData.iframeWidth  || '100%';
-            iframe.style.height = modalData.iframeHeight || '400px';
+            iframe.style.width  = '100%';
+            iframe.style.height = modalData.height || '400px';
             iframe.style.border = 'none';
             iframe.style.display = 'block';
 
