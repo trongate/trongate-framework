@@ -20,12 +20,16 @@ class Flo extends Trongate {
      * This method prepares the module data and invokes the view file
      * responsible for displaying the FLO button/interface trigger.
      *
-     * @return void
+     * @return string
      */
-    public function draw_flow_trigger(): void {
-        $data['api_base_url'] = $this->api_base_url;
-        $data['view_module'] = 'trongate_control/flo';
-        $this->view('flo_trigger', $data);
+    public function draw_flow_trigger(): string {
+        // Temporarily disabled - returns empty string
+        return '';
+        
+        // Original code commented out
+        // $data['api_base_url'] = $this->api_base_url;
+        // $data['view_module'] = 'trongate_control/flo';
+        // $this->view('flo_trigger', $data);
     }
 
     /**

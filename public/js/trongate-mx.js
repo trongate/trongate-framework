@@ -321,9 +321,19 @@ let trongateMXOpeningModal = false;
         },
 
         initInvokeHttpRequest(element, httpMethodAttribute, event) {
+            const buildIframeStr = element.getAttribute('mx-build-iframe');
             const buildModalStr = element.getAttribute('mx-build-modal');
 
-            if (buildModalStr) {
+            if (buildIframeStr) {
+                const iframeOptions = Utils.parseAttributeValue(buildIframeStr);
+
+                if (iframeOptions === false) {
+                    console.warn("Invalid JSON in mx-build-iframe:", buildIframeStr);
+                    return;
+                }
+
+                Modal.buildMXIframe(iframeOptions, element, httpMethodAttribute);
+            } else if (buildModalStr) {
                 const modalOptions = Utils.parseAttributeValue(buildModalStr);
 
                 if (modalOptions === false) {
@@ -1101,6 +1111,147 @@ let trongateMXOpeningModal = false;
             Http.invokeHttpRequest(element, httpMethodAttribute, event);
         },
 
+        buildMXIframe(modalData, element, httpMethodAttribute) {
+
+            // Is the trigger element inside a modal
+            const containingModal = element.closest('.modal');
+            if (containingModal) {
+                closeModal();
+            }
+
+            const modalId = modalData.id;
+
+            const existingEl = document.getElementById(modalId);
+            if (existingEl) {
+                existingEl.remove();
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = modalId;
+            modal.style.display = 'none';
+
+            if (modalData.modalHeading) {
+
+                const modalHeading = document.createElement('div');
+                modalHeading.className = 'modal-heading';
+                let renderCloseIcon = (modalData.renderCloseIcon) ? modalData.renderCloseIcon : true;
+
+                if (renderCloseIcon === false || renderCloseIcon === 'false') {
+                    modalHeading.innerHTML = modalData.modalHeading;
+                } else {
+                    modalHeading.classList.add('flex-row');
+                    modalHeading.classList.add('align-center');
+                    modalHeading.classList.add('justify-between');
+
+                    const modalHeadingLhs = document.createElement('div');
+                    modalHeadingLhs.innerHTML = modalData.modalHeading;
+                    modalHeading.appendChild(modalHeadingLhs);
+
+                    const modalHeadingRhs = document.createElement('div');
+
+                    // Check if Font Awesome is available
+                    const faIconAvailable = document.querySelector('link[href*="font-awesome"]') !== null || document.querySelector('.fa-times') !== null;
+
+                    if (faIconAvailable) {
+                        const closeIcon = document.createElement('i');
+                        closeIcon.classList.add('fa', 'fa-times');
+                        closeIcon.style.cursor = 'pointer';
+                        closeIcon.setAttribute('onclick', 'closeModal()');
+                        modalHeadingRhs.appendChild(closeIcon);
+                    } else {
+                        const closeIconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        closeIconSvg.setAttribute('width', '16');
+                        closeIconSvg.setAttribute('height', '16');
+                        closeIconSvg.setAttribute('viewBox', '0 0 100 100');
+                        closeIconSvg.setAttribute('fill', 'currentColor');
+                        closeIconSvg.setAttribute('class', 'bi bi-x');
+                        closeIconSvg.style.cursor = 'pointer';
+
+                        const crossGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        crossGroup.setAttribute('transform', 'rotate(45, 50, 50)');
+
+                        const verticalRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        verticalRect.setAttribute('x', '38');
+                        verticalRect.setAttribute('y', '0');
+                        verticalRect.setAttribute('width', '24');
+                        verticalRect.setAttribute('height', '100');
+                        verticalRect.setAttribute('rx', '12');
+                        verticalRect.setAttribute('ry', '12');
+
+                        const horizontalRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        horizontalRect.setAttribute('x', '0');
+                        horizontalRect.setAttribute('y', '38');
+                        horizontalRect.setAttribute('width', '100');
+                        horizontalRect.setAttribute('height', '24');
+                        horizontalRect.setAttribute('rx', '12');
+                        horizontalRect.setAttribute('ry', '12');
+
+                        crossGroup.appendChild(verticalRect);
+                        crossGroup.appendChild(horizontalRect);
+                        closeIconSvg.appendChild(crossGroup);
+
+                        closeIconSvg.setAttribute('onclick', 'closeModal()');
+                        modalHeadingRhs.appendChild(closeIconSvg);
+                    }
+
+                    modalHeading.appendChild(modalHeadingRhs);
+                }
+
+                modal.appendChild(modalHeading);
+            }
+
+            const modalBody = document.createElement('div');
+            modalBody.className = 'modal-body';
+
+            // Show a spinner while the iframe loads
+            const spinnerContainer = document.createElement('div');
+            spinnerContainer.className = 'spinner mt-3 mb-3';
+            spinnerContainer.id = 'mx-iframe-spinner';
+            modalBody.appendChild(spinnerContainer);
+
+            const iframe = document.createElement('iframe');
+            iframe.style.width  = modalData.iframeWidth  || '100%';
+            iframe.style.height = modalData.iframeHeight || '400px';
+            iframe.style.border = 'none';
+            iframe.style.display = 'block';
+
+            if (modalData.iframeAllow) {
+                iframe.setAttribute('allow', modalData.iframeAllow);
+            }
+            if (modalData.iframeSandbox) {
+                iframe.setAttribute('sandbox', modalData.iframeSandbox);
+            }
+            if (modalData.iframeAllowFullscreen !== false) {
+                iframe.setAttribute('allowfullscreen', '');
+            }
+
+            // Remove spinner once iframe content has loaded
+            iframe.addEventListener('load', () => {
+                const spinner = document.getElementById('mx-iframe-spinner');
+                if (spinner) spinner.remove();
+            });
+
+            iframe.src = element.getAttribute(httpMethodAttribute);
+            modalBody.appendChild(iframe);
+            modal.appendChild(modalBody);
+
+            if (modalData.modalFooter) {
+                const modalFooter = document.createElement('div');
+                modalFooter.className = 'modal-footer';
+                modalFooter.innerHTML = modalData.modalFooter;
+                modal.appendChild(modalFooter);
+            }
+
+            document.body.appendChild(modal);
+            this.openModal(modalId, modalData);
+
+            const targetModal = document.getElementById(modalId);
+            if (modalData.width) {
+                targetModal.style.maxWidth = modalData.width;
+            }
+        },
+
         attemptAddModalButtons(targetEl, element) {
             if (element.hasAttribute('mx-build-modal')) {
                 const modalValue = element.getAttribute('mx-build-modal');
@@ -1530,9 +1681,19 @@ let trongateMXOpeningModal = false;
         },
 
         initInvokeHttpRequest(element, httpMethodAttribute) {
+            const buildIframeStr = element.getAttribute('mx-build-iframe');
             const buildModalStr = element.getAttribute('mx-build-modal');
 
-            if (buildModalStr) {
+            if (buildIframeStr) {
+                const iframeOptions = Utils.parseAttributeValue(buildIframeStr);
+
+                if (iframeOptions === false) {
+                    console.warn("Invalid JSON in mx-build-iframe:", buildIframeStr);
+                    return;
+                }
+
+                Modal.buildMXIframe(iframeOptions, element, httpMethodAttribute);
+            } else if (buildModalStr) {
                 const modalOptions = Utils.parseAttributeValue(buildModalStr);
 
                 if (modalOptions === false) {
@@ -1809,6 +1970,12 @@ const _mxCloseModal = function () {
     const mxModalContainer = document.getElementById("modal-container");
     if (mxModalContainer) {
         const openModal = mxModalContainer.firstChild;
+
+        // Stop any iframe media playback by blanking src before the modal is moved/hidden.
+        // This prevents audio/video continuing in the background after close.
+        const iframes = openModal.querySelectorAll('iframe');
+        iframes.forEach(iframe => { iframe.src = ''; });
+
         openModal.style.zIndex = -4;
         openModal.style.opacity = 0;
         openModal.style.marginTop = '12vh';
