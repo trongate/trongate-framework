@@ -640,15 +640,10 @@ form .form-field-validation-error:focus {
 }
 
 .blink {
-  text-decoration: blink;
-  -webkit-animation-name: blinker;
-  -webkit-animation-duration: 0.5s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-timing-function: ease-in-out;
-  -webkit-animation-direction: alternate;
+  animation: blinker 0.5s ease-in-out infinite alternate;
 }
 
-@-webkit-keyframes blinker {
+@keyframes blinker {
   from {
     opacity: 1;
   }

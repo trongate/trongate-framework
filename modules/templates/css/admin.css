@@ -16,6 +16,9 @@ body.theme-blue {
   --sidebar: #38678f;
   --submenu-bg: #294d6b;
   --submenu-hover-bg: #38678f;
+  --primary: #38678f;
+  --primary-dark: #294d6b;
+  --primary-darker: #213d54;
 }
 
 /* Red Theme */
@@ -26,6 +29,9 @@ body.theme-red {
   --sidebar: #b91c1c;
   --submenu-bg: #b91c1c;
   --submenu-hover-bg: #dc2626;
+  --primary: #b91c1c;
+  --primary-dark: #991b1b;
+  --primary-darker: #7f1d1d;
 }
 
 /* Green Theme */
@@ -36,6 +42,9 @@ body.theme-green {
   --sidebar: #047857;
   --submenu-bg: #047857;
   --submenu-hover-bg: #059669;
+  --primary: #059669;
+  --primary-dark: #047857;
+  --primary-darker: #065f46;
 }
 
 /* ======================================== BASE ======================================== */
