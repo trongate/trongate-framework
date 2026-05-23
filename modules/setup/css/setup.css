@@ -1,0 +1,531 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.setup-container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 580px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+p {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+/* Steps / progress indicator */
+.steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding: 0;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+}
+
+.step::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #e5e7eb;
+    z-index: 0;
+}
+
+.step:last-child::after {
+    display: none;
+}
+
+.step-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 6px;
+}
+
+.step.active .step-number {
+    background: #667eea;
+    color: #fff;
+}
+
+.step-title {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.step.active .step-title {
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* Form fields */
+label {
+    margin: 1.4em 0 0.4em 0;
+    clear: both;
+    display: block;
+    text-align: left;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="month"],
+input[type="week"],
+select,
+textarea {
+    padding: 0.6em 0.6em;
+    font-size: 1em;
+    font-family: Arial;
+    width: 100%;
+    border: 1px solid #d1d5db;
+    box-sizing: border-box;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border: 1px solid #667eea;
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Form field validation error - red border on invalid fields */
+form .form-field-validation-error,
+form .form-field-validation-error:focus {
+    border: 3px solid #dc2626;
+    background-color: #ff000011;
+}
+
+
+
+/* Config summary block (connection results & database config pages) */
+.config-summary {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+.config-header {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.config-file {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.config-row {
+    display: flex;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.config-key {
+    color: #64748b;
+    width: 120px;
+    flex-shrink: 0;
+    font-weight: 600;
+}
+
+.config-val {
+    color: #1f2937;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* Button styling — class-based, used with form_submit(['class' => 'btn btn-primary']) */
+
+.btn {
+    background: #667eea;
+    width: 100%;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 24px;
+}
+
+.btn:hover {
+    background: #5a6fd6;
+    color: #fff;
+}
+
+/* Validation errors — borrowed from Trongate's trongate.css */
+.validation-errors {
+    margin: 0.5em 0 1em 0;
+    padding: 0.3em 1em;
+    border: 1px solid #dc2626;
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.validation-errors li {
+    margin-left: 1.2em;
+    padding-left: 0;
+}
+
+/* Alert messages */
+.alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.alert-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.alert-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+.alert p {
+    margin-bottom: 4px;
+    color: inherit;
+}
+
+/* Instructions block (for URL setup page) */
+.instructions {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+.instructions p {
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.instructions p:first-child {
+    margin-top: 0;
+}
+
+.example {
+    margin-bottom: 12px;
+}
+
+.example p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.note {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+#confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.arrow {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #64748b;
+    margin: 8px 0;
+}
+
+.long-path {
+    background: #fef3c782;
+    border: 1px solid #f6dcc5;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    word-break: break-all;
+    font-size: 0.85rem;
+}
+
+.code-wrapper {
+    background: #1e293b;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 8px 0 1.4em 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0;
+    color: #e2e8f0;
+    line-height: 1.5;
+    border: 1px solid #334155;
+}
+
+.code-wrapper code {
+    font-size: 0.85rem;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.copy-btn-wrapper {
+    text-align: right;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.copy-btn {
+    flex-shrink: 0;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: #47556985;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.15s;
+    margin: 0;
+    width: auto;
+    font-family: inherit;
+    line-height: 1.4;
+    text-decoration: none;
+    box-shadow: none;
+    outline: none;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    box-sizing: border-box;
+    vertical-align: baseline;
+}
+
+.copy-btn:hover {
+    background: #d1d9e6;
+    color: #333;
+    border: 1px solid #cbd5e1;
+}
+
+.copy-btn:active {
+    background: #bcc5d4;
+}
+
+.copy-btn.copied {
+    background: #bbf7d0;
+    color: #166534;
+}
+
+.copy-btn.copied:hover {
+    background: #a7e8c1;
+}
+
+.copy-btn svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+    flex-shrink: 0;
+}
+
+@media screen and (max-width: 550px) {
+    .copy-btn {
+        width: auto;
+    }
+}
+
+.loading-spinner {
+    top:  3em;
+    position: relative;
+    opacity: .33;
+}
+
+.loading-spinner::after {
+    border-color: #fff;
+    border-right-color: transparent;
+    border-top-color: transparent;
+}
+
+/* ──────────────────────────────────────────────
+   Spin Cycle — congratulations page entrance
+   ────────────────────────────────────────────── */
+
+@keyframes spin-cycle {
+    0% {
+        transform: rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: rotate(720deg) scale(0.6);
+        opacity: 0.8;
+    }
+    70% {
+        transform: rotate(720deg) scale(0.5);
+        opacity: 0.6;
+    }
+    85% {
+        transform: rotate(900deg) scale(1.15);
+        opacity: 1;
+    }
+    100% {
+        transform: rotate(1080deg) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes celebrate-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+    25% {
+        transform: scale(1.03);
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+        transform: scale(1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+    75% {
+        transform: scale(1.02);
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+}
+
+@keyframes bg-flash {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    20% { opacity: 0; }
+    30% { opacity: 1; }
+    40% { opacity: 0; }
+    50% { opacity: 1; }
+    60% { opacity: 0; }
+    100% { opacity: 0; }
+}
+
+/* ──────────────────────────────────────────────
+   Help link — shown at the bottom of each step
+   ────────────────────────────────────────────── */
+
+.help-link {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 32px;
+    margin-bottom: 0;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.help-link a {
+    color: #667eea;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.help-link a:hover {
+    text-decoration: underline;
+    color: #5a6fd6;
+}
+
+.setup-container.spin-cycle {
+    animation: spin-cycle 1.5s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+}
+
+.setup-container.celebrate-pulse {
+    animation: celebrate-pulse 1s ease-in-out 3;
+}
+
+.bg-flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(102,126,234,0.3) 100%);
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0;
+}
+
+.bg-flash-overlay.flash {
+    animation: bg-flash 0.8s ease-out forwards;
+}

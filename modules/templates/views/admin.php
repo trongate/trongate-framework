@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/trongate-icons.css">
     <link rel="stylesheet" href="css/trongate.css">
     <link rel="stylesheet" href="templates_module/css/admin.css">
+    <script src="js/trongate-mx.min.js"></script>
     <?= $additional_includes_top ?? '' ?>
     <title><?= $page_title ?? 'Admin Panel' ?></title>
 </head>
@@ -43,6 +44,11 @@
 </header>
 
 <aside>
+<?php
+if (strtolower(ENV) === 'dev') {
+    echo Modules::run('trongate_control-flo/draw_flow_trigger');
+}
+?>
     <nav aria-label="Main navigation">
         <ul class="side-nav-menu">
             <li>

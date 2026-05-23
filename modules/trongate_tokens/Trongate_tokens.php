@@ -15,7 +15,7 @@ class Trongate_tokens extends Trongate {
      */
     public function __construct(?string $module_name = null) {
         parent::__construct($module_name);
-        block_url($this->module_name);
+        block_url('trongate_tokens');
     }
 
     /**
@@ -27,9 +27,9 @@ class Trongate_tokens extends Trongate {
      * 3. Session ($_SESSION['trongatetoken'])
      *
      * @param int|array|null $user_levels User levels to filter tokens (int for single level, array for multiple, null for any)
-     * @return string|false The valid token if found, or false if none is found
+     * @return string|bool The valid token if found, or false if none is found
      */
-    public function attempt_get_valid_token(int|array|null $user_levels = null): string|false {
+    public function attempt_get_valid_token(int|array|null $user_levels = null): string|bool {
         $user_tokens = $this->model->gather_user_tokens();
         
         if (empty($user_tokens)) {
@@ -102,9 +102,9 @@ class Trongate_tokens extends Trongate {
      * or it checks session, cookie, and page header values if no token is provided.
      *
      * @param string|null $token Optional. The token to retrieve the user ID for
-     * @return int|false The Trongate user ID if found, or false if not found
+     * @return int|bool The Trongate user ID if found, or false if not found
      */
-    public function get_user_id(?string $token = null): int|false {
+    public function get_user_id(?string $token = null): int|bool {
         return $this->model->get_user_id($token);
     }
 
@@ -115,9 +115,9 @@ class Trongate_tokens extends Trongate {
      * or it checks session, cookie, and page header values if no token is provided.
      *
      * @param string|null $token Optional. The token to use for fetching the user object
-     * @return object|false The Trongate user object if found, or false if not found
+     * @return object|bool The Trongate user object if found, or bool if not found
      */
-    public function get_user_obj(?string $token = null): object|false {
+    public function get_user_obj(?string $token = null): object|bool {
         return $this->model->get_user_obj($token);
     }
 
@@ -125,9 +125,9 @@ class Trongate_tokens extends Trongate {
      * Retrieves the user level associated with the given token or the current user token.
      *
      * @param string|null $token Optional. The token used to identify the user. If not provided, the token of the current user is used
-     * @return string|false The user level title if found, otherwise false
+     * @return string|bool The user level title if found, otherwise false
      */
-    public function get_user_level(?string $token = null): string|false {
+    public function get_user_level(?string $token = null): string|bool {
         // If token is not provided, get the user object to fetch the token
         if (!$token) {
             $user_obj = $this->model->get_user_obj();

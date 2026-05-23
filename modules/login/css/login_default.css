@@ -1,0 +1,30 @@
+body {
+	display: flex;
+	flex-direction: row;
+	min-height: 100vh;
+	align-items: center;
+	justify-content: center;
+    background: conic-gradient(from 180deg, #000021 0.000deg, #00000b 10.909deg, #000000 21.818deg, #000000 32.727deg, #000000 43.636deg, #000000 54.545deg, #000000 65.455deg, #180000 76.364deg, #320000 87.273deg, #4b0000 98.182deg, #630000 109.091deg, #7a0100 120.000deg, #8d1700 130.909deg, #9d2e02 141.818deg, #a94518 152.727deg, #af5b2e 163.636deg, #b07045 174.545deg, #ac825c 185.455deg, #a39270 196.364deg, #969e83 207.273deg, #84a692 218.182deg, #6faa9e 229.091deg, #57aaa5 240.000deg, #3ea5a9 250.909deg, #259ba7 261.818deg, #0c8ea2 272.727deg, #007e98 283.636deg, #006b8a 294.545deg, #005579 305.455deg, #003f65 316.364deg, #002850 327.273deg, #001139 338.182deg, #000022 349.091deg, #00000c 360.000deg);
+}
+
+.card {
+	width: 90%;
+	max-width: 460px;
+	border-top: 5px var(--primary) solid;
+	color: #333;
+}
+
+h1 {
+	font-size: 2em;
+	text-align: center;
+}
+
+  button,
+  button.button,
+  a.button,
+  .button {
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+    margin: 0.5em 0;
+  }

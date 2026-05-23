@@ -2,18 +2,15 @@
 class Trongate_administrators_model extends Model {
 
     private string $table_name = 'trongate_administrators';
-    private int $max_failed_attempts = 3;
-    private int $block_time_seconds = 900; // Fifteen minutes
-    private int $min_block_timestamp = 1000; // Threshold for "active" blocks
 
 	/**
 	 * Find a single record based on a column value.
 	 *
 	 * @param string $column The column name to match
 	 * @param mixed $value The value to match
-	 * @return object|false Returns record object if found, false otherwise
+	 * @return object|bool Returns record object if found, false otherwise
 	 */
-	private function find_one(string $column, $value): object|false {
+	private function find_one(string $column, $value): object|bool {
 	    $sql = "SELECT * FROM {$this->table_name} WHERE {$column} = :{$column} LIMIT 1";
 	    $params = [$column => $value];
 	    
@@ -28,10 +25,10 @@ class Trongate_administrators_model extends Model {
      * Returns false if record not found.
      * 
      * @param int $record_id The record ID to fetch
-     * @return array<string, mixed>|false Record data formatted for form display
+     * @return array<string, mixed>|bool Record data formatted for form display
      *                                    Returns false if record not found
      */
-    public function get_data_from_db(int $record_id): array|false {
+    public function get_data_from_db(int $record_id): array|bool {
         $record = $this->find_one('id', $record_id);
         
         if ($record === false) {
@@ -72,135 +69,6 @@ class Trongate_administrators_model extends Model {
     }
 
 	/**
-	 * Reset expired login blocks by clearing failed login counters.
-	 * 
-	 * Finds records with active but expired login blocks (login_blocked_until > min threshold 
-	 * AND < current time) and resets their failed login tracking fields.
-	 * 
-	 * @return void
-	 */
-	public function remove_expired_restrictions(): void {
-	    $params['current_time'] = time();
-	    $params['min_timestamp'] = $this->min_block_timestamp;
-	    
-	    $sql = 'SELECT * FROM ' . $this->table_name . ' 
-	            WHERE login_blocked_until > :min_timestamp 
-	            AND login_blocked_until < :current_time';
-	    
-	    $rows = $this->db->query_bind($sql, $params, 'object');
-
-	    $data = [
-	        'failed_login_attempts' => 0,
-	        'last_failed_attempt' => 0,
-	        'login_blocked_until' => 0,
-	        'failed_login_ip' => ''
-	    ];
-
-	    foreach($rows as $row) {
-	        $update_id = (int) $row->id;
-	        $this->db->update($update_id, $data, $this->table_name);
-	    }
-	}
-
-	/**
-	 * Determines if a login attempt is allowed for a given username or IP address.
-	 *
-	 * This function checks if the specified username (if provided) or the
-	 * current IP address has exceeded the maximum number of failed login
-	 * attempts and is temporarily blocked.
-	 *
-	 * @param string|null $username Optional. The username to check against. Defaults to null.
-	 *
-	 * @return bool Returns true if the login attempt is allowed; false if blocked.
-	 */
-	public function is_login_attempt_allowed(?string $username = null): bool {
-	    $params = [
-	        'failed_login_ip' => ip_address(),
-	        'current_time' => time(),
-	        'max_attempts' => $this->max_failed_attempts
-	    ];
-	    
-	    if ($username !== null) {
-	        $params['username'] = $username;
-	        $sql = 'SELECT * FROM ' . $this->table_name . ' 
-	                WHERE (username = :username OR failed_login_ip = :failed_login_ip)
-	                AND failed_login_attempts >= :max_attempts
-	                AND login_blocked_until > :current_time';
-	    } else {
-	        $sql = 'SELECT * FROM ' . $this->table_name . ' 
-	                WHERE failed_login_ip = :failed_login_ip
-	                AND failed_login_attempts >= :max_attempts
-	                AND login_blocked_until > :current_time';
-	    }
-	    
-	    $rows = $this->db->query_bind($sql, $params, 'object');
-	    return empty($rows);
-	}
-
-	/**
-	 * Get a timing-safe hash for password verification.
-	 * 
-	 * Returns a valid bcrypt hash that ensures constant-time verification
-	 * regardless of whether the submitted username exists. This prevents
-	 * username enumeration via timing attacks.
-	 * 
-	 * Uses any active user's hash when available, otherwise generates a
-	 * valid bcrypt hash for fresh installs.
-	 * 
-	 * @return string A valid bcrypt hash for constant-time verification
-	 */
-	private function get_timing_safe_hash(): string {
-	    $user_obj = $this->find_one('active', 1);
-	    
-	    // Use real user's hash when available
-	    if ($user_obj !== false && !empty($user_obj->password)) {
-	        return $user_obj->password;
-	    }
-	    
-	    // Generate a valid bcrypt hash for timing protection
-	    // Uses existing hash_password() method with correct settings
-	    return $this->hash_password('timing_protection_dummy');
-	}
-
-	/**
-	 * Validate submitted credentials with timing-attack protection.
-	 *
-	 * Authentication succeeds only when ALL conditions are met:
-	 * 1. A record exists with the submitted username
-	 * 2. The record has a non-empty password hash
-	 * 3. password_verify() returns true for the submitted password
-	 * 4. The record is marked active (active = 1)
-	 *
-	 * Timing protection: Always performs password_verify() with a valid
-	 * bcrypt hash, ensuring consistent response time.
-	 *
-	 * @param string $username The submitted username
-	 * @param string $password The submitted password
-	 * @return bool True if authentication succeeds, false otherwise
-	 */
-	public function validate_credentials(string $username, string $password): bool {
-	    // Attempt to retrieve the submitted user
-	    $submitted_user = $this->find_one('username', $username);
-	    
-	    // Determine which hash to verify against
-	    $hash_to_verify = $this->get_timing_safe_hash(); // Default (timing-safe)
-	    
-	    // Use submitted user's hash if available and valid
-	    if ($submitted_user !== false && !empty($submitted_user->password)) {
-	        $hash_to_verify = $submitted_user->password;
-	    }
-	    
-	    // ALWAYS perform password verification (timing-safe operation)
-	    $password_valid = $this->verify_password($password, $hash_to_verify);
-	    
-	    // Authentication succeeds ONLY when all conditions are met
-	    return ($submitted_user !== false) 
-	        && !empty($submitted_user->password)
-	        && $password_valid 
-	        && ((int) $submitted_user->active === 1);
-	}
-
-	/**
 	 * Update a record in the database.
 	 * 
 	 * @param int $update_id The ID of the record to update
@@ -236,135 +104,72 @@ class Trongate_administrators_model extends Model {
         return password_hash($password, PASSWORD_BCRYPT, ['cost' => 11]);
     }
 
-    /**
-     * Verify a plain-text password against a stored hash.
-     *
-     * @param string $plain_text_password
-     * @param string $hashed_password
-     *
-     * @return bool
-     */
-    public function verify_password(string $plain_text_password, string $hashed_password): bool {
-        return password_verify($plain_text_password, $hashed_password);
-    }
-
-	/**
-	 * Increment failed login attempt counter for a user.
-	 *
-	 * @param string $username The username that failed authentication
-	 * @return bool Returns true if user should be blocked, false otherwise
-	 */
-	public function increment_failed_login_attempts(string $username): bool {
-	    $user_record = $this->find_one('username', $username);
-	    
-	    if ($user_record === false) {
-	        return false; // User doesn't exist - no action needed
-	    }
-	    
-	    $failed_login_attempts = (int) $user_record->failed_login_attempts;
-	    
-	    $data = [
-	        'failed_login_attempts' => $failed_login_attempts + 1,
-	        'last_failed_attempt' => time(),
-	        'failed_login_ip' => ip_address()
-	    ];
-	    
-	    // Check if user should be blocked
-	    $should_block = ($data['failed_login_attempts'] >= $this->max_failed_attempts);
-	    
-	    if ($should_block) {
-	        $data['login_blocked_until'] = time() + $this->block_time_seconds;
-	    }
-	    
-	    $update_id = (int) $user_record->id;
-	    $this->db->update($update_id, $data, $this->table_name);
-	    
-	    return $should_block;
-	}
-
-	/**
-	 * Log a user in and persist authentication state.
-	 *
-	 * @param string $username
-	 * @param int $remember 0 for session-only, 1 for persistent cookie (30 days)
-	 *
-	 * @return string|bool
-	 * Returns the generated authentication token on success,
-	 * or FALSE if the user could not be logged in.
-	 */
-	public function log_user_in(string $username, int $remember = 0): string|bool {
-	    $this->module('trongate_tokens');
-	    $user = $this->find_one('username', $username);
-
-	    if ($user === false) {
-	        return false;
-	    }
-
-	    $token_data = [
-	        'user_id' => (int) $user->trongate_user_id
-	    ];
-
-	    if ($remember === 1) {
-	        // Persist login for 30 days
-	        $token_data['expiry_date'] = time() + (86400 * 30);
-	        $token = $this->trongate_tokens->generate_token($token_data);
-	        setcookie('trongatetoken', $token, $token_data['expiry_date'], '/');
-	        return $token;
-	    }
-
-	    // Session-only authentication
-	    $token = $this->trongate_tokens->generate_token($token_data);
-	    $_SESSION['trongatetoken'] = $token;
-
-	    return $token;
-	}
-
-	/**
-	 * Reset failed login counters and lockout information for a user after a successful login.
-	 *
-	 * This method clears the following fields for the specified user:
-	 * - failed_login_attempts
-	 * - last_failed_attempt
-	 * - login_blocked_until
-	 * - failed_login_id
-	 *
-	 * @param string $username The username of the administrator who has successfully logged in.
-	 * @return void
-	 */
-	public function after_login_tasks(string $username): void {
-	    $data = [
-	        'failed_login_attempts' => 0,
-	        'last_failed_attempt' => 0,
-	        'login_blocked_until' => 0,
-	        'failed_login_ip' => ''
-	    ];
-	    
-	    // First, find the user ID by username
-	    $user = $this->find_one('username', $username);
-	    
-	    if ($user !== false) {
-	        $update_id = (int) $user->id;
-	        $this->db->update($update_id, $data, $this->table_name);
-	    }
-	}
-
 	/**
 	 * Fetch a user record by ID.
 	 *
 	 * @param int $user_id The user identifier to look up
-	 * @return object|false Returns user object if found, false otherwise
+	 * @return object|bool Returns user object if found, false otherwise
 	 */
-	public function get_user_by_id(int $user_id): object|false {
+	public function get_user_by_id(int $user_id): object|bool {
 	    return $this->find_one('id', $user_id);
+	}
+
+	/**
+	 * Fetch any active user record.
+	 *
+	 * Used in dev mode to auto-login without credentials.
+	 *
+	 * @return object|bool Returns the first active user object, or false if none found
+	 */
+	public function get_any_active_user(): object|bool {
+	    $sql = 'SELECT * FROM ' . $this->table_name . ' WHERE active = 1 ORDER BY id ASC LIMIT 1';
+	    $rows = $this->db->query_bind($sql, [], 'object');
+	    return !empty($rows) ? $rows[0] : false;
+	}
+
+	/**
+	 * Log a user in by username and create an authentication token.
+	 *
+	 * @param string $username The username to log in
+	 * @param int $remember 0 for session-only, 1 for persistent cookie (30 days)
+	 * @return string|bool The token string on success, false on failure
+	 */
+	public function log_user_in(string $username, int $remember): string|bool {
+	    $user_obj = $this->find_one('username', $username);
+
+	    if ($user_obj === false) {
+	        return false;
+	    }
+
+	    $token = make_rand_str(32);
+	    $expiry_date = $remember === 1 ? time() + 86400 * 30 : time() + 86400;
+
+	    $token_data = [
+	        'token' => $token,
+	        'user_id' => $user_obj->trongate_user_id,
+	        'expiry_date' => $expiry_date,
+	        'code' => '0',
+	    ];
+
+	    $this->db->insert($token_data, 'trongate_tokens');
+
+	    // Store token in session and cookie so gather_user_tokens() can find it
+	    $_SESSION['trongatetoken'] = $token;
+
+	    if ($remember === 1) {
+	        setcookie('trongatetoken', $token, $expiry_date, '/');
+	    }
+
+	    return $token;
 	}
 
 	/**
 	 * Fetch a user record by authentication token.
 	 * 
 	 * @param string $token The authentication token to look up
-	 * @return object|false Returns user object if found, false otherwise
+	 * @return object|bool Returns user object if found, false otherwise
 	 */
-	public function get_user_by_token(string $token): object|false {
+	public function get_user_by_token(string $token): object|bool {
 	    $params['token'] = $token;
 	    $sql = 'SELECT
 	                    '.$this->table_name.'.* 
@@ -384,17 +189,6 @@ class Trongate_administrators_model extends Model {
 	    }
 
 	    return false;
-	}
-
-	/**
-	 * Fetch any active user.
-	 *
-	 * @return object|false Returns user object if found, false otherwise
-	 */
-	public function get_any_active_user(): object|false {
-	    $sql = "SELECT * FROM {$this->table_name} WHERE active = 1 ORDER BY id LIMIT 1";
-	    $rows = $this->db->query_bind($sql, [], 'object');
-	    return !empty($rows) ? $rows[0] : false;
 	}
 
     /**

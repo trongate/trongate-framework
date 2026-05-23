@@ -7,11 +7,8 @@
  * @return string The truncated string with an ellipsis (...) if necessary.
  */
 function truncate_str(string $value, int $max_length): string {
-    if (strlen($value) <= $max_length) {
-        return $value;
-    } else {
-        return substr($value, 0, $max_length) . '...';
-    }
+    $data = ['value' => $value, 'max_length' => $max_length];
+    return Modules::run('string_service/truncate_str', $data);
 }
 
 /**
@@ -22,14 +19,8 @@ function truncate_str(string $value, int $max_length): string {
  * @return string The truncated string with an ellipsis (...) if necessary.
  */
 function truncate_words(string $value, int $max_words): string {
-    $words = explode(' ', $value);
-
-    if (count($words) <= $max_words) {
-        return $value;
-    } else {
-        $truncated = implode(' ', array_slice($words, 0, $max_words));
-        return $truncated . '...';
-    }
+    $data = ['value' => $value, 'max_words' => $max_words];
+    return Modules::run('string_service/truncate_words', $data);
 }
 
 /**
@@ -40,13 +31,8 @@ function truncate_words(string $value, int $max_words): string {
  * @return string The last part of the input string.
  */
 function get_last_part(string $str, string $delimiter = '-'): string {
-    if (strpos($str, $delimiter) !== false) {
-        $parts = explode($delimiter, $str);
-        $last_part = end($parts);
-    } else {
-        $last_part = $str;
-    }
-    return $last_part;
+    $data = ['str' => $str, 'delimiter' => $delimiter];
+    return Modules::run('string_service/get_last_part', $data);
 }
 
 /**
@@ -61,13 +47,8 @@ function get_last_part(string $str, string $delimiter = '-'): string {
  * @return string The content found between the specified delimiters or an empty string if no content is found.
  */
 function extract_content(string $string, string $start_delim, string $end_delim): string {
-    if (($start_pos = strpos($string, $start_delim)) !== false) {
-        $start_pos += strlen($start_delim);
-        if (($end_pos = strpos($string, $end_delim, $start_pos)) !== false) {
-            return substr($string, $start_pos, $end_pos - $start_pos);
-        }
-    }
-    return '';
+    $data = ['string' => $string, 'start_delim' => $start_delim, 'end_delim' => $end_delim];
+    return Modules::run('string_service/extract_content', $data);
 }
 
 /**
@@ -80,26 +61,8 @@ function extract_content(string $string, string $start_delim, string $end_delim)
  * @return string The modified string.
  */
 function remove_substr_between(string $start, string $end, string $haystack, bool $remove_all = false): string {
-    if (!$remove_all) {
-        $start_pos = strpos($haystack, $start);
-        if ($start_pos === false) {
-            return $haystack;
-        }
-        $end_pos = strpos($haystack, $end, $start_pos + strlen($start));
-        if ($end_pos === false) {
-            return $haystack;
-        }
-        return substr($haystack, 0, $start_pos) . substr($haystack, $end_pos + strlen($end));
-    } else {
-        while (($start_pos = strpos($haystack, $start)) !== false) {
-            $end_pos = strpos($haystack, $end, $start_pos + strlen($start));
-            if ($end_pos === false) {
-                break;
-            }
-            $haystack = substr($haystack, 0, $start_pos) . substr($haystack, $end_pos + strlen($end));
-        }
-        return $haystack;
-    }
+    $data = ['start' => $start, 'end' => $end, 'haystack' => $haystack, 'remove_all' => $remove_all];
+    return Modules::run('string_service/remove_substr_between', $data);
 }
 
 /**
@@ -109,15 +72,9 @@ function remove_substr_between(string $start, string $end, string $haystack, boo
  * @param string|null $currency_symbol The optional currency symbol to be added.
  * @return string|float The formatted nice price.
  */
-function nice_price(float $num, ?string $currency_symbol = null): string|float {
-    $num = number_format($num, 2);
-    $nice_price = str_replace('.00', '', $num);
-
-    if (isset($currency_symbol)) {
-        $nice_price = $currency_symbol . $nice_price;
-    }
-
-    return $nice_price;
+function nice_price(float $num, ?string $currency_symbol = null): string {
+    $data = ['num' => $num, 'currency_symbol' => $currency_symbol];
+    return Modules::run('string_service/nice_price', $data);
 }
 
 /**
@@ -131,15 +88,8 @@ function nice_price(float $num, ?string $currency_symbol = null): string|float {
  * @return string The slugified version of the input string.
  */
 function url_title(string $value, bool $transliteration = true): string {
-    if (extension_loaded('intl') && $transliteration === true) {
-        $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII');
-        $value = $transliterator->transliterate($value);
-    }
-    $slug = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
-    $slug = preg_replace('~[^\pL\d]+~u', '-', $slug);
-    $slug = trim($slug, '- ');
-    $slug = strtolower($slug);
-    return $slug;
+    $data = ['value' => $value, 'transliteration' => $transliteration];
+    return Modules::run('string_service/url_title', $data);
 }
 
 /**
@@ -172,42 +122,8 @@ function url_title(string $value, bool $transliteration = true): string {
  * @throws InvalidArgumentException If filename contains null bytes.
  */
 function sanitize_filename(string $filename, bool $transliteration = true, int $max_length = 200): string {
-    // Security: Prevent null byte attacks
-    if (strpos($filename, "\0") !== false) {
-        throw new InvalidArgumentException("Filename contains null bytes");
-    }
-    
-    // Extract components
-    $extension = pathinfo($filename, PATHINFO_EXTENSION);
-    $basename = pathinfo($filename, PATHINFO_FILENAME);
-    
-    // Handle empty basename (e.g., hidden files like ".htaccess")
-    if (empty($basename)) {
-        $basename = 'file_' . uniqid();
-    }
-    
-    // Use url_title() for robust string cleaning
-    // This handles international characters, HTML entities, special chars, etc.
-    $clean_basename = url_title($basename, $transliteration);
-    
-    // Fallback if url_title() returns empty (very rare edge case)
-    if (empty($clean_basename)) {
-        $clean_basename = 'file_' . uniqid();
-    }
-    
-    // Limit length to prevent filesystem issues
-    // Most filesystems support 255 bytes, but leave room for extension
-    if (strlen($clean_basename) > $max_length) {
-        $clean_basename = substr($clean_basename, 0, $max_length);
-        // Remove any trailing dashes created by the substring
-        $clean_basename = rtrim($clean_basename, '-');
-    }
-    
-    // Clean and normalize extension (alphanumeric only, lowercase)
-    $clean_extension = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $extension));
-    
-    // Reconstruct filename
-    return $clean_extension ? "{$clean_basename}.{$clean_extension}" : $clean_basename;
+    $data = ['filename' => $filename, 'transliteration' => $transliteration, 'max_length' => $max_length];
+    return Modules::run('string_service/sanitize_filename', $data);
 }
 
 /**
@@ -216,55 +132,15 @@ function sanitize_filename(string $filename, bool $transliteration = true, int $
  * @param string|null $input The string to be escaped. Null values are converted to empty strings.
  * @param string $output_format The desired output format: 'html' (default), 'xml', 'json', 'javascript', or 'attribute'.
  * @param string $encoding The character encoding to use for escaping. Defaults to 'UTF-8'.
- * 
+ *
  * @return string The escaped and formatted string ready for safe inclusion in the specified context.
  * @throws InvalidArgumentException if an unsupported output format is provided.
  * @throws RuntimeException if encoding fails due to invalid character encoding.
  * @throws JsonException if JSON encoding fails (requires PHP 7.3+).
  */
 function out(?string $input, string $output_format = 'html', string $encoding = 'UTF-8'): string {
-    if ($input === null) {
-        return '';
-    }
-    
-    switch ($output_format) {
-        case 'html':
-        case 'attribute':
-            $result = htmlspecialchars($input, ENT_QUOTES, $encoding);
-            if ($result === false) {
-                throw new RuntimeException("Failed to encode string with encoding: {$encoding}");
-            }
-            return $result;
-            
-        case 'xml':
-            $result = htmlspecialchars($input, ENT_XML1, $encoding);
-            if ($result === false) {
-                throw new RuntimeException("Failed to encode string with encoding: {$encoding}");
-            }
-            return $result;
-            
-        case 'json':
-            return json_encode(
-                $input, 
-                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | 
-                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
-            );
-            
-        case 'javascript':
-            $encoded = json_encode(
-                $input, 
-                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | 
-                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
-            );
-            // Remove surrounding quotes for JS string content
-            if (strlen($encoded) >= 2 && $encoded[0] === '"' && $encoded[strlen($encoded)-1] === '"') {
-                return substr($encoded, 1, -1);
-            }
-            return $encoded;
-            
-        default:
-            throw new InvalidArgumentException("Unsupported output format: '{$output_format}'");
-    }
+    $data = ['input' => $input, 'output_format' => $output_format, 'encoding' => $encoding];
+    return Modules::run('string_service/out', $data);
 }
 
 /**
@@ -275,15 +151,8 @@ function out(?string $input, string $output_format = 'html', string $encoding = 
  * @return string The randomly generated string.
  */
 function make_rand_str(int $length = 32, bool $uppercase = false): string {
-    $characters = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
-    $charactersLength = strlen($characters);
-    $randomString = '';
-    for ($i = 0; $i < $length; $i++) {
-        $randomByte = random_bytes(1);
-        $randomInt = ord($randomByte) % $charactersLength;
-        $randomString .= $characters[$randomInt];
-    }
-    return $uppercase ? strtoupper($randomString) : $randomString;
+    $data = ['length' => $length, 'uppercase' => $uppercase];
+    return Modules::run('string_service/make_rand_str', $data);
 }
 
 /**
@@ -301,15 +170,8 @@ function make_rand_str(int $length = 32, bool $uppercase = false): string {
  * @return string The modified HTML content.
  */
 function replace_html_tags(string $content, array $specifications): string {
-    $opening_string_before = $specifications['opening_string_before'];
-    $close_string_before = $specifications['close_string_before'];
-    $opening_string_after = $specifications['opening_string_after'];
-    $close_string_after = $specifications['close_string_after'];
-
-    $pattern = '/' . preg_quote($opening_string_before, '/') . '(.*?)' . preg_quote($close_string_before, '/') . '/';
-    $replacement = $opening_string_after . '$1' . $close_string_after;
-
-    return preg_replace($pattern, $replacement, $content);
+    $data = ['content' => $content, 'specifications' => $specifications];
+    return Modules::run('string_service/replace_html_tags', $data);
 }
 
 /**
@@ -321,8 +183,8 @@ function replace_html_tags(string $content, array $specifications): string {
  * @return string The HTML content with specified code sections removed.
  */
 function remove_html_code(string $content, string $opening_pattern, string $closing_pattern): string {
-    $pattern = '/(' . preg_quote($opening_pattern, '/') . ')(.*?)(\s*?' . preg_quote($closing_pattern, '/') . ')/is';
-    return preg_replace($pattern, '', $content);
+    $data = ['content' => $content, 'opening_pattern' => $opening_pattern, 'closing_pattern' => $closing_pattern];
+    return Modules::run('string_service/remove_html_code', $data);
 }
 
 /**
@@ -333,16 +195,8 @@ function remove_html_code(string $content, string $opening_pattern, string $clos
  * @return string The filtered and sanitized string.
  */
 function filter_str(string $str, array $allowed_tags = []): string {
-    // Remove HTML & PHP tags
-    $str = strip_tags($str, implode('', $allowed_tags));
-
-    // Convert multiple consecutive whitespaces to a single space, except for line breaks
-    $str = preg_replace('/[^\S\r\n]+/', ' ', $str);
-
-    // Trim leading and trailing white space
-    $str = trim($str);
-
-    return $str;
+    $data = ['str' => $str, 'allowed_tags' => $allowed_tags];
+    return Modules::run('string_service/filter_str', $data);
 }
 
 /**
@@ -351,7 +205,8 @@ function filter_str(string $str, array $allowed_tags = []): string {
  * Developers are encouraged to globally replace instances of 'filter_string(' with 'filter_str(' throughout their site or application.
  */
 function filter_string(string $string, array $allowed_tags = []): string {
-    return filter_str($string, $allowed_tags);
+    $data = ['string' => $string, 'allowed_tags' => $allowed_tags];
+    return Modules::run('string_service/filter_string', $data);
 }
 
 /**
@@ -362,27 +217,6 @@ function filter_string(string $string, array $allowed_tags = []): string {
  * @return string The filtered and sanitized name.
  */
 function filter_name(string $name, array $allowed_chars = []) {
-    // Similar to filter_string() but better suited for usernames, etc.
-
-    // Remove HTML & PHP tags (please read note above for more!)
-    $name = strip_tags($name);
-
-    // Apply XSS filtering
-    $name = htmlspecialchars($name);
-
-    // Create a regex pattern that includes the allowed characters
-    $pattern = '/[^a-zA-Z0-9\s';
-    $pattern .= !empty($allowed_chars) ? '[' . implode('', $allowed_chars) . ']' : ']';
-    $pattern .= '/';
-
-    // Replace any characters that are not in the allowed list
-    $name = preg_replace($pattern, '', $name);
-
-    // Convert double spaces to single spaces
-    $name = preg_replace('/\s+/', ' ', $name);
-
-    // Trim leading and trailing white space
-    $name = trim($name);
-
-    return $name;
+    $data = ['name' => $name, 'allowed_chars' => $allowed_chars];
+    return Modules::run('string_service/filter_name', $data);
 }

@@ -1,682 +1,161 @@
 <?php
 /**
- * Form validation class for server-side input validation with built-in rules.
- * Provides comprehensive validation including file uploads, custom callbacks, and CSRF protection.
+ * Validation Module - Framework Service for Form Validation
+ * 
+ * This module provides validation functionality as a framework service.
+ * It is accessed exclusively via Service Routing from helper functions.
+ * 
+ * Security: Uses BASE_URL check instead of block_url() to minimize dependencies
+ * and maximize performance for core framework services.
  */
+
+// Prevent direct script access - lightweight security check
+if (!defined('BASE_URL')) {
+    exit('No direct script access allowed');
+}
+
 class Validation extends Trongate {
 
-    /** @var array Holds the form submission errors. */
+    /**
+     * Array of form submission errors
+     * 
+     * @var array<string, array<string>>
+     */
     public array $form_submission_errors = [];
 
-    /** @var array Holds the posted fields. */
+    /**
+     * Array of posted fields with their labels
+     * 
+     * @var array<string, string>
+     */
     public array $posted_fields = [];
 
     /**
-     * Class constructor.
-     *
-     * Prevents direct URL access to the validation module while allowing
-     * internal validation operations via application code.
-     *
-     * @param string|null $module_name The module name (auto-provided by framework)
+     * Caller object for callback methods
+     * 
+     * @var object|null
      */
-    public function __construct(?string $module_name = null) {
+    private ?object $caller = null;
+
+    /**
+     * Constructor for Validation class
+     * 
+     * @param string|null $module_name The module name
+     * @param object|null $caller The calling controller instance for callbacks
+     */
+    public function __construct(?string $module_name = null, ?object $caller = null) {
         parent::__construct($module_name);
-        block_url($this->module_name);
+        $this->caller = $caller;
     }
 
     /**
-     * Set rules for form field validation.
+     * Sets the validation language for error messages
+     * 
+     * @param string $lang The language code (e.g., 'en', 'fr', 'es')
+     * @return void
+     */
+    public function set_language(string $lang): void {
+        $this->language->set_language($lang);
+        $this->model->load_validation_language($lang);
+    }
+
+    /**
+     * Resets the validation language to the system default.
+     * Removes the sticky language preference from the session.
      *
-     * @param string $key The form field name.
-     * @param string $label The form field label.
-     * @param string|array $rules The validation rules for the field.
+     * @return void
+     */
+    public function reset_language(): void {
+        $this->language->reset_language();
+    }
+
+    /**
+     * Sets the calling controller instance to allow for callback methods.
+     * 
+     * @param object $caller The calling controller instance
+     * @return void
+     */
+    public function set_caller(object $caller): void {
+        $this->caller = $caller;
+    }
+
+    /**
+     * Configures validation rules for a specific field.
+     * 
+     * @param string $key The field name/key
+     * @param string $label The human-readable field label
+     * @param string $rules The validation rules string (pipe-separated)
      * @return void
      */
     public function set_rules(string $key, string $label, string $rules): void {
         $validation_data['key'] = $key;
         $validation_data['label'] = $label;
 
-        if (isset($_FILES[$key])) {
-            // File handling - delegate to child module
-            $file = $_FILES[$key];
-            
-            if ($file['error'] !== UPLOAD_ERR_OK) {
-                $this->handle_upload_error($key, $label, $file['error']);
-                return;
-            }
-
-            // Load the file_validation child module explicitly
-            $this->module('validation-file_validation');
-            
-            // Delegate all file validation to the file_validation child module
-            $file_errors = $this->file_validation->validate($key, $label, $rules, $file);
-            
-            if (!empty($file_errors)) {
-                foreach ($file_errors as $error) {
-                    $this->form_submission_errors[$key][] = $error;
-                }
-            }
-
+        if (isset($_FILES[$key]) && $_FILES[$key]['error'] !== UPLOAD_ERR_NO_FILE) {
+            $validation_data['posted_value'] = $_FILES[$key];
+            $validation_data['is_file'] = true;
         } else {
-            // Normal form field handling
             $validation_data['posted_value'] = post($key, true);
-            $tests_to_run = $this->get_tests_to_run($rules);
-
-            foreach ($tests_to_run as $test_to_run) {
-                $this->posted_fields[$key] = $label;
-                $validation_data['test_to_run'] = $test_to_run;
-                $this->run_validation_test($validation_data, $rules);
-            }
+            $validation_data['is_file'] = false;
         }
 
-        $_SESSION['form_submission_errors'] = $this->form_submission_errors;
-    }
-
-    /**
-     * Handles file upload errors by mapping the error code to a user-friendly message
-     * and storing the error in the form submission errors array.
-     *
-     * @param string $key The key associated with the file upload field.
-     * @param string $label The label/name of the file upload field.
-     * @param int $error_code The error code returned by the file upload process.
-     * @return void
-     */
-    private function handle_upload_error(string $key, string $label, int $error_code): void {
-        $error_message = match($error_code) {
-            UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
-            UPLOAD_ERR_FORM_SIZE => 'The uploaded file exceeds the MAX_FILE_SIZE directive in the HTML form',
-            UPLOAD_ERR_PARTIAL => 'The uploaded file was only partially uploaded',
-            UPLOAD_ERR_NO_FILE => 'No file was uploaded',
-            UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder',
-            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
-            UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload',
-            default => 'An unknown error occurred during file upload'
-        };
-        $this->form_submission_errors[$key][] = $error_message;
-        $_SESSION['form_submission_errors'] = $this->form_submission_errors;
-    }
-
-    /**
-     * Run a validation test based on the provided validation data and rules.
-     *
-     * @param array $validation_data An array containing validation data.
-     * @param mixed|null $rules The rules for validation (default: null).
-     * @return void
-     */
-    private function run_validation_test(array $validation_data, $rules = null): void {
-
-        switch ($validation_data['test_to_run']) {
-            case 'required':
-                $this->check_for_required($validation_data);
-                break;
-            case 'numeric':
-                $this->check_for_numeric($validation_data);
-                break;
-            case 'integer':
-                $this->check_for_integer($validation_data);
-                break;
-            case 'decimal':
-                $this->check_for_decimal($validation_data);
-                break;
-            case 'valid_email':
-                $this->valid_email($validation_data);
-                break;
-            case 'valid_date':
-                $this->valid_date($validation_data);
-                break;
-            case 'valid_time':
-                $this->valid_time($validation_data);
-                break;
-            case 'valid_datetime_local':
-                $this->valid_datetime_local($validation_data);
-                break;
-            case 'valid_month':
-                $this->valid_month($validation_data);
-                break;
-            case 'valid_week':
-                $this->valid_week($validation_data);
-                break;
-            default:
-                $this->run_special_test($validation_data);
-                break;
-        }
-    }
-
-    /**
-     * Run form validation checks.
-     *
-     * @param array|null $validation_array An array containing validation rules (default: null).
-     * @return bool|null Returns a boolean value if validation completes, null if the script execution is potentially terminated.
-     */
-    public function run(?array $validation_array = null): ?bool {
-
-        $this->csrf_protect();
-
-        if (isset($_SESSION['form_submission_errors'])) {
-            unset($_SESSION['form_submission_errors']);
-        }
-
-        if (isset($validation_array)) {
-            $this->process_validation_array($validation_array);
-        }
-
-        if (count($this->form_submission_errors) > 0) {
-            $_SESSION['form_submission_errors'] = $this->form_submission_errors;
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * Invoke the required form validation tests.
-     *
-     * @param array $validation_array The array containing validation rules and data.
-     * @return void
-     */
-    private function process_validation_array(array $validation_array): void {
-
-        foreach ($validation_array as $key => $value) {
-            if (isset($value['label'])) {
-                $label = $value['label'];
-            } else {
-                $label = str_replace('_', ' ', $key);
-            }
-
-            $posted_value = post($key, true);
-            $rules = $this->build_rules_str($value);
-            $tests_to_run = $this->get_tests_to_run($rules);
-
-            $validation_data['key'] = $key;
-            $validation_data['label'] = $label;
-            $validation_data['posted_value'] = $posted_value;
-
-            foreach ($tests_to_run as $test_to_run) {
-                $this->posted_fields[$key] = $label;
-                $validation_data['test_to_run'] = $test_to_run;
-                $this->run_validation_test($validation_data);
-            }
-        }
-    }
-
-    /**
-     * Build rules string based on the provided validation rules.
-     *
-     * @param array $value An array representing validation rules.
-     * @return string Returns a string containing rules generated from the validation rules.
-     */
-    private function build_rules_str(array $value): string {
-        $rules_str = '';
-
-        foreach ($value as $k => $v) {
-            if ($k !== 'label') {
-                $rules_str .= $k . (is_bool($v) ? '|' : '[' . $v . ']|');
-            }
-        }
-
-        return rtrim($rules_str, '|'); // Remove trailing '|' if present
-    }
-
-    /**
-     * Get tests to run based on provided rules.
-     *
-     * @param string $rules A string containing validation rules separated by '|'.
-     * @return array An array containing individual tests to run based on rules.
-     */
-    private function get_tests_to_run(string $rules): array {
         $tests_to_run = explode('|', $rules);
-        return $tests_to_run;
+        $this->posted_fields[$key] = $label;
+
+        foreach ($tests_to_run as $test_to_run) {
+            $validation_data['test_to_run'] = $test_to_run;
+            $this->run_validation_test($validation_data);
+
+            // EARLY EXIT: If an error was added for this field, stop processing further rules
+            if (isset($this->form_submission_errors[$key])) {
+                break;  // Stop processing more rules for this field
+            }
+        }
+
+        $_SESSION['form_submission_errors'] = $this->form_submission_errors;
     }
 
     /**
-     * Check for required fields in the validation data.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
+     * Parses and executes a single validation rule.
+     * 
+     * @param array<string, mixed> $validation_data The validation data array
      * @return void
      */
-    private function check_for_required(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = trim($validation_data['posted_value']);
-
-        if ($posted_value === '') {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field is required.';
-        }
-    }
-
-    /**
-     * Check if the value in validation data is numeric.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
-     * @return void
-     */
-    private function check_for_numeric(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
-
-        if ((!is_numeric($posted_value)) && ($posted_value !== '')) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be numeric.';
-        }
-    }
-
-    /**
-     * Check if the value in validation data is an integer.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
-     * @return void
-     */
-    private function check_for_integer(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
-
-        if ((!filter_var($posted_value, FILTER_VALIDATE_INT)) && ($posted_value !== '')) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be an integer.';
-        }
-    }
-
-    /**
-     * Check if the value in validation data is a decimal number.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
-     * @return void
-     */
-    private function check_for_decimal(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
-
-        if ((!filter_var($posted_value, FILTER_VALIDATE_FLOAT)) && ($posted_value !== '')) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a decimal number.';
-        }
-    }
-
-    /**
-     * Validate the email address format.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
-     * @return void
-     */
-    private function valid_email(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
-
-        if ((!filter_var($posted_value, FILTER_VALIDATE_EMAIL)) && ($posted_value !== '')) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must contain a valid email address.';
-        }
-    }
-
-    /**
-     * Validate date in YYYY-MM-DD format.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
-     * @return void
-     */
-    private function valid_date(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
-
-        if ($posted_value === '') {
-            return;
-        }
-
-        $date = DateTime::createFromFormat('Y-m-d', $posted_value);
-        $is_valid = $date && $date->format('Y-m-d') === $posted_value;
-
-        if (!$is_valid) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a valid date in YYYY-MM-DD format.';
-        }
-    }
-
-    /**
-     * Validate time in HH:MM or HH:MM:SS format.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
-     * @return void
-     */
-    private function valid_time(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
-
-        if ($posted_value === '') {
-            return;
-        }
-
-        // Try HH:MM:SS format first
-        $time = DateTime::createFromFormat('H:i:s', $posted_value);
-        $is_valid = $time && $time->format('H:i:s') === $posted_value;
-
-        // If not valid, try HH:MM format
-        if (!$is_valid) {
-            $time = DateTime::createFromFormat('H:i', $posted_value);
-            $is_valid = $time && $time->format('H:i') === $posted_value;
-        }
-
-        if (!$is_valid) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a valid time in HH:MM or HH:MM:SS format.';
-        }
-    }
-
-    /**
-     * Validate datetime-local in YYYY-MM-DDTHH:MM format.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
-     * @return void
-     */
-    private function valid_datetime_local(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
-
-        if ($posted_value === '') {
-            return;
-        }
-
-        $datetime = DateTime::createFromFormat('Y-m-d\TH:i', $posted_value);
-        $is_valid = $datetime && $datetime->format('Y-m-d\TH:i') === $posted_value;
-
-        if (!$is_valid) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a valid datetime in YYYY-MM-DDTHH:MM format.';
-        }
-    }
-
-    /**
-     * Validate month in YYYY-MM format.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
-     * @return void
-     */
-    private function valid_month(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
-
-        if ($posted_value === '') {
-            return;
-        }
-
-        $date = DateTime::createFromFormat('Y-m', $posted_value);
-        $is_valid = $date && $date->format('Y-m') === $posted_value;
-
-        if (!$is_valid) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a valid month in YYYY-MM format.';
-        }
-    }
-
-    /**
-     * Validate week in YYYY-W## format.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value'
-     * @return void
-     */
-    private function valid_week(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
-
-        if ($posted_value === '') {
-            return;
-        }
-
-        // Validate format YYYY-W## (e.g., 2025-W52)
-        if (!preg_match('/^\d{4}-W\d{2}$/', $posted_value)) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a valid week in YYYY-W## format.';
-            return;
-        }
-
-        // Extract year and week number
-        list($year, $week_part) = explode('-W', $posted_value);
-        $week = (int) $week_part;
-
-        // Validate week number range (1-53)
-        if ($week < 1 || $week > 53) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be a valid week in YYYY-W## format.';
-        }
-    }
-
-    /**
-     * Run special validation tests based on the provided validation data.
-     *
-     * @param array $validation_data An array containing validation data.
-     *                              Required keys: 'key', 'label', 'posted_value', 'test_to_run'
-     * @return void
-     */
-    private function run_special_test(array $validation_data): void {
-        $key = $validation_data['key'];
-        $label = $validation_data['label'];
-        $posted_value = $validation_data['posted_value'];
+    private function run_validation_test(array $validation_data): void {
         $test_to_run = $validation_data['test_to_run'];
+        $param = null;
 
-        $inner_bracket_contents = $this->extract_content($test_to_run, '[', ']');
-
-        if ($inner_bracket_contents !== '') {
-            $test_name = $this->get_test_name($test_to_run);
-            $inner_value = $this->extract_content($test_to_run, '[', ']');
-
-            switch ($test_name) {
-                case 'matches':
-                    $this->matches($key, $label, $posted_value, $inner_value);
-                    break;
-                case 'differs':
-                    $this->differs($key, $label, $posted_value, $inner_value);
-                    break;
-                case 'min_length':
-                    $this->min_length($key, $label, $posted_value, intval($inner_value));
-                    break;
-                case 'max_length':
-                    $this->max_length($key, $label, $posted_value, intval($inner_value));
-                    break;
-                case 'greater_than':
-                    $this->greater_than($key, $label, $posted_value, intval($inner_value));
-                    break;
-                case 'less_than':
-                    $this->less_than($key, $label, $posted_value, intval($inner_value));
-                    break;
-                case 'exact_length':
-                    $this->exact_length($key, $label, $posted_value, intval($inner_value));
-                    break;
-            }
+        // Parse rules with parameters, e.g., max_length[10]
+        if (strpos($test_to_run, '[') !== false && strpos($test_to_run, ']') !== false) {
+            $parts = explode('[', $test_to_run);
+            $method = $parts[0];
+            $param = rtrim($parts[1], ']');
         } else {
-            $this->attempt_invoke_callback($key, $label, $posted_value, $test_to_run);
+            $method = $test_to_run;
         }
-    }
 
-    /**
-     * Extracts content between specified start and end strings within a given string.
-     *
-     * @param string $string The input string to search within.
-     * @param string $start The starting string to search for.
-     * @param string $end The ending string to search for.
-     * @return string Returns the extracted content.
-     */
-    private function extract_content(string $string, string $start, string $end): string {
-        $pos = stripos($string, $start);
-        $str = substr($string, $pos);
-        $str_two = substr($str, strlen($start));
-        $second_pos = stripos($str_two, $end);
-        $str_three = substr($str_two, 0, $second_pos);
-        $content = trim($str_three); // Remove whitespaces
-        return $content;
-    }
+        $validation_data['param'] = $param;
 
-    /**
-     * Gets the test name from the test to run string containing square brackets.
-     *
-     * @param string $test_to_run The string containing the test name and parameters.
-     * @return string Returns the extracted test name.
-     */
-    private function get_test_name(string $test_to_run): string {
-        $pos = stripos($test_to_run, '[');
-        $test_name = substr($test_to_run, 0, $pos);
-        return $test_name;
-    }
+        // Handle Callbacks
+        if (str_starts_with($method, 'callback_')) {
+            $callback_method = str_replace('callback_', '', $method);
 
-    /**
-     * Check if the value matches another field value.
-     *
-     * @param string $key The key of the field being validated.
-     * @param string $label The label of the field being validated.
-     * @param mixed $posted_value The value of the field being validated.
-     * @param string $compare_field The name of the field to compare against.
-     * @return void
-     */
-    private function matches(string $key, string $label, $posted_value, string $compare_field): void {
-        $compare_value = post($compare_field, true);
+            if (isset($this->caller) && method_exists($this->caller, $callback_method)) {
+                $result = $this->caller->$callback_method($validation_data['posted_value']);
 
-        if ($posted_value !== $compare_value) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must match the ' . str_replace('_', ' ', $compare_field) . ' field.';
-        }
-    }
-
-    /**
-     * Check if the value differs from another field value.
-     *
-     * @param string $key The key of the field being validated.
-     * @param string $label The label of the field being validated.
-     * @param mixed $posted_value The value of the field being validated.
-     * @param string $compare_field The name of the field to compare against.
-     * @return void
-     */
-    private function differs(string $key, string $label, $posted_value, string $compare_field): void {
-        $compare_value = post($compare_field, true);
-
-        if ($posted_value === $compare_value) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must differ from the ' . str_replace('_', ' ', $compare_field) . ' field.';
-        }
-    }
-
-    /**
-     * Check if the value meets minimum length requirements.
-     *
-     * @param string $key The key of the field being validated.
-     * @param string $label The label of the field being validated.
-     * @param mixed $posted_value The value of the field being validated.
-     * @param int $min_length The minimum required length.
-     * @return void
-     */
-    private function min_length(string $key, string $label, $posted_value, int $min_length): void {
-        if ((strlen($posted_value) < $min_length) && ($posted_value !== '')) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be at least ' . $min_length . ' characters long.';
-        }
-    }
-
-    /**
-     * Check if the value meets maximum length requirements.
-     *
-     * @param string $key The key of the field being validated.
-     * @param string $label The label of the field being validated.
-     * @param mixed $posted_value The value of the field being validated.
-     * @param int $max_length The maximum allowed length.
-     * @return void
-     */
-    private function max_length(string $key, string $label, $posted_value, int $max_length): void {
-        if ((strlen($posted_value) > $max_length) && ($posted_value !== '')) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field cannot exceed ' . $max_length . ' characters.';
-        }
-    }
-
-    /**
-     * Check if the numeric value is greater than a specified value.
-     *
-     * @param string $key The key of the field being validated.
-     * @param string $label The label of the field being validated.
-     * @param mixed $posted_value The value of the field being validated.
-     * @param int $compare_value The value to compare against.
-     * @return void
-     */
-    private function greater_than(string $key, string $label, $posted_value, int $compare_value): void {
-        if (($posted_value !== '') && (is_numeric($posted_value)) && ($posted_value <= $compare_value)) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be greater than ' . $compare_value . '.';
-        }
-    }
-
-    /**
-     * Check if the numeric value is less than a specified value.
-     *
-     * @param string $key The key of the field being validated.
-     * @param string $label The label of the field being validated.
-     * @param mixed $posted_value The value of the field being validated.
-     * @param int $compare_value The value to compare against.
-     * @return void
-     */
-    private function less_than(string $key, string $label, $posted_value, int $compare_value): void {
-        if (($posted_value !== '') && (is_numeric($posted_value)) && ($posted_value >= $compare_value)) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be less than ' . $compare_value . '.';
-        }
-    }
-
-    /**
-     * Check if the value has an exact length.
-     *
-     * @param string $key The key of the field being validated.
-     * @param string $label The label of the field being validated.
-     * @param mixed $posted_value The value of the field being validated.
-     * @param int $exact_length The exact required length.
-     * @return void
-     */
-    private function exact_length(string $key, string $label, $posted_value, int $exact_length): void {
-        if ((strlen($posted_value) !== $exact_length) && ($posted_value !== '')) {
-            $this->form_submission_errors[$key][] = 'The ' . $label . ' field must be exactly ' . $exact_length . ' characters long.';
-        }
-    }
-
-    /**
-     * Attempts to invoke a callback method for validation.
-     *
-     * @param string $key The key associated with the input field.
-     * @param string $label The label for the input field.
-     * @param mixed $posted_value The value posted for validation.
-     * @param string $test_to_run The name of the test to run.
-     * @return void
-     */
-    private function attempt_invoke_callback(string $key, string $label, $posted_value, string $test_to_run): void {
-        $chars = substr($test_to_run, 0, 9);
-        if ($chars === 'callback_') {
-            $target_module = ucfirst(segment(1));
-            $target_method = str_replace('callback_', '', $test_to_run);
-            
-            // Store the module name for constructor (lowercase, full path including hyphens)
-            $module_name = strtolower(segment(1));
-            
-            if (!class_exists($target_module)) {
-                $modules_bits = explode('-', $target_module);
-                $target_module = ucfirst(end($modules_bits));
-                // Keep $module_name as the full hyphenated path
-            }
-            
-            if (class_exists($target_module)) {
-                try {
-                    $callback = new $target_module($module_name);  // ← FIXED: Pass module_name
-                    
-                    if (method_exists($callback, $target_method)) {
-                        $outcome = $callback->$target_method($posted_value);
-                        
-                        if (is_string($outcome)) {
-                            $outcome = str_replace('{label}', $label, $outcome);
-                            $this->form_submission_errors[$key][] = $outcome;
-                        }
-                    } else {
-                        $this->form_submission_errors[$key][] = 'Unable to execute validation callback.';
-                    }
-                } catch (Exception $e) {
-                    $this->form_submission_errors[$key][] = 'Unable to execute validation callback.';
+                if ($result !== true) {
+                    $error_msg = $this->model->resolve_error_message($result, $validation_data);
+                    $this->form_submission_errors[$validation_data['key']][] = $error_msg;
                 }
+            } else {
+                $error_msg = "Validation failed: Callback method '$callback_method' not found.";
+                $this->form_submission_errors[$validation_data['key']][] = $error_msg;
             }
+            return;
         }
+
+        // Delegate to Validation_model
+        $this->form_submission_errors = $this->model->execute_rule($method, $validation_data, $this->form_submission_errors);
     }
 
     /**
@@ -687,40 +166,224 @@ class Validation extends Trongate {
     private function csrf_protect(): void {
         // Make sure they have posted csrf_token
         $posted_csrf_token = post('csrf_token');
-
         if ($posted_csrf_token === '') {
             $this->csrf_block_request();
         } else {
             $expected = $_SESSION['csrf_token'] ?? '';
-
             if (!is_string($posted_csrf_token) || !hash_equals($expected, $posted_csrf_token)) {
                 $this->csrf_block_request();
             }
-
         }
     }
 
     /**
-     * Handles blocking of CSRF requests.
-     *
-     * This method is invoked when Trongate's CSRF protection is triggered.
-     * If the request originates from Trongate MX, it sends a 403 response code and provides
-     * additional debugging information in development mode. Otherwise, it redirects to the base URL.
+     * Blocks a request that failed CSRF validation.
      *
      * @return void
      */
     private function csrf_block_request(): void {
+        // Check if this is an AJAX/API request (XML HTTP Request)
+        $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
 
-        if (from_trongate_mx() === true) {
+        if ($is_ajax) {
+            // Return 403 Forbidden for API/AJAX requests
             http_response_code(403);
-            if (strtolower(ENV) === 'dev') {
-                echo 'Trongate\'s CSRF protection has blocked the request. For more details, refer to: https://trongate.io/documentation/read/trongate_mx/trongate-mx-security/csrf-protection ***  This message will NOT be displayed unless ENV is not set to a value of \'DEV\' or \'dev\'';
-            }
-            die();
+            die('CSRF token validation failed');
+        } else {
+            // Redirect to home page for standard form submissions
+            redirect(BASE_URL);
         }
-
-        header("location: " . BASE_URL);
-        die();
     }
 
+    /**
+     * Finalizes validation. Returns true if no errors found.
+     * Supports passing an array of rules directly (Option 2 syntax).
+     * 
+     * @param array<string, array<string, mixed>>|null $rules Optional associative array of validation rules
+     * @return bool True if validation passes, false otherwise
+     */
+    public function run(?array $rules = null): bool {
+        // 1. Security First - Validate CSRF token before any processing
+        $this->csrf_protect();
+
+        // 2. If rules are passed as an array, parse and execute them
+        if (isset($rules)) {
+            foreach ($rules as $field => $data) {
+                // Use provided label, or fallback to field name
+                $label = $data['label'] ?? $field;
+                $rule_list = [];
+
+                foreach ($data as $rule => $value) {
+                    // Skip the label key as it's not a validation test
+                    if ($rule === 'label') {
+                        continue;
+                    }
+
+                    // If value is true, it's a basic rule (e.g., 'required' => true)
+                    // If value is anything else, it's a param (e.g., 'min_length' => 3)
+                    if ($value === true) {
+                        $rule_list[] = $rule;
+                    } else {
+                        $rule_list[] = $rule . '[' . $value . ']';
+                    }
+                }
+
+                // Register and execute the rules for this field
+                $this->set_rules($field, $label, implode('|', $rule_list));
+            }
+        }
+
+        // 3. Final check for errors (gathered during set_rules phase)
+        if (count($this->form_submission_errors) > 0) {
+            $_SESSION['form_submission_errors'] = $this->form_submission_errors;
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Displays validation errors in various formats.
+     * 
+     * Supports three render types:
+     * 1. JSON: When first argument is an HTTP error code (400-499)
+     * 2. Inline: When only first argument is provided (field name)
+     * 3. Standard: When both opening and closing HTML tags are provided
+     * 
+     * @param array<string, mixed> $data The data array containing render parameters
+     * @return string|null The rendered error HTML or null if no errors
+     */
+    public function display_errors(array $data = []): ?string {
+        $first_arg = $data['first_arg'] ?? null;
+        $closing_html = $data['closing_html'] ?? null;
+        $render_type = $this->get_render_type($first_arg, $closing_html);
+
+        if ($render_type === 'null') {
+            return null;
+        }
+
+        $form_submission_errors = $_SESSION['form_submission_errors'];
+
+        return match ($render_type) {
+            'json'     => $this->json_validation_errors($form_submission_errors, $first_arg),
+            'inline'   => $this->inline_validation_errors($form_submission_errors, $first_arg),
+            'standard' => $this->general_validation_errors($form_submission_errors, $first_arg, $closing_html),
+        };
+    }
+
+    /**
+     * Renders validation errors as JSON response with HTTP error code.
+     * 
+     * @param array<string, array<string>> $errors The validation errors array
+     * @param int $http_code The HTTP status code (400-499)
+     * @return string Empty string (outputs JSON directly)
+     */
+    private function json_validation_errors(array $errors, int $http_code): string {
+        http_response_code($http_code);
+        header('Content-Type: application/json');
+
+        // RENDERED = DELETED
+        unset($_SESSION['form_submission_errors']);
+        return json_encode($errors);
+    }
+
+    /**
+     * Renders inline validation errors for a specific field.
+     * 
+     * @param array<string, array<string>> $errors The validation errors array
+     * @param string $field The field name to display errors for
+     * @return string The HTML for inline validation errors
+     */
+    private function inline_validation_errors(array $errors, string $field): string {
+        if (!isset($errors[$field])) {
+            return '';
+        }
+
+        $html = '<ul class="validation-errors validation-errors--inline">';
+        foreach ($errors[$field] as $error) {
+            $html .= '<li>' . out($error) . '</li>';
+        }
+        $html .= '</ul>';
+
+        // SURGICAL DELETION: Remove only this field's errors
+        unset($_SESSION['form_submission_errors'][$field]);
+
+        // Cleanup: If the array is now empty, remove the parent key
+        if (count($_SESSION['form_submission_errors']) === 0) {
+            unset($_SESSION['form_submission_errors']);
+        }
+
+        return $html;
+    }
+
+    /**
+     * Renders general validation errors as a summary list.
+     * 
+     * @param array<string, array<string>> $errors The validation errors array
+     * @param string|null $open The opening HTML tag for each error
+     * @param string|null $close The closing HTML tag for each error
+     * @return string The HTML for general validation errors
+     */
+    private function general_validation_errors(array $errors, ?string $open = null, ?string $close = null): string {
+        $open  = $open ?? (defined('ERROR_OPEN') ? ERROR_OPEN : '<li>');
+        $close = $close ?? (defined('ERROR_CLOSE') ? ERROR_CLOSE : '</li>');
+
+        $items = '';
+        foreach ($errors as $field_errors) {
+            foreach ($field_errors as $error) {
+                $items .= $open . out($error) . $close;
+            }
+        }
+
+        $html = ($items !== '') ? '<ul class="validation-errors validation-errors--summary">' . $items . '</ul>' : '';
+
+        // RENDERED = DELETED
+        unset($_SESSION['form_submission_errors']);
+        return $html;
+    }
+
+    /**
+     * Determines the render type based on input parameters.
+     * 
+     * @param mixed $first_arg The first argument passed to display_errors
+     * @param mixed $closing_html The closing HTML tag argument
+     * @return string The render type: 'json', 'inline', 'standard', or 'null'
+     */
+    private function get_render_type($first_arg, $closing_html): string {
+        if (!isset($_SESSION['form_submission_errors'])) {
+            return 'null';
+        }
+
+        if (is_int($first_arg) && $first_arg >= 400 && $first_arg <= 499) {
+            return 'json';
+        }
+
+        if (isset($first_arg) && !isset($closing_html)) {
+            return 'inline';
+        }
+
+        return 'standard';
+    }
+
+    /**
+     * Generates JS injection for automatic error highlighting.
+     * 
+     * @return string The JavaScript injection HTML
+     */
+    public function get_js_injection(): string {
+        if (!isset($_SESSION['form_submission_errors'])) {
+            return '';
+        }
+
+        $errors_json = json_encode($_SESSION['form_submission_errors'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        $html = '<script>window.trongateValidationErrors = ' . $errors_json . ';</script>';
+
+        $trigger = defined('MODULE_ASSETS_TRIGGER') ? MODULE_ASSETS_TRIGGER : '_module';
+        $js_url = BASE_URL . $this->module_name . $trigger . '/js/highlight_validation_errors.js';
+
+        $html .= '<script src="' . $js_url . '"></script>';
+
+        return $html;
+    }
 }

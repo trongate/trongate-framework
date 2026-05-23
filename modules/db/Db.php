@@ -374,7 +374,7 @@ class Db extends Trongate {
      *
      * @param int $id The ID of the record to fetch.
      * @param string $table The name of the database table to be queried.
-     * @return object|false Returns an object representing the fetched record, 
+     * @return object|bool Returns an object representing the fetched record, 
      *                      or false if no record is found.
      * 
      * Example:
@@ -382,7 +382,7 @@ class Db extends Trongate {
      * 
      * @throws RuntimeException If the table doesn't exist
      */
-    public function get_where(int $id, string $table): object|false {
+    public function get_where(int $id, string $table): object|bool {
         $this->validate_table_exists($table);
         
         $sql = "SELECT * FROM `$table` WHERE id = :id";
@@ -404,7 +404,7 @@ class Db extends Trongate {
      * @param string $column The name of the column to filter by.
      * @param mixed $value The value to match against the specified column.
      * @param string $table The name of the database table to be queried.
-     * @return object|false Returns an object representing the fetched record, 
+     * @return object|bool Returns an object representing the fetched record, 
      *                      or false if no record is found.
      * 
      * Examples:
@@ -414,7 +414,7 @@ class Db extends Trongate {
      * @throws RuntimeException If the table doesn't exist
      * @throws InvalidArgumentException If column name contains invalid characters
      */
-    public function get_one_where(string $column, mixed $value, string $table): object|false {
+    public function get_one_where(string $column, mixed $value, string $table): object|bool {
         $this->validate_table_exists($table);
         
         // Validate column name to prevent SQL injection
@@ -617,13 +617,13 @@ class Db extends Trongate {
      * 
      * @param string $table Table name
      * @param bool $names_only Return only column names
-     * @return array|false Column details or names
+     * @return array|bool Column details or names
      * 
      * Examples:
      * $columns = $db->describe_table('users');
      * $names = $db->describe_table('users', true);
      */
-    public function describe_table(string $table, bool $names_only = false): array|false {
+    public function describe_table(string $table, bool $names_only = false): array|bool {
         try {
             $sql = 'DESCRIBE ' . $table;
             $columns = $this->query($sql, 'array');

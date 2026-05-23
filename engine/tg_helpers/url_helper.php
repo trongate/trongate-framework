@@ -5,8 +5,7 @@
  * @return string The current URL as a string.
  */
 function current_url(): string {
-    $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
-    return $current_url;
+    return Modules::run('url/current_url');
 }
 
 /**
@@ -46,19 +45,11 @@ function current_url(): string {
  * if provided. Returns an empty string if the segment does not exist.
  */
 function segment(int $num, ?string $var_type = null): mixed {
-    $segments = SEGMENTS;
-
-    if (isset($segments[$num])) {
-        $value = $segments[$num];
-    } else {
-        $value = '';
-    }
-
-    if (isset($var_type)) {
-        settype($value, $var_type);
-    }
-
-    return $value;
+    $data = [
+        'num' => $num,
+        'var_type' => $var_type
+    ];
+    return Modules::run('url/segment', $data);
 }
 
 /**
@@ -68,8 +59,7 @@ function segment(int $num, ?string $var_type = null): mixed {
  * @return string The URL without the query string.
  */
 function remove_query_string(string $string): string {
-    $parts = explode("?", $string, 2);
-    return $parts[0];
+    return Modules::run('url/remove_query_string', $string);
 }
 
 /**
@@ -78,9 +68,7 @@ function remove_query_string(string $string): string {
  * @return int The number of URL segments after the base URL.
  */
 function get_num_segments(): int {
-    $url_path = str_replace(BASE_URL, '', current_url());
-    $url_segments = explode('/', $url_path);
-    return count($url_segments);
+    return Modules::run('url/get_num_segments');
 }
 
 /**
@@ -89,8 +77,7 @@ function get_num_segments(): int {
  * @return string The last segment of the URL.
  */
 function get_last_segment(): string {
-    $last_segment = get_last_part(current_url(), '/');
-    return $last_segment;
+    return Modules::run('url/get_last_segment');
 }
 
 /**
@@ -102,13 +89,7 @@ function get_last_segment(): string {
  * @return void
  */
 function redirect(string $target_url): void {
-    $str = substr($target_url, 0, 4);
-    if ($str != 'http') {
-        $target_url = BASE_URL . $target_url;
-    }
-
-    header('location: ' . $target_url);
-    die();
+    Modules::run('url/redirect', $target_url);
 }
 
 /**
@@ -117,19 +98,14 @@ function redirect(string $target_url): void {
  * @return string The URL of the previous page or an empty string.
  */
 function previous_url(): string {
-    if (isset($_SERVER['HTTP_REFERER'])) {
-        $url = $_SERVER['HTTP_REFERER'];
-    } else {
-        $url = '';
-    }
-    return $url;
+    return Modules::run('url/previous_url');
 }
 
 /**
  * Generates an HTML anchor tag with optional URL resolution and XSS protection.
  *
- * This function creates an anchor tag (<a>). If the URL is relative (does not 
- * start with 'http://', 'https://', or '//'), the BASE_URL constant is 
+ * This function creates an anchor tag (<a>). If the URL is relative (does not
+ * start with 'http://', 'https://', or '//'), the BASE_URL constant is
  * prepended to ensure the link points to the correct internal route.
  *
  * Attributes and URLs are automatically escaped to prevent XSS attacks.
@@ -140,26 +116,10 @@ function previous_url(): string {
  * @return string The generated HTML anchor tag.
  */
 function anchor(string $url, ?string $text = null, array $attributes = []): string {
-    // Determine if the URL is absolute or relative
-    if (preg_match('/^(https?:\/\/|\/\/)/i', $url)) {
-        $full_url = $url;
-    } else {
-        $full_url = BASE_URL . $url;
-    }
-
-    // Escape the full URL for attribute safety
-    $escaped_url = htmlspecialchars($full_url, ENT_QUOTES, 'UTF-8');
-
-    // Use provided text or fallback to URL
-    $text_to_use = $text ?? $url;
-
-    // Build the attributes string
-    $attr_string = '';
-    foreach ($attributes as $key => $value) {
-        $escaped_value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-        $attr_string .= ' ' . $key . '="' . $escaped_value . '"';
-    }
-
-    $tag = '<a href="' . $escaped_url . '"' . $attr_string . '>' . $text_to_use . '</a>';
-    return $tag;
+    $data = [
+        'url' => $url,
+        'text' => $text,
+        'attributes' => $attributes
+    ];
+    return Modules::run('url/anchor', $data);
 }

@@ -123,7 +123,6 @@ class Image {
         $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime_type = finfo_file($finfo, $uploaded_file['tmp_name']);
-        finfo_close($finfo);
         
         if (!in_array($mime_type, $allowed_types)) {
             throw new Exception("Invalid file type. Only image files are allowed.");
@@ -357,7 +356,6 @@ class Image {
         // Enhanced MIME validation with double-checking
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime_type = finfo_file($finfo, $filename);
-        finfo_close($finfo);
 
         $allowed_types = array_values($this->content_type);
         if (!in_array($mime_type, $allowed_types)) {
@@ -822,7 +820,6 @@ class Image {
      */
     public function destroy(): void {
         if ($this->image !== null) {
-            imagedestroy($this->image);
             $this->image = null; // Explicitly unset the image to ensure it's no longer usable.
         }
     }

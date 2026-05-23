@@ -39,22 +39,29 @@ class Trongate {
      * @throws Exception If the property is not supported.
      */
     public function __get(string $key): object {
-        // Check if it's a loaded module first
+        // 1. Handle Validation with dynamic caller injection
+        if ($key === 'validation') {
+            $instance = $this->instances['validation'] ??= new Validation('validation', $this);
+            
+            // Ensure the Validation object is always looking at the CURRENT controller
+            if (method_exists($instance, 'set_caller')) {
+                $instance->set_caller($this);
+            }
+            
+            return $instance;
+        }
+
+        // 2. Handle Model with standard lazy loading
+        if ($key === 'model') {
+            return $this->instances['model'] ??= new Model($this->module_name);
+        }
+
+        // 3. Check if it's a previously loaded module
         if (isset($this->loaded_modules[$key])) {
             return $this->loaded_modules[$key];
         }
 
-        // Handle core framework classes with lazy loading
-        $core_instance = match($key) {
-            'model' => new Model($this->module_name),
-            default => null
-        };
-
-        if ($core_instance !== null) {
-            return $this->instances[$key] ??= $core_instance;
-        }
-
-        // If not a core class, try to load it as a module
+        // 4. If still not found, try to load it as a module
         $this->module($key);
         return $this->loaded_modules[$key];
     }
@@ -221,9 +228,9 @@ class Trongate {
      * Reads a manifest file from a specified path.
      *
      * @param string $path The path to the directory containing the manifest file.
-     * @return array|false The manifest data as an associative array, or false if not found.
+     * @return array|bool The manifest data as an associative array, or false if not found.
      */
-    protected function read_manifest(string $path): array|false {
+    protected function read_manifest(string $path): array|bool {
         $manifest_file = APPPATH . $path . '/manifest.php';
         
         if (!file_exists($manifest_file)) {

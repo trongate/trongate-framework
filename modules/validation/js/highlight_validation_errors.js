@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (errorDisplayEndpoint) {
             fetchAndDisplayErrorMessage(form, errorDisplayEndpoint);
         }
+
+        // Optional: Add a subtle shake to the form for modern feedback
+        form.classList.add('shake'); 
     });
 
     function highlightErrorFields(form, errors) {

@@ -26,7 +26,9 @@ class Modules {
         $target_module = strtolower($debris[0]);
         $target_controller = ucfirst($target_module);
         $target_method = strtolower($debris[1]);
-        $controller_path = '../modules/' . $target_module . '/' . $target_controller . '.php';
+        
+        // Use APPPATH for absolute module paths
+        $controller_path = APPPATH . 'modules/' . $target_module . '/' . $target_controller . '.php';
 
         // Check for parent-child module structure if standard path fails
         if (!file_exists($controller_path)) {
@@ -35,7 +37,8 @@ class Modules {
                 $parent_module = $bits[0];
                 $child_module = $bits[1];
                 $target_controller = ucfirst($child_module);
-                $controller_path = '../modules/' . $parent_module . '/' . $child_module . '/' . $target_controller . '.php';
+                
+                $controller_path = APPPATH . 'modules/' . $parent_module . '/' . $child_module . '/' . $target_controller . '.php';
             }
         }
 
@@ -69,7 +72,9 @@ class Modules {
     public function load(string $target_module): void {
         $target_module = strtolower($target_module);
         $target_controller = ucfirst($target_module);
-        $target_controller_path = '../modules/' . $target_module . '/' . $target_controller . '.php';
+        
+        // Use APPPATH for absolute module paths
+        $target_controller_path = APPPATH . 'modules/' . $target_module . '/' . $target_controller . '.php';
 
         if (!file_exists($target_controller_path)) {
             $bits = explode('-', $target_module);
@@ -78,7 +83,8 @@ class Modules {
                 $parent_module = $bits[0];
                 $child_module = $bits[1];
                 $target_controller = ucfirst($child_module);
-                $target_controller_path = '../modules/' . $parent_module . '/' . $child_module . '/' . $target_controller . '.php';
+                
+                $target_controller_path = APPPATH . 'modules/' . $parent_module . '/' . $child_module . '/' . $target_controller . '.php';
                 $target_module = $child_module;
             }
 

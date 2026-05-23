@@ -16,7 +16,7 @@ class Templates extends Trongate {
      */
     public function __construct(?string $module_name = null) {
         parent::__construct($module_name);
-        block_url($this->module_name);
+        block_url('templates');
     }
 
     /**
@@ -48,10 +48,101 @@ class Templates extends Trongate {
     /**
      * Display 404 error page.
      *
+     * If BASE_URL is still the '****' placeholder, shows the URL
+     * configuration form instead of a generic 404.
+     *
      * @return void
      */
     public function error_404(): void {
+        if ((BASE_URL === '****') && (strtolower(ENV) === 'dev')) {
+            $this->show_url_setup();
+            return;
+        }
         $this->display('error_404');
+    }
+
+    /**
+     * Show URL configuration form when BASE_URL is not yet set.
+     *
+     * Handles POST to save the URL to config.php. Uses manual
+     * header() redirect because BASE_URL is still '****' in this request.
+     */
+    public function show_url_setup(): void {
+        block_url('templates/show_url_setup');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->save_base_url();
+            return;
+        }
+
+        $detected_url = $this->detect_base_url();
+        $this->display('url_setup', ['detected_url' => $detected_url]);
+    }
+
+    /**
+     * Save user-confirmed base URL to config.php.
+     */
+    public function save_base_url(): void {
+        block_url('templates/save_base_url');
+
+        $url = post('base_url', true);
+
+        if (empty($url)) {
+            $this->display('url_setup', [
+                'detected_url' => $this->detect_base_url(),
+                'error' => 'Please provide a valid URL.'
+            ]);
+            return;
+        }
+
+        if (substr($url, -1) !== '/') {
+            $url .= '/';
+        }
+
+        $config_path = APPPATH . '/config/config.php';
+
+        if (!is_writable($config_path)) {
+            $this->display('url_setup', [
+                'detected_url' => $url,
+                'error' => 'Cannot write to config/config.php. Please set BASE_URL manually or check file permissions.'
+            ]);
+            return;
+        }
+
+        $config = file_get_contents($config_path);
+        $config = preg_replace(
+            "/define\('BASE_URL',\s*'[^']*'\)/",
+            "define('BASE_URL', '{$url}')",
+            $config
+        );
+
+        if (file_put_contents($config_path, $config) === false) {
+            $this->display('url_setup', [
+                'detected_url' => $url,
+                'error' => 'Failed to save configuration. Please set BASE_URL manually in config/config.php.'
+            ]);
+            return;
+        }
+
+        // Manual redirect since BASE_URL constant is stale
+        $base_path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+        header('Location: ' . $base_path . '/');
+        die();
+    }
+
+    /**
+     * Detect the likely base URL from server variables.
+     *
+     * @return string URL with trailing slash.
+     */
+    public function detect_base_url(): string {
+        block_url('templates/detect_base_url');
+
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+        $base_path = dirname($dir);
+        return $protocol . '://' . $host . $base_path . '/';
     }
     
     /**

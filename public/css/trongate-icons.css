@@ -91,6 +91,14 @@
     mask-image: url('../trongate-icons/user.svg');
 }
 
+.tg-trash {
+    -webkit-mask-image: url('../trongate-icons/trash.svg');
+    mask-image: url('../trongate-icons/trash.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}
+
 .tg-user-circle {
     -webkit-mask-image: url('../trongate-icons/user-circle.svg');
     mask-image: url('../trongate-icons/user-circle.svg');
@@ -103,6 +111,30 @@
     -webkit-mask-image: url('../trongate-icons/users.svg');
     mask-image: url('../trongate-icons/users.svg');
     transform: translateY(0.06em) scale(1.33);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}
+
+.tg-pencil {
+    -webkit-mask-image: url('../trongate-icons/pencil.svg');
+    mask-image: url('../trongate-icons/pencil.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}
+
+.tg-eye {
+    -webkit-mask-image: url('../trongate-icons/eye.svg');
+    mask-image: url('../trongate-icons/eye.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.15em;
+    margin-right: -0.15em;
+}
+
+.tg-search {
+    -webkit-mask-image: url('../trongate-icons/search.svg');
+    mask-image: url('../trongate-icons/search.svg');
+    transform: translateY(0.06em) scale(1.2);
     margin-left: 0.15em;
     margin-right: -0.15em;
 }

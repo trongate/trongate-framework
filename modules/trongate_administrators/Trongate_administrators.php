@@ -11,7 +11,6 @@ class Trongate_administrators extends Trongate {
     private int $default_limit = 20;
     private array $per_page_options = [10, 20, 50, 100];
     private string $dashboard_home;
-    private string $login_url;
 
     /**
      * Constructor - sets up module-specific properties
@@ -21,7 +20,6 @@ class Trongate_administrators extends Trongate {
     public function __construct(?string $module_name = null) {
         parent::__construct($module_name);
         $this->dashboard_home = $this->module_name . '/manage';
-        $this->login_url = isset($this->secret_login_segment) ? $this->secret_login_segment : $this->module_name . '/login';
     }
 
     /**
@@ -222,13 +220,13 @@ class Trongate_administrators extends Trongate {
     }
 
     /**
-     * Log out the current user and redirect to login page.
+     * Log out the current user and redirect to login module.
      * 
      * @return void
      */
     public function logout(): void {
         $this->trongate_tokens->destroy(); // Destroy the authentication token
-        redirect($this->login_url);
+        redirect('login/logout');
     }
 
     /**
@@ -357,167 +355,6 @@ class Trongate_administrators extends Trongate {
     }
 
     /**
-     * Display the login form.
-     *
-     * Prepares the login form by:
-     * - Resolving the correct form submission URL (policed if a secret segment is set)
-     * - Destroying any existing user tokens (logging out)
-     * - Checking that login attempts are allowed
-     * - Rendering the 'login' view with the prepared data
-     *
-     * @return void
-     */
-    public function login(): void {
-        $data['form_location'] = $this->police_secret_login_url();
-        $this->trongate_tokens->destroy(); // Log user out.
-        $this->make_sure_login_attempt_allowed(); 
-        $this->view('login', $data);
-    }
-
-    /**
-     * Ensure login attempts are permitted before proceeding with authentication.
-     * 
-     * This private method performs two sequential security checks:
-     * 1. First removes any expired login restrictions (auto-unblocks accounts whose block time has elapsed)
-     * 2. Then verifies that the current login attempt is allowed based on current throttling rules
-     * 
-     * If the login attempt is not permitted (due to IP or account restrictions),
-     * the user is immediately redirected to the 'not_allowed' page, halting further execution.
-     * 
-     * @return void
-     */
-    private function make_sure_login_attempt_allowed(): void {
-        $this->model->remove_expired_restrictions();
-        $login_attempt_allowed = $this->model->is_login_attempt_allowed();
-
-        if ($login_attempt_allowed !== true) {
-            redirect($this->module_name . '/not_allowed');
-        }
-    }
-
-    /**
-     * Display the "Access Temporarily Blocked" page for users exceeding login attempt limits.
-     * 
-     * This controller method renders a dedicated view that informs users their login access
-     * has been temporarily restricted due to excessive failed authentication attempts.
-     * 
-     * @return void
-     */
-    public function not_allowed(): void {
-        $data = [];
-
-        if (str_contains(previous_url(), 'submit_login')) {
-            $data['login_url'] = $this->login_url;
-        }
-
-        $this->view('not_allowed', $data);
-    }
-
-    /**
-     * Get the admin login form submission URL.
-     *
-     * If a secret login segment is set, ensures access via the default
-     * module path triggers a 404 and terminates execution.
-     *
-     * @return string The login form submission endpoint.
-     */
-    public function police_secret_login_url(): string {
-
-        // Handle secret login segment for specific URL configurations.
-        $form_location = $this->module_name.'/submit_login';
-
-        // Redirect to 404 if accessed incorrectly from within the module.
-        if (isset($this->secret_login_segment)) {
-            if (is_numeric(strpos(current_url(), $this->module_name))) {
-                $this->templates->error_404();
-                die();
-            }
-            $form_location = $this->secret_login_segment . '/submit_login';
-        }
-
-        return $form_location;
-    }
-
-    /**
-     * Handle login form submission
-     * 
-     * @return void
-     */
-    public function submit_login(): void {
-        $this->validation->set_rules('username', 'username', 'required|callback_login_check');
-        $this->validation->set_rules('password', 'password', 'required|min_length[5]');
-        
-        $result = $this->validation->run();
-        $username = post('username', true);
-
-        if ($result === true) {
-            $remember = (int) (bool) post('remember', true);
-            $this->log_user_in($username, $remember);
-        } else {
-            // Handle failed login
-            $should_block = $this->model->increment_failed_login_attempts($username);
-            
-            if ($should_block) {
-                // Clear validation errors before blocking
-                unset($_SESSION['form_submission_errors']);
-                redirect($this->module_name . '/not_allowed');
-            }
-            
-            $this->login();
-        }
-    }
-
-    /**
-     * Log a user in and handle the authentication response.
-     * 
-     * @param string $username The username to authenticate
-     * @param int $remember 0 for session-only, 1 for persistent cookie (30 days)
-     * @return void
-     */
-    public function log_user_in(string $username, int $remember): void {
-        
-        $token = $this->model->log_user_in($username, $remember);
-
-        if ($token === false) {
-            http_response_code(500); 
-            $fail_msg = (ENV === 'dev') ? 'Could not find record with username of: '.$username : '';
-            die($fail_msg);
-        }
-
-        // Reset failed login counters and lockout information.
-        $this->model->after_login_tasks($username);
-
-        $is_mx_request = from_trongate_mx();
-
-        if ($is_mx_request === true) {
-            http_response_code(200);
-            echo $token;
-            die();
-        }
-
-        redirect($this->dashboard_home);
-    }
-
-    /**
-     * Login validation callback
-     * 
-     * @param string $submitted_username The username submitted in the login form
-     * @return string|bool True if credentials are valid, error message otherwise
-     */
-    public function login_check(string $submitted_username): string|bool {
-        block_url('trongate_administrators/login_check');
-
-        $submitted_password = post('password');
-        $validate_credentials = $this->model->validate_credentials($submitted_username, $submitted_password);
-
-        if ($validate_credentials === true) {
-            return true;
-        }
-        
-        return 'You did not enter a correct username and/or password.';
-    }
-
-    /**
      * Display paginated list of records with per-page selector
      * 
      * @return void
@@ -548,6 +385,9 @@ class Trongate_administrators extends Trongate {
     /**
      * Ensure the current user has appropriate access permissions.
      * 
+     * In dev mode, automatically logs in as the first active user
+     * if no valid token exists, bypassing the login form.
+     * 
      * @return string|null The authentication token if access is granted, null otherwise
      */
     public function make_sure_allowed(): ?string {
@@ -556,27 +396,28 @@ class Trongate_administrators extends Trongate {
 
         // Handle API/MX requests
         if (from_trongate_mx() === true) {
-            http_response_code($token ? 200 : 401);
-            echo $token ?: '';
-            die();
+            if ($token === false) {
+                http_response_code(401);
+                echo '';
+                die();
+            }
         }
 
         // Handle web requests with no valid token
         if ($token === false) {
-            if (ENV === 'dev') {
+            if (strtolower(ENV) === 'dev') {
                 // DEV: Auto-login as first active user
                 $user_obj = $this->model->get_any_active_user();
                 
                 if ($user_obj !== false) {
-                    $this->model->log_user_in($user_obj->username, 1);
-                    $token = $this->trongate_tokens->attempt_get_valid_token(1);
+                    $token = $this->model->log_user_in($user_obj->username, 1);
                 } else {
                     http_response_code(500);
                     die('No active users found in database');
                 }
             } else {
                 // PROD: Redirect to login page
-                redirect($this->login_url);
+                redirect('login/login');
             }
         }
 
