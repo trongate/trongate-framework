@@ -38,6 +38,8 @@ echo form_label('Database Name', ['for' => 'database']);
 echo validation_errors('database');
 echo form_input('database', $database, ['id' => 'database', 'placeholder' => 'e.g. my_app', 'required' => 'required']);
 
+echo '<p class="mt-1 long-path"><strong>Note:</strong> Your database will be created automatically.</p>';
+
 echo form_submit('submit', 'Test Connection & Continue', ['class' => 'btn btn-primary']);
 echo form_close();
 ?>
