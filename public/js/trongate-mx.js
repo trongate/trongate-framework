@@ -449,6 +449,9 @@ let trongateMXOpeningModal = false;
                 }
 
                 this.attemptInitOnSuccessActions(http, element);
+
+                // Update page title from mx-swap-title attribute
+                Dom.updateTitleFromResponse(http, element);
             } else {
                 this.handleErrorResponse(http, element);
             }
@@ -691,6 +694,16 @@ let trongateMXOpeningModal = false;
                 }
             });
             return result;
+        },
+
+        updateTitleFromResponse(http, element) {
+            const swapTitleAttr = Utils.getAttributeValue(element, 'mx-swap-title');
+            if (swapTitleAttr !== null) {
+                const titleMatch = http.responseText.match(/<title[^>]*>([^<]+)<\/title>/i);
+                if (titleMatch) {
+                    document.title = titleMatch[1];
+                }
+            }
         },
 
         populateTargetEl(targetEl, http, element) {
