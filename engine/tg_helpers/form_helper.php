@@ -89,6 +89,24 @@ function form_email(string $name, ?string $value = null, array $attributes = [])
 }
 
 /**
+ * Generates a URL input form field element.
+ *
+ * @param string $name The name attribute for the input element.
+ * @param string|null $value The value attribute for the input element. Default is null.
+ * @param array $attributes Additional attributes for the input element as an associative array. Default is empty array.
+ * @return string The generated HTML input element.
+ */
+function form_url(string $name, ?string $value = null, array $attributes = []): string {
+    $attributes['name'] = $name;
+
+    if ($value !== null) {
+        $attributes['value'] = $value;
+    }
+
+    return Modules::run('form/form_url', $attributes);
+}
+
+/**
  * Generates a password input form field element.
  *
  * @param string $name The name attribute for the input element.
