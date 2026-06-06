@@ -137,6 +137,23 @@ class Form extends Trongate {
     }
 
     /**
+     * Generates a URL input form field element.
+     *
+     * @param array $attributes An associative array of HTML attributes for the input element.
+     * @return string The generated HTML input element.
+     */
+    public function form_url(array $attributes = []): string {
+        $attributes['type'] = 'url';
+        return $this->generate_input_element([
+            'type' => 'url',
+            'name' => $attributes['name'] ?? '',
+            'value' => $attributes['value'] ?? null,
+            'checked' => false,
+            'attributes' => $attributes
+        ]);
+    }
+
+    /**
      * Generates a password input form field element.
      *
      * @param array $attributes An associative array of HTML attributes for the input element.
