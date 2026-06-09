@@ -38,6 +38,14 @@
     transform: translateY(0.03em) scale(1.2);
 }
 
+.tg-list {
+    -webkit-mask-image: url('../trongate-icons/list.svg');
+    mask-image: url('../trongate-icons/list.svg');
+    transform: translateY(0.06em) scale(1.2);
+    margin-left: 0.1em;
+    margin-right: -0.1em;
+}
+
 .tg-padlock {
     -webkit-mask-image: url('../trongate-icons/padlock.svg');
     mask-image: url('../trongate-icons/padlock.svg');
