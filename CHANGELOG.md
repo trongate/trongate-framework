@@ -11,12 +11,14 @@ The current version of the framework is documented in its [license.txt](https://
 ## [Not yet assigned a version]
 
 ### Added
+- New SVG icon `list` and corresponding `.tg-list` CSS class. ([#234](https://github.com/trongate/trongate-framework/pull/234))
 - `form_url()` helper and accompanying CSS to render `<input type="url">` on HTML forms. ([#231](https://github.com/trongate/trongate-framework/pull/231))
 - Trongate MX `mx-swap-title` attribute. ([#230](https://github.com/trongate/trongate-framework/pull/230))
 - `README.md` in project root. ([#224](https://github.com/trongate/trongate-framework/pull/224))
 - `Login::hash_password()` public method so other modules can reuse the same bcrypt hashing. ([#229](https://github.com/trongate/trongate-framework/pull/229))
 
 ### Changed
+- Improved spacing of bullet and line elements in the `list` icon. ([#235](https://github.com/trongate/trongate-framework/pull/235))
 - Simplified the blink CSS animation. ([#223](https://github.com/trongate/trongate-framework/pull/223))
 - The `setup` `database_config` view now displays a note that the database will be created automatically. ([#227](https://github.com/trongate/trongate-framework/pull/227))
 
