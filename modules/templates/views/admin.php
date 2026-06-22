@@ -52,7 +52,7 @@ if (strtolower(ENV) === 'dev') {
     <nav aria-label="Main navigation">
         <ul class="side-nav-menu">
             <li>
-                <a href="dashboard">
+                <a href="#">
                     Dashboard
                 </a>
             </li>
@@ -62,14 +62,14 @@ if (strtolower(ENV) === 'dev') {
                     <span aria-hidden="true" class="arrow-icon">&#9660;</span>
                 </div>
                 <ul id="messages-submenu" class="nav-submenu">
-                    <li><a href="messages/inbox">Inbox</a></li>
-                    <li><a href="messages/important">Important</a></li>
-                    <li><a href="messages/junk">Junk</a></li>
-                    <li><a href="messages/archives">Archives</a></li>
+                    <li><a href="#">Inbox</a></li>
+                    <li><a href="#">Important</a></li>
+                    <li><a href="#">Junk</a></li>
+                    <li><a href="#">Archives</a></li>
                 </ul>
             </li>
             <li>
-                <a href="news/manage">
+                <a href="#">
                     Manage News
                 </a>
             </li>
@@ -79,18 +79,18 @@ if (strtolower(ENV) === 'dev') {
                     <span aria-hidden="true" class="arrow-icon">&#9660;</span>
                 </div>
                 <ul id="reports-submenu" class="nav-submenu">
-                    <li><a href="reports/sales">Sales Reports</a></li>
-                    <li><a href="reports/analytics">Analytics</a></li>
-                    <li><a href="reports/exports">Exports</a></li>
+                    <li><a href="#">Sales Reports</a></li>
+                    <li><a href="#">Analytics</a></li>
+                    <li><a href="#">Exports</a></li>
                 </ul>
             </li>
             <li>
-                <a href="settings">
+                <a href="#">
                     Settings
                 </a>
             </li>
             <li>
-                <a href="users/manage">
+                <a href="#">
                     Manage Users
                 </a>
             </li>
@@ -136,12 +136,12 @@ if (strtolower(ENV) === 'dev') {
   </div>
 
   <ul class="slide-nav-list">
-    <li><a href="dashboard">Dashboard</a></li>
-    <li><a href="users">Manage Users</a></li>
-    <li><a href="products">Products</a></li>
-    <li><a href="orders">Orders</a></li>
-    <li><a href="messages" class="highlight">Messages (1)</a></li>
-    <li><a href="settings">Settings</a></li>
+    <li><a href="#">Dashboard</a></li>
+    <li><a href="#">Manage Users</a></li>
+    <li><a href="#">Products</a></li>
+    <li><a href="#">Orders</a></li>
+    <li><a href="#">Messages (1)</a></li>
+    <li><a href="#">Settings</a></li>
     <li><a href="logout">Log Out</a></li>
   </ul>
 </nav>
