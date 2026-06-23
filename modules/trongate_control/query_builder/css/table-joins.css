@@ -1,0 +1,58 @@
+#join-option-1 {
+    background: url('../images/joins/dark/join1.png');
+    background-position: cover;
+    top: 0;
+}
+#join-option-2 {
+    background: url('../images/joins/dark/join2.png');
+    background-position: cover;
+}
+#join-option-3 {
+    background: url('../images/joins/dark/join3.png');
+    background-position: cover;
+}
+#join-option-4 {
+    background: url('../images/joins/dark/join4.png');
+    background-position: cover;
+}
+#join-option-5 {
+    background: url('../images/joins/dark/join5.png');
+    background-position: cover;
+}
+#join-option-6 {
+    background: url('../images/joins/dark/join6.png');
+    background-position: cover;
+}
+#join-option-7 {
+    background: url('../images/joins/dark/join7.png');
+    background-position: cover;
+}
+
+#join-option-1:hover {
+    background: url('../images/joins/active/join1.png');
+    background-position: cover;
+}
+#join-option-2:hover {
+    background: url('../images/joins/active/join2.png');
+    background-position: cover;
+}
+#join-option-3:hover {
+    background: url('../images/joins/active/join3.png');
+    background-position: cover;
+}
+#join-option-4:hover {
+    background: url('../images/joins/active/join4.png');
+    background-position: cover;
+}
+#join-option-5:hover {
+    background: url('../images/joins/active/join5.png');
+    background-position: cover;
+}
+#join-option-6:hover {
+    background: url('../images/joins/active/join6.png');
+    background-position: cover;
+}
+#join-option-7:hover {
+    background: url('../images/joins/active/join7.png');
+    background-position: cover;
+}

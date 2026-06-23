@@ -224,20 +224,4 @@ class Trongate {
         throw new Exception("View '{$view}' not found. Attempted paths:\n- {$attempted_paths}");
     }
 
-    /**
-     * Reads a manifest file from a specified path.
-     *
-     * @param string $path The path to the directory containing the manifest file.
-     * @return array|bool The manifest data as an associative array, or false if not found.
-     */
-    protected function read_manifest(string $path): array|bool {
-        $manifest_file = APPPATH . $path . '/manifest.php';
-        
-        if (!file_exists($manifest_file)) {
-            return false;
-        }
-        
-        return include($manifest_file);
-    }
-
 }

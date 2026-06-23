@@ -1,0 +1,242 @@
+#main {
+    display: grid;
+    grid-template-columns: 1fr 5fr;
+    grid-gap: 1em;
+    top: 4px;
+    position: absolute;
+    width: 100%;
+}
+
+table {
+    border-collapse: collapse;
+    background-color: #fff;
+}
+
+table, th, td {
+    border: 2px black solid;
+}
+
+table {
+    border-bottom: 4px #000 solid;
+}
+
+th {
+    font-weight: normal;
+    background-color: #777;
+    padding: 2px;
+    cursor: pointer;
+}
+
+th span {
+    background-color: #fff;
+    padding: 0 4px;
+    margin: 0 12px;
+}
+
+td {
+    padding: 0 3px;
+    text-align: left;
+}
+
+.hide-cells td {
+    display: none;
+}
+
+#table-stack {
+    height: 97vh;
+    min-width: 200px;
+    font-size: 20px;
+    left: 3px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+#center-stage {
+    left: -4px;
+    position: relative;
+    padding-bottom: 12px;
+}
+
+#center-stage, #table-stack {
+    overflow: auto;
+    max-height: 100vh;
+    border: 1px dashed black;
+}
+
+#table-stack table {
+    margin-bottom: 4px;
+}
+
+#table-stack, #center-stage {
+    border: 2px solid black;
+}
+
+#buttons {
+    margin: 30px auto;
+    left: 200px;
+    position: relative;
+    cursor: pointer;
+    z-index:2;
+}
+
+button {
+    font-family: 'VT323', monospace;
+    font-size: 27px;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+#table-stack {
+    border: 2px solid black;
+    padding: 6px;
+}
+
+.selectable {
+    cursor: copy;
+}
+
+.involved {
+    background-color: cyan;
+}
+
+video {
+    z-index: 100;
+}
+
+#sql-code {
+    position: relative;
+    z-index: 3;
+    width: 1100px;
+    height: 730px;
+    top: 6%;
+    margin: 0 auto;
+    color: #fff;
+    background-color: #fff;
+    display: none;
+    padding: 0px;
+    text-align: left;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-height: 80vh;
+}
+
+#sql-code > div {
+    text-align: center;
+    margin: 12px;
+    width: 100%;
+}
+
+#sql {
+    width: 90%;
+    height: 590px;
+    max-height: 64vh;
+    text-align: left;
+    border: 0;
+    background-color: black;
+    color: #fff;
+    font-size: 21px;
+    padding: 12px;
+    border: 1px #000 solid;
+    outline: none !important;
+    position: relative;
+}
+
+#sql:focus {
+    outline: none !important;
+    border:1px #000 cyan;
+}
+
+#copy-icon {
+    position: absolute;
+    top: 12px;
+    right: -12px;
+    width: 36px;
+    height: auto;
+}
+
+video {
+    left: 50%;
+    top: 30%;
+    position: absolute;
+    margin-left: -427px;
+    margin-top: -120px;
+    display: none;
+}
+
+#stop-btn {
+    display: none;
+}
+
+input[type="checkbox"] {
+    transform:scale(1.4, 1.4);
+    left: -2px;
+    position: relative;
+}
+
+#join-selector {
+    position: relative;
+    z-index: 3;
+    width: 982px;
+    height: 760px;
+    margin: 0 auto 0 auto;
+    zoom: 0.9;
+    background-color: #fff;
+    display: none;
+    max-height: 800px;
+}
+
+#join-selector h2 {
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.join-option {
+    text-align: center;
+    color: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    position: absolute;
+    width: 282px;
+    min-height: 232px;
+}
+
+.join-option:hover {
+    color: #024692;
+    cursor: pointer;
+}
+
+#join-option-2 {
+    top: 0px;
+    left: 698px;
+}
+
+#join-option-3 {
+    top: 260px;
+    left: 698px;
+}
+
+#join-option-4 {
+    top: 490px;
+    left: 490px;
+}
+
+#join-option-5 {
+    top: 490px;
+    left: 210px;
+}
+
+#join-option-6 {
+    top: 270px;
+    left: 2px;
+}
+
+#join-option-7 {
+    top: 140px;
+    left: 350px;
+}

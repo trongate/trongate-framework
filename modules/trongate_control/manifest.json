@@ -1,0 +1,43 @@
+{
+  "module_id": "trongate_control",
+  "name": "Trongate Control",
+  "version": "0.1.0",
+  "publisher_id": "trongate",
+  "publisher": "Trongate",
+  "description": "Module import wizard, SQL file manager, Flo code generator, and package management endpoint. Provides the trongate_control/manifests API for module discovery and the Flo code generator for rapid CRUD module creation.",
+  "trongate_version_required": "2.0.0+",
+  "dependencies": [
+    "templates"
+  ],
+  "features": [
+    "Automatic SQL file import when new modules are installed",
+    "Flo code generator for rapid CRUD module creation",
+    "Properties Builder for defining module fields",
+    "Query Builder for visual SQL join construction",
+    "Module manifest discovery endpoint (/trongate_control/manifests)",
+    "Pluralisation engine for module naming",
+    "Address data sets for property field suggestions"
+  ],
+  "child_modules": [
+    "flo",
+    "evo",
+    "site_builder",
+    "properties_builder",
+    "query_builder",
+    "properties",
+    "plural_maker"
+  ],
+  "user_levels_supported": [
+    "admin"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "code generator",
+    "module manager",
+    "sql import",
+    "scaffolding",
+    "crud generator",
+    "flo"
+  ],
+  "minimum_php_version": "8.0.0"
+}

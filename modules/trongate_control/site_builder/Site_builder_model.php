@@ -1,7 +1,6 @@
 <?php
 require_once('controller_helper.php');
 require_once('model_helper.php');
-require_once('views_helper.php');
 class Site_builder_model extends Model {
 
     public function check_write_permissions(array $additional_paths = []): bool {
@@ -104,7 +103,7 @@ class Site_builder_model extends Model {
         $posted_properties = [];
 
         foreach($properties as $property) {
-            $property_type = trim($property->propertyType) ?? '';
+            $property_type = trim($property->propertyType ?? '');
 
             if ($property_type === 'date range') {
                 $split = $this->split_date_range_property($property);

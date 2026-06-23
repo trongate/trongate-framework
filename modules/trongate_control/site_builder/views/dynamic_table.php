@@ -30,7 +30,7 @@
                         'id' => 'record-preview-modal',
                         'width' => '640px',
                         'modalHeading' => 'Record Preview',
-                        'modalFooter' => '<a href="<?= $module_folder_name ?>/show/'.$row->id.'" class="button alt mt-0 xs">View Details</a>'
+                        'modalFooter' => '<button class="alt" onclick="closeModal()">Cancel</button><button onclick="window.location.href=\''.BASE_URL.segment(1).'/show/'.$row->id.'\'">View Record</button>'
                     ])
                 ];
                 ?&gt;

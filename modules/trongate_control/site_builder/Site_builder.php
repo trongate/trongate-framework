@@ -1,87 +1,86 @@
 <?php
 class Site_builder extends Trongate {
 
-    // Comment out this line for real operation. Uncomment and set to one of:
-    //   'success' | 'access_denied' | 'permissions_error' | 'temp_dir_error' | 'views_dir_error'
-    // private $simulate = 'success';
-
     public function __construct(?string $module_name = null) {
         parent::__construct($module_name);
 
+        // Load Evo module for environment-aware troubleshooting links.
+        $this->module('trongate_control-evo');
+
         if (strtolower(ENV) !== 'dev') {
-            http_response_code(403);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'status' => 'error',
-                'headline' => 'Access Denied',
-                'message' => 'Module generation is only available when environment is in dev mode.',
-                'more_info_url' => 'https://trongate.io/troubleshooting/dev-mode'
-            ]);
+            $this->evo->render_disabled_response();
             die();
         }
     }
 
-    public function submit_generate_mod() {
-    	
-    	// Make sure PHP has permissions to generate modules.
-    	$factory_path = APPPATH . 'modules/trongate_control/site_builder/factory';
-	        if (!$this->model->check_write_permissions([$factory_path])) {
-	            http_response_code(500);
-	            header('Content-Type: application/json');
-	            echo json_encode([
-	                'status' => 'error',
-	                'headline' => 'Permissions Error',
-	                'message' => 'Module could not be created because of insufficient file permissions.',
-	                'more_info_url' => 'https://trongate.io/troubleshooting/file-permissions'
-	            ]);
-	            die();
-	        }
+    /**
+     * Generate a new module.
+     *
+     * Accepts data either as:
+     *   - A parameter array (called from code, e.g. Evo's run_gen)
+     *   - HTTP POST data (called directly via URL, backward compat)
+     *
+     * Returns an array with keys:
+     *   'status' => 'success' | 'error'
+     *   'message' => string
+     *   'more_info_url' => string (only on error)
+     *   'module_name' => string (only on success)
+     *
+     * @param array|null $posted_values Optional pre-built data array.
+     * @return array
+     */
+    public function submit_generate_mod(?array $posted_values = null): array {
+
+        // Fetch data from POST if no parameter was passed (backward compat).
+        if ($posted_values === null) {
+            $posted_values = post();
+        }
+
+        // Make sure PHP has permissions to generate modules.
+        $factory_path = APPPATH . 'modules/trongate_control/site_builder/factory';
+        if (!$this->model->check_write_permissions([$factory_path])) {
+            return [
+                'status' => 'error',
+                'headline' => 'Permissions Error',
+                'message' => 'Module could not be created because of insufficient file permissions.',
+                'more_info_url' => $this->evo->api_base_url . 'troubleshooting/file-permissions'
+            ];
+        }
 
         // Clean up old temp folder records.
         $this->model->empty_directory($factory_path);
 
-    	// Fetch the posted data.
-    	$posted_values = post();
         $module_name = $posted_values['module_folder_name'] ?? '';
 
         if ($module_name === '') {
-            http_response_code(400);
-            header('Content-Type: application/json');
-            echo json_encode([
+            return [
                 'status' => 'error',
                 'headline' => 'Invalid Request',
                 'message' => 'Module could not be created because no module name was provided.'
-            ]);
-            die();
+            ];
         }
 
         // Check that the module directory name is not already taken.
         $target_module_path = APPPATH . 'modules/' . $module_name;
         if (is_dir($target_module_path)) {
-            http_response_code(409);
-            header('Content-Type: application/json');
-            echo json_encode([
+            return [
                 'status' => 'error',
                 'headline' => 'Module Already Exists',
-                'message' => 'A module named \'' . $module_name . '\' already exists. Please choose a different module name or delete the existing module first.',
-                'more_info_url' => 'https://trongate.io/troubleshooting/module-already-exists'
-            ]);
-            die();
+                'message' => 'A module named \'' . $module_name . '\' already exists.',
+                'more_info_url' => $this->evo->api_base_url . 'troubleshooting/module-already-exists'
+            ];
         }
 
         // Check that the database table name is not already taken.
         $table_check_sql = 'SHOW TABLES LIKE :table_name';
         $existing_table = $this->db->query_bind($table_check_sql, ['table_name' => $module_name], 'object');
         if (!empty($existing_table)) {
-            http_response_code(409);
-            header('Content-Type: application/json');
-            echo json_encode([
+            return [
                 'status' => 'error',
                 'headline' => 'Database Table Already Exists',
-                'message' => 'A database table named \'' . $module_name . '\' already exists. Please choose a different module name or drop the existing table first.',
-                'more_info_url' => 'https://trongate.io/troubleshooting/table-already-exists'
-            ]);
-            die();
+                'message' => 'A database table named \'' . $module_name . '\' already exists.',
+                'more_info_url' => $this->evo->api_base_url . 'troubleshooting/table-already-exists'
+            ];
         }
 
         // If a navigation label was provided, verify that the admin template is writable.
@@ -89,185 +88,111 @@ class Site_builder extends Trongate {
         if ($nav_label !== '') {
             $admin_template_path = APPPATH . 'modules/templates/views/admin.php';
             if (!is_writable($admin_template_path)) {
-                http_response_code(500);
-                header('Content-Type: application/json');
-                echo json_encode([
+                return [
                     'status' => 'error',
                     'headline' => 'Permissions Error',
                     'message' => 'Module could not be created because the admin template file is not writable. A navigation link for this module cannot be added.',
-                    'more_info_url' => 'https://trongate.io/troubleshooting/file-permissions'
-                ]);
-                die();
+                    'more_info_url' => $this->evo->api_base_url . 'troubleshooting/file-permissions'
+                ];
             }
         }
 
-    	// Generate a token.
-    	$token = time() . make_rand_str(16);
+        // Generate a token.
+        $token = time() . make_rand_str(16);
 
-    	// Create a temp folder with the token name.
-    	$temp_folder_path = $factory_path . '/' . $token;
-	        if (!mkdir($temp_folder_path, 0777, true)) {
-	            http_response_code(500);
-	            header('Content-Type: application/json');
-	            echo json_encode([
-	                'status' => 'error',
-	                'headline' => 'Directory Error',
-	                'message' => 'Module could not be created because a temporary working directory could not be created.'
-	            ]);
-	            die();
-	        }
-
-	    // Generate the views directory and add to the temp folder.
-    	$views_dir = $temp_folder_path . '/views';
-	        if (!mkdir($views_dir, 0777)) {
-	            http_response_code(500);
-	            header('Content-Type: application/json');
-	            echo json_encode([
-	                'status' => 'error',
-	                'headline' => 'Directory Error',
-	                'message' => 'Module could not be created because a views directory could not be created.'
-	            ]);
-	            die();
-	        }
-
-    	// Generate the controller file and add to the temp folder.
-    	$controller_class_name = ucfirst($module_name);
-    	$controller_file_path = $temp_folder_path . '/' . $controller_class_name . '.php';
-
-    	$model_file_path = $temp_folder_path . '/' . $controller_class_name . '_model.php';
-
-        // Generate controller file content.
-        $controller_content = $this->generate_controller_content($posted_values);
-        file_put_contents($controller_file_path, $controller_content);
-        chmod($controller_file_path, 0777);
-
-        // Generate model file content.
-        $model_content = $this->generate_model_content($posted_values);
-        file_put_contents($model_file_path, $model_content);
-        chmod($model_file_path, 0777);
-
-        // Generate view files.
-        $view_files = ['create', 'delete_conf', 'manage', 'not_found', 'show'];
-        
-        // Only generate search_modal if at least one property is searchable.
-        $has_searchable = $this->model->has_searchable_property($posted_values['properties'] ?? '[]');
-        if ($has_searchable) {
-            $view_files[] = 'search_modal';
-        }
-        foreach ($view_files as $view_file) {
-            $view_content = $this->generate_view_content($view_file, $posted_values);
-            $view_file_path = $views_dir . '/' . $view_file . '.php';
-            file_put_contents($view_file_path, $view_content);
-            chmod($view_file_path, 0777);
-        }
-
-    	// Generate the SQL file and save it inside the module for import via Trongate Control.
-        $sql = $this->generate_table_sql($posted_values);
-        $sql_file_path = $temp_folder_path . '/' . $module_name . '.sql';
-        file_put_contents($sql_file_path, $sql);
-        chmod($sql_file_path, 0777);
-
-    	// Move the temp folder into the 'modules' directory.
-        $modules_path = APPPATH . 'modules';
-        $final_path = $modules_path . '/' . $module_name;
-
-        if (!rename($temp_folder_path, $final_path)) {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode([
+        // Create a temp folder with the token name.
+        $temp_folder_path = $factory_path . '/' . $token;
+        if (!mkdir($temp_folder_path, 0777, true)) {
+            return [
                 'status' => 'error',
                 'headline' => 'Directory Error',
-                'message' => 'Module could not be created because the generated files could not be moved into the modules directory.'
-            ]);
-            die();
+                'message' => 'Module could not be created because a temporary working directory could not be created.'
+            ];
         }
 
-        // Ensure the module directory and all contents have generous permissions.
-        chmod($final_path, 0777);
-        $this->chmod_recursive($final_path, 0777);
-
-        // Add a navigation menu link to the admin template if required.
-        $this->model->add_nav_menu_link($module_name, $nav_label);
-
-	    // Render the appropriate response based on $this->simulate.
-
-        $simulate = (isset($this->simulate)) ? $this->simulate : '';
-
-        switch ($simulate) {
-            case 'access_denied':
-                http_response_code(403);
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'status' => 'error',
-                    'headline' => 'Access Denied',
-                    'message' => 'Module generation is only available when environment is in dev mode.',
-                    'more_info_url' => 'https://trongate.io/troubleshooting/dev-mode'
-                ]);
-                break;
-
-            case 'permissions_error':
-                http_response_code(500);
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'status' => 'error',
-                    'headline' => 'Permissions Error',
-                    'message' => 'Module could not be created because of insufficient file permissions.',
-                    'more_info_url' => 'https://trongate.io/troubleshooting/file-permissions'
-                ]);
-                break;
-
-            case 'temp_dir_error':
-                http_response_code(500);
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'status' => 'error',
-                    'headline' => 'Directory Error',
-                    'message' => 'Module could not be created because a temporary working directory could not be created.'
-                ]);
-                break;
-
-            case 'views_dir_error':
-                http_response_code(500);
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'status' => 'error',
-                    'headline' => 'Directory Error',
-                    'message' => 'Module could not be created because a views directory could not be created.'
-                ]);
-                break;
-
-            case 'success':
-                // Simulated success.
-                http_response_code(200);
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'status' => 'success',
-                    'message' => 'Module generated successfully.',
-                    'redirect_url' => BASE_URL . 'trongate_control-site_builder/module_created/' . $module_name
-                ]);
-                break;
-
-            default:
-                // Real operation — $simulate property is commented out.
-                http_response_code(200);
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'status' => 'success',
-                    'message' => 'Module generated successfully.',
-                    'redirect_url' => BASE_URL . 'trongate_control-site_builder/module_created/' . $module_name
-                ]);
-                break;
+        // Generate the views directory and add to the temp folder.
+        $views_dir = $temp_folder_path . '/views';
+        if (!mkdir($views_dir, 0777)) {
+            // Clean up temp folder.
+            $this->rmdir_recursive($temp_folder_path);
+            return [
+                'status' => 'error',
+                'headline' => 'Directory Error',
+                'message' => 'Module could not be created because a views directory could not be created.'
+            ];
         }
-    }
 
-    public function module_created() {
-        $module_name = segment(3);
-        $data['module_url'] = BASE_URL.$module_name.'/manage';
-        $this->view('module_created', $data);
+        $controller_class_name = ucfirst($module_name);
+
+        try {
+            // Generate controller file content.
+            $controller_content = $this->generate_controller_content($posted_values);
+            file_put_contents($temp_folder_path . '/' . $controller_class_name . '.php', $controller_content);
+            chmod($temp_folder_path . '/' . $controller_class_name . '.php', 0777);
+
+            // Generate model file content.
+            $model_content = $this->generate_model_content($posted_values);
+            file_put_contents($temp_folder_path . '/' . $controller_class_name . '_model.php', $model_content);
+            chmod($temp_folder_path . '/' . $controller_class_name . '_model.php', 0777);
+
+            // Generate view files.
+            $view_files = ['create', 'delete_conf', 'manage', 'not_found', 'show'];
+
+            // Only generate search_modal if at least one property is searchable.
+            $has_searchable = $this->model->has_searchable_property($posted_values['properties'] ?? '[]');
+            if ($has_searchable) {
+                $view_files[] = 'search_modal';
+            }
+            foreach ($view_files as $view_file) {
+                $view_content = $this->generate_view_content($view_file, $posted_values);
+                file_put_contents($views_dir . '/' . $view_file . '.php', $view_content);
+                chmod($views_dir . '/' . $view_file . '.php', 0777);
+            }
+
+            // Generate the SQL file.
+            $sql = $this->generate_table_sql($posted_values);
+            file_put_contents($temp_folder_path . '/' . $module_name . '.sql', $sql);
+            chmod($temp_folder_path . '/' . $module_name . '.sql', 0777);
+
+            // Move the temp folder into the 'modules' directory.
+            $final_path = APPPATH . 'modules/' . $module_name;
+            if (!rename($temp_folder_path, $final_path)) {
+                $this->rmdir_recursive($temp_folder_path);
+                return [
+                    'status' => 'error',
+                    'headline' => 'Directory Error',
+                    'message' => 'Module could not be created because the generated files could not be moved into the modules directory.'
+                ];
+            }
+
+            // Ensure the module directory and all contents have generous permissions.
+            chmod($final_path, 0777);
+            $this->chmod_recursive($final_path, 0777);
+
+            // Add a navigation menu link to the admin template if required.
+            $this->model->add_nav_menu_link($module_name, $nav_label);
+
+        } catch (\Throwable $e) {
+            // Clean up on any unexpected error.
+            if (is_dir($temp_folder_path) && !is_dir(APPPATH . 'modules/' . $module_name)) {
+                $this->rmdir_recursive($temp_folder_path);
+            }
+            return [
+                'status' => 'error',
+                'headline' => 'Generation Error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage()
+            ];
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Module generated successfully.',
+            'module_name' => $module_name
+        ];
     }
 
     private function generate_controller_content($data) {
-
+    
     	/*
     	 * Expected POST data structure:
     	 *
@@ -291,6 +216,7 @@ class Site_builder extends Trongate {
     	 * icon_code             (string)  - icon code (often empty)
     	 */
     
+        $data['view_module'] = 'trongate_control/site_builder';
         $data['dynamic_validation_tests'] = $this->model->build_validation_tests($data);
         $data['dynamic_callback_methods'] = $this->model->build_dynamic_callback_methods($data);
         $data['controller_name'] = ucfirst($data['module_folder_name']);
@@ -302,6 +228,7 @@ class Site_builder extends Trongate {
     }
 
     private function generate_model_content($data) {
+        $data['view_module'] = 'trongate_control/site_builder';
         $data['model_name'] = ucfirst($data['module_folder_name']) . '_model';
 
         $data['has_searchable'] = $this->model->has_searchable_property($data['properties'] ?? '[]');
@@ -317,6 +244,7 @@ class Site_builder extends Trongate {
     private function generate_view_content($view_file, $data) {
 
         // Add dynamic content based on view type
+        $data['view_module'] = 'trongate_control/site_builder';
         if ($view_file === 'create') {
             $data['dynamic_form_fields'] = $this->model->build_dynamic_form_fields($data);
             $data['dynamic_date_constraint_js'] = $this->model->build_dynamic_date_constraint_js($data);
@@ -453,6 +381,31 @@ class Site_builder extends Trongate {
                 $this->chmod_recursive($path, $mode);
             } else {
                 chmod($path, $mode);
+            }
+        }
+    }
+
+    /**
+     * Recursively remove a directory and all its contents.
+     *
+     * @param string $dir Directory path.
+     * @return void
+     */
+    private function rmdir_recursive(string $dir): void {
+        if (!is_dir($dir)) {
+            return;
+        }
+        $items = scandir($dir);
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            $path = $dir . '/' . $item;
+            if (is_dir($path)) {
+                $this->rmdir_recursive($path);
+                rmdir($path);
+            } else {
+                unlink($path);
             }
         }
     }

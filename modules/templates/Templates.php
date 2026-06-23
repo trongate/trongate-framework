@@ -46,6 +46,19 @@ class Templates extends Trongate {
     }
 
     /**
+     * Display the full-page module details template.
+     *
+     * Used by the Flo code generator when viewing/changing module
+     * details in an overlay iframe.
+     *
+     * @param array $data The data to pass to the template view
+     * @return void
+     */
+    public function module_details($data) {
+        $this->display('module_details', $data);
+    }
+
+    /**
      * Display 404 error page.
      *
      * If BASE_URL is still the '****' placeholder, shows the URL

@@ -1216,6 +1216,7 @@ let trongateMXOpeningModal = false;
 
             const modalBody = document.createElement('div');
             modalBody.className = 'modal-body';
+            modalBody.style.padding = '0';
 
             // Show a spinner while the iframe loads
             const spinnerContainer = document.createElement('div');

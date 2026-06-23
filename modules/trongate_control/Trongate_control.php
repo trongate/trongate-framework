@@ -38,7 +38,8 @@ class Trongate_control extends Trongate {
         
         // Allow manifests method in any environment
         if (strtolower(ENV) !== 'dev' && $current_method !== 'manifests') {
-            http_response_code(403);
+            $this->module('trongate_control-evo');
+            $this->evo->render_disabled_response();
             die();
         }
     }
@@ -158,44 +159,6 @@ class Trongate_control extends Trongate {
         }
         
         return '';
-    }
-    
-    /**
-     * Extract module directory path from a URL
-     * 
-     * Example: https://site.com/users/create -> modules/users/
-     * Handles both parent modules and child modules (parent-child format).
-     * 
-     * @param string $url The URL to extract module path from
-     * @return string The module directory path or empty string
-     */
-    private function get_module_path_from_url(string $url): string {
-        // Remove base URL to get just the segments
-        $url_without_base = str_replace(BASE_URL, '', $url);
-        $url_without_base = ltrim($url_without_base, '/');
-        
-        // Get first segment (the module name)
-        $segments = explode('/', $url_without_base);
-        $module_name = isset($segments[0]) ? $segments[0] : '';
-        
-        if ($module_name === '') {
-            return '';
-        }
-        
-        // Build module path
-        $module_path = APPPATH . 'modules/' . $module_name . '/';
-        
-        // Check if it's a child module (parent-child format)
-        if (strpos($module_name, '-') !== false) {
-            $bits = explode('-', $module_name);
-            if (count($bits) === 2) {
-                $parent = $bits[0];
-                $child = $bits[1];
-                $module_path = APPPATH . 'modules/' . $parent . '/' . $child . '/';
-            }
-        }
-        
-        return $module_path;
     }
     
     /**

@@ -1,0 +1,308 @@
+[
+  {
+    "checkboxes": [
+      {
+        "name": "onForm",
+        "label": "On (Create) Form",
+        "checked": "yes"
+      },
+      {
+        "name": "onSummaryTable",
+        "label": "On Summary Table",
+        "checked": "yes"
+      },
+      {
+        "name": "isSearchable",
+        "label": "Searchable",
+        "checked": "yes"
+      }
+    ],
+    "availableValidationRules": [
+      {
+        "rule_name": "required",
+        "rule_label": "required",
+        "rule_requires_value": "no",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "min_length",
+        "rule_label": "min length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "2",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "max_length",
+        "rule_label": "max length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "255",
+        "selected": "yes"
+      }
+    ],
+    "validationRules": [
+      "required",
+      "min length[2]",
+      "max length[255]"
+    ],
+    "propertyName": "Street Address",
+    "propertyType": "varchar",
+    "onForm": "yes",
+    "onSummaryTable": "yes",
+    "isSearchable": "yes"
+  },
+  {
+    "checkboxes": [
+      {
+        "name": "onForm",
+        "label": "On (Create) Form",
+        "checked": "yes"
+      },
+      {
+        "name": "onSummaryTable",
+        "label": "On Summary Table",
+        "checked": "yes"
+      },
+      {
+        "name": "isSearchable",
+        "label": "Searchable",
+        "checked": "yes"
+      }
+    ],
+    "availableValidationRules": [
+      {
+        "rule_name": "required",
+        "rule_label": "required",
+        "rule_requires_value": "no",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "min_length",
+        "rule_label": "min length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "2",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "max_length",
+        "rule_label": "max length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "255",
+        "selected": "yes"
+      }
+    ],
+    "validationRules": [
+      "required",
+      "min length[2]",
+      "max length[255]"
+    ],
+    "propertyName": "Street Address Line 2",
+    "propertyType": "varchar",
+    "onForm": "yes",
+    "onSummaryTable": "no",
+    "isSearchable": "yes"
+  },
+  {
+    "checkboxes": [
+      {
+        "name": "onForm",
+        "label": "On (Create) Form",
+        "checked": "yes"
+      },
+      {
+        "name": "onSummaryTable",
+        "label": "On Summary Table",
+        "checked": "yes"
+      },
+      {
+        "name": "isSearchable",
+        "label": "Searchable",
+        "checked": "yes"
+      }
+    ],
+    "availableValidationRules": [
+      {
+        "rule_name": "required",
+        "rule_label": "required",
+        "rule_requires_value": "no",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "min_length",
+        "rule_label": "min length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "2",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "max_length",
+        "rule_label": "max length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "255",
+        "selected": "yes"
+      }
+    ],
+    "validationRules": [
+      "required",
+      "min length[2]",
+      "max length[255]"
+    ],
+    "propertyName": "City",
+    "propertyType": "varchar",
+    "onForm": "yes",
+    "onSummaryTable": "yes",
+    "isSearchable": "yes"
+  },
+  {
+    "checkboxes": [
+      {
+        "name": "onForm",
+        "label": "On (Create) Form",
+        "checked": "yes"
+      },
+      {
+        "name": "onSummaryTable",
+        "label": "On Summary Table",
+        "checked": "yes"
+      },
+      {
+        "name": "isSearchable",
+        "label": "Searchable",
+        "checked": "yes"
+      }
+    ],
+    "availableValidationRules": [
+      {
+        "rule_name": "required",
+        "rule_label": "required",
+        "rule_requires_value": "no",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "min_length",
+        "rule_label": "min length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "2",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "max_length",
+        "rule_label": "max length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "255",
+        "selected": "yes"
+      }
+    ],
+    "validationRules": [
+      "required",
+      "min length[2]",
+      "max length[255]"
+    ],
+    "propertyName": "Province",
+    "propertyType": "varchar",
+    "onForm": "yes",
+    "onSummaryTable": "yes",
+    "isSearchable": "yes"
+  },
+  {
+    "checkboxes": [
+      {
+        "name": "onForm",
+        "label": "On (Create) Form",
+        "checked": "yes"
+      },
+      {
+        "name": "onSummaryTable",
+        "label": "On Summary Table",
+        "checked": "yes"
+      },
+      {
+        "name": "isSearchable",
+        "label": "Searchable",
+        "checked": "yes"
+      }
+    ],
+    "availableValidationRules": [
+      {
+        "rule_name": "required",
+        "rule_label": "required",
+        "rule_requires_value": "no",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "min_length",
+        "rule_label": "min length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "2",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "max_length",
+        "rule_label": "max length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "255",
+        "selected": "yes"
+      }
+    ],
+    "validationRules": [
+      "required",
+      "min length[2]",
+      "max length[255]"
+    ],
+    "propertyName": "Postal Code",
+    "propertyType": "varchar",
+    "onForm": "yes",
+    "onSummaryTable": "yes",
+    "isSearchable": "yes"
+  },
+  {
+    "checkboxes": [
+      {
+        "name": "onForm",
+        "label": "On (Create) Form",
+        "checked": "yes"
+      },
+      {
+        "name": "onSummaryTable",
+        "label": "On Summary Table",
+        "checked": "yes"
+      },
+      {
+        "name": "isSearchable",
+        "label": "Searchable",
+        "checked": "yes"
+      }
+    ],
+    "availableValidationRules": [
+      {
+        "rule_name": "required",
+        "rule_label": "required",
+        "rule_requires_value": "no",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "min_length",
+        "rule_label": "min length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "2",
+        "selected": "yes"
+      },
+      {
+        "rule_name": "max_length",
+        "rule_label": "max length",
+        "rule_requires_value": "yes",
+        "rule_default_value": "255",
+        "selected": "yes"
+      }
+    ],
+    "validationRules": [
+      "required",
+      "min length[2]",
+      "max length[255]"
+    ],
+    "propertyName": "Country",
+    "propertyType": "varchar",
+    "onForm": "yes",
+    "onSummaryTable": "no",
+    "isSearchable": "yes"
+  }
+]
