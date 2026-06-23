@@ -8,21 +8,45 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
-## [Not yet assigned a version]
+## [2.2026.0523] - 2026-06-23
 
 ### Added
+- **Flo code generator** (`trongate_control/flo`) — now fully functional with `home()` view and working `draw_flow_trigger()`, accompanied by dedicated CSS and JS assets. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- **Evo module wizard** (`trongate_control/evo`) — step-by-step module generation wizard with 11+ views for naming, property configuration, ordering, URL column selection, and generation. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- **Plural_maker** (`trongate_control/plural_maker`) — comprehensive English pluralisation engine using pattern-matching rules and embedded dictionaries. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- **Properties module** (`trongate_control/properties`) — field property definitions with address data sets for American, British, Canadian, and International formats. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- **Properties_builder** (`trongate_control/properties_builder`) — visual properties builder interface loaded in an iframe overlay, with custom CSS, JS, and fonts. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- **Query_builder** (`trongate_control/query_builder`) — visual SQL query builder with JOIN support, migrated from the mothership for zero cross-origin dependency. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- Module manifest system — `manifest.json` for `trongate_control` with version, dependencies, features, and child module declarations. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- `Templates::module_details()` method and corresponding `module_details.php` view for Flo's overlay iframe. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
 - New SVG icon `list` and corresponding `.tg-list` CSS class. ([#234](https://github.com/trongate/trongate-framework/pull/234))
 - `form_url()` helper and accompanying CSS to render `<input type="url">` on HTML forms. ([#231](https://github.com/trongate/trongate-framework/pull/231))
 - Trongate MX `mx-swap-title` attribute. ([#230](https://github.com/trongate/trongate-framework/pull/230))
 - `README.md` in project root. ([#224](https://github.com/trongate/trongate-framework/pull/224))
 - `Login::hash_password()` public method so other modules can reuse the same bcrypt hashing. ([#229](https://github.com/trongate/trongate-framework/pull/229))
+- New CSS custom properties in `trongate.css`: `--modal-danger`, `--modal-danger-dark`, `--overlay-bg`, `--modal-textarea-bg`, `--row-odd-bg`, `--row-hover-bg`. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- Global `box-sizing: border-box` reset in `trongate.css`. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
 
 ### Changed
+- `Flo::draw_flow_trigger()` reactivated (previously returned empty string). ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- Flo, Trongate_control, and Site_builder now load Evo for environment-disabled responses instead of inline 403 handling. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- `admin.css` reorganised with theme token section headers. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- `trongate.css` refactored — line-height values standardised, structural CSS cleaned up. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- Site_builder rewritten: removed simulation mode, uses Evo for disabled responses, removed stale views. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- Trongate MX updated (JS and minified JS). ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
 - Improved spacing of bullet and line elements in the `list` icon. ([#235](https://github.com/trongate/trongate-framework/pull/235))
 - Simplified the blink CSS animation. ([#223](https://github.com/trongate/trongate-framework/pull/223))
 - The `setup` `database_config` view now displays a note that the database will be created automatically. ([#227](https://github.com/trongate/trongate-framework/pull/227))
 
+### Removed
+- `engine/Trongate.php`: `read_manifest()` method (replaced by JSON-based `manifest.json`). ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- `modules/trongate_control/js/code-generator.js` — deleted. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- `modules/trongate_control/js/flo-fetch.js` — deleted. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- `modules/trongate_control/webhooks/Webhooks.php` — entire webhooks child module removed. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+- Stale Site_builder view files: `donor_showBACKUP.php`, `module_created.php`, `views_helper.php`. ([7c014d8](https://github.com/trongate/trongate-framework/commit/7c014d89f4ee393983e0c2dd1c86468cc490cb0a))
+
 ### Fixed
+- Placeholder sidebar links set to `href='#'` to prevent 404 errors. ([#238](https://github.com/trongate/trongate-framework/pull/238))
 - Selected themes now apply properly across the admin panel. ([#223](https://github.com/trongate/trongate-framework/pull/223))
 
 ## [2.2026.0522] - 2026-05-22
