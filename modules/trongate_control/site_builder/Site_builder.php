@@ -66,7 +66,7 @@ class Site_builder extends Trongate {
         $index_guard = $factory_path . '/index.php';
         if (!file_exists($index_guard)) {
             file_put_contents($index_guard, "<?php\n// Silence is golden.\n");
-            chmod($index_guard, 0644);
+            chmod($index_guard, 0777);
         }
 
         $module_name = $posted_values['module_folder_name'] ?? '';
