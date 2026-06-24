@@ -82,7 +82,7 @@ class <?= ucfirst($model_name) ?> extends Model {
      * @return array<object>
      */
     public function fetch_records(int $limit, int $offset): array {
-        $sql = 'SELECT * FROM '.$this->table_name.' ORDER BY id LIMIT '.$limit.' OFFSET '.$offset;
+        $sql = 'SELECT * FROM '.$this->table_name.' ORDER BY <?= $orderBy ?> LIMIT '.$limit.' OFFSET '.$offset;
         return $this->db->query($sql, 'object');
     }
     
@@ -114,13 +114,13 @@ class <?= ucfirst($model_name) ?> extends Model {
         }
 
         if ($column !== '') {
-            $sql = 'SELECT * FROM '.$this->table_name.' WHERE '.$column.' LIKE :query ORDER BY id LIMIT '.$limit.' OFFSET '.$offset;
+            $sql = 'SELECT * FROM '.$this->table_name.' WHERE '.$column.' LIKE :query ORDER BY <?= $orderBy ?> LIMIT '.$limit.' OFFSET '.$offset;
         } else {
             $conditions = [];
             foreach ($searchable_columns as $col) {
                 $conditions[] = $col.' LIKE :query';
             }
-            $sql = 'SELECT * FROM '.$this->table_name.' WHERE ('.implode(' OR ', $conditions).') ORDER BY id LIMIT '.$limit.' OFFSET '.$offset;
+            $sql = 'SELECT * FROM '.$this->table_name.' WHERE ('.implode(' OR ', $conditions).') ORDER BY <?= $orderBy ?> LIMIT '.$limit.' OFFSET '.$offset;
         }
 
         return $this->db->query_bind($sql, ['query' => '%'.$query.'%'], 'object');
