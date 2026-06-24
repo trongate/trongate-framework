@@ -284,7 +284,7 @@ class Validation_model extends Model {
      * @return array<string, array<string>> The updated errors array
      */
     public function integer(array $data, array $errors): array {
-        if (($data['posted_value'] ?? '') !== '' && !filter_var($data['posted_value'], FILTER_VALIDATE_INT)) {
+        if (($data['posted_value'] ?? '') !== '' && filter_var($data['posted_value'], FILTER_VALIDATE_INT) === false) {
             $errors[$data['key']][] = $this->get_error_message('integer', $data);
         }
         return $errors;
