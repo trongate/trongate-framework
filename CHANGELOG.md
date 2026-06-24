@@ -8,6 +8,11 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0524] - 2026-06-24
+
+### Fixed
+- **Flo/Evo module generator** (`site_builder`) — `submit_generate_mod()` now auto-creates the `factory/` staging directory if missing, and restores the `index.php` guard file after the pre-generation cleanup sweep. Previously, `empty_directory()` would delete `index.php` on the first run, causing git to lose tracking of `factory/` and breaking subsequent generations with a misleading "insufficient file permissions" error. ([9a54fce](https://github.com/trongate/trongate-framework/commit/9a54fce871c3b57cc0a14b30c7bae8e77ed71850))
+
 ## [2.2026.0523] - 2026-06-23
 
 ### Added
