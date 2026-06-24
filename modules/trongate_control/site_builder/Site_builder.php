@@ -36,8 +36,20 @@ class Site_builder extends Trongate {
             $posted_values = post();
         }
 
-        // Make sure PHP has permissions to generate modules.
+        // Ensure the factory staging directory exists.
         $factory_path = APPPATH . 'modules/trongate_control/site_builder/factory';
+        if (!is_dir($factory_path)) {
+            if (!@mkdir($factory_path, 0755, true)) {
+                return [
+                    'status' => 'error',
+                    'headline' => 'Directory Error',
+                    'message' => 'Module could not be created because the factory staging directory could not be created.',
+                    'more_info_url' => $this->evo->api_base_url . 'troubleshooting/file-permissions'
+                ];
+            }
+        }
+
+        // Make sure PHP has permissions to generate modules.
         if (!$this->model->check_write_permissions([$factory_path])) {
             return [
                 'status' => 'error',
