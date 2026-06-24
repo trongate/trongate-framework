@@ -229,15 +229,16 @@ function populateSelectDropdowns() {
         idDescOption.textContent = 'id DESC';
         orderBySelect.appendChild(idDescOption);
 
-        // Add property options
+        // Add property options (using column names, not display names)
         properties.forEach(prop => {
+            const columnName = prop.propertyName.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '_');
             const option = document.createElement('option');
-            option.value = prop.propertyName;
+            option.value = columnName;
             option.textContent = prop.propertyName;
             orderBySelect.appendChild(option);
 
             const descOption = document.createElement('option');
-            descOption.value = prop.propertyName + ' DESC';
+            descOption.value = columnName + ' DESC';
             descOption.textContent = prop.propertyName + ' DESC';
             orderBySelect.appendChild(descOption);
         });

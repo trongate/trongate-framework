@@ -508,17 +508,19 @@ class Evo extends Trongate {
         if (!is_array($decoded)) {
             return 'Order by could not be validated against properties.';
         }
-        $propertyNames = [];
+        $validValues = ['id', 'id DESC'];
         foreach ($decoded as $item) {
             if (isset($item['propertyName'])) {
-                $propertyNames[] = $item['propertyName'];
+                // Accept both the raw property name (legacy) and the column name.
+                $validValues[] = $item['propertyName'];
+                $validValues[] = $item['propertyName'] . ' DESC';
+                $columnName = str_replace('-', '_', url_title($item['propertyName']));
+                $validValues[] = $columnName;
+                $validValues[] = $columnName . ' DESC';
             }
         }
-        $propertyNames[] = 'id';
-        foreach ($propertyNames as $propertyName) {
-            if ($orderBy === $propertyName || $orderBy === $propertyName . ' DESC') {
-                return true;
-            }
+        if (in_array($orderBy, $validValues, true)) {
+            return true;
         }
         return "Order by value '{$orderBy}' does not match any valid property name.";
     }
