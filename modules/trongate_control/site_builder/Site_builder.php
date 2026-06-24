@@ -62,6 +62,13 @@ class Site_builder extends Trongate {
         // Clean up old temp folder records.
         $this->model->empty_directory($factory_path);
 
+        // Restore the directory index guard file (empty_directory removes everything).
+        $index_guard = $factory_path . '/index.php';
+        if (!file_exists($index_guard)) {
+            file_put_contents($index_guard, "<?php\n// Silence is golden.\n");
+            chmod($index_guard, 0644);
+        }
+
         $module_name = $posted_values['module_folder_name'] ?? '';
 
         if ($module_name === '') {
