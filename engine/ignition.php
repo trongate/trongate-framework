@@ -62,7 +62,12 @@ function get_segments(): array {
 }
 
 /**
- * Cached custom-route matching
+ * Cached custom-route matching with support for (:num), (:any) and (:all) wildcards.
+ *
+ * Wildcards and their named backreferences:
+ *   (:num) → (\d+)          — matches numeric segments, accessible via $1 or $num
+ *   (:any) → ([^\/]+)       — matches single segments, accessible via $2 or $any
+ *   (:all) → (.*)           — matches everything (must be final segment), accessible via $3 or $all
  *
  * @param string $url The original target URL to potentially replace.
  * @return string Returns the updated URL if a custom route match is found, otherwise returns the original URL.
@@ -74,12 +79,24 @@ function attempt_custom_routing(string $url): string {
             return $url;
         }
         foreach (CUSTOM_ROUTES as $pattern => $dest) {
-            $regex = '#^' . strtr($pattern, [
-                '/' => '\/',
-                '(:num)' => '(\d+)',
-                '(:any)' => '([^\/]+)'
-            ]) . '$#';
-            $routes[] = [$regex, $dest];
+            // Wildcard definitions: token => [regex_pattern, short_name]
+            $wildcard_specs = [
+                '(:num)' => ['(\d+)', 'num'],
+                '(:any)' => ['([^\/]+)', 'any'],
+                '(:all)' => ['(.*)', 'all']
+            ];
+            $regex_pattern = $pattern;
+            $wildcard_order = [];
+            foreach ($wildcard_specs as $token => [$regex_part, $name]) {
+                $pos = strpos($regex_pattern, $token);
+                if ($pos !== false) {
+                    $wildcard_order[$name] = $pos;
+                }
+                $regex_pattern = str_replace($token, $regex_part, $regex_pattern);
+            }
+            $regex = '#^' . strtr($regex_pattern, ['/' => '\/']) . '$#';
+            asort($wildcard_order);
+            $routes[] = [$regex, $dest, array_keys($wildcard_order)];
         }
     }
     $path = ltrim(parse_url($url, PHP_URL_PATH) ?: '/', '/');
@@ -87,11 +104,14 @@ function attempt_custom_routing(string $url): string {
     if ($base_path !== '' && strpos($path, $base_path) === 0) {
         $path = substr($path, strlen($base_path));
     }
-    foreach ($routes as [$regex, $dest]) {
+    foreach ($routes as [$regex, $dest, $wildcard_names]) {
         if (preg_match($regex, $path, $matches)) {
             $match_count = count($matches);
             for ($i = 1; $i < $match_count; $i++) {
                 $dest = str_replace('$' . $i, $matches[$i], $dest);
+            }
+            foreach ($wildcard_names as $idx => $name) {
+                $dest = str_replace('$' . $name, $matches[$idx + 1], $dest);
             }
             return rtrim(BASE_URL . $dest, '/');
         }
