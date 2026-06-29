@@ -289,8 +289,6 @@ class Form extends Trongate {
         $js_injection = Modules::run('validation/get_js_injection');
         $html .= $js_injection;
         
-        // Clear validation errors to prevent them from persisting to other forms
-        unset($_SESSION['form_submission_errors']);
         return $html;
     }
 
