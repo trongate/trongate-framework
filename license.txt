@@ -1,7 +1,7 @@
 /**
  * Trongate
  *
- * Version: 2.2026.0705
+ * Version: 2.2026.0714
  *
  * This product is released under the MIT License (MIT).
  *
