@@ -8,6 +8,12 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0731] - 2026-07-31
+
+### Fixed
+- **Flo/Evo module generator** (`site_builder`) — decimal properties (e.g. price fields) no longer produce syntactically invalid PHP in the generated `create.php`: attribute commas are now emitted only between lines that are actually generated, and non-numeric rule values such as `max length[7,2]` are safely quoted. ([#247](https://github.com/trongate/trongate-framework/pull/247))
+- **Flo/Evo module generator** (`evo`) — the 'Choose Default Order By' wizard step no longer offers an empty-string option, and `submit_order_by()` rejects empty or malformed selections. Generation also falls back to `ORDER BY id` when the session value is empty, preventing `SQLSTATE[42000]` errors on generated manage pages. ([#247](https://github.com/trongate/trongate-framework/pull/247), [#248](https://github.com/trongate/trongate-framework/pull/248))
+
 ## [2.2026.0714] - 2026-07-14
 
 ### Fixed
