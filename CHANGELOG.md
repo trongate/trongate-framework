@@ -8,10 +8,26 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0714] - 2026-07-14
+
+### Fixed
+- In `Pagination_model`, the `record_name_plural` property is no longer required and instead defaults to the value 'records'.
+
+## [2.2026.0705] - 2026-07-05
+
+### Added
+- Universal `box-sizing: border-box` reset to `trongate.css`.
+
 ## [2.2026.0525] - 2026-07-02
 
 ### Added
 - **Core asset serving** — `'download'` added to the directory allowlist in `Core.php`. Module authors can now serve downloadable files from a `download/` subdirectory within their module, enabling clean self-contained backup-distribution endpoints without requiring changes outside the module. ([#243](https://github.com/trongate/trongate-framework/pull/243))
+- The `(:all)` wildcard to the `attempt_custom_routing()` function in `engine/ignition.php`, which was documented but never implemented. ([#242](https://github.com/trongate/trongate-framework/pull/242))
+
+### Fixed
+- In the `trongate_control/evo` child module, the controller and view files now use the correct table name in SQL `ORDER BY` clauses. ([12d1b5d](https://github.com/trongate/trongate-framework/commit/12d1b5d5ccbc6a59978311c08aa3dd4a7de857ee))
+- In the `trongate_control/site_builder` child module, the `donor_model.php` view file now correctly substitutes the column name in SQL `ORDER BY` clauses. ([b27305c](https://github.com/trongate/trongate-framework/commit/b27305cb9dd1be69e5ad19438bc3b4925d41d2e6))
+- `Validation_model::integer()` now correctly flags the string value `'0'` as a non-integer and does not flag the integer `0`. ([29abf3a](https://github.com/trongate/trongate-framework/commit/29abf3ad9f27fc165ef9e26d0aa0e22113b7010a))
 
 ## [2.2026.0524] - 2026-06-24
 
