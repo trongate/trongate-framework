@@ -285,7 +285,7 @@ class Evo extends Trongate {
             'record_name_plural' => $wizard['record_name_plural'] ?? 'Records',
             'nav_label' => $wizard['nav_label'] ?? '',
             'urlColumn' => $wizard['url_column'] ?? '',
-            'orderBy' => $wizard['order_by'] ?? 'id',
+            'orderBy' => (!empty($wizard['order_by'])) ? $wizard['order_by'] : 'id',
             'properties' => json_encode($wizard['properties'] ?? []),
             'icon_id' => $wizard['icon_id'] ?? '',
             'icon_code' => $wizard['icon_code'] ?? '',
@@ -373,7 +373,7 @@ class Evo extends Trongate {
                 'nav_label' => $wizard['nav_label'] ?? '',
                 'properties' => json_encode($wizard['properties'] ?? []),
                 'urlColumn' => $wizard['url_column'] ?? '',
-                'orderBy' => $wizard['order_by'] ?? 'id'
+                'orderBy' => (!empty($wizard['order_by'])) ? $wizard['order_by'] : 'id'
             ];
 
             $this->view('module_details_iframe', $data);

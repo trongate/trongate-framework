@@ -89,23 +89,20 @@ function build_form_field_row($posted_property) {
     if ($num_validation_rules < 1) {
         $row_str.= $indent.'echo '.$method_start.'(\''.$form_field_name.'\', $'.$form_field_name.', [\'placeholder\' => \'Enter '.$form_field_label.'\']);'.PHP_EOL;
     } else {
-        $row_str.= $indent.'$'.$form_field_name.'_attr = ['.PHP_EOL;
-        $row_str.= $indent.'    \'placeholder\' => \'Enter '.$form_field_label.'\','.PHP_EOL;
-        $counter = 0;
+        $attr_lines = [
+            $indent.'    \'placeholder\' => \'Enter '.$form_field_label.'\''
+        ];
         foreach($posted_property->validation_rules as $validation_rule) {
-            $counter++;
-            $attr_validation_code= build_attr_validation_code($validation_rule, $indent);
+            $attr_validation_code = build_attr_validation_code($validation_rule, $indent);
             if ($attr_validation_code !== '') {
-                $row_str.= $attr_validation_code;
-                if ($counter < $num_validation_rules) {
-                    $row_str.= ',';
-                }
-                $row_str.= PHP_EOL;
+                $attr_lines[] = $attr_validation_code;
             }
         }
         if ($posted_property->property_type === 'decimal') {
-            $row_str.= $indent.'    \'step\' => \'any\','.PHP_EOL;
+            $attr_lines[] = $indent.'    \'step\' => \'any\'';
         }
+        $row_str.= $indent.'$'.$form_field_name.'_attr = ['.PHP_EOL;
+        $row_str.= implode(','.PHP_EOL, $attr_lines).PHP_EOL;
         $row_str.= $indent.'];'.PHP_EOL;
         $row_str.= $indent.'echo '.$method_start.'(\''.$form_field_name.'\', $'.$form_field_name.', $'.$form_field_name.'_attr);'.PHP_EOL;
     }
@@ -120,19 +117,19 @@ function build_attr_validation_code($validation_rule, $indent) {
             break;
         case 'min length':
             $rule_value = extract_rule_value($validation_rule);
-            $code = $indent.'    \'minlength\' => '.$rule_value;
+            $code = $indent.'    \'minlength\' => '.build_attr_rule_value($rule_value);
             break;
         case 'max length':
             $rule_value = extract_rule_value($validation_rule);
-            $code = $indent.'    \'maxlength\' => '.$rule_value;
+            $code = $indent.'    \'maxlength\' => '.build_attr_rule_value($rule_value);
             break;
         case 'greater than':
             $rule_value = extract_rule_value($validation_rule);
-            $code = $indent.'    \'min\' => '.$rule_value;
+            $code = $indent.'    \'min\' => '.build_attr_rule_value($rule_value);
             break;
         case 'less than':
             $rule_value = extract_rule_value($validation_rule);
-            $code = $indent.'    \'max\' => '.$rule_value;
+            $code = $indent.'    \'max\' => '.build_attr_rule_value($rule_value);
             break;
         case 'in the past':
             $code = $indent.'    \'data-date-constraint\' => \'past\'';
@@ -149,6 +146,9 @@ function build_attr_validation_code($validation_rule, $indent) {
 function extract_rule_value($validation_rule) {
     $rule_value = extract_content($validation_rule, '[', ']');
     return $rule_value;
+}
+function build_attr_rule_value($rule_value) {
+    return is_numeric($rule_value) ? $rule_value : var_export($rule_value, true);
 }
 function extract_rule_name($rule) {
     $pos = strpos($rule, '[');
