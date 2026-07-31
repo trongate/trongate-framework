@@ -237,6 +237,13 @@ class Evo extends Trongate {
      */
     public function submit_order_by(): void {
         $selected = post('selected', true);
+
+        // A default order by is mandatory — never accept an empty or malformed selection.
+        if ($selected === '' || !preg_match('/^[a-z0-9_]+( DESC)?$/', $selected)) {
+            echo $this->render_error('Please choose a valid option for the default order by.');
+            return;
+        }
+
         $_SESSION['evo_wizard']['order_by'] = $selected;
 
         $data['view_module'] = 'trongate_control/evo';

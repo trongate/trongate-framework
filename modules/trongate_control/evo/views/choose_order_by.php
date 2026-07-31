@@ -1,11 +1,9 @@
 <div class="mt-1">Choose Default Order By</div>
 <div class="mt-1">
     <button class="selector-btn" onclick="document.querySelector('main').innerHTML=document.getElementById('ob-options-list').innerHTML">Select Option...</button>
-    <p>Submit empty option if not required</p>
 </div>
 <div id="ob-options-list" style="display:none">
     <ul class="options-selector">
-        <li mx-post="trongate_control-evo/submit_order_by" mx-target="main" mx-target-loading="cloak" mx-vals='{"selected":""}'></li>
         <?php
         $order_by_options = [
             ['propertyName' => 'id', 'column' => 'id'],
