@@ -160,6 +160,16 @@ class Core {
         $controller_instance = new $controller_class($this->current_module);
 
         if (method_exists($controller_instance, $this->current_method)) {
+            // Private and protected methods can never be invoked via the URL.
+            // Only public methods are reachable from the dispatcher — anything
+            // else is treated as a non-existent page (404), exactly like the
+            // underscore shortcut handled in serve_controller().
+            $method = new \ReflectionMethod($controller_instance, $this->current_method);
+            if (!$method->isPublic()) {
+                $this->draw_error_page();
+                return;
+            }
+
             try {
                 $controller_instance->{$this->current_method}();
             } catch (\ArgumentCountError) {
