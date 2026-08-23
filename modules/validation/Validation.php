@@ -240,6 +240,9 @@ class Validation extends Trongate {
             return false;
         }
 
+        // Clear-on-pass: a successful submission must not display stale errors
+        $this->form_submission_errors = [];
+        unset($_SESSION['form_submission_errors']);
         return true;
     }
 
