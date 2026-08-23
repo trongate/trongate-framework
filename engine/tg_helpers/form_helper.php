@@ -433,6 +433,6 @@ function post(
  * @param string|null $closing_html Optional HTML to close each error message.
  * @return string|null Returns a string of formatted validation errors or null if no errors are present.
  */
-function validation_errors(string|int|null $first_arg = null, ?string $closing_html = null): ?string {
-    return Modules::run('validation/display_errors', ['first_arg' => $first_arg, 'closing_html' => $closing_html]);
+function validation_errors(string|int|null $first_arg = null, ?string $closing_html = null, ?string $scope = null): ?string {
+    return Modules::run('validation/display_errors', ['first_arg' => $first_arg, 'closing_html' => $closing_html, 'scope' => $scope]);
 }
