@@ -8,6 +8,25 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0823] - 2026-08-23
+
+### Added
+- **Scoped validation errors** (`modules/form`, `modules/validation`, `engine/tg_helpers/form_helper.php`) — `form_open()` now accepts an opt-in `form_name` attribute, and `validation_errors()` can render a named form's errors via `validation_errors('FORM-<name>')` or the new optional third `$scope` argument. On multi-form pages a summary call inside one form's block can no longer display another form's errors; a mismatched scope abstains without clearing the bucket, so the correct form's block still renders. Fully opt-in — existing calls behave exactly as before. ([#257](https://github.com/trongate/trongate-framework/pull/257))
+
+### Changed
+- `form_label()` docblock (`engine/tg_helpers/form_helper.php`) — removed the phantom `$input_id` parameter that no longer exists and documented the real `['for' => ...]` association mechanism. Documentation only. ([#252](https://github.com/trongate/trongate-framework/pull/252))
+- `File::generate_secure_filename()` docblock (`modules/file/File.php`) — removed a stacked, stale duplicate docblock. Documentation only. ([#253](https://github.com/trongate/trongate-framework/pull/253))
+- `from_trongate_mx()` docblocks (`modules/utilities/Utilities.php`, `engine/tg_helpers/utilities_helper.php`) — corrected the header name from `X-Trongate-MX` to the actual `Trongate-MX-Request`. Documentation only. ([#255](https://github.com/trongate/trongate-framework/pull/255))
+
+### Removed
+- `modules/validation/js/highlight_validation_errorsNEW.js` — a stale duplicate of `highlight_validation_errors.js`, unreferenced anywhere in the framework. ([#251](https://github.com/trongate/trongate-framework/pull/251))
+
+### Fixed
+- **Validation error bucket lifecycle** (`modules/form`, `modules/validation`) — `form_close()` no longer destroys the pending error bucket, so a summary call renders from any placement (before the form, inside the block, or after `form_close()`); `Validation::run()` now clears the bucket on a passing submission to prevent stale errors. ([#237](https://github.com/trongate/trongate-framework/issues/237), [#256](https://github.com/trongate/trongate-framework/pull/256))
+- **`trongate_tokens` regenerate endpoint** (`modules/trongate_tokens`) — the documented `regenerate()` token-rotation endpoint returned `403 Forbidden` because the constructor's `block_url()` blocked all direct URL access; the constructor now exempts the `regenerate` segment while every other method stays blocked. ([#254](https://github.com/trongate/trongate-framework/pull/254))
+- **Trongate MX out-of-band swaps** (`public/js/trongate-mx.js`) — `handleOobSwaps()` ran twice per response when `mx-select-oob` was combined with a resolved `mx-target`, inserting OOB elements twice; the duplicate call in `populateTargetEl()` was removed. ([#241](https://github.com/trongate/trongate-framework/issues/241), [#258](https://github.com/trongate/trongate-framework/pull/258))
+- **Db module reserved-word table names** (`modules/db/Db.php`) — table names are now backtick-quoted in `insert()`, `count()`, `insert_batch()`, `get_where_in()`, `resequence_ids()` and `describe_table()`, allowing MySQL reserved words (e.g. `groups`, `order`, `key`) as table names; the remaining methods already quoted. ([#165](https://github.com/trongate/trongate-framework/issues/165), [#259](https://github.com/trongate/trongate-framework/pull/259))
+
 ## [2.2026.0801] - 2026-08-01
 
 ### Added
