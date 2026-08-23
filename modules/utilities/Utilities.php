@@ -183,7 +183,7 @@ class Utilities extends Trongate {
     /**
      * Checks if the HTTP request has been invoked by Trongate MX.
      *
-     * @return bool True if the request has the X-Trongate-MX header set to 'true', otherwise false.
+     * @return bool True if the request has the Trongate-MX-Request header set to 'true', otherwise false.
      */
     public function from_trongate_mx(): bool {
         if (isset($_SERVER['HTTP_TRONGATE_MX_REQUEST'])) {
