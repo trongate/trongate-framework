@@ -716,7 +716,6 @@ let trongateMXOpeningModal = false;
 
             tempFragment.appendChild(tempDiv);
             try {
-                Dom.handleOobSwaps(tempFragment, selectOobStr);
                 Dom.handleMainSwaps(targetEl, tempFragment, selectStr, mxSwapStr);
                 Modal.attemptAddModalButtons(targetEl, element);
             } catch (error) {
