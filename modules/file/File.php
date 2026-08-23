@@ -502,19 +502,6 @@ class File {
     }
 
     /**
-    * Generates a secure filename for an uploaded file, either randomized or based on original name.
-    *
-    * @param string $original_name The original filename from the upload
-    * @param bool $make_rand_name Whether to generate a random filename (default: false)
-    * 
-    * @return array{
-    *    name: string,           The base filename without extension
-    *    extension: string,      The lowercase file extension
-    *    full_name: string      The complete filename with extension
-    * }
-    */
-
-    /**
      * Generates a secure filename for an uploaded file, either randomized or sanitized from original.
      *
      * This method creates a safe filename suitable for filesystem storage by either generating
