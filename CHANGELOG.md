@@ -30,7 +30,7 @@ The current version of the framework is documented in its [license.txt](https://
 ## [2.2026.0801] - 2026-08-01
 
 ### Added
-- **URL protection** (`engine/Core.php`) — private and protected controller methods now return a clean 404 (instead of a fatal 500) when invoked via the URL, thanks to a new `ReflectionMethod` guard in the dispatcher. This completes the three documented mechanisms for preventing URL access to controller methods: `block_url()` (403 Forbidden), the underscore-first convention (404, enforced at the routing stage before the controller loads), and PHP method visibility (404, clean). Internal calls via `Modules::run()` and in-class calls are unaffected. ([#249](https://github.com/trongate/trongate-framework/pull/249))
+- **URL protection** (`engine/Core.php`) — private and protected controller methods now return a clean 404 (instead of a fatal 500) when invoked via the URL, thanks to a new `ReflectionMethod` guard in the dispatcher. This completes the three mechanisms for preventing URL access to controller methods: `block_url()` (403 Forbidden), the underscore-first convention (404, enforced at the routing stage before the controller loads), and PHP method visibility (404, clean). In-class calls are unaffected; note that `Modules::run()` performs no visibility check, so private/protected methods cannot be invoked through it from outside the class (PHP error, not 404). ([#249](https://github.com/trongate/trongate-framework/pull/249))
 
 ### Changed
 - **Flo/Evo code generator** (`trongate_control`) — the textarea font size in `transferer.css` was raised from `0.6em` to `0.9em` for improved readability. ([#249](https://github.com/trongate/trongate-framework/pull/249))
