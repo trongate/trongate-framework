@@ -241,6 +241,14 @@ class Form extends Trongate {
             $method = $attributes['method'];
             unset($attributes['method']);
         }
+
+        // Extract the form name (used for scoped validation errors).
+        // It is never rendered as an HTML attribute on the form tag.
+        $form_name = null;
+        if (isset($attributes['form_name'])) {
+            $form_name = $attributes['form_name'];
+            unset($attributes['form_name']);
+        }
         
         foreach ($attributes as $key => $value) {
             $extra .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
@@ -250,7 +258,15 @@ class Form extends Trongate {
             $location = BASE_URL . $location;
         }
 
-        return '<form action="' . htmlspecialchars($location, ENT_QUOTES, 'UTF-8') . '" method="' . htmlspecialchars($method, ENT_QUOTES, 'UTF-8') . '"' . $extra . '>';
+        $html = '<form action="' . htmlspecialchars($location, ENT_QUOTES, 'UTF-8') . '" method="' . htmlspecialchars($method, ENT_QUOTES, 'UTF-8') . '"' . $extra . '>';
+
+        // Mirror run()'s key-hygiene cap (<=64): a name run() would never
+        // record must not be injected, so declared and recorded never diverge
+        if (is_string($form_name) && $form_name !== '' && strlen($form_name) <= 64) {
+            $html .= '<input type="hidden" name="form_name" value="' . htmlspecialchars($form_name, ENT_QUOTES, 'UTF-8') . '">';
+        }
+
+        return $html;
     }
 
     /**
@@ -288,9 +304,7 @@ class Form extends Trongate {
         // Use Modules::run() to access validation module
         $js_injection = Modules::run('validation/get_js_injection');
         $html .= $js_injection;
-        
-        // Clear validation errors to prevent them from persisting to other forms
-        unset($_SESSION['form_submission_errors']);
+
         return $html;
     }
 

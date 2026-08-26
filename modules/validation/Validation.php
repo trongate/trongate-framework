@@ -237,19 +237,35 @@ class Validation extends Trongate {
         // 3. Final check for errors (gathered during set_rules phase)
         if (count($this->form_submission_errors) > 0) {
             $_SESSION['form_submission_errors'] = $this->form_submission_errors;
+
+            // Record which form produced this failure (scoped validation errors).
+            // Key hygiene: strings only, trimmed, capped at 64 chars — an array
+            // POST (or anything non-string) can never become a session key.
+            $form_name = $_POST['form_name'] ?? null;
+            if (is_string($form_name)) {
+                $form_name = trim($form_name);
+                if ($form_name !== '' && strlen($form_name) <= 64) {
+                    $_SESSION['form_submission_name'] = $form_name;
+                }
+            }
+
             return false;
         }
 
+        // Clear-on-pass: a successful submission must not display stale errors
+        $this->form_submission_errors = [];
+        unset($_SESSION['form_submission_errors'], $_SESSION['form_submission_name']);
         return true;
     }
 
     /**
      * Displays validation errors in various formats.
      * 
-     * Supports three render types:
+     * Supports four render types:
      * 1. JSON: When first argument is an HTTP error code (400-499)
-     * 2. Inline: When only first argument is provided (field name)
-     * 3. Standard: When both opening and closing HTML tags are provided
+     * 2. Scoped: When first argument starts with 'FORM-' (form name)
+     * 3. Inline: When only first argument is provided (field name)
+     * 4. Standard: When both opening and closing HTML tags are provided
      * 
      * @param array<string, mixed> $data The data array containing render parameters
      * @return string|null The rendered error HTML or null if no errors
@@ -257,6 +273,7 @@ class Validation extends Trongate {
     public function display_errors(array $data = []): ?string {
         $first_arg = $data['first_arg'] ?? null;
         $closing_html = $data['closing_html'] ?? null;
+        $scope = $data['scope'] ?? null;
         $render_type = $this->get_render_type($first_arg, $closing_html);
 
         if ($render_type === 'null') {
@@ -265,9 +282,28 @@ class Validation extends Trongate {
 
         $form_submission_errors = $_SESSION['form_submission_errors'];
 
+        // Scoped rendering: resolve the requested name (FORM- prefix spelling
+        // or the position-3 $scope spelling) and render only on an exact match.
+        // Abstain WITHOUT clearing on any mismatch — the correct form's block
+        // must still be able to render the bucket.
+        $requested_name = null;
+        if ($render_type === 'scoped') {
+            $requested_name = substr($first_arg, 5); // strip 'FORM-'
+        } elseif ($render_type === 'standard' && $scope !== null) {
+            $requested_name = $scope;
+        }
+
+        if ($requested_name !== null) {
+            $submission_name = $_SESSION['form_submission_name'] ?? null;
+            if ($submission_name !== $requested_name) {
+                return null; // Abstain — do NOT clear the bucket
+            }
+        }
+
         return match ($render_type) {
             'json'     => $this->json_validation_errors($form_submission_errors, $first_arg),
             'inline'   => $this->inline_validation_errors($form_submission_errors, $first_arg),
+            'scoped'   => $this->general_validation_errors($form_submission_errors),
             'standard' => $this->general_validation_errors($form_submission_errors, $first_arg, $closing_html),
         };
     }
@@ -284,7 +320,7 @@ class Validation extends Trongate {
         header('Content-Type: application/json');
 
         // RENDERED = DELETED
-        unset($_SESSION['form_submission_errors']);
+        unset($_SESSION['form_submission_errors'], $_SESSION['form_submission_name']);
         return json_encode($errors);
     }
 
@@ -311,7 +347,7 @@ class Validation extends Trongate {
 
         // Cleanup: If the array is now empty, remove the parent key
         if (count($_SESSION['form_submission_errors']) === 0) {
-            unset($_SESSION['form_submission_errors']);
+            unset($_SESSION['form_submission_errors'], $_SESSION['form_submission_name']);
         }
 
         return $html;
@@ -339,7 +375,7 @@ class Validation extends Trongate {
         $html = ($items !== '') ? '<ul class="validation-errors validation-errors--summary">' . $items . '</ul>' : '';
 
         // RENDERED = DELETED
-        unset($_SESSION['form_submission_errors']);
+        unset($_SESSION['form_submission_errors'], $_SESSION['form_submission_name']);
         return $html;
     }
 
@@ -348,7 +384,7 @@ class Validation extends Trongate {
      * 
      * @param mixed $first_arg The first argument passed to display_errors
      * @param mixed $closing_html The closing HTML tag argument
-     * @return string The render type: 'json', 'inline', 'standard', or 'null'
+     * @return string The render type: 'json', 'scoped', 'inline', 'standard', or 'null'
      */
     private function get_render_type($first_arg, $closing_html): string {
         if (!isset($_SESSION['form_submission_errors'])) {
@@ -357,6 +393,10 @@ class Validation extends Trongate {
 
         if (is_int($first_arg) && $first_arg >= 400 && $first_arg <= 499) {
             return 'json';
+        }
+
+        if (is_string($first_arg) && str_starts_with($first_arg, 'FORM-')) {
+            return 'scoped';
         }
 
         if (isset($first_arg) && !isset($closing_html)) {

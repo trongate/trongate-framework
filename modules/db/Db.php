@@ -124,7 +124,7 @@ class Db extends Trongate {
         $this->validate_table_exists($table);
         $columns = implode(', ', array_keys($data));
         $placeholders = ':' . implode(', :', array_keys($data));
-        $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+        $sql = "INSERT INTO `$table` ($columns) VALUES ($placeholders)";
         if ($this->debug) {
             $this->show_query($sql, $data);
         }
@@ -254,7 +254,7 @@ class Db extends Trongate {
     public function count(string $table): int {
         $this->validate_table_exists($table);
 
-        $sql = "SELECT COUNT(*) AS total FROM $table";
+        $sql = "SELECT COUNT(*) AS total FROM `$table`";
 
         if ($this->debug) {
             $this->show_query($sql, []);
@@ -306,7 +306,7 @@ class Db extends Trongate {
         }
         
         // Construct the SQL query
-        $sql = 'INSERT INTO ' . $table . ' (' . implode(',', $fields) . ') VALUES ';
+        $sql = 'INSERT INTO `' . $table . '` (' . implode(',', $fields) . ') VALUES ';
         $sql .= implode(',', array_fill(0, count($records), "($placeholders)"));
         
         if ($this->debug) {
@@ -475,7 +475,7 @@ class Db extends Trongate {
         
         $placeholders_str = implode(',', $placeholders);
         $columns_str = is_array($columns) ? implode(', ', $columns) : $columns;
-        $sql = "SELECT $columns_str FROM $table WHERE $column IN ($placeholders_str)";
+        $sql = "SELECT $columns_str FROM `$table` WHERE $column IN ($placeholders_str)";
 
         if ($this->debug) {
             $this->show_query($sql, $params);
@@ -511,7 +511,7 @@ class Db extends Trongate {
 
         $num_rows = $this->count($table_name);
         if ($num_rows === 0) {
-            $sql = 'ALTER TABLE '.$table_name.' AUTO_INCREMENT = 1';
+            $sql = 'ALTER TABLE `'.$table_name.'` AUTO_INCREMENT = 1';
             $this->query($sql);
             return true;
         }
@@ -528,7 +528,7 @@ class Db extends Trongate {
 
             // If the table is empty, reset auto-increment value to 1
             if (empty($rows)) {
-                $this->dbh->exec("ALTER TABLE $table_name AUTO_INCREMENT = 1");
+                $this->dbh->exec("ALTER TABLE `$table_name` AUTO_INCREMENT = 1");
                 // Commit transaction and exit
                 $this->dbh->commit();
                 return true;
@@ -538,7 +538,7 @@ class Db extends Trongate {
             foreach ($rows as $row) {
                 $id = $row->id;
                 $temp_id = -$counter; // Use negative numbers for temporary IDs
-                $stmt = $this->dbh->prepare("UPDATE $table_name SET id = :temp_id WHERE id = :id");
+                $stmt = $this->dbh->prepare("UPDATE `$table_name` SET id = :temp_id WHERE id = :id");
                 $stmt->execute([':temp_id' => $temp_id, ':id' => $id]);
                 $counter++;
             }
@@ -548,7 +548,7 @@ class Db extends Trongate {
             foreach ($rows as $row) {
                 $temp_id = -$counter; // Temporary IDs were used in the first pass
                 $new_id = $counter;
-                $stmt = $this->dbh->prepare("UPDATE $table_name SET id = :new_id WHERE id = :temp_id");
+                $stmt = $this->dbh->prepare("UPDATE `$table_name` SET id = :new_id WHERE id = :temp_id");
                 $stmt->execute([':new_id' => $new_id, ':temp_id' => $temp_id]);
                 $counter++;
             }
@@ -556,7 +556,7 @@ class Db extends Trongate {
             // Commit transaction
             $this->dbh->commit();
             
-            $sql = 'ALTER TABLE '.$table_name.' AUTO_INCREMENT = 1';
+            $sql = 'ALTER TABLE `'.$table_name.'` AUTO_INCREMENT = 1';
             $this->query($sql);
 
             // Return true upon successful resequencing
@@ -625,7 +625,7 @@ class Db extends Trongate {
      */
     public function describe_table(string $table, bool $names_only = false): array|bool {
         try {
-            $sql = 'DESCRIBE ' . $table;
+            $sql = 'DESCRIBE `' . $table . '`';
             $columns = $this->query($sql, 'array');
 
             if ($names_only) {

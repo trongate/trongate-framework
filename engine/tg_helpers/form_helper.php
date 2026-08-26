@@ -220,12 +220,12 @@ function get_attributes_str($attributes): string {
  * Generate an HTML label element.
  *
  * @param string $label_text The text or HTML to be used as the label content.
- * @param string|null $input_id The id of the input element to associate with the label. Default is null.
  * @param array $attributes An associative array of HTML attributes for the label element. Defaults to empty array.
  * @return string The generated HTML label element with attributes.
  *
- * Note: The label_text is not escaped by default. If using user-generated content,
- * ensure it is properly sanitized before passing it to this function.
+ * Note: To associate the label with an input, include a 'for' key in $attributes
+ * (e.g. ['for' => 'email']). The label_text is not escaped by default. If using
+ * user-generated content, ensure it is properly sanitized before passing it to this function.
  */
 function form_label(string $label_text, array $attributes = []): string {
     $data = ['label_text' => $label_text, 'attributes' => $attributes];
@@ -433,6 +433,6 @@ function post(
  * @param string|null $closing_html Optional HTML to close each error message.
  * @return string|null Returns a string of formatted validation errors or null if no errors are present.
  */
-function validation_errors(string|int|null $first_arg = null, ?string $closing_html = null): ?string {
-    return Modules::run('validation/display_errors', ['first_arg' => $first_arg, 'closing_html' => $closing_html]);
+function validation_errors(string|int|null $first_arg = null, ?string $closing_html = null, ?string $scope = null): ?string {
+    return Modules::run('validation/display_errors', ['first_arg' => $first_arg, 'closing_html' => $closing_html, 'scope' => $scope]);
 }
