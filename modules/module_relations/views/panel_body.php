@@ -14,15 +14,22 @@
  *                                       (at least one option available,
  *                                       and for one-to-one relations no
  *                                       association existing yet). When no
- *                                       option is available at all, the
- *                                       region holds an empty-state
- *                                       paragraph instead: "There are
- *                                       currently no … records available to
- *                                       assign to this …" — or, when the
- *                                       relation settings carry no record
- *                                       names, the generic "No records are
- *                                       currently available for
- *                                       assignment."
+ *                                       option is available at all AND the
+ *                                       calling record has no existing
+ *                                       associations, the region holds an
+ *                                       empty-state paragraph instead:
+ *                                       "There are currently no … records
+ *                                       available to assign to this …" —
+ *                                       or, when the relation settings
+ *                                       carry no record names, the generic
+ *                                       "No records are currently
+ *                                       available for assignment." A
+ *                                       record that already has
+ *                                       associations gets no such notice
+ *                                       (its items are listed in the
+ *                                       region below); nothing is left to
+ *                                       assign, so the region is simply
+ *                                       empty.
  *   #rel-{panel_id}-associated-items  — the associated-items list; an
  *                                       empty region when none exist (no
  *                                       placeholder paragraph).
@@ -81,7 +88,7 @@ $oob_swaps = json_encode([
                 <button type="submit" class="associate-form__submit">Add</button>
             </div>
         </form>
-    <?php elseif (count($available_options) === 0): ?>
+    <?php elseif ((count($available_options) === 0) && (count($associated_rows) === 0)): ?>
         <?php if (($associated_singular !== '') && ($calling_singular !== '')): ?>
             <p class="associate-form__empty">There are currently no <?= out(str_replace('_', ' ', $associated_singular)) ?> records available to assign to this <?= out(str_replace('_', ' ', $calling_singular)) ?>.</p>
         <?php else: ?>

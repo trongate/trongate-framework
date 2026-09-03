@@ -498,7 +498,10 @@ class Module_relations extends Trongate {
      * hold at most one partner, so replacing it is remove-then-add rather
      * than picking a second option alongside the first. For every relation
      * type, the form is also hidden when there are simply no available
-     * options left to pick from.
+     * options left to pick from. The view's empty-state paragraph ("no …
+     * records available") is shown only when the calling record has no
+     * existing associations AND no options are available — a record that
+     * already has associated items needs no "nothing to assign" notice.
      *
      * @param array  $settings       The decoded relation settings array.
      * @param string $calling_module The module whose panel this is.
