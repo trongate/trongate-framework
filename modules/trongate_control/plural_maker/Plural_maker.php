@@ -102,6 +102,24 @@ class Plural_maker extends Trongate {
     ];
 
     /**
+     * Plurals formed by adding -s to an -ie stem (movie → movies).
+     *
+     * The generic reverse rule (-ies → -y: baby → babies) is wrong for
+     * these stems — "movies" must singularise to "movie", not "movy".
+     * Checked as an explicit reverse dictionary lookup (step 0e) so the
+     * -ie singular wins for known stems; the generic rule still covers
+     * consonant + y words (babies → baby).
+     */
+    private array $ies_from_ie = [
+        'movies' => 'movie', 'ties' => 'tie', 'pies' => 'pie',
+        'lies' => 'lie', 'dies' => 'die', 'calories' => 'calorie',
+        'cookies' => 'cookie', 'brownies' => 'brownie', 'zombies' => 'zombie',
+        'rookies' => 'rookie', 'hoodies' => 'hoodie', 'aunties' => 'auntie',
+        'cuties' => 'cutie', 'genies' => 'genie', 'smoothies' => 'smoothie',
+        'veggies' => 'veggie', 'selfies' => 'selfie', 'walkies' => 'walkie',
+    ];
+
+    /**
      * Words ending in -o that take -s rather than -oes.
      */
     private array $o_adds_s = [
@@ -332,6 +350,11 @@ class Plural_maker extends Trongate {
         // 0d. Reverse -a → -on (Greek)
         if (preg_match('/a$/i', $word) && isset($this->a_to_on[$lower])) {
             return $this->preserve_case($word, $this->a_to_on[$lower]);
+        }
+
+        // 0e. Reverse -ies → -ie (known -ie stems: movie → movies)
+        if (preg_match('/ies$/i', $word) && isset($this->ies_from_ie[$lower])) {
+            return $this->preserve_case($word, $this->ies_from_ie[$lower]);
         }
 
         // 1. Unchanging (singular === plural)

@@ -21,6 +21,7 @@
   "child_modules": [
     "flo",
     "evo",
+    "module_builder",
     "site_builder",
     "properties_builder",
     "query_builder",

@@ -1067,6 +1067,9 @@ function getJoinClauseLeftExcluding(selectedJoinObj) {
     var defaultJoin = getJoinClauseDefault(selectedJoinObj);
     var additionalCode = nl + 'WHERE' + nl;
     var foreignKey = selectedJoinObj.tableBName + '.' + selectedJoinObj.tableBColumn
+    // Deliberately IS NULL, not = 0: this tests the LEFT JOIN's output,
+    // which is always NULL on the right-hand side for unmatched rows —
+    // regardless of whether the FK column itself defaults to 0 or NULL.
     additionalCode+= ind + foreignKey + ' IS NULL'
     var thisJoin = defaultJoin + additionalCode;
     thisJoin = thisJoin.replace(' EXCLUDING ', ' ');
@@ -1078,6 +1081,9 @@ function getJoinClauseRightExcluding(selectedJoinObj) {
     var defaultJoin = getJoinClauseDefault(selectedJoinObj);
     var additionalCode = nl + 'WHERE' + nl;
     var foreignKey = selectedJoinObj.tableAName + '.' + selectedJoinObj.tableAColumn
+    // Deliberately IS NULL, not = 0: this tests the RIGHT JOIN's output,
+    // which is always NULL on the left-hand side for unmatched rows —
+    // regardless of whether the FK column itself defaults to 0 or NULL.
     additionalCode+= ind + foreignKey + ' IS NULL'
     var thisJoin = defaultJoin + additionalCode;
     thisJoin = thisJoin.replace(' EXCLUDING ', ' ');
