@@ -8,6 +8,24 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0903] - 2026-09-03
+
+### Added
+- **Module relations** (`modules/module_relations`) — new top-level runtime module for record-to-record relations, the counterpart that generated code calls via `Modules::run()`: browser endpoints `submit_association` and `remove_association` (session-authenticated, CSRF-gated) plus internals (`draw_summary_panel`, `fetch_create_options`, `sync_create_claim`, `release_create_link`, `release_children`, `release_junction_links`) with `panel_body` and `summary_panel` views. `settings/` ships empty (`.gitkeep`); each app's relation contracts are written there at generation time. ([#262](https://github.com/trongate/trongate-framework/pull/262))
+- **Module relations — builder wizard** (`modules/trongate_control/module_relations_builder`) — new child module of `trongate_control`: a four-step Create Module Relation wizard (relation type → parent module → child module → bridging option) that writes per-app settings JSON to `modules/module_relations/settings/`, executes schema SQL, and injects private, SQL-free helper code into the target modules (summary panels, create-form dropdowns, `sync_*`/`release_*` claim logic). Ships with its own module README; registered in the module manifest. ([#262](https://github.com/trongate/trongate-framework/pull/262))
+- **Summary-panel styling** (`modules/templates/css/admin.css`) — new `.associated-items`/`.associate-form` block (155 lines): the visual contract for the relation panels that generated modules embed on their show pages. ([#262](https://github.com/trongate/trongate-framework/pull/262))
+
+### Changed
+- **Flo Create Module flow** (`modules/trongate_control`) — the interactive Create Module wizard moves out of `evo` into a new `module_builder` child module: its eight wizard views relocate there (git-detected as renames; `evo` keeps the generic shared APIs) and the `flo.php`/`flo_trigger.php` entry points are re-routed to `module_builder`. `site_builder` now auto-executes generated SQL, backticks table identifiers for reserved-word safety, and emits numeric defaults of 0 (the framework's no-NULL sentinel convention); `plural_maker` maps `-ie` stems back correctly (`movies` → `movie`, never `movy`); the manifest registers `module_builder`. ([#262](https://github.com/trongate/trongate-framework/pull/262))
+- **Trongate MX modal builders** (`public/js/trongate-mx.js`) — `mx-build-modal` and `mx-build-iframe` fix their target semantics (an in-modal user `mx-target` is honoured; otherwise the modal body target is saved, forced, then restored) and gain footer action buttons (`showCloseButton`, `showDestroyButton`); modal shell creation is extracted into the shared `Modal.createModalShell`; iframe loading renders a `#515151` background with no spinner. ([#262](https://github.com/trongate/trongate-framework/pull/262))
+
+### Removed
+- `extension/` directory — the stray browser-extension assets (icons + manifest) that had been committed with project-specific noise; the framework repository now carries framework code only. ([#261](https://github.com/trongate/trongate-framework/pull/261))
+
+### Fixed
+- **Trongate MX page-load activations** (`public/js/trongate-mx.js`) — `handlePageLoadedEvents()` referenced an undeclared `event`, throwing on every page-load activation of an element carrying a core `mx-*` attribute and breaking the refresh-a-section pattern (`mx-on-success` on a target with `mx-trigger="activate"`); the stray `event.preventDefault()` call is dropped. ([#262](https://github.com/trongate/trongate-framework/pull/262))
+- **Framework configuration defaults** (`config/config.php`, `config/database.php`) — restored to framework defaults so the setup wizard runs cleanly on a fresh clone or copy. ([#261](https://github.com/trongate/trongate-framework/pull/261))
+
 ## [2.2026.0823] - 2026-08-23
 
 ### Added
