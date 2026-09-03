@@ -233,7 +233,7 @@ window.addEventListener('message', function(e) {
         // Convert localStorage → $_SESSION via AJAX
         var baseUrl = document.querySelector('base').getAttribute('href');
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', baseUrl + 'trongate_control-evo/store_properties', true);
+        xhr.open('POST', baseUrl + 'trongate_control-module_builder/store_properties', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = function() {
             if (xhr.status === 200) {

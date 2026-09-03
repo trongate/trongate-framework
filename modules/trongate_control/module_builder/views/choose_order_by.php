@@ -24,7 +24,7 @@
             $opt_column = $opt['column'];
             $mx_vals = json_encode(['selected' => $opt_column], JSON_HEX_APOS | JSON_UNESCAPED_UNICODE);
         ?>
-            <li mx-post="trongate_control-evo/submit_order_by" mx-target="main" mx-target-loading="cloak" mx-vals='<?= $mx_vals ?>'><?= out($opt_name) ?></li>
+            <li mx-post="trongate_control-module_builder/submit_order_by" mx-target="main" mx-target-loading="cloak" mx-vals='<?= $mx_vals ?>'><?= out($opt_name) ?></li>
         <?php endforeach; ?>
     </ul>
 </div>

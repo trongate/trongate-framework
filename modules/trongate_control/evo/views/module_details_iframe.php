@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/trongate.css">
     <script src="js/trongate-mx.min.js"></script>
-    <title>Module Details</title>
+    <script src="trongate_control-flo_module/js/flo.js"></script>
+    <title><?= out($page_title ?? 'Details') ?></title>
 </head>
 <body>
     <header>

@@ -283,6 +283,161 @@ body.nav-open { overflow: hidden; }
 .options-card .card-body > div :is(a, button) { margin-top: 0; }
 
 /* -------------------------------------------
+   Associated Items (Pills / Chips)
+------------------------------------------- */
+.associated-items, .associated-items * {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* Container */
+.associated-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Individual Associated Item (The Pill) */
+.associated-items__item {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid #dee2e6;
+  border-radius: 8px; 
+  overflow: hidden;
+  background: #fff; 
+  transition: border-color 0.2s ease;
+}
+.associated-items__item:hover {
+  border-color: var(--border);
+}
+
+/* The Link to the Associated Record */
+.associated-items__link {
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 20px;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+.associated-items__link:hover {
+  background-color: #f8f9fa;
+}
+
+/* The Remove/Unlink Action */
+.associated-items__remove {
+  background: transparent;
+  border: none;
+  border-left: 1px solid #dee2e6;
+  padding: 4px 8px; 
+  margin: 0; 
+  cursor: pointer;
+  color: #868e96;
+  font-size: 16px;
+  line-height: 20px; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0; 
+  transition: background-color 0.2s, color 0.2s;
+}
+.associated-items__remove:hover {
+  background-color: var(--danger);
+  color: white;
+  border-left-color: var(--danger);
+}
+
+/* Accessibility Focus States */
+.associated-items__link:focus-visible, 
+.associated-items__remove:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #4c6ef5;
+}
+
+/* -------------------------------------------
+   Association Form (Select & Add)
+------------------------------------------- */
+.associate-form {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border); /* Uses trongate border color */
+}
+
+/* Reset trongate's default 1.4em top margin on labels */
+.associate-form__label {
+    display: block;
+    margin: 0 0 8px 0; 
+}
+
+.associate-form__controls {
+    display: flex;
+    gap: 8px;
+    align-items: stretch; /* Forces button and select to be exact same height */
+}
+
+.associate-form__select {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background-color: #fff;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: #555;
+    cursor: pointer;
+    margin: 0; /* Reset trongate margin */
+    transition: border-color 0.2s ease;
+}
+
+.associate-form__select:hover {
+    border-color: var(--primary);
+}
+
+/* Override trongate's heavy 2px outline with a soft shadow */
+.associate-form__select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(70, 130, 180, 0.2); /* SteelBlue 20% opacity */
+}
+
+/* Reset trongate's default 1em top margin on buttons */
+.associate-form__submit {
+    margin: 0; 
+    padding: 8px 18px;
+    background-color: var(--primary);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-dark);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap; /* Prevents "Add" from wrapping */
+    transition: background-color 0.2s ease;
+}
+
+.associate-form__submit:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-darker);
+}
+
+.associate-form__submit:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(70, 130, 180, 0.3);
+}
+
+/* Empty-state message (shown when no records are associated yet) */
+.associated-items__empty {
+    margin: 0;
+    padding: 8px 0 0 0;
+    font-size: 0.9rem;
+    color: #868e96;
+}
+
+/* -------------------------------------------
    Desktop Layout Responsiveness Overrides
 ------------------------------------------- */
 @media (min-width: 900px) {

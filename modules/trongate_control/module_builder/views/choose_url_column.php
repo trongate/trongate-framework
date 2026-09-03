@@ -5,12 +5,12 @@
 </div>
 <div id="uc-options-list" style="display:none">
     <ul class="options-selector">
-        <li mx-post="trongate_control-evo/submit_url_col" mx-target="main" mx-target-loading="cloak" mx-vals='{"selected":""}'></li>
+        <li mx-post="trongate_control-module_builder/submit_url_col" mx-target="main" mx-target-loading="cloak" mx-vals='{"selected":""}'></li>
         <?php if (!empty($properties)): ?>
             <?php foreach ($properties as $prop): ?>
                 <?php $prop_name = $prop['propertyName'] ?? ''; ?>
                 <?php $mx_vals = json_encode(['selected' => $prop_name], JSON_HEX_APOS | JSON_UNESCAPED_UNICODE); ?>
-                <li mx-post="trongate_control-evo/submit_url_col" mx-target="main" mx-target-loading="cloak" mx-vals='<?= $mx_vals ?>'><?= out($prop_name) ?></li>
+                <li mx-post="trongate_control-module_builder/submit_url_col" mx-target="main" mx-target-loading="cloak" mx-vals='<?= $mx_vals ?>'><?= out($prop_name) ?></li>
             <?php endforeach; ?>
         <?php endif; ?>
     </ul>

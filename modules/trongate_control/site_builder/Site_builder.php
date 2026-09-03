@@ -191,6 +191,33 @@ class Site_builder extends Trongate {
             // Add a navigation menu link to the admin template if required.
             $this->model->add_nav_menu_link($module_name, $nav_label);
 
+            // Automatically execute the generated SQL (CREATE TABLE) unless
+            // explicitly skipped via a 'run_sql' flag.
+            $run_sql = $posted_values['run_sql'] ?? true;
+            if ($run_sql) {
+                $sql_file_path = $final_path . '/' . $module_name . '.sql';
+
+                try {
+                    $this->db->query($sql);
+
+                    // SQL executed cleanly — consume the one-shot SQL file
+                    // (mirrors the transferer's runSql behaviour).
+                    if (file_exists($sql_file_path)) {
+                        unlink($sql_file_path);
+                    }
+                } catch (\Throwable $e) {
+                    // Keep the SQL file on disk so the user can still run it
+                    // manually via the transferer. The generated module files
+                    // remain in place.
+                    return [
+                        'status' => 'error',
+                        'headline' => 'SQL Execution Error',
+                        'message' => 'Module files were generated, but the database table could not be created: ' . $e->getMessage(),
+                        'more_info_url' => $this->evo->api_base_url . 'troubleshooting/sql-execution'
+                    ];
+                }
+            }
+
         } catch (\Throwable $e) {
             // Clean up on any unexpected error.
             if (is_dir($temp_folder_path) && !is_dir(APPPATH . 'modules/' . $module_name)) {
@@ -299,7 +326,7 @@ class Site_builder extends Trongate {
         $properties = json_decode($posted_values['properties'] ?? '[]');
 
         $columns = [];
-        $columns[] = '    id INT PRIMARY KEY AUTO_INCREMENT';
+        $columns[] = '    `id` INT PRIMARY KEY AUTO_INCREMENT';
 
         foreach ($properties as $property) {
             $property_type = trim($property->propertyType ?? '');
@@ -311,8 +338,8 @@ class Site_builder extends Trongate {
                 $base_field = str_replace('-', '_', url_title($property_name));
                 $start_required = in_array('start date required', $rules);
                 $end_required = in_array('end date required', $rules);
-                $columns[] = '    ' . $base_field . '_start DATE' . ($start_required ? ' NOT NULL' : ' DEFAULT NULL');
-                $columns[] = '    ' . $base_field . '_end DATE' . ($end_required ? ' NOT NULL' : ' DEFAULT NULL');
+                $columns[] = '    `' . $base_field . '_start` DATE' . ($start_required ? ' NOT NULL' : ' DEFAULT NULL');
+                $columns[] = '    `' . $base_field . '_end` DATE' . ($end_required ? ' NOT NULL' : ' DEFAULT NULL');
                 continue;
             }
 
@@ -320,18 +347,23 @@ class Site_builder extends Trongate {
                 $base_field = str_replace('-', '_', url_title($property_name));
                 $start_required = in_array('start time required', $rules);
                 $end_required = in_array('end time required', $rules);
-                $columns[] = '    ' . $base_field . '_start TIME' . ($start_required ? ' NOT NULL' : ' DEFAULT NULL');
-                $columns[] = '    ' . $base_field . '_end TIME' . ($end_required ? ' NOT NULL' : ' DEFAULT NULL');
+                $columns[] = '    `' . $base_field . '_start` TIME' . ($start_required ? ' NOT NULL' : ' DEFAULT NULL');
+                $columns[] = '    `' . $base_field . '_end` TIME' . ($end_required ? ' NOT NULL' : ' DEFAULT NULL');
                 continue;
             }
 
             $field_name = str_replace('-', '_', url_title($property_name));
             $col_type = $this->map_property_type_to_sql($property_type, $rules);
-            $null_clause = $is_required ? ' NOT NULL' : ' DEFAULT NULL';
-            $columns[] = '    ' . $field_name . ' ' . $col_type . $null_clause;
+            // Numeric columns default to 0, never NULL (the framework's
+            // no-NULL sentinel convention: 0 is the "empty" value for
+            // numbers). Optional non-numeric columns keep DEFAULT NULL —
+            // there is no numeric zero for dates, times or text.
+            $numeric_types = ['INT', 'DECIMAL(10,2)', 'TINYINT(1)'];
+            $null_clause = $is_required ? ' NOT NULL' : (in_array($col_type, $numeric_types, true) ? ' DEFAULT 0' : ' DEFAULT NULL');
+            $columns[] = '    `' . $field_name . '` ' . $col_type . $null_clause;
         }
 
-        $sql = 'CREATE TABLE ' . $module_name . ' (' . PHP_EOL;
+        $sql = 'CREATE TABLE `' . $module_name . '` (' . PHP_EOL;
         $sql .= implode(',' . PHP_EOL, $columns);
         $sql .= PHP_EOL . ');' . PHP_EOL;
 

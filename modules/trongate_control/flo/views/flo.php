@@ -20,7 +20,7 @@
             if (state === 'choose_url_column') {
                 var main = document.getElementById('flo-main');
                 if (main) {
-                    main.setAttribute('mx-get', 'trongate_control-evo/choose_url_column');
+                    main.setAttribute('mx-get', 'trongate_control-module_builder/choose_url_column');
                 }
             }
             if (state) {
