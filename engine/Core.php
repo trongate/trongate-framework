@@ -508,7 +508,11 @@ class Core {
                         // Send file content
                         readfile($asset_path);
                         die;
-                    } 
+                    }
+
+                    // Never expose directory existence through a successful response.
+                    http_response_code(404);
+                    die('Asset not found');
                 } catch (Exception $e) {
                     // Don't expose internal paths in error messages
                     http_response_code(404);

@@ -10,6 +10,24 @@
 class Image {
 
     /**
+     * Canonical file extension for each image MIME type accepted by upload().
+     *
+     * SECURITY: the extension of a stored upload is decided from this table,
+     * using the MIME type sniffed from the file's CONTENT - never from the
+     * extension the client supplied. A file named 'payload.php' whose bytes
+     * are a GIF is therefore stored as '*.gif'.
+     *
+     * @var array<string, string>
+     */
+    private const MIME_EXTENSIONS = [
+        'image/jpeg' => 'jpg',
+        'image/jpg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp'
+    ];
+
+    /**
      * Holds the GD image resource instance.
      * @var resource|GdImage|null
      */
@@ -83,6 +101,12 @@ class Image {
      *                    - 'make_rand_name' (bool, optional): Whether to generate a random name for the uploaded file (default: false).
      *                    - 'target_module' (string, optional): The target module for module-specific uploads (default: segment(1)).
      *
+     * NOTE ON STORED FILE NAMES: the extension of the stored file always
+     * follows the MIME type sniffed from the file's content, never the
+     * extension carried in the client's file name. When 'make_rand_name' is
+     * true the base name is 16 cryptographically random bytes (hex-encoded),
+     * so the stored name is neither guessable nor derived from client input.
+     *
      * @return array An associative array containing details about the uploaded file, including:
      *               - 'file_name' (string): The name of the uploaded file.
      *               - 'file_path' (string): The full path to the uploaded file.
@@ -140,10 +164,19 @@ class Image {
             }
         }
 
+        // The stored extension is decided by the MIME type sniffed from the
+        // file's CONTENT (finfo, above) - never by the extension carried in
+        // the client's file name. A polyglot or misnamed upload therefore
+        // cannot land on disk under an extension it did not earn.
+        $extension = $this->extension_for_mime_type($mime_type);
+
+        if ($extension === '') {
+            throw new Exception('Invalid file type. Only image files are allowed.');
+        }
+
         // Generate file name with duplicate checking
         if ($make_rand_name === true) {
-            $extension = pathinfo($uploaded_file['name'], PATHINFO_EXTENSION);
-            $base_name = uniqid('img_', true);
+            $base_name = $this->random_base_name();
             $extension_with_dot = '.' . $extension;
             
             // Get unique file path
@@ -154,10 +187,9 @@ class Image {
             $sanitized = sanitize_filename($uploaded_file['name']);
             $file_info_parts = return_file_info($sanitized);
             $base_name = $file_info_parts['file_name'];
-            $extension = $file_info_parts['file_extension']; // Already includes dot
             
             // Get unique file path
-            $file_path = $this->ensure_unique_path($destination, $base_name, $extension);
+            $file_path = $this->ensure_unique_path($destination, $base_name, '.' . $extension);
             $file_name = basename($file_path);
         }
 
@@ -256,6 +288,30 @@ class Image {
             UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload',
             default => 'Unknown upload error'
         };
+    }
+
+    /**
+     * The canonical file extension for a sniffed image MIME type.
+     *
+     * @param string $mime_type The MIME type detected with finfo_file().
+     * @return string The extension, without a leading dot; '' when the
+     *                MIME type is not an accepted image type.
+     */
+    private function extension_for_mime_type(string $mime_type): string {
+        return self::MIME_EXTENSIONS[strtolower(trim($mime_type))] ?? '';
+    }
+
+    /**
+     * A cryptographically random base name for a stored upload.
+     *
+     * random_bytes() (128 bits, hex-encoded) replaces the previous uniqid()
+     * name, whose leading characters were derived from the current time and
+     * were therefore neither secret nor unpredictable.
+     *
+     * @return string The base name, without an extension.
+     */
+    private function random_base_name(): string {
+        return 'img_' . bin2hex(random_bytes(16));
     }
 
     /**

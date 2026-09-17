@@ -8,6 +8,15 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0917] - 2026-09-17
+
+### Security
+- **Module asset router** (`engine/Core.php`) — `serve_module_asset()` fell through to an implicit `200` with an empty body when a request's path resolved to a directory (`realpath()` succeeds, `is_file()` is then false), so the router confirmed the existence of every directory in a module's tree to an unauthenticated caller. A path that resolves but is not a regular file now returns an explicit `404`.
+- **Image uploads** (`modules/image/Image.php`) — `upload()` now names stored files from `random_bytes(16)`, hex-encoded, in place of `uniqid('img_', true)`, whose leading characters are derived from the current time and were therefore predictable (with `Last-Modified` leaking timing); the stored extension is taken from the MIME type sniffed from the file's **content**, in both the random and the sanitised branch, and an unrecognised MIME type is refused before anything is written, so a misnamed or polyglot upload can no longer land on disk under an extension it did not earn.
+
+### Fixed
+- **CSRF failure responses** (`modules/validation/Validation.php`) — `csrf_block_request()` now decides the response shape via a new `is_javascript_request()` helper: a `Sec-Fetch-Mode` of `cors`/`same-origin`, the legacy `X-Requested-With` header, an `application/json` body, or an `Accept` header that wants JSON but not HTML marks the caller as script-driven, and such a caller now receives a clean `403` instead of an HTML redirect. The gate itself is unchanged — `validation->run()` still enforces CSRF — and the detection is a heuristic for response formatting, not an access-control boundary: every signal it reads can be spoofed by a deliberate caller.
+
 ## [2.2026.0903] - 2026-09-03
 
 ### Added

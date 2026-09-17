@@ -182,11 +182,7 @@ class Validation extends Trongate {
      * @return void
      */
     private function csrf_block_request(): void {
-        // Check if this is an AJAX/API request (XML HTTP Request)
-        $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
-
-        if ($is_ajax) {
+        if ($this->is_javascript_request()) {
             // Return 403 Forbidden for API/AJAX requests
             http_response_code(403);
             die('CSRF token validation failed');
@@ -194,6 +190,55 @@ class Validation extends Trongate {
             // Redirect to home page for standard form submissions
             redirect(BASE_URL);
         }
+    }
+
+    /**
+     * Determines if the current HTTP request was initiated by JavaScript or an API client.
+     *
+     * Note: This is a heuristic based on common client behavior, not a security
+     * boundary — any header here can be spoofed by a deliberate caller. Use it to
+     * decide response format (e.g. JSON vs. HTML), not to gate access control.
+     *
+     * @return bool
+     */
+    private function is_javascript_request(): bool {
+        // 1. Sec-Fetch-Mode: modern browsers attach this automatically to fetch()/XHR
+        // calls as 'cors' or 'same-origin'. Plain page navigation and form submits
+        // use 'navigate' instead, so this reliably distinguishes script-driven
+        // requests from normal browsing in browsers that support it.
+        if (!empty($_SERVER['HTTP_SEC_FETCH_MODE'])) {
+            $mode = strtolower($_SERVER['HTTP_SEC_FETCH_MODE']);
+            if (in_array($mode, ['cors', 'same-origin'], true)) {
+                return true;
+            }
+        }
+
+        // 2. Legacy X-Requested-With header, sent automatically by jQuery, Axios,
+        // and older XMLHttpRequest-based code (unless explicitly stripped).
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            return true;
+        }
+
+        // 3. JSON request body. Browsers never send application/json via normal
+        // page navigation or HTML forms (which use urlencoded or multipart) —
+        // only script-constructed requests do.
+        if (!empty($_SERVER['CONTENT_TYPE']) &&
+            str_contains(strtolower($_SERVER['CONTENT_TYPE']), 'application/json')) {
+            return true;
+        }
+
+        // 4. Client explicitly expects JSON back, and isn't also willing to accept
+        // HTML — a plain browser navigation typically lists text/html even when
+        // it lists other types too.
+        if (!empty($_SERVER['HTTP_ACCEPT'])) {
+            $accept = strtolower($_SERVER['HTTP_ACCEPT']);
+            if (str_contains($accept, 'application/json') && !str_contains($accept, 'text/html')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
