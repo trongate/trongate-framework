@@ -210,6 +210,8 @@ class Image {
         $this->load($file_path);
 
         // Resize the image if necessary
+        $reencode = false;
+
         if (($max_width > 0 && $this->get_width() > $max_width) || ($max_height > 0 && $this->get_height() > $max_height)) {
             $resize_factor_w = $this->get_width() / $max_width;
             $resize_factor_h = $this->get_height() / $max_height;
@@ -220,7 +222,21 @@ class Image {
                 $this->resize_to_height($max_height);
             }
 
-            // Save the resized image
+            $reencode = true;
+        }
+
+        // A file that is not resized above is otherwise published exactly as
+        // the client sent it. An image whose first 4 KB contain a short open
+        // tag byte pair ('<?') is re-encoded instead, so that no such bytes
+        // can survive in the published file. The pair is expected noise inside
+        // compressed image data, which is why the validation module's content
+        // scan does not reject images over it; this is the other half of that
+        // agreement. See Validation_model::scan_file_content().
+        if (!$reencode && $this->carries_short_open_tag_bytes($file_path)) {
+            $reencode = true;
+        }
+
+        if ($reencode) {
             $this->save($file_path);
         }
 
@@ -299,6 +315,33 @@ class Image {
      */
     private function extension_for_mime_type(string $mime_type): string {
         return self::MIME_EXTENSIONS[strtolower(trim($mime_type))] ?? '';
+    }
+
+    /**
+     * Check whether a file's first 4 KB contain a short open tag ('<?').
+     *
+     * This is a storage decision, never a validation verdict: the byte pair
+     * 0x3C 0x3F occurs by chance in compressed image data (roughly one in
+     * every sixteen 4 KB windows), so a file cannot be refused over it. The
+     * pair is instead treated as a reason to re-encode before publishing.
+     *
+     * The 4 KB window matches the one used by the validation module's content
+     * scan, so the two checks stay in step.
+     *
+     * @param string $file_path The path of the file that was uploaded.
+     * @return bool True when the byte pair is present.
+     */
+    private function carries_short_open_tag_bytes(string $file_path): bool {
+        $handle = fopen($file_path, 'rb');
+
+        if ($handle === false) {
+            return false;
+        }
+
+        $content = fread($handle, 4096);
+        fclose($handle);
+
+        return strpos($content, '<?') !== false;
     }
 
     /**
@@ -459,8 +502,13 @@ class Image {
         $opening_bytes = fread($file, 256);
         fclose($file);
 
-        // Enhanced pattern including PHP tags
-        if (preg_match('/<(script|iframe|object|embed|applet)[\s>]|<\?php|<\?/i', $opening_bytes)) {
+        // Enhanced pattern including PHP tags. The '<?' pattern is not used
+        // here: the byte pair 0x3C 0x3F occurs by chance in compressed image
+        // data, so matching it against a binary file produces false positives.
+        // A bare short open tag in an image is handled where it belongs -
+        // such a file is re-encoded before it is published. See
+        // Image::carries_short_open_tag_bytes().
+        if (preg_match('/<(script|iframe|object|embed|applet)[\s>]|<\?php/i', $opening_bytes)) {
             throw new InvalidArgumentException('Potential security threat detected in image');
         }
 
