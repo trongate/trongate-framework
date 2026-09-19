@@ -14,6 +14,7 @@
     "Flo code generator for rapid CRUD module creation",
     "Properties Builder for defining module fields",
     "Query Builder for visual SQL join construction",
+    "Image Uploader Builder for adding a single-image feature to modules",
     "Module manifest discovery endpoint (/trongate_control/manifests)",
     "Pluralisation engine for module naming",
     "Address data sets for property field suggestions"
@@ -23,6 +24,7 @@
     "evo",
     "module_builder",
     "module_relations_builder",
+    "image_uploader_builder",
     "site_builder",
     "properties_builder",
     "query_builder",

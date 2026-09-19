@@ -15,4 +15,12 @@
   >
     Create Module Relation
   </li>
+  <li
+    mx-get="trongate_control-image_uploader_builder/choose_mod"
+    mx-target="main"
+    mx-after-swap="TrongateCodeGenerator.focusOnInput"
+    mx-target-loading="cloak"
+  >
+    Add Image Uploader
+  </li>
 </ul>
