@@ -621,7 +621,8 @@ class Validation_model extends Model {
             'exact_width' => 'exact_width_error',
             'exact_height' => 'exact_height_error',
             'square' => 'square_error',
-            'security_threat' => 'security_threat_error'
+            'security_threat' => 'security_threat_error',
+            'unsupported_image_type' => 'unsupported_image_type_error'
         ];
 
         $key = $key_map[$rule] ?? $rule . '_error';
