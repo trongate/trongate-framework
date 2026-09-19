@@ -11,3 +11,6 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Runtime uploads (per-record picture folders created by image_uploader)
+modules/*/uploads/
