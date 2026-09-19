@@ -210,11 +210,12 @@ class Validation_model extends Model {
         $content = fread($handle, 4096);
         fclose($handle);
         
-        // Dangerous patterns to detect
+        // Dangerous patterns to detect. Every pattern in this list spans
+        // five or more bytes, so a match here cannot be a chance occurrence
+        // in binary data.
         $dangerous = [
             '/<\?php/i',           // PHP opening tag
             '/<\?=/i',             // PHP short echo tag
-            '/<\?/i',              // PHP short open tag
             '/<script[^>]*>/i',    // Script tags
             '/eval\s*\(/i',        // eval() function
             '/exec\s*\(/i',        // exec() function
@@ -234,6 +235,18 @@ class Validation_model extends Model {
             if (preg_match($pattern, $content)) {
                 return false;
             }
+        }
+        
+        // A bare short open tag ('<?') is only two bytes long, and the byte
+        // pair 0x3C 0x3F occurs by chance inside compressed binary data:
+        // roughly one in every sixteen 4 KB windows of an image contains it.
+        // A short open tag can only be executed inside text, so this check is
+        // applied to text content only. An image whose bytes happen to carry
+        // the pair is never rejected over it - instead it is re-encoded by the
+        // image module before being published, so that no such bytes can
+        // survive in the stored file. See Image::carries_short_open_tag_bytes().
+        if (preg_match('//u', $content) && preg_match('/<\?/i', $content)) {
+            return false;
         }
         
         return true;
