@@ -149,8 +149,20 @@ class Validation_model extends Model {
             $image_check->destroy();
 
         } catch (Exception $e) {
-            // Not a valid image
-            $errors[$data['key']][] = $this->get_error_message('is_image', $data);
+            // The image module distinguishes a file that is not an image from a
+            // valid image whose format this PHP installation cannot process
+            // (for example WebP on a GD build compiled without WebP support),
+            // so that the developer is told which of the two has happened.
+            $rule = $e->getCode() === Image::UNSUPPORTED_FORMAT ? 'unsupported_image_type' : 'is_image';
+            $message = $this->get_error_message($rule, $data);
+
+            // The underlying reason is otherwise lost, and it is the only
+            // place the real cause is stated, so it is appended in dev.
+            if (defined('ENV') && strtolower(ENV) === 'dev' && $e->getMessage() !== '') {
+                $message .= ' [' . $e->getMessage() . ']';
+            }
+
+            $errors[$data['key']][] = $message;
             return $errors;
         }
 

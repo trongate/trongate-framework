@@ -32,6 +32,7 @@ $validation_errors = [
     
     // Reglas de Validación de Imágenes
     'is_image_error'             => 'El archivo [label] debe ser una imagen válida.',
+    'unsupported_image_type_error' => 'El archivo [label] es una imagen válida, pero este servidor no puede procesar ese formato de imagen.',
     'max_width_error'            => 'El ancho de la imagen [label] no puede exceder los [param] píxeles.',
     'min_width_error'            => 'El ancho de la imagen [label] debe ser de al menos [param] píxeles.',
     'max_height_error'           => 'El alto de la imagen [label] no puede exceder los [param] píxeles.',

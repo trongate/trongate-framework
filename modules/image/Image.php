@@ -28,6 +28,17 @@ class Image {
     ];
 
     /**
+     * Exception code for a valid image whose format this PHP installation
+     * cannot process - typically WebP on a build whose GD extension was
+     * compiled without WebP support.
+     *
+     * The validation module checks for this code, so that it can report the
+     * real problem rather than telling the user that their image is not an
+     * image. 415 is the HTTP status code for 'Unsupported Media Type'.
+     */
+    public const UNSUPPORTED_FORMAT = 415;
+
+    /**
      * Holds the GD image resource instance.
      * @var resource|GdImage|null
      */
@@ -418,12 +429,12 @@ class Image {
                 break;
             case IMAGETYPE_WEBP:
                 if (!function_exists('imagecreatefromwebp')) {
-                    throw new RuntimeException('WebP support not available in this PHP installation');
+                    throw new RuntimeException('WebP support not available in this PHP installation', self::UNSUPPORTED_FORMAT);
                 }
                 $this->image = imagecreatefromwebp($filename);
                 break;
             default:
-                throw new InvalidArgumentException("Unsupported image type");
+                throw new InvalidArgumentException('Unsupported image type: ' . image_type_to_mime_type($this->image_type), self::UNSUPPORTED_FORMAT);
         }
 
         if ($this->image === false) {
@@ -458,6 +469,10 @@ class Image {
 
         $allowed_types = array_values($this->content_type);
         if (!in_array($mime_type, $allowed_types)) {
+            if (strpos($mime_type, 'image/') === 0) {
+                // A valid image, in a format that Trongate does not accept.
+                throw new InvalidArgumentException('Unsupported image type: ' . $mime_type, self::UNSUPPORTED_FORMAT);
+            }
             throw new InvalidArgumentException('Invalid image type');
         }
 
