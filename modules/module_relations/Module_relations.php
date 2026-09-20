@@ -125,7 +125,13 @@ class Module_relations extends Trongate {
             return;
         }
 
-        $noun = ($relationship_type === 'one to one') ? $data['associated_singular'] : $data['associated_plural'];
+        // Singular noun whenever the calling side of the relation can hold
+        // at most one of the associated records — either side of a one to
+        // one, or the CHILD side of a one to many (a child has at most one
+        // parent). Plural for a parent's children, and for many to many.
+        $single_associated = ($relationship_type === 'one to one')
+            || (($relationship_type === 'one to many') && ($calling_module === ($settings[1]['module_name'] ?? '')));
+        $noun = $single_associated ? $data['associated_singular'] : $data['associated_plural'];
         $data['card_heading'] = 'Associated ' . out(ucwords(str_replace('_', ' ', $noun)));
         $this->view('summary_panel', $data);
     }
@@ -519,9 +525,20 @@ class Module_relations extends Trongate {
         $associated_rows = $this->model->fetch_associated_rows($settings, $calling_module, $update_id);
         $available_options = $this->model->fetch_available_options($settings, $calling_module, $update_id);
 
-        $form_visible = (count($available_options) > 0);
         $relationship_type = $settings[2]['relationship_type'] ?? '';
-        if ($relationship_type === 'one to one') {
+
+        // A one-to-one caps both sides at a single association, and so does
+        // the CHILD side of a one to many (a child holds at most one
+        // parent). Once such a calling record has an association, the add
+        // form is hidden and the linked record is managed from the
+        // associated-items list instead — remove it there to bring this
+        // form back. A parent's one-to-many panel keeps offering further
+        // children, so it is never capped.
+        $capped_at_one = ($relationship_type === 'one to one')
+            || (($relationship_type === 'one to many') && ($calling_module === ($settings[1]['module_name'] ?? '')));
+
+        $form_visible = (count($available_options) > 0);
+        if ($capped_at_one) {
             $form_visible = $form_visible && (count($associated_rows) === 0);
         }
 

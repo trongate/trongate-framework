@@ -591,8 +591,12 @@ class Module_relations_model extends Model {
      *     already linked to ANY parent (this one included) are not
      *     offered. Re-linking an assigned child is done from the child's
      *     own edit form, not this dropdown.
-     *   - one to many, child view: [] — a child can only ever have one
-     *     parent, chosen via its own create/edit form, not this dropdown.
+     *   - one to many, child view: every parent record — the same list
+     *     the child's own create/edit dropdown offers. A child holds at
+     *     most one parent, so once it has one the add form is hidden (see
+     *     panel_data()); the linked parent is managed from the
+     *     associated-items list, and removing it there brings this form
+     *     back.
      *   - one to one, no bridge: unclaimed alt records only (back-FK NULL).
      *   - one to one, with bridge: alt records not linked to ANY junction
      *     row yet (both sides of a bridged 1:1 are capped at one link each).
@@ -624,7 +628,16 @@ class Module_relations_model extends Model {
 
         if ($relationship_type === 'one to many') {
             if ($calling_module === $module_b) {
-                return []; // Child view: no association dropdown.
+                // Child view: every parent record — the same list the
+                // child's own create/edit dropdown offers. A child holds at
+                // most one parent, so panel_data() hides this add form once
+                // an association exists; the linked parent is then managed
+                // from the associated-items list (remove it there to bring
+                // this form back).
+                $sql = 'SELECT id, ' . $this->identifier_expr($alt, $alt['module_name']) . ' AS value'
+                     . ' FROM `' . $alt['module_name'] . '`'
+                     . ' ORDER BY ' . $this->identifier_order($alt, $alt['module_name']);
+                return $this->rows_to_options($this->db->query_bind($sql, [], 'array'));
             }
             $fk_a = $this->fk_column($settings[0]);
             $sql = 'SELECT id, ' . $this->identifier_expr($alt, $alt['module_name']) . ' AS value'
