@@ -26,9 +26,16 @@
  *   bridging_table is only meaningful for 'one to one' — true means the
  *   relation is backed by a junction table rather than mirrored FK columns.
  *
+ *   record_name_singular / record_name_plural are HUMAN-READABLE names and
+ *   use a SPACE between words ("section type", not "section_type"), so they
+ *   can be used verbatim as labels. Database identifiers always use
+ *   underscores — derive them with fk_column(), never by appending '_id' to
+ *   a raw record name (a multi-word name would otherwise produce something
+ *   like `section type_id`; ref trongate/trongate-framework#269).
+ *
  * Security / trust boundary — identifiers in raw SQL:
  *   Every method below builds SQL by concatenating table and column names
- *   (module_name, record_name_singular . '_id', junction table names)
+ *   (module_name, fk_column() for record_name_singular, junction table names)
  *   directly into query strings, rather than binding them as parameters —
  *   MySQL has no bind-parameter syntax for identifiers, so this is the only
  *   way to build these queries at all. This is safe ONLY because those
@@ -37,11 +44,13 @@
  *   builder after it has already validated the underlying table/column
  *   names against a strict `^[a-z0-9_]+$` pattern. This model does not
  *   re-validate module_name or record_name_singular before use — it trusts
- *   the settings file as a whole. The one exception is identifier_column,
- *   which IS re-validated here (see valid_identifier_columns()), because it
- *   is treated as more speculative/free-form input. If the settings JSON
- *   format or its write path ever changes, this trust boundary needs to be
- *   re-examined.
+ *   the settings file as a whole. Column names derived from a
+ *   record_name_singular always go through fk_column(), which applies the
+ *   settings-file-to-column conversion (spaces → underscores). The one
+ *   exception is identifier_column, which IS re-validated here (see
+ *   valid_identifier_columns()), because it is treated as more
+ *   speculative/free-form input. If the settings JSON format or its write
+ *   path ever changes, this trust boundary needs to be re-examined.
  */
 class Module_relations_model extends Model {
 
@@ -148,7 +157,7 @@ class Module_relations_model extends Model {
 
         if ($this->is_direct_one_to_one($settings)) {
             $calling_entry = $this->get_settings_for_module($settings, $calling_module);
-            $back_fk = ($calling_entry['record_name_singular'] ?? '') . '_id';
+            $back_fk = $this->fk_column($calling_entry);
             $sql = 'SELECT id, ' . $this->identifier_expr($alt, $alt['module_name']) . ' AS value'
                  . ' FROM `' . $alt['module_name'] . '`'
                  . ' WHERE (`' . $back_fk . '` IS NULL OR `' . $back_fk . '` = 0)';
@@ -219,8 +228,8 @@ class Module_relations_model extends Model {
 
         $calling_entry = $this->get_settings_for_module($settings, $calling_module);
         $alt = $this->est_associated_module($settings, $calling_module);
-        $alt_fk = $alt['record_name_singular'] . '_id';            // column on the calling table
-        $back_fk = ($calling_entry['record_name_singular'] ?? '') . '_id'; // column on the alt table
+        $alt_fk = $this->fk_column($alt);            // column on the calling table
+        $back_fk = $this->fk_column($calling_entry); // column on the alt table
 
         // 1. Edit path: release the previous partner's back-FK, but only
         //    if we're actually changing partners (skip when re-saving the
@@ -294,7 +303,7 @@ class Module_relations_model extends Model {
 
         $calling_entry = $this->get_settings_for_module($settings, $calling_module);
         $alt = $this->est_associated_module($settings, $calling_module);
-        $back_fk = ($calling_entry['record_name_singular'] ?? '') . '_id';
+        $back_fk = $this->fk_column($calling_entry);
         $this->db->query_bind(
             'UPDATE `' . $alt['module_name'] . '` SET `' . $back_fk . '` = 0'
             . ' WHERE `' . $back_fk . '` = :update_id',
@@ -336,7 +345,7 @@ class Module_relations_model extends Model {
         }
 
         $child = $settings[1]['module_name'] ?? '';
-        $fk = ($settings[0]['record_name_singular'] ?? '') . '_id';
+        $fk = $this->fk_column($settings[0]);
         $this->db->query_bind(
             'UPDATE `' . $child . '` SET `' . $fk . '` = 0'
             . ' WHERE `' . $fk . '` = :update_id',
@@ -550,7 +559,7 @@ class Module_relations_model extends Model {
             // junction-backed branch below, and works regardless of which
             // side's FK a caller happens to trust.
             $calling_entry = $this->get_settings_for_module($settings, $calling_module);
-            $back_fk = ($calling_entry['record_name_singular'] ?? '') . '_id';
+            $back_fk = $this->fk_column($calling_entry);
             $sql = 'SELECT alt.id AS id, alt.id AS foreign_key, ' . $this->identifier_expr($alt, 'alt') . ' AS value'
                  . ' FROM `' . $alt['module_name'] . '` alt'
                  . ' INNER JOIN `' . $calling_module . '` calling ON calling.id = alt.`' . $back_fk . '`'
@@ -562,7 +571,7 @@ class Module_relations_model extends Model {
         // Junction-backed (one to one with a bridge, or many to many).
         $junction = 'associated_' . $module_a . '_and_' . $module_b;
         $calling_fk = $this->junction_fk($settings, $calling_module);
-        $alt_fk = $alt['record_name_singular'] . '_id';
+        $alt_fk = $this->fk_column($alt);
         $sql = 'SELECT assoc.id AS id, assoc.`' . $alt_fk . '` AS foreign_key, ' . $this->identifier_expr($alt, 'alt') . ' AS value'
              . ' FROM `' . $junction . '` assoc'
              . ' INNER JOIN `' . $alt['module_name'] . '` alt ON alt.id = assoc.`' . $alt_fk . '`'
@@ -617,7 +626,7 @@ class Module_relations_model extends Model {
             if ($calling_module === $module_b) {
                 return []; // Child view: no association dropdown.
             }
-            $fk_a = $settings[0]['record_name_singular'] . '_id';
+            $fk_a = $this->fk_column($settings[0]);
             $sql = 'SELECT id, ' . $this->identifier_expr($alt, $alt['module_name']) . ' AS value'
                  . ' FROM `' . $alt['module_name'] . '`'
                  . ' WHERE (`' . $fk_a . '` IS NULL OR `' . $fk_a . '` = 0)'
@@ -631,7 +640,7 @@ class Module_relations_model extends Model {
             // release). Legacy NULL rows from before the 0-sentinel
             // change are still treated as unclaimed.
             $calling_entry = $this->get_settings_for_module($settings, $calling_module);
-            $back_fk = ($calling_entry['record_name_singular'] ?? '') . '_id';
+            $back_fk = $this->fk_column($calling_entry);
             $sql = 'SELECT id, ' . $this->identifier_expr($alt, $alt['module_name']) . ' AS value'
                  . ' FROM `' . $alt['module_name'] . '`'
                  . ' WHERE (`' . $back_fk . '` IS NULL OR `' . $back_fk . '` = 0)'
@@ -641,7 +650,7 @@ class Module_relations_model extends Model {
 
         $junction = 'associated_' . $module_a . '_and_' . $module_b;
         $calling_fk = $this->junction_fk($settings, $calling_module);
-        $alt_fk = $alt['record_name_singular'] . '_id';
+        $alt_fk = $this->fk_column($alt);
 
         if ($relationship_type === 'many to many') {
             // All alt records minus the ones already linked to THIS calling
@@ -719,7 +728,7 @@ class Module_relations_model extends Model {
         }
 
         if ($relationship_type === 'one to many') {
-            $fk_a = $settings[0]['record_name_singular'] . '_id';
+            $fk_a = $this->fk_column($settings[0]);
             if ($calling_module === $module_a) {
                 // Parent view: point the chosen child at this parent —
                 // but only while the child is unclaimed (or already
@@ -756,7 +765,7 @@ class Module_relations_model extends Model {
         // Junction-backed (one to one with a bridge, or many to many).
         $junction = 'associated_' . $module_a . '_and_' . $module_b;
         $calling_fk = $this->junction_fk($settings, $calling_module);
-        $alt_fk = $alt['record_name_singular'] . '_id';
+        $alt_fk = $this->fk_column($alt);
 
         // Defensive existence checks: both records must exist before a
         // junction row may reference them (see the method docblock).
@@ -851,7 +860,7 @@ class Module_relations_model extends Model {
 
         if ($relationship_type === 'one to many') {
             // Clear the child's FK (value = child id).
-            $sql = 'UPDATE `' . $module_b . '` SET `' . $settings[0]['record_name_singular'] . '_id` = 0 WHERE id = :value';
+            $sql = 'UPDATE `' . $module_b . '` SET `' . $this->fk_column($settings[0]) . '` = 0 WHERE id = :value';
             $this->db->query_bind($sql, ['value' => $value]);
             return true;
         }
@@ -859,8 +868,8 @@ class Module_relations_model extends Model {
         if ($this->is_direct_one_to_one($settings)) {
             // Clear both mirrored FKs (value = alt id).
             $calling_entry = $this->get_settings_for_module($settings, $calling_module);
-            $alt_fk = $alt['record_name_singular'] . '_id';            // on calling table
-            $back_fk = ($calling_entry['record_name_singular'] ?? '') . '_id'; // on alt table
+            $alt_fk = $this->fk_column($alt);            // on calling table
+            $back_fk = $this->fk_column($calling_entry); // on alt table
             $this->db->query_bind('UPDATE `' . $calling_module . '` SET `' . $alt_fk . '` = 0 WHERE id = :update_id', ['update_id' => $update_id]);
             $this->db->query_bind('UPDATE `' . $alt['module_name'] . '` SET `' . $back_fk . '` = 0 WHERE id = :value', ['value' => $value]);
             return true;
@@ -887,7 +896,7 @@ class Module_relations_model extends Model {
     private function fetch_one_to_many_associated(array $settings, string $calling_module, int $update_id): array {
         $module_a = $settings[0]['module_name'];
         $module_b = $settings[1]['module_name'];
-        $fk_a = $settings[0]['record_name_singular'] . '_id';
+        $fk_a = $this->fk_column($settings[0]);
 
         if ($calling_module === $module_a) {
             // Parent view: every child currently linked to this parent
@@ -933,8 +942,8 @@ class Module_relations_model extends Model {
     private function submit_direct_one_to_one(array $settings, string $calling_module, int $update_id, int $value): void {
         $calling_entry = $this->get_settings_for_module($settings, $calling_module);
         $alt = $this->est_associated_module($settings, $calling_module);
-        $alt_fk = $alt['record_name_singular'] . '_id';            // column on the calling table
-        $back_fk = ($calling_entry['record_name_singular'] ?? '') . '_id'; // column on the alt table
+        $alt_fk = $this->fk_column($alt);            // column on the calling table
+        $back_fk = $this->fk_column($calling_entry); // column on the alt table
 
         // Release the calling record's previous partner (both sides), if any.
         $prev = $this->db->query_bind('SELECT `' . $alt_fk . '` AS alt_id FROM `' . $calling_module . '` WHERE id = :update_id', ['update_id' => $update_id], 'array');
@@ -957,6 +966,29 @@ class Module_relations_model extends Model {
     }
 
     /**
+     * The FK column name for a settings entry — the inverse of the
+     * "record names use spaces, column names use underscores" convention.
+     *
+     * Settings-file record names are human-readable and use a SPACE between
+     * words ("section type", "academy award"); every database identifier is
+     * the same name with underscores ("section_type_id"). Building a column
+     * name by appending '_id' to a raw record_name_singular is therefore
+     * wrong for any multi-word name — it produced `section type_id`, a
+     * column that does not exist (ref: trongate/trongate-framework#269).
+     *
+     * Every FK/junction column name in this model MUST come through here.
+     * Underscored names pass through unchanged, so settings files written
+     * before the convention was fixed keep working.
+     *
+     * @param array $entry A settings entry (settings[0] or settings[1]).
+     * @return string The FK column name (e.g. 'section_type_id'), or '_id'
+     *                when the entry carries no record_name_singular.
+     */
+    private function fk_column(array $entry): string {
+        return str_replace(' ', '_', (string) ($entry['record_name_singular'] ?? '')) . '_id';
+    }
+
+    /**
      * The junction table's FK column name for a given calling module.
      *
      * Junction tables always name their two FK columns
@@ -970,7 +1002,7 @@ class Module_relations_model extends Model {
      */
     private function junction_fk(array $settings, string $calling_module): string {
         $entry = $this->get_settings_for_module($settings, $calling_module);
-        return ($entry['record_name_singular'] ?? '') . '_id';
+        return $this->fk_column($entry);
     }
 
     /**
