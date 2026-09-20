@@ -8,6 +8,11 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0920b] - 2026-09-20
+
+### Fixed
+- **One to many child panel — offer the parent list, capped at one association** (`modules/module_relations`) — the child side of a one to many rendered its empty-state note instead of an add form, because `fetch_available_options()` returned an empty array for the child view, leaving the panel with no options and no form; the child-side write paths (`submit_association`, `disassociate_association`, `fetch_one_to_many_associated`) were already in place, so the add path was unreachable. The child view now offers every parent record — the same list the child's own create/edit dropdown offers — and `panel_data()` caps that side at a single association, exactly as it already did for one to one: once the child has a parent the add form is hidden and the linked parent is managed from the associated-items list (remove it there and the form returns). A parent's one-to-many panel is never capped, so it keeps offering further children, and the panel heading is now singular whenever the calling side can hold at most one associated record (*Associated Section Type*, but *Associated Sections* for a parent's children). The parent side of a one to many, the one to one and the many to many panels are unchanged, as is the guard that refuses to claim a child already owned by another parent. ([#271](https://github.com/trongate/trongate-framework/pull/271))
+
 ## [2.2026.0920] - 2026-09-20
 
 ### Fixed
