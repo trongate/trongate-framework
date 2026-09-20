@@ -470,8 +470,11 @@ class Module_relations_builder extends Trongate {
         $type = $wizard['relation_type'] ?? '';
         $module_a = $wizard['parent_module'] ?? '';
         $module_b = $wizard['child_module'] ?? '';
-        $singular_a = $wizard['singular_a'] ?? '';
-        $singular_b = $wizard['singular_b'] ?? '';
+        // Singular names become PHP method names, markers and FK columns in
+        // the injected code, so they are held in column-safe form
+        // (underscores) — see column_name() and trongate-framework#269.
+        $singular_a = $this->model->column_name($wizard['singular_a'] ?? '');
+        $singular_b = $this->model->column_name($wizard['singular_b'] ?? '');
         $bridging = (bool) ($wizard['bridging_table'] ?? false);
 
         $panels = array_merge(

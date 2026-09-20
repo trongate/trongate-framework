@@ -120,6 +120,50 @@ class Plural_maker extends Trongate {
     ];
 
     /**
+     * Greek -sis nouns whose plural is -ses (analysis → analyses).
+     *
+     * The reverse lookup for the -sis → -ses rule in pluralize_single().
+     * Kept as an explicit dictionary because the blanket reverse rule
+     * mangles ordinary -se plurals: "licenses" would singularise to
+     * "licensis" and "warehouses" to "warehousis".
+     */
+    private array $ses_to_sis = [
+        'analyses' => 'analysis', 'diagnoses' => 'diagnosis',
+        'parentheses' => 'parenthesis', 'prognoses' => 'prognosis',
+        'synopses' => 'synopsis', 'theses' => 'thesis', 'crises' => 'crisis',
+        'hypotheses' => 'hypothesis', 'emphases' => 'emphasis',
+        'neuroses' => 'neurosis', 'paralyses' => 'paralysis',
+        'scleroses' => 'sclerosis', 'apotheoses' => 'apotheosis',
+        'ellipses' => 'ellipsis', 'metamorphoses' => 'metamorphosis',
+        'mitoses' => 'mitosis', 'osmoses' => 'osmosis',
+        'psychoses' => 'psychosis', 'photosyntheses' => 'photosynthesis',
+    ];
+
+    /**
+     * Plurals whose -es suffix must be stripped whole, where only a
+     * dictionary can tell them apart from -e nouns that take a plain -s
+     * (license → licenses, where the 'e' must be kept):
+     *
+     *   - nouns ending in a single 's' (bus → buses)
+     *   - the handful of -oe nouns (shoe → shoes) — a bare -oes rule would
+     *     otherwise leave "sho" behind
+     */
+    private array $es_singulars = [
+        // Single-'s' stems.
+        'buses' => 'bus', 'gases' => 'gas', 'lenses' => 'lens',
+        'statuses' => 'status', 'aliases' => 'alias', 'viruses' => 'virus',
+        'campuses' => 'campus', 'bonuses' => 'bonus', 'pluses' => 'plus',
+        'corpuses' => 'corpus', 'octopuses' => 'octopus',
+        'cactuses' => 'cactus', 'focuses' => 'focus', 'geniuses' => 'genius',
+        'prospectuses' => 'prospectus', 'syllabuses' => 'syllabus',
+        // -oe nouns.
+        'shoes' => 'shoe', 'canoes' => 'canoe', 'toes' => 'toe',
+        'hoes' => 'hoe', 'foes' => 'foe', 'oboes' => 'oboe',
+        'aloes' => 'aloe', 'woes' => 'woe', 'floes' => 'floe',
+        'throes' => 'throe', 'mistletoes' => 'mistletoe',
+    ];
+
+    /**
      * Words ending in -o that take -s rather than -oes.
      */
     private array $o_adds_s = [
@@ -159,6 +203,7 @@ class Plural_maker extends Trongate {
         'half' => 'halves', 'calf' => 'calves', 'elf' => 'elves',
         'loaf' => 'loaves', 'thief' => 'thieves', 'self' => 'selves',
         'hoof' => 'hooves', 'scarf' => 'scarves', 'wharf' => 'wharves',
+        'dwarf' => 'dwarves',
     ];
 
     // ============================================
@@ -362,24 +407,29 @@ class Plural_maker extends Trongate {
             return $word;
         }
 
-        // 2. Reverse -men → -man (for known compounds)
+        // 2. Reverse -men → -man (known compounds only)
+        //    The old blanket fallback turned every -men word into a false
+        //    -man compound, so singulars like "specimen", "regimen",
+        //    "acumen" and "bitumen" came back as "speciman" and friends.
+        //    Only true compounds (firemen, chairmen) are reversed here;
+        //    anything else falls through to the rules below — abdomen,
+        //    stamen and friends are already in the unchanging list.
         if (preg_match('/men$/i', $word)) {
             $candidate = substr($word, 0, -3) . 'man';
-            $candidate_lower = strtolower($candidate);
-            if (in_array($candidate_lower, $this->man_to_men, true)) {
-                return $candidate;
-            }
-            // Also try as a general -man compound
-            $candidate_no_man = substr($word, 0, -3);
-            if (strlen($candidate_no_man) > 0) {
+            if (in_array(strtolower($candidate), $this->man_to_men, true)) {
                 return $candidate;
             }
         }
 
-        // 3. Reverse -ses → -sis
-        if (preg_match('/ses$/i', $word) && strlen($word) > 3) {
-            $candidate = substr($word, 0, -3) . 'sis';
-            return $candidate;
+        // 3. Reverse -ses → -sis (Greek -sis stems only)
+        //    A blanket rule mangles ordinary -se plurals — see $ses_to_sis.
+        if (isset($this->ses_to_sis[$lower])) {
+            return $this->preserve_case($word, $this->ses_to_sis[$lower]);
+        }
+
+        // 3b. -es stripped whole from known -s/-oe stems (bus → buses).
+        if (isset($this->es_singulars[$lower])) {
+            return $this->preserve_case($word, $this->es_singulars[$lower]);
         }
 
         // 4. Reverse -ices → -ex/-ix
@@ -405,10 +455,16 @@ class Plural_maker extends Trongate {
             return $candidate;
         }
 
-        // 6. Reverse -ves → -f/-fe (general pattern)
+        // 6. Reverse -ves → -ve (general pattern)
+        //    Every true -f/-fe noun (leaf, life, knife, wolf, shelf, calf,
+        //    dwarf, ...) is caught by the dictionary lookup in step 0b.
+        //    Anything left is a -ve noun taking a plain -s (archive →
+        //    archives, drive → drives, valve → valves), which is by far the
+        //    more common case — so the old blanket -f strip was wrong here.
+        //    Compounds of an -f noun that are not in the dictionary
+        //    (bookshelves) are ambiguous and are not resolved.
         if (preg_match('/ves$/i', $word) && strlen($word) > 3) {
-            $candidate_f = substr($word, 0, -3) . 'f';
-            return $candidate_f;
+            return substr($word, 0, -1);
         }
 
         // 7. Reverse -oes → -o (for consonant+o words)
@@ -420,10 +476,21 @@ class Plural_maker extends Trongate {
             }
         }
 
-        // 8. Reverse -es → -∅ (for s, x, z, ch, sh words)
-        if (preg_match('/es$/i', $word) && strlen($word) > 2) {
-            $candidate = substr($word, 0, -2);
-            return $candidate;
+        // 8. Reverse -es → -∅ (stems ending in a sibilant: ss, ch, sh, x, z)
+        //    The stem test is essential: stripping -es from any word that
+        //    happens to end in 'es' mangles every -e noun whose plural is a
+        //    plain -s — "images" → "imag", "tables" → "tabl",
+        //    "section_types" → "section_typ".
+        if (preg_match('/(ss|ch|sh|x|z)es$/i', $word) && strlen($word) > 3) {
+            return substr($word, 0, -2);
+        }
+
+        // 8b. Already-singular nouns ending in a bare -ss (business,
+        //     address). No English plural ends in a bare -ss — the plural of
+        //     an -ss noun takes -es and is dealt with by step 8 — so
+        //     stripping the final 's' here would always be wrong.
+        if (preg_match('/ss$/i', $word) && strlen($word) > 2) {
+            return $word;
         }
 
         // 9. Reverse -s → -∅ (default regular plural)

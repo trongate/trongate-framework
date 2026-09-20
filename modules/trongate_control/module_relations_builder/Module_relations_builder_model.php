@@ -88,6 +88,41 @@ class Module_relations_builder_model extends Model {
     }
 
     /**
+     * Convert a record name into its relation-settings form.
+     *
+     * The settings JSON (record_name_singular / record_name_plural) holds
+     * HUMAN-READABLE names, which use a SPACE between words — e.g.
+     * "section type", not "section_type" — so the values can be dropped
+     * straight into labels and headings by the runtime and by generated
+     * show pages. Database identifiers are the opposite: they always use
+     * underscores. See column_name(), the inverse of this method.
+     *
+     * Ref: trongate/trongate-framework#269.
+     *
+     * @param string $record_name The column-safe record name.
+     * @return string The settings/display form of the name.
+     */
+    public function display_name(string $record_name): string {
+        return str_replace('_', ' ', $record_name);
+    }
+
+    /**
+     * Convert a record name into column-safe form (spaces → underscores).
+     *
+     * Every FK/junction column name is built from a record name, and
+     * column names never contain spaces — so "section type" must become
+     * "section_type" before '_id' is appended. Idempotent: a name that
+     * already uses underscores passes through unchanged, which is what
+     * keeps pre-existing settings files working. Ref: #269.
+     *
+     * @param string $record_name The record name, in either form.
+     * @return string The column-safe form of the name.
+     */
+    public function column_name(string $record_name): string {
+        return str_replace(' ', '_', $record_name);
+    }
+
+    /**
      * The flo_relation marker comment prefix for an FK (double-inject
      * guard — preflight refuses any file already containing a marker).
      * Call sites prepend the comment slashes themselves (templates and
@@ -395,9 +430,12 @@ class Module_relations_builder_model extends Model {
             throw new \Exception("Identifier column '{$identifier_b}' does not exist on the {$child} table.");
         }
 
-        // Schema conflicts (per type).
-        $singular_a = $wizard['singular_a'] ?? $this->fallback_singular($parent);
-        $singular_b = $wizard['singular_b'] ?? $this->fallback_singular($child);
+        // Schema conflicts (per type). Record names reach the wizard in
+        // column-safe form (underscores); column_name() is idempotent and
+        // makes that contract explicit wherever a column is built from a
+        // record name. Ref: #269.
+        $singular_a = $this->column_name($wizard['singular_a'] ?? $this->fallback_singular($parent));
+        $singular_b = $this->column_name($wizard['singular_b'] ?? $this->fallback_singular($child));
         $bridging = (bool) ($wizard['bridging_table'] ?? false);
 
         // Singular names become FK/junction column names — enforce the same
@@ -442,14 +480,14 @@ class Module_relations_builder_model extends Model {
         $settings = [
             [
                 'module_name' => $parent,
-                'record_name_singular' => $wizard['singular_a'] ?? $this->fallback_singular($parent),
-                'record_name_plural' => $wizard['plural_a'] ?? $parent,
+                'record_name_singular' => $this->display_name($wizard['singular_a'] ?? $this->fallback_singular($parent)),
+                'record_name_plural' => $this->display_name($wizard['plural_a'] ?? $parent),
                 'identifier_column' => trim($wizard['identifier_column_a'] ?? '')
             ],
             [
                 'module_name' => $child,
-                'record_name_singular' => $wizard['singular_b'] ?? $this->fallback_singular($child),
-                'record_name_plural' => $wizard['plural_b'] ?? $child,
+                'record_name_singular' => $this->display_name($wizard['singular_b'] ?? $this->fallback_singular($child)),
+                'record_name_plural' => $this->display_name($wizard['plural_b'] ?? $child),
                 'identifier_column' => trim($wizard['identifier_column_b'] ?? '')
             ],
             [
@@ -521,8 +559,11 @@ class Module_relations_builder_model extends Model {
         $type = $wizard['relation_type'] ?? '';
         $parent = $wizard['parent_module'] ?? '';
         $child = $wizard['child_module'] ?? '';
-        $singular_a = $wizard['singular_a'] ?? $this->fallback_singular($parent);
-        $singular_b = $wizard['singular_b'] ?? $this->fallback_singular($child);
+        // Record names arrive in column-safe form (underscores); column_name()
+        // is a no-op for those and guarantees the FK/junction columns built
+        // below never contain a space. Ref: #269.
+        $singular_a = $this->column_name($wizard['singular_a'] ?? $this->fallback_singular($parent));
+        $singular_b = $this->column_name($wizard['singular_b'] ?? $this->fallback_singular($child));
         $bridging = (bool) ($wizard['bridging_table'] ?? false);
 
         if ($parent === '' || $child === '') {
