@@ -8,6 +8,11 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0920d] - 2026-09-20
+
+### Fixed
+- **Image uploader wizard — a module that has already been through the relations wizard can now take an uploader** (`modules/trongate_control/image_uploader_builder`) — the preflight required a target module's show view to *end* with the details card's closing `</div>`, the anchor the `draw_panel()` call is appended to, so it refused to generate against any module whose show view already carried the module relations builder's panel call (`Modules::run('module_relations/draw_summary_panel', …)`), which that wizard appends behind the very same card: *"Injection aborted: the show view does not end with the details card (</div>)"*. Both wizards append their panel call in the same place, so whichever of them ran **second** on a module was refused — a preflight rule too narrow for a module that legitimately carries more than one panel. The check (`view_tail_is_panel_calls()`, a new private helper backed by a `PANEL_CALL_PATTERN` constant) now reads the view's tail — everything behind the last `</div>` — and tolerates panel calls only: an empty tail (a view straight from the module builder) or one or more lines matching a two-argument `Modules::run()` call, the exact shape both wizards generate. The uploader's call is still appended at the end of the view, behind any call already there and never in place of it; anything else behind the card still aborts the injection and writes nothing, as does a view with no closing `</div>` at all, so the injection never proceeds on a guess. The module README's injection-anchors convention and the affected docblocks now say what is tolerated behind the card. ([#273](https://github.com/trongate/trongate-framework/pull/273))
+
 ## [2.2026.0920c] - 2026-09-20
 
 ### Fixed

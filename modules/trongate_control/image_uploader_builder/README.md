@@ -26,8 +26,9 @@ the top-level `modules/image_uploader/` module.
    marker.
 3. **Code injection** — three items, the runtime's whole reach into the
    target module:
-   - `views/show.php` — the `draw_panel()` call, appended after the
-     details card's final closing `</div>`;
+   - `views/show.php` — the `draw_panel()` call, appended behind the
+     details card's final closing `</div>` (and behind any panel call a
+     sibling wizard has already appended there);
    - `{Module}.php` — a **capture** line inserted *before* the row
      deletion in `submit_delete()`, recording the picture file name while
      the row still exists;
@@ -56,8 +57,12 @@ the top-level `modules/image_uploader/` module.
 - Injection anchors are properties of the wizard's own scaffold output,
   never guesses about a particular module: the generated show view ends
   with the details card, and `submit_delete()` contains one record load
-  and one row-deletion call. Anything else is refused by the preflight —
-  never worked around.
+  and one row-deletion call. Behind that card the preflight tolerates one
+  thing only — a panel call a sibling wizard has already appended (a
+  module that has been through the module relations wizard ends with
+  `<?= Modules::run('module_relations/draw_summary_panel', '…') ?>`, not
+  with the `</div>`); the uploader's call goes after it. Anything else is
+  refused by the preflight — never worked around.
 - Generation-time only: the wizard refuses to run unless `ENV` is `'dev'`.
 - No public method name may contain the module-assets trigger (`_module`,
   see `MODULE_ASSETS_TRIGGER`) as a substring — the router would serve it
