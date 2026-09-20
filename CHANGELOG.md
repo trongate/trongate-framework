@@ -8,6 +8,11 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0920c] - 2026-09-20
+
+### Fixed
+- **Image uploader wizard — chooser offers only modules that pass the preflight** (`modules/trongate_control/image_uploader_builder`) — the chooser listed every candidate module and then, beneath the select form, rendered a second list of the modules that had failed the CRUD preflight together with their raw reason strings. Every failing module was already excluded from the select, so the second list could only mislead, and its `iu-blocked-list` class is defined by no stylesheet, so it rendered as a bare bulleted list. The chooser now renders the same plain list as the sibling builders (`module_builder/views/enter_mod_name.php` and `module_relations_builder/views/select_module.php`), and `index()`'s docblock has been corrected to match. Readiness is unchanged: `get_crud_modules()` still decides it and still returns `reasons` on each row, and `submit_mod()` still refuses a module that is not ready. ([#272](https://github.com/trongate/trongate-framework/pull/272))
+
 ## [2.2026.0920b] - 2026-09-20
 
 ### Fixed

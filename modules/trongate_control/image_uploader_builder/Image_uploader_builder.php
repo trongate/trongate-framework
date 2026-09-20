@@ -85,9 +85,9 @@ class Image_uploader_builder extends Trongate {
      * Wizard entry point — renders the module chooser.
      *
      * Clears any stale wizard session state so every run starts fresh. The
-     * chooser lists every candidate module with its CRUD preflight status;
-     * a module that fails preflight is shown with the specific reason and
-     * cannot be selected.
+     * chooser offers the candidate modules that pass the CRUD preflight;
+     * modules that cannot take an uploader are simply not offered (the same
+     * plain chooser the sibling wizards render).
      *
      * @return void
      */

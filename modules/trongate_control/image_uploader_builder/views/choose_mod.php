@@ -15,23 +15,4 @@
             <?php endforeach; ?>
         </ul>
     </div>
-
-    <?php
-    // Modules failing preflight are listed with the specific reason and
-    // cannot be selected.
-    $blocked = array_filter($modules, fn($m) => !$m['ready']);
-    if (count($blocked) > 0):
-    ?>
-        <div class="mt-2">
-            <div class="mt-1"><strong>Not ready for an image uploader</strong></div>
-            <ul class="iu-blocked-list">
-                <?php foreach ($blocked as $mod): ?>
-                    <li>
-                        <strong><?= out($mod['label']) ?></strong>
-                        — <?= out(implode('; ', $mod['reasons'])) ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    <?php endif; ?>
 </div>
