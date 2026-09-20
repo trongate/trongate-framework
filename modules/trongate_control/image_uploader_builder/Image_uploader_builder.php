@@ -41,11 +41,14 @@ class Image_uploader_builder extends Trongate {
     ];
 
     /**
-     * Sentinel anchor: append after the final closing </div> of a view.
+     * Sentinel anchor: append behind the final closing </div> of a view.
      *
      * The same convention the module_relations_builder wizard uses. A
      * generated show view ends with the details card, so that card's
-     * closing </div> marks the panel call's home.
+     * closing </div> marks the panel call's home. When a sibling wizard has
+     * already been run on the module, its own panel call sits behind that
+     * </div> — the uploader's call is appended after it, never instead of
+     * it (see view_tail_is_panel_calls()).
      */
     private const END_OF_VIEW = '@end_of_view';
 
@@ -62,6 +65,20 @@ class Image_uploader_builder extends Trongate {
      * Verified by preflight(), never assumed.
      */
     private const RECORD_LOAD = '$record = $this->model->find_by_id($update_id);';
+
+    /**
+     * A panel call a sibling wizard has already appended behind the details
+     * card — the one shape tolerated there. E.g. the module_relations_builder
+     * leaves:
+     *
+     *   <?= Modules::run('module_relations/draw_summary_panel', 'section_types') ?>
+     *
+     * Matched line by line against the view's tail, so a single trailing
+     * call (or several) is recognised while anything else in the tail still
+     * aborts the injection. Anchored to a two-argument Modules::run() call
+     * on one line: the exact shape both wizards generate.
+     */
+    private const PANEL_CALL_PATTERN = '/^<\?=\s*Modules::run\(\s*\'[a-z0-9_]+\/[a-z0-9_]+\'\s*,\s*\'[a-z0-9_]*\'\s*\)\s*\?>$/';
 
     /**
      * Constructor — dev-mode guard, identical pattern to sibling child modules.
@@ -286,9 +303,10 @@ class Image_uploader_builder extends Trongate {
      *
      * Both anchors are properties of the wizard's own scaffold output rather
      * than guesses about a particular module: the show view is generated to
-     * end with the details card's closing </div>, and submit_delete()
-     * contains one $record load and one row-deletion call. Anything else is
-     * refused by preflight(), never worked around.
+     * end with the details card's closing </div> — with, at most, panel
+     * calls a sibling wizard has already appended behind it — and
+     * submit_delete() contains one $record load and one row-deletion call.
+     * Anything else is refused by preflight(), never worked around.
      *
      * @param array $wizard The wizard session array.
      * @return array<int, array> The injection items.
@@ -388,8 +406,8 @@ class Image_uploader_builder extends Trongate {
                 if (($item['marker'] !== '') && (strpos($content, $item['marker']) !== false)) {
                     throw new \Exception('Injection refused: "' . $this->excerpt($item['marker']) . '" is already present in ' . $item['file'] . ' — never double-inject.');
                 }
-                if (rtrim($content) === '' || substr(rtrim($content), -6) !== '</div>') {
-                    throw new \Exception('Injection aborted: the show view does not end with the details card (</div>) — ' . $item['file'] . '. The panel call is appended after that card; adjust the view or wire the panel manually.');
+                if ($this->view_tail_is_panel_calls($content) === false) {
+                    throw new \Exception('Injection aborted: the show view does not end with the details card (</div>) — ' . $item['file'] . '. The panel call is appended after that card, so the only content tolerated behind it is a panel call another wizard has already appended; adjust the view or wire the panel manually.');
                 }
             } else {
                 $count = substr_count($content, $item['anchor']);
@@ -417,6 +435,45 @@ class Image_uploader_builder extends Trongate {
         }
 
         return ['items' => $items, 'originals' => $originals, 'updates' => $updates];
+    }
+
+    /**
+     * Decide whether a show view is the scaffold this wizard can extend.
+     *
+     * The details card's final </div> marks the panel call's home. A view
+     * straight from the module builder ends there. When a sibling wizard
+     * (the module relations builder) has already been run on the module, it
+     * has appended its own panel call behind that </div> — and this wizard's
+     * call belongs AFTER it, never in place of it. So the view's tail, the
+     * text behind the last </div>, must be empty or hold nothing but panel
+     * calls. Anything else means the view is not the known scaffold, and
+     * the injection must not go ahead on a guess.
+     *
+     * @param string $content The full content of the show view.
+     * @return bool True when the panel call may be appended at the end.
+     */
+    private function view_tail_is_panel_calls(string $content): bool {
+        $trimmed = rtrim($content);
+        $card_end = strrpos($trimmed, '</div>');
+
+        if ($card_end === false) {
+            return false;
+        }
+
+        $tail = trim(substr($trimmed, $card_end + 6));
+
+        if ($tail === '') {
+            return true;
+        }
+
+        foreach (preg_split('/\R/', $tail) as $line) {
+            $line = trim($line);
+            if (($line !== '') && (preg_match(self::PANEL_CALL_PATTERN, $line) !== 1)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -467,8 +524,10 @@ class Image_uploader_builder extends Trongate {
     /**
      * Apply a single injection item to file content.
      *
-     * END_OF_VIEW anchors append after the final </div>. Other items insert
-     * before or after the anchor line; 'before' is line-granular — the WHOLE
+     * END_OF_VIEW anchors append at the very end of the view — behind the
+     * details card and behind any panel calls a sibling wizard has already
+     * appended there. Other items insert before or after the anchor line;
+     * 'before' is line-granular — the WHOLE
      * anchor line (including its leading whitespace) is replaced with the
      * block followed by the original line, so the anchor keeps its own
      * indentation and the block's baked-in indentation is never doubled. A
