@@ -33,6 +33,14 @@ class Module_relations_builder extends Trongate {
     private const END_OF_VIEW = '@end_of_view';
 
     /**
+     * A panel call another wizard has appended behind the details card,
+     * e.g. <?= Modules::run('image_uploader/draw_panel', 'sections') ?>.
+     * Two-argument Modules::run() calls only — the exact shape both
+     * wizards generate (see view_tail_is_panel_calls()).
+     */
+    private const PANEL_CALL_PATTERN = '/^<\?=\s*Modules::run\(\s*\'[a-z0-9_]+\/[a-z0-9_]+\'\s*,\s*\'[a-z0-9_]*\'\s*\)\s*\?>$/';
+
+    /**
      * Constructor — dev-mode guard, identical pattern to sibling child modules.
      *
      * Loads the generic Flo (evo) module for shared utilities
@@ -850,8 +858,8 @@ class Module_relations_builder extends Trongate {
                 if ($item['marker'] !== '' && strpos($content, $item['marker']) !== false) {
                     throw new \Exception('Injection refused: "' . $item['marker'] . '" is already present in ' . $item['file'] . ' — never double-inject.');
                 }
-                if (rtrim($content) === '' || substr(rtrim($content), -6) !== '</div>') {
-                    throw new \Exception('Injection aborted: show view does not end with the details card (</div>) — ' . $item['file'] . '.');
+                if ($this->view_tail_is_panel_calls($content) === false) {
+                    throw new \Exception('Injection aborted: show view does not end with the details card (</div>) — ' . $item['file'] . '. The summary panel is appended after that card, so the only content tolerated behind it is a panel call another wizard has already appended; adjust the view or wire the panel manually.');
                 }
             } else {
                 $count = substr_count($content, $item['anchor']);
@@ -876,6 +884,45 @@ class Module_relations_builder extends Trongate {
                 }
             }
         }
+    }
+
+    /**
+     * Decide whether a show view is the scaffold this wizard can extend.
+     *
+     * The details card's final </div> marks the summary panel's home. A view
+     * straight from the module builder ends there. When a sibling wizard
+     * (the image uploader builder) has already been run on the module, it
+     * has appended its own panel call behind that </div> — and this wizard's
+     * call belongs AFTER it, never in place of it. So the view's tail, the
+     * text behind the last </div>, must be empty or hold nothing but panel
+     * calls. Anything else means the view is not the known scaffold, and
+     * the injection must not go ahead on a guess.
+     *
+     * @param string $content The full content of the show view.
+     * @return bool True when the summary panel may be appended at the end.
+     */
+    private function view_tail_is_panel_calls(string $content): bool {
+        $trimmed = rtrim($content);
+        $card_end = strrpos($trimmed, '</div>');
+
+        if ($card_end === false) {
+            return false;
+        }
+
+        $tail = trim(substr($trimmed, $card_end + 6));
+
+        if ($tail === '') {
+            return true;
+        }
+
+        foreach (preg_split('/\R/', $tail) as $line) {
+            $line = trim($line);
+            if (($line !== '') && (preg_match(self::PANEL_CALL_PATTERN, $line) !== 1)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // ─── Injection: apply ──────────────────────────────────────
