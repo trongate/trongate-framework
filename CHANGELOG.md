@@ -8,6 +8,14 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.0927] - 2026-09-27
+
+### Added
+- **Flo — "Ask a Question" panel** (`modules/trongate_control/evo`) — the new `ask()` method and `views/ask.php` render a panel in Flo's `main`, the same way *Module Manager* does: a short message for a developer who is stuck, an **Ask a question** button that opens the discussion forums' question form (`https://trongate.io/forums-forum_threads/create/trongate-v2`) in a new tab, and a **Go Back** button that returns to the Flo menu through `doReset()`, the dismissal the "module generated" output already uses. Nothing is embedded and nothing is stored — the destination is a top-level navigation and the forums carry the authentication, validation, CSRF protection and moderation, so no cookie, CSP or `frame-ancestors` change was needed, no config value was added and no new module was created. The destination URL is supplied by `ask()` rather than by the view, so a move is a one-line change. ([#275](https://github.com/trongate/trongate-framework/pull/275))
+
+### Changed
+- **Flo menu — the *Discussion Forums* item** (`modules/trongate_control/evo/views/home.php`) — the third menu item opened `https://trongate.io/forums` in a new tab; it now renders the *Ask a Question* panel in `main` instead. The existing `mx-get`/`mx-target` contract and the `open_url:` postMessage handler are untouched, and the two other items are unchanged. ([#275](https://github.com/trongate/trongate-framework/pull/275))
+
 ## [2.2026.0923] - 2026-09-23
 
 ### Fixed
