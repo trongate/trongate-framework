@@ -10,7 +10,7 @@
  *   - module_relations_builder  — the 'Module Relations' wizard
  *
  * Evo responsibilities:
- *   - Flo menu views: home(), module_manager()
+ *   - Flo menu views: home(), module_manager(), ask()
  *   - reset(): clears the shared Flo wizard session ($_SESSION['evo_wizard'])
  *   - render_error(): reusable error view for sibling child modules
  *   - render_disabled_response(): dev-mode guard response
@@ -64,6 +64,21 @@ class Evo extends Trongate {
      */
     public function module_manager(): void {
         $this->view('module_manager');
+    }
+
+    /**
+     * Renders the 'Ask a Question' panel.
+     *
+     * A short message for a developer who is stuck, plus a button that opens
+     * the discussion forums' question form in a new tab. Nothing is embedded
+     * and nothing is stored: the forums carry the authentication, validation
+     * and moderation.
+     *
+     * @return void
+     */
+    public function ask(): void {
+        $data['ask_url'] = 'https://trongate.io/forums-forum_threads/create/trongate-v2';
+        $this->view('ask', $data);
     }
 
     /**
