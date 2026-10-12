@@ -324,14 +324,12 @@ class Trongate_tokens_model extends Model {
         $this->db->insert($db_data, 'trongate_tokens');
 
         // Set token in cookie or session
-        $set_cookie = isset($data['set_cookie']) && $data['set_cookie'] === true;
-        
-        if ($set_cookie) {
+        if (($data['set_cookie'] ?? false) === true) {
             $this->set_token_cookie($random_string, $data['expiry_date']);
-        } else {
-            $_SESSION['trongatetoken'] = $random_string;
+            return $random_string;
         }
 
+        $_SESSION['trongatetoken'] = $random_string;
         return $random_string;
     }
 
@@ -428,12 +426,10 @@ class Trongate_tokens_model extends Model {
             return TOKEN_COOKIE_SECURE;
         }
 
-        if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
-            return true;
-        }
-
-        $forwarded_proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
-        return strtolower(trim(explode(',', $forwarded_proto)[0])) === 'https';
+        // HTTPS is unset, '' or 'off' on plain HTTP; a proxy lists the client-facing scheme first
+        $https = strtolower($_SERVER['HTTPS'] ?? 'off');
+        return ($https !== 'off' && $https !== '')
+            || str_starts_with(strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''), 'https');
     }
 
     /**

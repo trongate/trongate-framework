@@ -468,12 +468,10 @@ class Login_model extends Model {
         if ($remember === 1 && $config['allow_remember'] === 1) {
             $token_data['expiry_date'] = time() + (86400 * $config['remember_days']);
             $token_data['set_cookie'] = true;
-            $token = $this->trongate_tokens->generate_token($token_data);
-            $_SESSION['trongatetoken'] = $token;
-        } else {
-            $token = $this->trongate_tokens->generate_token($token_data);
-            $_SESSION['trongatetoken'] = $token;
         }
+
+        $token = $this->trongate_tokens->generate_token($token_data);
+        $_SESSION['trongatetoken'] = $token;
 
         $this->update_login_stats($config, $user);
         return $token;

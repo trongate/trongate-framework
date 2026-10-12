@@ -179,11 +179,10 @@ class Trongate_tokens extends Trongate {
      */
     public function regenerate(): void {
         $old_token = $_SERVER['HTTP_TRONGATETOKEN'] ?? $_POST['trongatetoken'] ?? '';
-        $old_token = is_string($old_token) ? $old_token : '';
         $expiry_date = segment(3);
 
-        // Validate input format
-        if (strlen($old_token) !== 32 || !is_numeric($expiry_date) || $expiry_date < time()) {
+        // Validate input format (a POSTed array is not a token)
+        if (!is_string($old_token) || strlen($old_token) !== 32 || !is_numeric($expiry_date) || $expiry_date < time()) {
             http_response_code(400); // Bad Request
             die();
         }
