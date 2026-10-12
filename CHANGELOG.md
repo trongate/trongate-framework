@@ -8,6 +8,16 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.1012] - 2026-10-12
+
+### Security
+- **Login tokens are stored as hashes** (`modules/trongate_tokens`) — `trongate_tokens.token` held the raw login token, so anyone who could read the table (a leaked backup, an SQL injection elsewhere, a shared database user) could sign in as any user, admins included, until the token expired. Tokens are still generated with `make_rand_str()` and handed to the caller, the cookie and `$_SESSION` unchanged, but only `hash('sha256', $token)` is written to the column, and every lookup and delete hashes the presented token first (`validate_token_single_level`, `validate_token_multi_level`, `validate_token_any_level`, `get_user_id`, `get_user_obj`, `delete_tokens`, `regenerate_token`) through one private `hash_token()` helper. `get_user_obj()` still returns the raw token in its `token` property and the `validate_token_*` methods still return the raw token, so callers see no difference. `trongate_administrators` no longer writes to or reads `trongate_tokens` directly: `log_user_in()` and `get_user_by_token()` go through `trongate_tokens`. The `token` column is `varchar(125)`, wide enough for the 64-character digest, so no schema change is needed.
+- **Hardened `trongatetoken` cookie** (`modules/trongate_tokens`, `modules/login`, `modules/trongate_administrators`) — the cookie was set with no flags, so any XSS could read it from `document.cookie` and it was sent over plain HTTP. All cookie writes, and the delete in `destroy()`, now go through one `set_token_cookie()` helper that sets `HttpOnly`, `SameSite=Lax`, `path=/` and `Secure` whenever the request arrived over HTTPS (directly or via `X-Forwarded-Proto`). The new `TOKEN_COOKIE_SECURE` constant in `config/config.php` (default `null`, automatic) can force the flag on or off; an app without the constant behaves as automatic, so plain `http://localhost` keeps working.
+- **Token regeneration no longer puts the token in the URL** (`modules/trongate_tokens`) — `regenerate()` took the old token from the path (`/trongate_tokens/regenerate/{old_token}/{new_expiry_date}`), so live tokens landed in access and proxy logs. It now reads the old token from the `trongatetoken` request header or a `trongatetoken` POST field, and the URL carries only the expiry: `/trongate_tokens/regenerate/{new_expiry_date}`. The expiry rules are unchanged. Requests in the old URL shape get `400 Bad Request`.
+
+### Upgrade note
+- **Existing sessions are signed out once.** Tokens issued before this release are stored in plain text and no longer match their hashed lookups, so every user (admins included) has to sign in again once after deploy. There is deliberately no fallback to plain-text lookups. Stale rows expire and are removed by `delete_old_tokens()` as usual; to clear them straight away, run `DELETE FROM trongate_tokens;`. Clients that called `regenerate` with the token in the URL must move it to the `trongatetoken` header or POST field.
+
 ## [2.2026.0927] - 2026-09-27
 
 ### Added
