@@ -5,24 +5,45 @@ require_once '../config/custom_routing.php';
 require_once '../config/database.php';
 require_once '../config/site_owner.php';
 
-// Sessions: a browser that already holds a session cookie resumes it straight away.
-// With SESSION_LAZY, any other request skips session_start() (no session file, no lock,
-// no cookie) and only starts a session at shutdown if something was stored in $_SESSION.
-if (isset($_COOKIE[session_name()]) || !defined('SESSION_LAZY') || SESSION_LAZY !== true) {
-    session_start();
-} else {
+init_session();
+
+/**
+ * Start the session, or defer it when SESSION_LAZY is on.
+ *
+ * A browser that already holds a session cookie resumes it straight away. With
+ * SESSION_LAZY, any other request skips session_start() (no session file, no lock,
+ * no cookie) and persist_lazy_session() starts one at shutdown only if something
+ * was stored in $_SESSION.
+ *
+ * @return void
+ */
+function init_session(): void {
+    if (isset($_COOKIE[session_name()]) || !defined('SESSION_LAZY') || SESSION_LAZY !== true) {
+        session_start();
+        return;
+    }
+
     $_SESSION = [];
     ob_start(); // keeps headers open so the session cookie can still be sent at shutdown
-    register_shutdown_function(static function (): void {
-        // Nothing stored, too late to send the cookie, or started by hand: leave it
-        if ($_SESSION === [] || headers_sent() || session_status() === PHP_SESSION_ACTIVE) {
-            return;
-        }
+    register_shutdown_function('persist_lazy_session');
+}
 
-        $data = $_SESSION;
-        session_start();
-        $_SESSION = $data;
-    });
+/**
+ * Shutdown hook for lazy sessions: start the session only if $_SESSION holds data.
+ *
+ * Skipped when nothing was stored, when output already went out (the cookie can no
+ * longer be sent), or when the request started a session by hand.
+ *
+ * @return void
+ */
+function persist_lazy_session(): void {
+    if ($_SESSION === [] || headers_sent() || session_status() === PHP_SESSION_ACTIVE) {
+        return;
+    }
+
+    $data = $_SESSION;
+    session_start();
+    $_SESSION = $data;
 }
 
 // Make the $databases array globally accessible
