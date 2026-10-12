@@ -1,11 +1,29 @@
 <?php
-session_start();
-
 // Config files
 require_once '../config/config.php';
 require_once '../config/custom_routing.php';
 require_once '../config/database.php';
 require_once '../config/site_owner.php';
+
+// Sessions: a browser that already holds a session cookie resumes it straight away.
+// With SESSION_LAZY, any other request skips session_start() (no session file, no lock,
+// no cookie) and only starts a session at shutdown if something was stored in $_SESSION.
+if (isset($_COOKIE[session_name()]) || !defined('SESSION_LAZY') || SESSION_LAZY !== true) {
+    session_start();
+} else {
+    $_SESSION = [];
+    ob_start(); // keeps headers open so the session cookie can still be sent at shutdown
+    register_shutdown_function(static function (): void {
+        // Nothing stored, too late to send the cookie, or started by hand: leave it
+        if ($_SESSION === [] || headers_sent() || session_status() === PHP_SESSION_ACTIVE) {
+            return;
+        }
+
+        $data = $_SESSION;
+        session_start();
+        $_SESSION = $data;
+    });
+}
 
 // Make the $databases array globally accessible
 // This is required for multi-database functionality
