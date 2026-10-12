@@ -53,7 +53,7 @@ class Trongate_tokens_model extends Model {
         $params['nowtime'] = time();
 
         foreach ($user_tokens as $token) {
-            $params['token'] = $token;
+            $params['token'] = $this->hash_token($token);
             
             $sql = 'SELECT 
                         trongate_tokens.token 
@@ -72,7 +72,7 @@ class Trongate_tokens_model extends Model {
             $rows = $this->db->query_bind($sql, $params, 'object');
 
             if (!empty($rows)) {
-                return $rows[0]->token;
+                return $token;
             }
         }
 
@@ -109,7 +109,7 @@ class Trongate_tokens_model extends Model {
         $and_condition .= ')';
 
         foreach ($user_tokens as $token) {
-            $params['token'] = $token;
+            $params['token'] = $this->hash_token($token);
             
             $sql = 'SELECT 
                         trongate_tokens.token 
@@ -127,7 +127,7 @@ class Trongate_tokens_model extends Model {
             $rows = $this->db->query_bind($sql, $params, 'object');
 
             if (!empty($rows)) {
-                return $rows[0]->token;
+                return $token;
             }
         }
 
@@ -145,7 +145,7 @@ class Trongate_tokens_model extends Model {
         $params['nowtime'] = time();
 
         foreach ($user_tokens as $token) {
-            $params['token'] = $token;
+            $params['token'] = $this->hash_token($token);
             
             $sql = 'SELECT 
                         trongate_tokens.token 
@@ -158,7 +158,7 @@ class Trongate_tokens_model extends Model {
             $rows = $this->db->query_bind($sql, $params, 'object');
 
             if (!empty($rows)) {
-                return $rows[0]->token;
+                return $token;
             }
         }
 
@@ -173,7 +173,7 @@ class Trongate_tokens_model extends Model {
      */
     public function delete_tokens(array $tokens): void {
         foreach ($tokens as $token) {
-            $params['token'] = $token;
+            $params['token'] = $this->hash_token($token);
             $sql = 'DELETE FROM trongate_tokens WHERE token = :token';
             $this->db->query_bind($sql, $params);
         }
@@ -223,7 +223,7 @@ class Trongate_tokens_model extends Model {
         foreach ($tokens as $index => $token_value) {
             $param_name = 'token_' . $index;
             $placeholders[] = "token = :$param_name";
-            $params[$param_name] = $token_value;
+            $params[$param_name] = $this->hash_token($token_value);
         }
         
         $where_clause = implode(' OR ', $placeholders);
@@ -251,11 +251,13 @@ class Trongate_tokens_model extends Model {
 
         // Build WHERE clause with placeholders
         $placeholders = [];
+        $raw_tokens = [];
         $params = [];
         foreach ($tokens as $index => $token_value) {
             $param_name = 'token_' . $index;
             $placeholders[] = "t.token = :$param_name";
-            $params[$param_name] = $token_value;
+            $params[$param_name] = $this->hash_token($token_value);
+            $raw_tokens[$params[$param_name]] = $token_value;
         }
         
         $where_clause = implode(' OR ', $placeholders);
@@ -277,7 +279,14 @@ class Trongate_tokens_model extends Model {
             WHERE ' . $where_clause;
 
         $rows = $this->db->query_bind($sql, $params, 'object');
-        return !empty($rows) ? $rows[0] : false;
+
+        if (empty($rows)) {
+            return false;
+        }
+
+        // Only the hash is stored; hand back the raw token the caller presented
+        $rows[0]->token = $raw_tokens[$rows[0]->token];
+        return $rows[0];
     }
 
     /**
@@ -303,7 +312,7 @@ class Trongate_tokens_model extends Model {
         $db_data = [
             'user_id' => $data['user_id'],
             'expiry_date' => $data['expiry_date'],
-            'token' => $random_string
+            'token' => $this->hash_token($random_string)
         ];
 
         // Add optional code if provided
@@ -318,7 +327,7 @@ class Trongate_tokens_model extends Model {
         $set_cookie = isset($data['set_cookie']) && $data['set_cookie'] === true;
         
         if ($set_cookie) {
-            setcookie('trongatetoken', $random_string, $data['expiry_date'], '/');
+            $this->set_token_cookie($random_string, $data['expiry_date']);
         } else {
             $_SESSION['trongatetoken'] = $random_string;
         }
@@ -336,7 +345,7 @@ class Trongate_tokens_model extends Model {
     public function regenerate_token(string $old_token, int $expiry_date): string|bool {
         // Check if the token exists
         $sql = 'SELECT * FROM trongate_tokens WHERE token = :token LIMIT 1';
-        $rows = $this->db->query_bind($sql, ['token' => $old_token], 'object');
+        $rows = $this->db->query_bind($sql, ['token' => $this->hash_token($old_token)], 'object');
 
         if (empty($rows)) {
             return false;
@@ -348,7 +357,7 @@ class Trongate_tokens_model extends Model {
         $new_token = make_rand_str();
         $update_data = [
             'expiry_date' => $expiry_date,
-            'token' => $new_token
+            'token' => $this->hash_token($new_token)
         ];
 
         $this->db->update($token->id, $update_data, 'trongate_tokens');
@@ -385,6 +394,59 @@ class Trongate_tokens_model extends Model {
 
         // Remove duplicates and return
         return array_unique($tokens);
+    }
+
+    /**
+     * Set (or, with a past expiry, clear) the trongatetoken cookie.
+     *
+     * The cookie is HttpOnly and SameSite=Lax. It is Secure when the request
+     * arrived over HTTPS (directly or via a proxy's X-Forwarded-Proto), unless
+     * TOKEN_COOKIE_SECURE in config/config.php is set to true or false.
+     * Clearing a cookie needs the same path, secure and samesite as setting it.
+     *
+     * @param string $value The cookie value (the raw token)
+     * @param int $expires Unix timestamp; pass a past time to delete the cookie
+     * @return void
+     */
+    public function set_token_cookie(string $value, int $expires): void {
+        setcookie('trongatetoken', $value, [
+            'expires' => $expires,
+            'path' => '/',
+            'secure' => $this->cookie_should_be_secure(),
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    }
+
+    /**
+     * Decide whether the token cookie gets the Secure flag.
+     *
+     * @return bool
+     */
+    private function cookie_should_be_secure(): bool {
+        if (defined('TOKEN_COOKIE_SECURE') && is_bool(TOKEN_COOKIE_SECURE)) {
+            return TOKEN_COOKIE_SECURE;
+        }
+
+        if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+            return true;
+        }
+
+        $forwarded_proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+        return strtolower(trim(explode(',', $forwarded_proto)[0])) === 'https';
+    }
+
+    /**
+     * Hash a raw token for storage and lookup.
+     *
+     * Only this hash is written to trongate_tokens.token, so a leaked copy of
+     * the table cannot be replayed as a login token.
+     *
+     * @param string $token The raw token
+     * @return string 64-character sha256 hex digest
+     */
+    private function hash_token(string $token): string {
+        return hash('sha256', $token);
     }
 
 }

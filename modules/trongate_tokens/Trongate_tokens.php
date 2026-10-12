@@ -68,7 +68,7 @@ class Trongate_tokens extends Trongate {
         if (isset($_COOKIE['trongatetoken'])) {
             $tokens_to_delete[] = $_COOKIE['trongatetoken'];
             $past_date = time() - 86400;
-            setcookie('trongatetoken', 'x', $past_date, '/');
+            $this->model->set_token_cookie('x', $past_date);
         }
 
         // Check and add token from HTTP headers
@@ -169,13 +169,18 @@ class Trongate_tokens extends Trongate {
      * If the input format is invalid or the old token does not exist, appropriate
      * HTTP response codes are set to indicate the failure reason.
      * 
-     * Expected URL format: /trongate_tokens/regenerate/{old_token}/{new_expiry_date}
+     * Expected URL format: /trongate_tokens/regenerate/{new_expiry_date}
+     *
+     * The old token is read from the 'trongatetoken' HTTP header or the
+     * 'trongatetoken' POST field, never from the URL, so it stays out of
+     * access and proxy logs.
      *
      * @return void
      */
     public function regenerate(): void {
-        $old_token = segment(3);
-        $expiry_date = segment(4);
+        $old_token = $_SERVER['HTTP_TRONGATETOKEN'] ?? $_POST['trongatetoken'] ?? '';
+        $old_token = is_string($old_token) ? $old_token : '';
+        $expiry_date = segment(3);
 
         // Validate input format
         if (strlen($old_token) !== 32 || !is_numeric($expiry_date) || $expiry_date < time()) {

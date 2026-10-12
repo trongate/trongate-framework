@@ -141,24 +141,20 @@ class Trongate_administrators_model extends Model {
 	        return false;
 	    }
 
-	    $token = make_rand_str(32);
 	    $expiry_date = $remember === 1 ? time() + 86400 * 30 : time() + 86400;
 
-	    $token_data = [
-	        'token' => $token,
-	        'user_id' => $user_obj->trongate_user_id,
+	    // trongate_tokens stores only a hash of the token and sets the
+	    // hardened cookie when asked to
+	    $this->module('trongate_tokens');
+	    $token = $this->trongate_tokens->generate_token([
+	        'user_id' => (int) $user_obj->trongate_user_id,
 	        'expiry_date' => $expiry_date,
 	        'code' => '0',
-	    ];
+	        'set_cookie' => $remember === 1,
+	    ]);
 
-	    $this->db->insert($token_data, 'trongate_tokens');
-
-	    // Store token in session and cookie so gather_user_tokens() can find it
+	    // Store token in session too so gather_user_tokens() can find it
 	    $_SESSION['trongatetoken'] = $token;
-
-	    if ($remember === 1) {
-	        setcookie('trongatetoken', $token, $expiry_date, '/');
-	    }
 
 	    return $token;
 	}
@@ -170,25 +166,15 @@ class Trongate_administrators_model extends Model {
 	 * @return object|bool Returns user object if found, false otherwise
 	 */
 	public function get_user_by_token(string $token): object|bool {
-	    $params['token'] = $token;
-	    $sql = 'SELECT
-	                    '.$this->table_name.'.* 
-	                FROM
-	                    '.$this->table_name.'
-	                INNER JOIN
-	                    trongate_tokens
-	                ON
-	                    '.$this->table_name.'.trongate_user_id = trongate_tokens.user_id 
-	                WHERE 
-	                    trongate_tokens.token = :token';
-	    $rows = $this->db->query_bind($sql, $params, 'object');
+	    // trongate_tokens hashes the token before looking it up
+	    $this->module('trongate_tokens');
+	    $trongate_user_id = $this->trongate_tokens->get_user_id($token);
 
-	    if (!empty($rows)) {
-	        $user_obj = $rows[0];
-	        return $user_obj;
+	    if ($trongate_user_id === false) {
+	        return false;
 	    }
 
-	    return false;
+	    return $this->find_one('trongate_user_id', $trongate_user_id);
 	}
 
     /**
