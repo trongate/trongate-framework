@@ -8,6 +8,11 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.1012b] - 2026-10-12
+
+### Added
+- **Lazy session initialization** (`engine/ignition.php`, `config/config.php`) — every request called `session_start()` before anything else, so even a page that never touches `$_SESSION` opened a session file, held its lock for the whole request (serialising a browser's parallel requests) and sent a `PHPSESSID` cookie. With the new `SESSION_LAZY` constant set to `true` (the default in `config/config.php`), a request that already carries a session cookie resumes its session straight away, exactly as before; any other request starts with an empty `$_SESSION`, its output is buffered, and a shutdown function starts the session only if something was stored. Nothing else changes: the framework's `$_SESSION` reads and writes (CSRF tokens in `form_close()`, flashdata, validation errors, login tokens, the Flo wizards) work untouched, so modules need no edits. The hot path costs one `isset()` on the session cookie, and a request that never stores anything never creates a session. An app whose `config/config.php` has no `SESSION_LAZY` constant, or sets it to `false`, keeps the old eager behaviour. Caveat: in lazy mode, a request with no session yet that sends its output early (for example `flush()` before a file download) cannot set the session cookie afterwards, so anything it stores in `$_SESSION` is dropped. A module that needs a session in that situation should call `session_start()` before writing to it.
+
 ## [2.2026.0927] - 2026-09-27
 
 ### Added
