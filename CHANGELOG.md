@@ -8,6 +8,11 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.1019] - 2026-10-19
+
+### Security
+- **Login cookie — `HttpOnly`, `SameSite` and `Secure`** (`modules/trongate_tokens/Trongate_tokens_model.php`, `modules/trongate_tokens/Trongate_tokens.php`, `modules/login/Login_model.php`, `modules/trongate_administrators/Trongate_administrators_model.php`) — the `trongatetoken` cookie was emitted from four sites, each with a bare `setcookie('trongatetoken', $token, $expiry, '/')`, so it carried no `HttpOnly`, no `SameSite` and no `Secure` attribute: any script running on the page could read the login token, and a browser would also attach it to cross-site top-level POSTs. Setting and clearing now pass through a single method, `Trongate_tokens_model::set_token_cookie()`, surfaced on the controller as `Trongate_tokens::set_token_cookie()`, which always writes `path=/`, `HttpOnly` and `SameSite=Lax`, and adds `Secure` when `BASE_URL` begins with `https://` — a site running on plain HTTP therefore receives exactly the cookie it received before. `generate_token()` (`set_cookie => true`), `destroy()`, the remember-me branch of `Login_model` and its counterpart in `Trongate_administrators_model` all call it, so a logout now clears the cookie with the same attributes that set it. No configuration value, database column or method signature changed. ([#278](https://github.com/trongate/trongate-framework/pull/278))
+
 ## [2.2026.0927] - 2026-09-27
 
 ### Added
