@@ -318,12 +318,35 @@ class Trongate_tokens_model extends Model {
         $set_cookie = isset($data['set_cookie']) && $data['set_cookie'] === true;
         
         if ($set_cookie) {
-            setcookie('trongatetoken', $random_string, $data['expiry_date'], '/');
+            $this->set_token_cookie($random_string, (int) $data['expiry_date']);
         } else {
             $_SESSION['trongatetoken'] = $random_string;
         }
 
         return $random_string;
+    }
+
+    /**
+     * Set (or clear) the trongatetoken cookie with the framework's security flags.
+     *
+     * The cookie is always HttpOnly and SameSite=Lax. The Secure flag is added
+     * when the application's BASE_URL is HTTPS, so a site running on plain HTTP
+     * receives exactly the cookie it received before.
+     *
+     * Setting and clearing must use the same attributes, so both go through here.
+     *
+     * @param string $value The raw token, or 'x' when clearing the cookie
+     * @param int $expires Unix timestamp; pass a past time to clear the cookie
+     * @return void
+     */
+    public function set_token_cookie(string $value, int $expires): void {
+        setcookie('trongatetoken', $value, [
+            'expires' => $expires,
+            'path' => '/',
+            'secure' => str_starts_with(strtolower(BASE_URL), 'https://'),
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
     }
 
     /**

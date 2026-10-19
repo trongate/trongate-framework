@@ -68,7 +68,7 @@ class Trongate_tokens extends Trongate {
         if (isset($_COOKIE['trongatetoken'])) {
             $tokens_to_delete[] = $_COOKIE['trongatetoken'];
             $past_date = time() - 86400;
-            setcookie('trongatetoken', 'x', $past_date, '/');
+            $this->model->set_token_cookie('x', $past_date);
         }
 
         // Check and add token from HTTP headers
@@ -159,6 +159,18 @@ class Trongate_tokens extends Trongate {
      */
     public function generate_token(array $data): string {
         return $this->model->generate_token($data);
+    }
+
+    /**
+     * Set (or clear) the trongatetoken cookie using the tokens module's
+     * hardened attributes, so other modules never emit the cookie themselves.
+     *
+     * @param string $value The raw token, or 'x' when clearing the cookie
+     * @param int $expires Unix timestamp; pass a past time to clear the cookie
+     * @return void
+     */
+    public function set_token_cookie(string $value, int $expires): void {
+        $this->model->set_token_cookie($value, $expires);
     }
 
     /**
