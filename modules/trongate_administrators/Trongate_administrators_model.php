@@ -157,8 +157,8 @@ class Trongate_administrators_model extends Model {
 	    $_SESSION['trongatetoken'] = $token;
 
 	    if ($remember === 1) {
-	        $this->module('trongate_tokens');
-	        $this->trongate_tokens->set_token_cookie($token, $expiry_date);
+        $this->module('trongate_tokens');
+        $this->trongate_tokens->set_token_cookie($token, $expiry_date);
 	    }
 
 	    return $token;
