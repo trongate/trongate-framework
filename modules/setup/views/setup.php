@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <base href="<?= BASE_URL ?>">
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="css/trongate.css">
-	<link rel="stylesheet" href="setup_module/css/setup.css">
-	<script src="js/trongate-mx.min.js"></script>
-	<title>Setup</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/trongate.css">
+    <link rel="stylesheet" href="setup_module/css/setup.css">
+    <script src="js/trongate-mx.min.js"></script>
+    <title>Setup</title>
 </head>
 <body>
     <canvas id="confetti-canvas"></canvas>
