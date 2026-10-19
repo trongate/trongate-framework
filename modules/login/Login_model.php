@@ -468,7 +468,7 @@ class Login_model extends Model {
         if ($remember === 1 && $config['allow_remember'] === 1) {
             $token_data['expiry_date'] = time() + (86400 * $config['remember_days']);
             $token = $this->trongate_tokens->generate_token($token_data);
-            setcookie('trongatetoken', $token, $token_data['expiry_date'], '/');
+            $this->trongate_tokens->set_token_cookie($token, $token_data['expiry_date']);
         } else {
             $token = $this->trongate_tokens->generate_token($token_data);
             $_SESSION['trongatetoken'] = $token;
