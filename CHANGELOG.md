@@ -8,6 +8,11 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.1024] - 2026-10-24
+
+### Changed
+- **Official site domain — `trongate.io` is now `trongateframework.com`** — the project's home page moved from `https://trongate.io/` to `https://trongateframework.com/`, so every reference inside the framework was repointed at the new domain. `Evo`'s `$api_base_url` (the host Flo uses for its outbound API calls) and the *Ask a Question* forum destination (`/forums-forum_threads/create/trongate-v2`) were updated, as were the admin template's footer *Powered by Trongate* and *Documentation* links (both the desktop and the small-screen variant), Flo's *Documentation* menu item (the `open_url:` postMessage), and the welcome module's site and documentation buttons together with their label text. The documentation and quick-start links in `README.md`, `CHANGELOG.md`, `config/login.php` and `modules/login/Login.php` were repointed too, along with the `@link` line of `license.txt`. Only the host changed — every path is identical to the one that was there before — and each destination was checked against the new origin: `/`, `/forums`, `/documentation`, `/benchmarks`, the login quick-start and the pre-launch checklist all return 200, and `/docs` 301s to `/documentation`. The `@author` email address in `license.txt` was updated too, from `dave@trongate.io` to `david@trongateframework.com`. No configuration value, method signature, database column or public API changed.
+
 ## [2.2026.1019] - 2026-10-19
 
 ### Security
