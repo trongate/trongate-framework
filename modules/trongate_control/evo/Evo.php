@@ -28,7 +28,7 @@ class Evo extends Trongate {
      *
      * @var string
      */
-    public $api_base_url = 'https://trongate.io/';
+    public $api_base_url = 'https://trongateframework.com/';
 
     /**
      * Constructor — dev-mode guard for the whole Flo system.
@@ -77,7 +77,7 @@ class Evo extends Trongate {
      * @return void
      */
     public function ask(): void {
-        $data['ask_url'] = 'https://trongate.io/forums-forum_threads/create/trongate-v2';
+        $data['ask_url'] = 'https://trongateframework.com/forums-forum_threads/create/trongate-v2';
         $this->view('ask', $data);
     }
 

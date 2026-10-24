@@ -2,7 +2,7 @@
 /**
  * Login Module Configuration
  *
- * 🔗 Quick start guide: https://trongate.io/documentation/trongate_way/understanding-trongates-login-system/quick-start
+ * 🔗 Quick start guide: https://trongateframework.com/documentation/trongate_way/understanding-trongates-login-system/quick-start
  *
  * Defines authentication rules per user level. Each user level maps to a
  * target database table and specifies which columns serve as login identifiers,

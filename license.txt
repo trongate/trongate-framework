@@ -28,6 +28,6 @@
  * @author  Dave Connelly (dave@trongate.io) and all contributors
  * @copyright   Copyright (c) 2019, Dave Connelly.
  * @license http://opensource.org/licenses/MIT  MIT License.
- * @link    https://trongate.io
+ * @link    https://trongateframework.com
  * @contributors https://github.com/trongate/trongate-framework/graphs/contributors
  */

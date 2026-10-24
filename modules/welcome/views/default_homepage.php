@@ -7,9 +7,9 @@
     if (strtolower(ENV) === 'dev') {
         echo anchor('trongate_administrators/manage', 'Admin Panel', ['class' => 'button']);
     } else {
-        echo anchor('https://trongate.io', 'Visit Trongate.io', ['class' => 'button', 'target' => '_blank']);
+        echo anchor('https://trongateframework.com', 'Visit Trongateframework.com', ['class' => 'button', 'target' => '_blank']);
     }
 
-    echo anchor('https://trongate.io/docs', 'View Documentation', ['class' => 'button alt', 'target' => '_blank']);
+    echo anchor('https://trongateframework.com/docs', 'View Documentation', ['class' => 'button alt', 'target' => '_blank']);
     ?>
 </div>

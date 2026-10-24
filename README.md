@@ -4,7 +4,7 @@ A zero-dependency PHP framework that includes CSS and JavaScript libraries.
 
 ## Why Trongate?
 
-- High performance ([benchmarks](https://trongate.io/benchmarks))
+- High performance ([benchmarks](https://trongateframework.com/benchmarks))
 - Stability-focused
 - Zero dependencies
 - No Composer
@@ -59,7 +59,7 @@ Update `config/database.php` accordingly.
 
 ### Critical Production Settings
 
-Before you deploy to production, perform the checks in [Pre-Launch Checklist](https://trongate.io/documentation/trongate_php_framework/tips-and-best-practices/pre-launch-checklist).
+Before you deploy to production, perform the checks in [Pre-Launch Checklist](https://trongateframework.com/documentation/trongate_php_framework/tips-and-best-practices/pre-launch-checklist).
 
 ## Usage
 
@@ -156,9 +156,9 @@ You now have a working module that reads from the database, displays records, va
 
 ## Resources
 
-[Documentation](https://trongate.io/documentation)
+[Documentation](https://trongateframework.com/documentation)
 
-[Discussion Forums](https://trongate.io/forums)
+[Discussion Forums](https://trongateframework.com/forums)
 
 ## Contributing
 

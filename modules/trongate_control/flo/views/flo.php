@@ -32,7 +32,7 @@
             <div>*</div>
             <div onclick="doReset()">Reset</div>
             <div>*</div>
-            <div onclick="parent.postMessage('open_url:https://trongate.io/documentation|new_tab', '*')">Documentation</div>
+            <div onclick="parent.postMessage('open_url:https://trongateframework.com/documentation|new_tab', '*')">Documentation</div>
             <div>*</div>
             <div onclick="parent.closeModal()">Close</div>
             <div>*</div>

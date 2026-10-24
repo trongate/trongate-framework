@@ -2,7 +2,7 @@
 /**
  * Login Module
  *
- * 🔗 Quick start guide: https://trongate.io/documentation/trongate_way/understanding-trongates-login-system/quick-start
+ * 🔗 Quick start guide: https://trongateframework.com/documentation/trongate_way/understanding-trongates-login-system/quick-start
  *
  * Portable, configurable authentication module for Trongate v2.
  * Supports multiple user levels, each with its own target table,

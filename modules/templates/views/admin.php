@@ -107,10 +107,10 @@ if (strtolower(ENV) === 'dev') {
         <div class="footer-left">
             <span>&copy; <?= date('Y').' '.WEBSITE_NAME ?></span>
             <span class="separator">|</span>
-            <a href="https://trongate.io/" target="_blank">Powered by Trongate</a>
+            <a href="https://trongateframework.com/" target="_blank">Powered by Trongate</a>
         </div>
         <div class="footer-right">
-            <a href="https://trongate.io/documentation" target="_blank">Documentation</a>
+            <a href="https://trongateframework.com/documentation" target="_blank">Documentation</a>
             <a href="https://github.com/trongate/trongate-framework" target="_blank">GitHub</a>
         </div>
     </div>
@@ -118,9 +118,9 @@ if (strtolower(ENV) === 'dev') {
     <div class="footer-sm">
         <div>&copy; <?= date('Y').' '.WEBSITE_NAME ?></div>
         <div class="footer-sm-links">
-            <a href="https://trongate.io/" target="_blank">Powered by Trongate</a>
+            <a href="https://trongateframework.com/" target="_blank">Powered by Trongate</a>
             <span class="separator">|</span>
-            <a href="https://trongate.io/documentation" target="_blank">Documentation</a>
+            <a href="https://trongateframework.com/documentation" target="_blank">Documentation</a>
             <span class="separator">|</span>
             <a href="https://github.com/trongate/trongate-framework" target="_blank">GitHub</a>
         </div>
