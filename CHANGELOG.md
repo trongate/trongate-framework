@@ -8,6 +8,11 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
+## [2.2026.1028] - 2026-10-28
+
+### Changed
+- **Extra-large layout containers — wider `xl` and `xxl` tiers** (`public/css/trongate.css`) — the two widest container utilities were narrower than the screens they exist for: `.container-xl` capped at `1100px` and `.container-xxl` at `1300px`, so an `xxl` container still left a wide gutter on a 1440px or 1920px display. `.container-xl` now caps at `1200px` and `.container-xxl` at `1400px`. Every other property is untouched — `width: 90%`, `margin: 0 auto` and `padding: 1em` still come from the shared `:where(.container, .container-xxs, .container-xs, .container-sm, .container-md, .container-lg, .container-xl, .container-xxl)` block, and `trongate.css` declares no CSS custom properties for container widths, so the two rule blocks are edited directly rather than through variables. The `container`, `xxs`, `xs`, `sm`, `md` and `lg` tiers are unchanged, as is every other class in the stylesheet; no PHP, configuration value, database column or method signature changed. ([#283](https://github.com/trongate/trongate-framework/pull/283))
+
 ## [2.2026.1024] - 2026-10-24
 
 ### Changed
