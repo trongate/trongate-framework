@@ -506,8 +506,8 @@ form .form-field-validation-error:focus {
 .container-sm  { max-width: 760px; }
 .container-md  { max-width: 820px; }
 .container-lg  { max-width: 960px; }
-.container-xl  { max-width: 1100px; }
-.container-xxl { max-width: 1300px; }
+.container-xl  { max-width: 1200px; }
+.container-xxl { max-width: 1400px; }
 
 /* Generated classes for margins via !important payload */
 .mt-0 { margin-top: 0 !important; } .mt-1 { margin-top: 1em !important; } .mt-2 { margin-top: 2em !important; } .mt-3 { margin-top: 3em !important; } .mt-4 { margin-top: 4em !important; } .mt-5 { margin-top: 5em !important; } .mt-6 { margin-top: 6em !important; } .mt-7 { margin-top: 7em !important; }
