@@ -463,6 +463,17 @@ class Login_model extends Model {
             return false;
         }
 
+        // Session fixation defence: the session ID was issued before this user was
+        // authenticated, so it must not survive the login. A false return means the
+        // rotation could not be done, and logging in anyway would leave the old ID live.
+        if (!$this->trongate_tokens->rotate_session_id()) {
+            return false;
+        }
+
+        // Drop any token this browser already held, so the identity issued below is
+        // the only one it can act as once the user is signed in.
+        $this->trongate_tokens->destroy();
+
         $token_data = ['user_id' => $trongate_user_id];
 
         if ($remember === 1 && $config['allow_remember'] === 1) {

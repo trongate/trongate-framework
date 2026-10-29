@@ -226,6 +226,7 @@ class Trongate_administrators extends Trongate {
      */
     public function logout(): void {
         $this->trongate_tokens->destroy(); // Destroy the authentication token
+        $this->trongate_tokens->rotate_session_id(); // The session ID must not outlive the token
         redirect('login/logout');
     }
 

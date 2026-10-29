@@ -279,6 +279,10 @@ class Login extends Trongate {
         // Destroy all tokens
         $this->trongate_tokens->destroy();
 
+        // The session ID should not outlive the identity it was tied to, otherwise
+        // signing out on a shared machine leaves the next person holding it.
+        $this->trongate_tokens->rotate_session_id();
+
         redirect($redirect_target);
     }
 
