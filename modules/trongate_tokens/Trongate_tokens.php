@@ -51,8 +51,7 @@ class Trongate_tokens extends Trongate {
      *
      * A session ID issued before login is a credential the user has not yet
      * proved they own, so it must not survive the point at which authentication
-     * happens. Any CSRF token issued to that session is discarded at the same
-     * time, because whoever planted the session could already have read it.
+     * happens.
      *
      * Callers authenticating a user must treat a false return as a failed login.
      * Continuing would leave the old, attacker-known session ID in place.
@@ -74,8 +73,21 @@ class Trongate_tokens extends Trongate {
             return false;
         }
 
-        unset($_SESSION['csrf_token']);
         return true;
+    }
+
+    /**
+     * Issue a new CSRF token for the current session and return it.
+     *
+     * Called when authentication changes hands, so a token seen before login is
+     * worthless afterwards. Kept separate from rotate_session_id() because not
+     * every rotation should invalidate a token an open panel is holding.
+     *
+     * @return string The new token.
+     */
+    public function renew_csrf_token(): string {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        return $_SESSION['csrf_token'];
     }
 
     /**

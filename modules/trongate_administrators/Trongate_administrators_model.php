@@ -132,9 +132,10 @@ class Trongate_administrators_model extends Model {
      *
      * @param string $username The username to log in
      * @param int $remember 0 for session-only, 1 for persistent cookie (30 days)
-     * @return string|bool The token string on success, false on failure
+     * @return string|bool|null The token on success, false when the login failed,
+     *   null when the session ID could not be rotated and the login was abandoned
      */
-    public function log_user_in(string $username, int $remember): string|bool {
+    public function log_user_in(string $username, int $remember): string|bool|null {
         $user_obj = $this->find_one('username', $username);
 
         if ($user_obj === false) {
@@ -147,8 +148,12 @@ class Trongate_administrators_model extends Model {
         // authenticated, so it must not survive the login. A false return means the
         // rotation could not be done, and logging in anyway would leave the old ID live.
         if (!$this->trongate_tokens->rotate_session_id()) {
-            return false;
+            return null;
         }
+
+        // A token minted for the pre-login session must not be reused now that the
+        // session belongs to a signed-in user. Issuing a fresh one keeps it explicit.
+        $this->trongate_tokens->renew_csrf_token();
 
         // Drop any token this browser already held, so the identity issued below is
         // the only one it can act as once the user is signed in.

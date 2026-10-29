@@ -446,9 +446,10 @@ class Login_model extends Model {
      * @param string $identifier The user's identifier
      * @param int $user_level_id The user level
      * @param int $remember 0 for session, 1 for persistent cookie
-     * @return string|bool The token string, or false on failure
+     * @return string|bool|null The token on success, false when the login failed,
+     *   null when the session ID could not be rotated and the login was abandoned
      */
-    public function log_user_in(string $identifier, int $user_level_id, int $remember = 0): string|bool {
+    public function log_user_in(string $identifier, int $user_level_id, int $remember = 0): string|bool|null {
         $this->module('trongate_tokens');
         $config = $this->get_level_config($user_level_id);
         $user = $this->find_user($identifier, $user_level_id);
@@ -467,8 +468,12 @@ class Login_model extends Model {
         // authenticated, so it must not survive the login. A false return means the
         // rotation could not be done, and logging in anyway would leave the old ID live.
         if (!$this->trongate_tokens->rotate_session_id()) {
-            return false;
+            return null;
         }
+
+        // A token minted for the pre-login session must not be reused now that the
+        // session belongs to a signed-in user. Issuing a fresh one keeps it explicit.
+        $this->trongate_tokens->renew_csrf_token();
 
         // Drop any token this browser already held, so the identity issued below is
         // the only one it can act as once the user is signed in.

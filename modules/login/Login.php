@@ -176,6 +176,16 @@ class Login extends Trongate {
             $remember = (int) (bool) post('remember');
             $token = $this->model->log_user_in($identifier, $user_level_id, $remember);
 
+            if ($token === null) {
+                // Rotation refused, so the login was abandoned rather than leaving the
+                // pre-login session ID live. rotate_session_id() has logged the cause.
+                http_response_code(500);
+                $msg = 'Authentication succeeded but the session ID could not be rotated, ';
+                $msg .= 'so the login was abandoned. Check the PHP error log for the cause.';
+                echo (ENV === 'dev') ? $msg : 'An internal error occurred.';
+                die();
+            }
+
             if ($token === false) {
                 http_response_code(500);
                 $msg = 'Authentication succeeded but token generation failed. ';
