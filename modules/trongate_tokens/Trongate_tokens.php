@@ -47,6 +47,50 @@ class Trongate_tokens extends Trongate {
     }
 
     /**
+     * Rotate the PHP session ID at an authentication boundary.
+     *
+     * A session ID issued before login is a credential the user has not yet
+     * proved they own, so it must not survive the point at which authentication
+     * happens.
+     *
+     * Callers authenticating a user must treat a false return as a failed login.
+     * Continuing would leave the old, attacker-known session ID in place.
+     *
+     * @return bool True when the session ID was rotated.
+     */
+    public function rotate_session_id(): bool {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return false;
+        }
+
+        if (headers_sent($file, $line)) {
+            error_log('Trongate: session ID not rotated, headers already sent at ' . $file . ':' . $line);
+            return false;
+        }
+
+        if (!session_regenerate_id(true)) {
+            error_log('Trongate: session_regenerate_id() failed.');
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Issue a new CSRF token for the current session and return it.
+     *
+     * Called when authentication changes hands, so a token seen before login is
+     * worthless afterwards. Kept separate from rotate_session_id() because not
+     * every rotation should invalidate a token an open panel is holding.
+     *
+     * @return string The new token.
+     */
+    public function renew_csrf_token(): string {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        return $_SESSION['csrf_token'];
+    }
+
+    /**
      * Destroy tokens from session, cookie, and HTTP headers.
      * 
      * This method removes tokens from session, cookie, and HTTP headers storage,

@@ -226,6 +226,7 @@ class Trongate_administrators extends Trongate {
      */
     public function logout(): void {
         $this->trongate_tokens->destroy(); // Destroy the authentication token
+        // Rotation happens once, in Login::logout(), which this redirects to.
         redirect('login/logout');
     }
 
@@ -411,6 +412,14 @@ class Trongate_administrators extends Trongate {
                 
                 if ($user_obj !== false) {
                     $token = $this->model->log_user_in($user_obj->username, 1);
+
+                    if (!is_string($token)) {
+                        // False means no account, null means the session ID could not be
+                        // rotated. Either way the request must not continue unauthenticated.
+                        http_response_code(500);
+                        error_log('Trongate: dev auto-login abandoned, no valid authentication token.');
+                        die('Dev auto-login failed: no valid authentication token could be issued.');
+                    }
                 } else {
                     http_response_code(500);
                     die('No active users found in database');
