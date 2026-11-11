@@ -47,12 +47,14 @@ class Core {
      * serve_module_asset() and died with "Access denied: assets must be in
      * subdirectories".
      *
+     * The test is made against the raw segment, exactly as serve_module_asset()
+     * does, so the two can never disagree about whether this is an asset request.
+     *
      * @return bool
      */
     private function is_module_asset_request(): bool {
         $module_segment = SEGMENTS[1] ?? '';
         $module_segment = explode('?', (string) $module_segment)[0];
-        $module_segment = urldecode($module_segment);
 
         if (str_ends_with($module_segment, MODULE_ASSETS_TRIGGER) === false) {
             return false;
