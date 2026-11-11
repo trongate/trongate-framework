@@ -26,11 +26,40 @@ class Core {
 
         if (strpos(ASSUMED_URL, '/vendor/')) {
             $this->serve_vendor_asset();
-        } elseif (strpos(ASSUMED_URL, MODULE_ASSETS_TRIGGER) === false) {
+        } elseif ($this->is_module_asset_request() === false) {
             $this->serve_controller();
         } else {
             $this->serve_module_asset();
         }
+    }
+
+    /**
+     * Determine whether the current request is for a module asset.
+     *
+     * Module assets are addressed as BASE_URL/{module_name}_module/{sub_dir}/{file}.
+     * The trigger is therefore a *suffix* of the module-name segment, never just
+     * any substring of the URL.
+     *
+     * Testing the whole URL for the trigger (the previous behaviour) hijacked any
+     * ordinary page URL that happened to contain the string "_module" somewhere,
+     * e.g. a documentation link ending in "class_reference-the_modules_class-run".
+     * Instead of reaching a controller those requests were handed to
+     * serve_module_asset() and died with "Access denied: assets must be in
+     * subdirectories".
+     *
+     * @return bool
+     */
+    private function is_module_asset_request(): bool {
+        $module_segment = SEGMENTS[1] ?? '';
+        $module_segment = explode('?', (string) $module_segment)[0];
+        $module_segment = urldecode($module_segment);
+
+        if (str_ends_with($module_segment, MODULE_ASSETS_TRIGGER) === false) {
+            return false;
+        }
+
+        // "_module" on its own leaves no module name behind.
+        return strlen($module_segment) > strlen(MODULE_ASSETS_TRIGGER);
     }
 
     /**
@@ -248,10 +277,11 @@ class Core {
         $url_segments = SEGMENTS;
 
         foreach ($url_segments as $url_segment_key => $url_segment_value) {
-            $pos = strpos($url_segment_value, MODULE_ASSETS_TRIGGER);
-
-            if (is_numeric($pos)) {
-                $target_module = str_replace(MODULE_ASSETS_TRIGGER, '', $url_segment_value);
+            // The trigger must terminate the module-name segment.  A segment that
+            // merely *contains* it (e.g. a file called "the_modules_class.css")
+            // is not a module name.
+            if (str_ends_with($url_segment_value, MODULE_ASSETS_TRIGGER)) {
+                $target_module = substr($url_segment_value, 0, -strlen(MODULE_ASSETS_TRIGGER));
                 $file_name = $url_segments[count($url_segments) - 1];
 
                 // URL Decoding & Initial Validation
