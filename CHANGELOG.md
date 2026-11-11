@@ -8,11 +8,6 @@ The Trongate project uses the version format: `{major version}.{year}.{month}{da
 
 The current version of the framework is documented in its [license.txt](https://github.com/trongate/trongate-framework/blob/master/license.txt) file.
 
-## [2.2026.1111] - 2026-11-11
-
-### Fixed
-- **A `_module` in a URL no longer hijacks the request** (`engine/Core.php`) — the dispatcher chose between *serve this controller* and *serve a module asset* by testing the whole URL for `MODULE_ASSETS_TRIGGER`, the literal string `_module`, with `strpos()`. Any ordinary page URL that merely *contained* that string anywhere — a slug, a segment, a query value, a documentation reference name such as `class_reference-the_modules_class-run` — was therefore treated as a module-asset request: it never reached a controller, and `serve_module_asset()` rejected it with *"Access denied: assets must be in subdirectories"* (HTTP 403). Module assets are addressed as `BASE_URL/{module_name}_module/{sub_dir}/{file}`, so the trigger is now only honoured as a **suffix of the module-name segment**, via a new private helper, `Core::is_module_asset_request()`, which also rejects a bare `_module` segment since it leaves no module name behind. The same rule is applied inside `serve_module_asset()` when the module name is extracted (`str_ends_with()` plus `substr()`, replacing `strpos()`/`str_replace()`), so a *file name* that merely contains the trigger — `the_modules_class.css`, say — can no longer be mistaken for the module segment and overwrite the resolved module. Every URL that was served correctly before is served exactly as before: `documentation_module/css/docs_ahoy.css` still resolves, `_module/css/x.css` still falls through to normal routing. No configuration value, method signature, database column or public API changed.
-
 ## [2.2026.1028] - 2026-10-28
 
 ### Changed
