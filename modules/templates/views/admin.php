@@ -90,7 +90,7 @@ if (strtolower(ENV) === 'dev') {
                 </a>
             </li>
             <li>
-                <a href="#">
+                <a href="trongate_administrators/manage">
                     Manage Users
                 </a>
             </li>
@@ -137,7 +137,7 @@ if (strtolower(ENV) === 'dev') {
 
   <ul class="slide-nav-list">
     <li><a href="#">Dashboard</a></li>
-    <li><a href="#">Manage Users</a></li>
+    <li><a href="trongate_administrators/manage">Manage Users</a></li>
     <li><a href="#">Products</a></li>
     <li><a href="#">Orders</a></li>
     <li><a href="#">Messages (1)</a></li>
