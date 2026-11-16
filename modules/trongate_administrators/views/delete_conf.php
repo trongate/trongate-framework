@@ -4,8 +4,8 @@
         Confirmation Required
     </div>
     <div class="card-body">
-        <p>Are you sure?</p>
-        <p>You are about to delete a record. This cannot be undone. Do you really want to do this?</p>
+        <h3 class="text-center mt-0">Are you sure?</h3>
+        <p class="text-center">You are about to delete an administrator record. This cannot be undone. Do you really want to do this?</p>
         
         <?php
         echo form_open($form_location);

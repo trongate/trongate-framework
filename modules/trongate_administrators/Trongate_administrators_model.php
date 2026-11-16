@@ -19,23 +19,53 @@ class Trongate_administrators_model extends Model {
     }
 
     /**
-     * Get data from database for a specific record
-     * 
-     * Retrieves a single record by ID and prepares it for form display.
-     * Returns false if record not found.
-     * 
-     * @param int $record_id The record ID to fetch
-     * @return array<string, mixed>|bool Record data formatted for form display
-     *                                    Returns false if record not found
+     * Retrieve a single record from the database by ID.
+     *
+     * @param int $update_id Record ID.
+     * @param bool $prepare_for_display Whether to pass the record through prepare_record_for_display().
+     * @return array|bool Associative array on success or false on failure.
      */
-    public function get_data_from_db(int $record_id): array|bool {
-        $record = $this->find_one('id', $record_id);
-        
-        if ($record === false) {
+    public function get_data_from_db(int $update_id, bool $prepare_for_display = false): array|bool {
+        $record_obj = $this->find_one('id', $update_id);
+
+        if ($record_obj === false) {
             return false;
         }
-        
-        return (array) $record;
+
+        if ($prepare_for_display === true) {
+            $record_obj = $this->prepare_record_for_display($record_obj);
+        }
+
+        return (array) $record_obj;
+    }
+
+    /**
+     * Retrieve a record for editing or delete confirmation (no display transformations).
+     *
+     * @param int $update_id Record ID.
+     * @return array|bool Associative array on success or false on failure.
+     */
+    public function get_data_for_edit(int $update_id): array|bool {
+        return $this->get_data_from_db($update_id, false);
+    }
+
+    /**
+     * Find a record by ID and return it as an object.
+     *
+     * @param int $update_id Record ID.
+     * @return object|bool Record object on success or false on failure.
+     */
+    public function find_by_id(int $update_id): object|bool {
+        return $this->find_one('id', $update_id);
+    }
+
+    /**
+     * Return the list of searchable column names (used by the controller for validation).
+     *
+     * @return array<string>
+     */
+    public function get_searchable_columns(): array {
+        return ['username', 'email'];
     }
     
     /**
@@ -49,6 +79,7 @@ class Trongate_administrators_model extends Model {
     public function get_data_from_post(): array {
         return [
             'username' => post('username', true),
+            'email'    => post('email', true),
             'active'   => post('active', true)
         ];
     }
@@ -211,24 +242,78 @@ class Trongate_administrators_model extends Model {
     }
 
     /**
-     * Retrieve a paginated set of records from the database table.
+     * Fetch a paginated set of administrator records.
      *
-     * @param int $limit  Number of records to return.
-     * @param int $offset Number of records to skip.
-     *
-     * @return array<object>  Array of record objects.
+     * @param int $limit Records per page
+     * @param int $offset Records to skip
+     * @return array<object>
      */
-    public function get_all_paginated(int $limit, int $offset): array {
-        $sql = "SELECT * FROM {$this->table_name} ORDER BY id LIMIT :limit OFFSET :offset";
-        $params = [
-            'limit' => $limit,
-            'offset' => $offset
-        ];
-        return $this->db->query_bind($sql, $params, 'object');
+    public function fetch_records(int $limit, int $offset): array {
+        $sql = 'SELECT * FROM '.$this->table_name.' ORDER BY id LIMIT '.$limit.' OFFSET '.$offset;
+        return $this->db->query($sql, 'object');
     }
 
     /**
-     * Prepare multiple records for display in list views.
+     * Search administrator records across searchable columns.
+     *
+     * @param string $query The search query string.
+     * @param string $column Specific column to search, or empty string to search all.
+     * @param int $limit Maximum records to return.
+     * @param int $offset Records to skip.
+     * @return array<object>
+     */
+    public function search_records(string $query, string $column, int $limit, int $offset): array {
+        $searchable_columns = $this->get_searchable_columns();
+
+        // Validate column against whitelist before interpolating into SQL.
+        if ($column !== '' && !in_array($column, $searchable_columns, true)) {
+            $column = '';
+        }
+
+        if ($column !== '') {
+            $sql = 'SELECT * FROM '.$this->table_name.' WHERE '.$column.' LIKE :query ORDER BY id LIMIT '.$limit.' OFFSET '.$offset;
+        } else {
+            $conditions = [];
+            foreach ($searchable_columns as $col) {
+                $conditions[] = $col.' LIKE :query';
+            }
+            $sql = 'SELECT * FROM '.$this->table_name.' WHERE ('.implode(' OR ', $conditions).') ORDER BY id LIMIT '.$limit.' OFFSET '.$offset;
+        }
+
+        return $this->db->query_bind($sql, ['query' => '%'.$query.'%'], 'object');
+    }
+
+    /**
+     * Count search results for administrator records.
+     *
+     * @param string $query The search query string.
+     * @param string $column Specific column to search, or empty string to search all.
+     * @return int Number of matching records.
+     */
+    public function count_search_results(string $query, string $column): int {
+        $searchable_columns = $this->get_searchable_columns();
+
+        // Validate column against whitelist before interpolating into SQL.
+        if ($column !== '' && !in_array($column, $searchable_columns, true)) {
+            $column = '';
+        }
+
+        if ($column !== '') {
+            $sql = 'SELECT COUNT(*) as total FROM '.$this->table_name.' WHERE '.$column.' LIKE :query';
+        } else {
+            $conditions = [];
+            foreach ($searchable_columns as $col) {
+                $conditions[] = $col.' LIKE :query';
+            }
+            $sql = 'SELECT COUNT(*) as total FROM '.$this->table_name.' WHERE ('.implode(' OR ', $conditions).')';
+        }
+
+        $result = $this->db->query_bind($sql, ['query' => '%'.$query.'%'], 'object');
+        return (int) ($result[0]->total ?? 0);
+    }
+
+    /**
+     * Prepare multiple administrator records for display in list views.
      *
      * @param array<object> $rows
      *
@@ -238,29 +323,27 @@ class Trongate_administrators_model extends Model {
         $prepared = [];
 
         foreach ($rows as $row) {
-            $prepared[] = (object) $this->prepare_for_display((array) $row);
+            $prepared[] = $this->prepare_record_for_display($row);
         }
 
         return $prepared;
     }
 
     /**
-     * Prepare a single record for display.
+     * Prepare raw administrator data for display in views.
      *
-     * Adds derived, human-readable values without mutating raw data.
-     *
-     * @param array<string, mixed> $data
-     *
-     * @return array<string, mixed>
+     * @param object $record_obj Raw data from database
+     * @return object Enhanced data with formatted fields
      */
-    public function prepare_for_display(array $data): array {
-        if (array_key_exists('active', $data)) {
-            $data['active_formatted'] = ((int) $data['active'] === 1)
-                ? 'Active'
-                : 'Not Active';
-        }
-
-        return $data;
+    public function prepare_record_for_display(object $record_obj): object {
+        $record_obj->active_formatted = ((int) $record_obj->active === 1) ? 'Active' : 'Not Active';
+        $record_obj->last_failed_attempt_formatted = ((int) $record_obj->last_failed_attempt > 0)
+            ? date('jS M Y, H:i', (int) $record_obj->last_failed_attempt)
+            : '—';
+        $record_obj->login_blocked_until_formatted = ((int) $record_obj->login_blocked_until > 0)
+            ? date('jS M Y, H:i', (int) $record_obj->login_blocked_until)
+            : '—';
+        return $record_obj;
     }
 
     /**
