@@ -28,10 +28,10 @@ class Trongate_administrators extends Trongate {
      * @return void
      */
     public function create(): void {
-        $this->trongate_security->make_sure_allowed();
-        
         $update_id = segment(3, 'int');
-        
+
+        $this->trongate_security->make_sure_allowed();
+
         if ($update_id > 0) {
             $data = $this->model->get_data_from_db($update_id);
             if ($data === false) {
@@ -42,17 +42,18 @@ class Trongate_administrators extends Trongate {
             $data = $this->model->get_data_from_post();
         }
 
-        $data['headline'] = ($update_id > 0) ? 'Update Record' : 'Create New Record';
-        $data['cancel_url'] = ($update_id > 0) 
-            ? BASE_URL . $this->module_name . '/show/' . $update_id 
-            : BASE_URL . $this->module_name . '/manage';
+        $data['update_id'] = $update_id;
+        $data['headline'] = ($update_id > 0) ? 'Update Administrator Record' : 'Create New Administrator Record';
+        $data['cancel_url'] = ($update_id > 0)
+            ? $this->module_name.'/show/'.$update_id
+            : $this->module_name.'/manage';
 
-        $data['update_password_url'] = str_replace('/create', '/update_password', current_url());
-        $data['form_location'] = BASE_URL . $this->module_name . '/submit/' . $update_id;
+        $data['update_password_url'] = $this->module_name.'/update_password/'.$update_id;
+        $data['form_location'] = $this->module_name.'/submit/'.$update_id;
         $data['theme'] = $this->admin_theme;
         $data['view_module'] = $this->module_name;
         $data['view_file'] = 'create';
-        
+
         $this->templates->admin($data);
     }
 
@@ -71,9 +72,10 @@ class Trongate_administrators extends Trongate {
             return;
         }
 
-        $record_data = $this->model->get_data_from_db($update_id);
+        // Fetch record and prepare for display.
+        $data = $this->model->get_data_from_db($update_id, true);
 
-        if ($record_data === false) {
+        if ($data === false) {
             $this->not_found();
             return;
         }
@@ -82,11 +84,11 @@ class Trongate_administrators extends Trongate {
         $logged_in_user_id = (int) ($my_user_obj->id ?? 0);
 
         $is_own_account = ($update_id === $logged_in_user_id) ? true : false;
-        $data = $this->model->prepare_for_display($record_data);
         $data['update_id'] = $update_id;
-        $data['headline'] = $is_own_account ? 'Your Account Details' : 'Record Details';
+        $data['headline'] = $is_own_account ? 'Your Account Details' : 'Administrator Details';
         $data['is_own_account'] = $is_own_account;
         $data['back_url'] = $this->get_back_url();
+        $data['update_password_url'] = $this->module_name.'/update_password/'.$update_id;
         $data['theme'] = $this->admin_theme;
         $data['view_module'] = $this->module_name;
         $data['view_file'] = 'show';
@@ -131,7 +133,7 @@ class Trongate_administrators extends Trongate {
             return;
         }
         
-        $record_data = $this->model->get_data_from_db($update_id);
+        $record_data = $this->model->get_data_for_edit($update_id);
         
         if ($record_data === false) {
             $this->not_found();
@@ -139,9 +141,9 @@ class Trongate_administrators extends Trongate {
         }
         
         $data['update_id'] = $update_id;
-        $data['headline'] = 'Delete Record';
-        $data['cancel_url'] = BASE_URL . $this->module_name . '/show/' . $update_id;
-        $data['form_location'] = BASE_URL . $this->module_name . '/submit_delete/' . $update_id;
+        $data['headline'] = 'Delete Administrator Record';
+        $data['cancel_url'] = $this->module_name.'/show/'.$update_id;
+        $data['form_location'] = $this->module_name.'/submit_delete/'.$update_id;
         $data['theme'] = $this->admin_theme;
         $data['view_module'] = $this->module_name;
         $data['view_file'] = 'delete_conf';
@@ -170,10 +172,10 @@ class Trongate_administrators extends Trongate {
 
         $data['headline'] = $is_own_account ? 'Update Your Password' : 'Update Password';
         $data['cancel_url'] = ($update_id > 0) 
-            ? BASE_URL . $this->module_name . '/show/' . $update_id 
-            : BASE_URL . $this->module_name . '/manage';
+            ? $this->module_name.'/show/'.$update_id 
+            : $this->module_name.'/manage';
 
-        $data['form_location'] = str_replace('/update_password/', '/submit_update_password/', current_url());
+        $data['form_location'] = $this->module_name.'/submit_update_password/'.$update_id;
         $data['theme'] = $this->admin_theme;
         $data['view_module'] = $this->module_name;
         $data['view_file'] = 'update_password';
@@ -277,6 +279,7 @@ class Trongate_administrators extends Trongate {
         }
         
         $this->validation->set_rules('username', 'username', 'required|min_length[2]|max_length[50]|callback_username_check');
+        $this->validation->set_rules('email', 'email address', 'valid_email|max_length[255]');
         
         if ($this->validation->run() !== true) {
             $this->create();
@@ -343,8 +346,8 @@ class Trongate_administrators extends Trongate {
         }
         
         // Verify record exists before deleting
-        $record_data = $this->model->get_data_from_db($update_id);
-        if ($record_data === false) {
+        $record = $this->model->find_by_id($update_id);
+        if ($record === false) {
             redirect($this->module_name . '/manage');
             return;
         }
@@ -361,26 +364,101 @@ class Trongate_administrators extends Trongate {
      * @return void
      */
     public function manage(): void {
-        $this->trongate_security->make_sure_allowed();
+        $token = $this->trongate_security->make_sure_allowed();
         
+        $search_query = $_GET['search_query'] ?? '';
+        $search_column = $_GET['search_column'] ?? '';
+
+        // Validate column against known searchable columns.
+        $allowed_columns = $this->model->get_searchable_columns();
+        if ($search_column !== '' && !in_array($search_column, $allowed_columns, true)) {
+            $search_column = '';
+        }
+
+        $search_active = ($search_query !== '');
+
+        if ($search_active) {
+            $total_rows = $this->model->count_search_results($search_query, $search_column);
+        } else {
+            $total_rows = $this->model->count_all();
+        }
+
         $limit = $this->get_limit();
         $offset = $this->get_offset();
-        
-        $rows = $this->model->get_all_paginated($limit, $offset);
+
+        if ($search_active) {
+            $rows = $this->model->search_records($search_query, $search_column, $limit, $offset);
+        } else {
+            $rows = $this->model->fetch_records($limit, $offset);
+        }
         $rows = $this->model->prepare_records_for_display($rows);
-        $total_rows = $this->model->count_all();
-  
+
+        $my_user_obj = $this->model->get_user_by_token($token);
+        $logged_in_user_id = (int) ($my_user_obj->id ?? 0);
+
         $data = [
             'theme' => $this->admin_theme,
             'rows' => $rows,
-            'pagination_data' => $this->get_pagination_data($limit, $total_rows),
+            'pagination_data' => $this->get_pagination_data($total_rows, $limit, $search_query, $search_column),
             'view_module' => $this->module_name,
             'view_file' => 'manage',
             'per_page_options' => $this->per_page_options,
-            'selected_per_page' => $this->get_selected_per_page()
+            'selected_per_page' => $this->get_selected_per_page(),
+            'logged_in_user_id' => $logged_in_user_id
         ];
-        
+
+        $data['search_query'] = $search_query;
+        $data['search_column'] = $search_column;
+        $data['search_active'] = $search_active;
+
         $this->templates->admin($data);
+    }
+
+    /**
+     * Handle search form submission for filtering records.
+     *
+     * Preprocesses text parameters and redirects to the manage page with a query string.
+     *
+     * @return void
+     */
+    public function submit_search(): void {
+        $this->trongate_security->make_sure_allowed();
+
+        $search_query = post('search_query', true);
+        $search_column = post('search_column', true);
+
+        // Validate column against known searchable columns.
+        $allowed_columns = $this->model->get_searchable_columns();
+        if ($search_column !== '' && !in_array($search_column, $allowed_columns, true)) {
+            $search_column = '';
+        }
+
+        // Preprocess the query
+        $search_query = trim($search_query);
+        $search_query = preg_replace('/\s+/', ' ', $search_query);
+
+        // Validate minimum 2 character length
+        if (strlen($search_query) < 2) {
+            set_flashdata('Search query must be at least 2 characters');
+            redirect($this->module_name . '/manage');
+        }
+
+        redirect($this->module_name . '/manage?search_query=' . urlencode($search_query) . '&search_column=' . urlencode($search_column));
+    }
+
+    /**
+     * Display the search modal form for filtering records.
+     *
+     * Renders a form with a search input and a dropdown of searchable columns.
+     *
+     * @return void
+     */
+    public function search_modal(): void {
+        $this->trongate_security->make_sure_allowed();
+
+        $data['view_module'] = $this->module_name;
+        $data['view_file'] = 'search_modal';
+        $this->view('search_modal', $data);
     }
 
     /**
@@ -458,16 +536,23 @@ class Trongate_administrators extends Trongate {
     /**
      * Generate pagination configuration data
      * 
-     * @param int $limit Number of records per page
-     * @param int $total_rows Total number of records
-     * @return array Pagination configuration
+     * @param int    $total_rows    Total number of records
+     * @param int    $limit         Number of records per page
+     * @param string $search_query  The search query string
+     * @param string $search_column The column being searched
+     * @return array Pagination configuration for template
      */
-    private function get_pagination_data(int $limit, int $total_rows): array {
+    private function get_pagination_data(int $total_rows, int $limit, string $search_query = '', string $search_column = ''): array {
+        $pagination_query = '';
+        if ($search_query !== '' && $search_column !== '') {
+            $pagination_query = 'search_query=' . urlencode($search_query) . '&search_column=' . urlencode($search_column);
+        }
+
         return [
             'total_rows' => $total_rows,
-            'page_num_segment' => 3,
             'limit' => $limit,
             'pagination_root' => $this->module_name . '/manage',
+            'pagination_query' => $pagination_query,
             'record_name_plural' => 'records',
             'include_showing_statement' => true
         ];
