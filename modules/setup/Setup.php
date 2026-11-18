@@ -106,6 +106,37 @@ class Setup {
     private bool $module_deletion_expected = false;
 
     /**
+     * The wizard is a development tool only.
+     *
+     * Core calls this class from a single comparison ahead of routing -
+     * `if (BASE_URL === '****')` - which carries no ENV test, so that the test
+     * is paid once per wizard request instead of once per request for the
+     * lifetime of the application. The check is made here instead, and nothing
+     * is drawn when it fails: a live server is given the same 404 it would get
+     * if this module were absent.
+     */
+    public function __construct() {
+        if ($this->is_development() === false) {
+            http_response_code(404);
+            echo 'Not found';
+            die();
+        }
+    }
+
+    /**
+     * Is this a development installation?
+     *
+     * @return bool
+     */
+    private function is_development(): bool {
+        if (defined('ENV') === false) {
+            return false;
+        }
+
+        return strtolower((string) ENV) === 'dev';
+    }
+
+    /**
      * Run the wizard: work out the request, then draw the current stage.
      *
      * @return void
@@ -145,6 +176,13 @@ class Setup {
                 $message = 'The <code>setup</code> module could not be removed automatically. '
                     . 'Please delete <code>' . out(APPPATH . 'modules/setup') . '</code> by hand, '
                     . 'otherwise this wizard will keep appearing in place of your application.';
+                $html = $this->append_alert($html, $message);
+            }
+
+            if ($this->remove_setup_gate() === false) {
+                $message = 'The first-run check in <code>engine/Core.php</code> could not be removed '
+                    . 'automatically. It is a single comparison of <code>BASE_URL</code>, which is false '
+                    . 'from now on, so it can safely be left where it is.';
                 $html = $this->append_alert($html, $message);
             }
         }
@@ -1287,6 +1325,84 @@ class Setup {
         }
 
         return true;
+    }
+
+    /**
+     * Take the first-run check out of engine/Core.php.
+     *
+     * The check is one comparison, but it is a comparison that asks "is this a
+     * fresh download?" on every request for as long as the application runs.
+     * The application has just been installed, so the answer is known and the
+     * question can be removed from the file.
+     *
+     * The two blocks are matched exactly and the removal is all-or-nothing: if
+     * either block is not found, or the result would not parse, the file is
+     * left untouched. That matters because engine/Core.php is framework code
+     * and may have been reformatted by a later release.
+     *
+     * @return bool
+     */
+    private function remove_setup_gate(): bool {
+        $path = APPPATH . 'engine/Core.php';
+
+        if (is_file($path) === false || is_writable($path) === false) {
+            return false;
+        }
+
+        $contents = (string) file_get_contents($path);
+
+        if ($contents === '') {
+            return false;
+        }
+
+        // Each block begins with the blank line that separates it from what
+        // goes before it, so that removing the block leaves no double gap.
+        $gate = <<<'PHP'
+
+        // One constant comparison: no string function, no filesystem call. It is
+        // true only while config/config.php still holds the placeholder, so once
+        // the application is installed this costs a single test that cannot fail.
+        if (BASE_URL === '****') {
+            $this->attempt_invoke_setup_wizard();
+        }
+
+PHP;
+
+        $method = <<<'PHP'
+
+    /**
+     * Render the first-run setup wizard and end the request.
+     *
+     * @return never
+     */
+    private function attempt_invoke_setup_wizard(): void {
+        require APPPATH . 'modules/setup/Setup.php';
+        $setup = new Setup;
+        $setup->run();
+        die();
+    }
+
+PHP;
+
+        foreach ([$gate, $method] as $block) {
+            if (str_contains($contents, $block) === false) {
+                return false;
+            }
+        }
+
+        $contents = str_replace([$gate, $method], '', $contents);
+
+        if (str_contains($contents, 'attempt_invoke_setup_wizard') === true) {
+            return false;
+        }
+
+        try {
+            token_get_all($contents, TOKEN_PARSE);
+        } catch (ParseError $e) {
+            return false;
+        }
+
+        return $this->write_file($path, $contents);
     }
 
     /**
