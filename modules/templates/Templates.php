@@ -61,16 +61,9 @@ class Templates extends Trongate {
     /**
      * Display 404 error page.
      *
-     * If BASE_URL is still the '****' placeholder, shows the URL
-     * configuration form instead of a generic 404.
-     *
      * @return void
      */
     public function error_404(): void {
-        if ((BASE_URL === '****') && (strtolower(ENV) === 'dev')) {
-            $this->show_url_setup();
-            return;
-        }
         $this->display('error_404');
     }
 

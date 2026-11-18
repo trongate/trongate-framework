@@ -70,6 +70,11 @@ class Core {
      * and strictly blocks underscore methods from URL access.
      */
     private function serve_controller(): void {
+
+        if (BASE_URL === '****' && strtolower(ENV) === 'dev') {
+            $this->attempt_invoke_setup_wizard();
+        }
+
         $segments = SEGMENTS;
 
         // Parse and sanitize module from segments
@@ -99,6 +104,19 @@ class Core {
         }
 
         $this->invoke_controller_method();
+    }
+
+    /**
+     * Render the first-run setup wizard and end the request.
+     *
+     * @return never
+     */
+    private function attempt_invoke_setup_wizard(): void {
+        http_response_code(503);
+        require '../modules/setup/Setup.php'; // wherever the HTML lives
+        $setup = new Setup;
+        $setup->run();
+        die();
     }
 
     /**
