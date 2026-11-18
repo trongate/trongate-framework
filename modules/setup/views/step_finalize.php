@@ -1,4 +1,8 @@
+<?php if ($this->is_fast_mode() === true) { ?>
+<h1 class="text-center">You're All Set</h1>
+<?php } else { ?>
 <h1 class="text-center">Almost There</h1>
+<?php } ?>
 <?= $this->draw_steps_indicator() ?>
 
 <?php if ($this->is_admin_verified()) { ?>
@@ -13,12 +17,17 @@
 <?php } ?>
 
 <div class="instructions">
+<?php if ($this->is_module_deleted() === true) { ?>
+    <p>The <code>setup</code> module has been removed, so this wizard will not appear again.</p>
+    <p class="mt-2">Visit your application's homepage to begin.</p>
+<?php } else { ?>
     <p><strong>1.</strong> Delete the <code>setup</code> module folder. You will find it here:</p>
     <div class="long-path">
         <code><?= out(APPPATH . 'modules/setup') ?></code>
     </div>
     <p class="mt-2"><strong>2.</strong> Then visit your application's homepage.</p>
     <p class="note">Until that folder has been deleted, this wizard will keep appearing in place of your application.</p>
+<?php } ?>
 </div>
 
 <a class="btn" href="<?= out($this->get_base_url()) ?>" style="display: block; box-sizing: border-box; color: #fff; text-decoration: none;">Go to Your Homepage</a>

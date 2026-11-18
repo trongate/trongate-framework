@@ -9,9 +9,17 @@
  * plain PHP, drawn as a single page, with every form posting back to the
  * address that drew it.
  *
- * Nothing in this class writes to the filesystem. Where a file has to change
- * (config/config.php, config/database.php) the wizard prints the code to paste
- * and then verifies the result with a live check on the next request.
+ * The step-by-step path writes nothing to the filesystem: where a file has to
+ * change (config/config.php, config/database.php) the wizard prints the code to
+ * paste and then verifies the result with a live check on the next request.
+ *
+ * The one exception is the automatic installation, offered on the first stage
+ * when the environment permits it. It requires that PHP can write to config/
+ * and delete this module, that the request came from the local machine, and
+ * that the database server is reachable and does not already hold an
+ * installation. When all of that holds the wizard saves the two config files,
+ * creates the database, runs the framework's SQL and removes this module, so
+ * that the developer only has to supply the administrator account.
  */
 class Setup {
 
@@ -73,6 +81,28 @@ class Setup {
     private bool $celebrate = false;
 
     /**
+     * Set when this run of the wizard is the automatic installation.
+     */
+    private bool $fast_mode = false;
+
+    /**
+     * The result of the environment probe, cached for the request.
+     *
+     * @var array<string, mixed>|null
+     */
+    private ?array $probe = null;
+
+    /**
+     * Set when this module is to be deleted once the page has been drawn.
+     */
+    private bool $module_deletion_pending = false;
+
+    /**
+     * Set when this module was expected to be deleted on this request.
+     */
+    private bool $module_deletion_expected = false;
+
+    /**
      * Run the wizard: work out the request, then draw the current stage.
      *
      * @return void
@@ -92,10 +122,31 @@ class Setup {
         // token in the forms matches the token in the session.
         $this->get_token();
 
+        if ($this->module_deletion_pending === true) {
+            $this->module_deletion_expected = $this->can_delete_module_folder();
+        }
+
         $this->state['step'] = $this->step;
         $_SESSION['setup_wizard'] = $this->state;
 
+        // The page has to be built before this module is deleted, because the
+        // view files and the stylesheet are read from the folder being removed.
+        ob_start();
         require __DIR__ . '/views/setup_template.php';
+        $html = (string) ob_get_clean();
+
+        if ($this->module_deletion_pending === true) {
+            $this->module_deletion_pending = false;
+
+            if ($this->delete_module_folder() === false) {
+                $message = 'The <code>setup</code> module could not be removed automatically. '
+                    . 'Please delete <code>' . out(APPPATH . 'modules/setup') . '</code> by hand, '
+                    . 'otherwise this wizard will keep appearing in place of your application.';
+                $html = $this->append_alert($html, $message);
+            }
+        }
+
+        echo $html;
     }
 
     /**
@@ -115,7 +166,24 @@ class Setup {
     }
 
     /**
-     * Work out the application's base URL from the request.
+     * The application's base URL, as it should be assumed to be.
+     *
+     * config/config.php is authoritative once it holds a real value; while it
+     * holds the placeholder the URL is derived from the request.
+     *
+     * @return string The base URL, with a trailing slash.
+     */
+    private function get_assumed_base_url(): string {
+        // Once config/config.php has a real BASE_URL there is nothing to assume.
+        if (BASE_URL !== '****') {
+            return BASE_URL;
+        }
+
+        return $this->derive_base_url();
+    }
+
+    /**
+     * Work out the application's URL from the request that is being served.
      *
      * SCRIPT_NAME is the URL of the script that is actually executing, after
      * rewriting and after any server Alias, which is exactly the question being
@@ -124,7 +192,7 @@ class Setup {
      *
      * @return string The base URL, with a trailing slash.
      */
-    private function get_assumed_base_url(): string {
+    private function derive_base_url(): string {
         $scheme = 'http';
 
         if (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1')) {
@@ -151,6 +219,8 @@ class Setup {
             $this->state = $_SESSION['setup_wizard'];
         }
 
+        $this->fast_mode = ($this->state['fast_mode'] ?? false) === true;
+
         $step = (int) ($this->state['step'] ?? 1);
 
         if ($step < 1 || $step > count($this->steps)) {
@@ -176,7 +246,17 @@ class Setup {
 
         switch ($action) {
             case 'begin':
-                $this->step = 2;
+                $this->start_wizard();
+                break;
+            case 'use_wizard':
+                $this->start_wizard();
+                break;
+            case 'fast_install':
+                $this->fast_install();
+                break;
+            case 'retry_probe':
+                $this->probe = null;
+                $this->step = 1;
                 break;
             case 'confirm_base_url':
                 $this->confirm_base_url();
@@ -304,6 +384,10 @@ class Setup {
         $this->state['admin'] = ['username' => $username, 'email' => $email];
         $this->state['admin_created'] = true;
         $this->step = 5;
+
+        if ($this->fast_mode === true) {
+            $this->module_deletion_pending = true;
+        }
     }
 
     /**
@@ -643,6 +727,13 @@ class Setup {
      * @throws PDOException If the connection fails.
      */
     private function get_pdo_connection(): PDO {
+        // The automatic installation writes config/database.php and then keeps
+        // working in the same session, where the loaded copy of that file is
+        // already stale. The credentials it has just saved are used instead.
+        if ($this->fast_mode === true && isset($this->state['database']['host'])) {
+            return $this->connect_to_database($this->state['database']);
+        }
+
         $config = $GLOBALS['databases']['default'];
         $dsn = 'mysql:host=' . $config['host']
             . ';port=' . ($config['port'] ?? '3306')
@@ -783,8 +874,15 @@ class Setup {
         $html = '<div class="steps">';
 
         foreach ($this->steps as $number => $title) {
-            $active_class = ($number === $this->step) ? ' active' : '';
-            $html .= '<div class="step' . $active_class . '">';
+            $step_class = 'step';
+
+            if ($number === $this->step) {
+                $step_class .= ' active';
+            } elseif ($number < $this->step) {
+                $step_class .= ' done';
+            }
+
+            $html .= '<div class="' . $step_class . '">';
             $html .= '<span class="step-number">' . $number . '</span>';
             $html .= '<span class="step-title">' . out($title) . '</span>';
             $html .= '</div>';
@@ -855,6 +953,657 @@ class Setup {
         }
 
         return false;
+    }
+
+    // ────────────────────────────────────────────────────────────────────
+    // The automatic installation
+    // ────────────────────────────────────────────────────────────────────
+
+    /**
+     * Leave the automatic installation and take up the step-by-step wizard.
+     *
+     * @return void
+     */
+    private function start_wizard(): void {
+        $this->state['fast_mode'] = false;
+        $this->fast_mode = false;
+        $this->step = 2;
+    }
+
+    /**
+     * Install the application without asking anything that can be detected.
+     *
+     * Saves BASE_URL, saves the database settings, creates the database, runs
+     * the framework's SQL, and then hands over to the administrator form. If
+     * any part of it fails the developer is returned to the first stage with a
+     * reason and the wizard's own stages remain available.
+     *
+     * @return void
+     */
+    private function fast_install(): void {
+        $this->step = 1;
+        $this->probe = null;
+
+        $probe = $this->get_install_probe();
+
+        if ($probe['ok'] !== true) {
+            $this->notice = 'The automatic installation is not available on this request. '
+                . 'Please use the step-by-step wizard.';
+            return;
+        }
+
+        if (BASE_URL === '****' && $this->write_base_url() !== true) {
+            $this->notice = 'The application URL could not be saved to config/config.php. '
+                . 'Please use the step-by-step wizard.';
+            return;
+        }
+
+        if ($this->write_database_config() !== true) {
+            $this->notice = 'The database settings could not be saved to config/database.php. '
+                . 'Please use the step-by-step wizard.';
+            return;
+        }
+
+        $credentials = $this->get_database_defaults();
+        $inspection = $this->inspect_database($credentials);
+
+        if ($inspection['connected'] !== true) {
+            $this->notice = 'The database server could not be reached with those settings. '
+                . 'Please use the step-by-step wizard.';
+            return;
+        }
+
+        if ($inspection['installed'] === true) {
+            $this->notice = 'The database "' . $credentials['database'] . '" already contains a Trongate '
+                . 'installation, so it has not been changed. Please use the step-by-step wizard.';
+            return;
+        }
+
+        if ($inspection['exists'] === false) {
+            $result = $this->create_database($credentials);
+
+            if ($result !== true) {
+                $this->notice = $result;
+                return;
+            }
+        }
+
+        $result = $this->run_setup_sql($credentials);
+
+        if ($result !== true) {
+            $this->notice = $result;
+            return;
+        }
+
+        $this->state['database'] = $credentials;
+        $this->state['database_tested'] = true;
+        $this->state['database_file_verified'] = true;
+        $this->state['fast_mode'] = true;
+        $this->fast_mode = true;
+        $this->step = 4;
+    }
+
+    /**
+     * Inspect the environment and decide whether the application can install
+     * itself without help.
+     *
+     * @return array<string, mixed>
+     */
+    private function get_install_probe(): array {
+        if ($this->probe !== null) {
+            return $this->probe;
+        }
+
+        $credentials = $this->get_database_defaults();
+        $inspection = $this->inspect_database($credentials);
+
+        $probe = [
+            'ok' => true,
+            'reasons' => [],
+            'local' => $this->is_local_request(),
+            'config_writable' => is_writable(APPPATH . 'config'),
+            'module_deletable' => $this->can_delete_module_folder(),
+            'connected' => $inspection['connected'],
+            'database_installed' => $inspection['installed'],
+            'database' => $credentials,
+            'os' => $this->get_os_label(),
+            'container' => $this->is_container_environment(),
+            'wsl' => $this->is_wsl_environment(),
+            'command' => ''
+        ];
+
+        if ($probe['local'] !== true) {
+            $probe['reasons'][] = 'This request did not come from the local machine, so the '
+                . 'automatic installation is not offered.';
+        }
+
+        if ($probe['config_writable'] !== true) {
+            $probe['reasons'][] = 'PHP is not allowed to write to the application\'s config folder, '
+                . 'so the application URL and the database settings cannot be saved automatically.';
+        }
+
+        if ($probe['module_deletable'] !== true) {
+            $probe['reasons'][] = 'PHP is not allowed to delete the setup module, so the installation '
+                . 'could not be completed automatically.';
+        }
+
+        if ($inspection['connected'] !== true) {
+            $probe['reasons'][] = 'No database server answered at ' . $credentials['host'] . ':'
+                . $credentials['port'] . ' for the user "' . $credentials['user'] . '".';
+        } elseif ($inspection['installed'] === true) {
+            $probe['reasons'][] = 'The database "' . $credentials['database'] . '" already contains '
+                . 'a Trongate installation, so it will not be overwritten.';
+        }
+
+        if (BASE_URL !== '****' && rtrim(BASE_URL, '/') !== rtrim($this->derive_base_url(), '/')) {
+            $probe['reasons'][] = 'The application is being served from ' . $this->derive_base_url()
+                . ', which does not match BASE_URL in config/config.php.';
+        }
+
+        $probe['ok'] = ($probe['reasons'] === []);
+
+        if ($probe['config_writable'] !== true || $probe['module_deletable'] !== true) {
+            $probe['command'] = $this->get_permission_command();
+        }
+
+        $this->probe = $probe;
+
+        return $probe;
+    }
+
+    /**
+     * Is the request being made from the machine running PHP?
+     *
+     * The automatic installation writes BASE_URL and the database credentials
+     * to disk and then deletes a folder of code, so it is only ever offered to
+     * a local request: loopback, or a private network address.
+     *
+     * @return bool
+     */
+    private function is_local_request(): bool {
+        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+
+        if ($ip === '') {
+            // No socket information (a command line run of the wizard).
+            return true;
+        }
+
+        if ($ip === '::1' || str_starts_with($ip, '127.')) {
+            return true;
+        }
+
+        $public = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+
+        return ($public === false);
+    }
+
+    /**
+     * The name of the operating system that PHP is running on.
+     *
+     * @return string
+     */
+    private function get_os_label(): string {
+        $labels = [
+            'Darwin' => 'macOS',
+            'Windows' => 'Windows',
+            'Linux' => 'Linux',
+            'BSD' => 'BSD',
+            'Solaris' => 'Solaris'
+        ];
+
+        $label = $labels[PHP_OS_FAMILY] ?? PHP_OS_FAMILY;
+
+        if ($label === 'Linux' && $this->is_wsl_environment() === true) {
+            $label = 'Windows (through WSL)';
+        }
+
+        return $label;
+    }
+
+    /**
+     * Is PHP running inside Windows Subsystem for Linux?
+     *
+     * @return bool
+     */
+    private function is_wsl_environment(): bool {
+        return str_contains(strtolower(php_uname('r')), 'microsoft');
+    }
+
+    /**
+     * Is PHP running inside a container?
+     *
+     * @return bool
+     */
+    private function is_container_environment(): bool {
+        return is_file('/.dockerenv') || is_file('/run/.containerenv');
+    }
+
+    /**
+     * The command that would give PHP the permissions the shortcut needs.
+     *
+     * The command is only ever displayed. It is never executed here: PHP cannot
+     * change the ownership of files it does not own, and running a shell command
+     * from the setup wizard would be a far bigger risk than the inconvenience it
+     * saves.
+     *
+     * @return string
+     */
+    private function get_permission_command(): string {
+        if (PHP_OS_FAMILY === 'Windows') {
+            // There are no POSIX permissions to change.
+            return '';
+        }
+
+        $sudo = '';
+
+        if (@fileowner(APPPATH) === 0) {
+            $sudo = 'sudo ';
+        }
+
+        return $sudo . 'chmod -R 777 ' . $this->shell_quote(rtrim(APPPATH, '/'));
+    }
+
+    /**
+     * Quote a path for a POSIX shell.
+     *
+     * @param string $path
+     * @return string
+     */
+    private function shell_quote(string $path): string {
+        return "'" . str_replace("'", "'\\''", $path) . "'";
+    }
+
+    /**
+     * Can this module be deleted with the permissions PHP has right now?
+     *
+     * @return bool
+     */
+    private function can_delete_module_folder(): bool {
+        if (is_dir(__DIR__) === false) {
+            return false;
+        }
+
+        if (is_writable(dirname(__DIR__)) === false) {
+            return false;
+        }
+
+        return $this->is_dir_tree_writable(__DIR__);
+    }
+
+    /**
+     * Is every directory in this tree writable?
+     *
+     * @param string $dir
+     * @return bool
+     */
+    private function is_dir_tree_writable(string $dir): bool {
+        if (is_writable($dir) === false) {
+            return false;
+        }
+
+        $items = @scandir($dir);
+
+        if ($items === false) {
+            return false;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+
+            $path = $dir . '/' . $item;
+
+            if (is_dir($path) === true && is_link($path) === false) {
+                if ($this->is_dir_tree_writable($path) === false) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Delete this module, so that the wizard cannot run again.
+     *
+     * @return bool
+     */
+    private function delete_module_folder(): bool {
+        return $this->delete_path(__DIR__);
+    }
+
+    /**
+     * Delete a file, or a directory and everything in it.
+     *
+     * @param string $path
+     * @return bool
+     */
+    private function delete_path(string $path): bool {
+        if (is_link($path) === true || is_file($path) === true) {
+            return @unlink($path);
+        }
+
+        if (is_dir($path) === false) {
+            return true;
+        }
+
+        $items = @scandir($path);
+
+        if ($items === false) {
+            return false;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+
+            if ($this->delete_path($path . '/' . $item) === false) {
+                return false;
+            }
+        }
+
+        return @rmdir($path);
+    }
+
+    /**
+     * Add a block of HTML to the foot of a page that has already been drawn.
+     *
+     * @param string $html
+     * @param string $message
+     * @return string
+     */
+    private function append_alert(string $html, string $message): string {
+        $block = '<div class="alert alert-error" style="max-width: 640px; margin: 24px auto;"><p>'
+            . $message . '</p></div>';
+
+        return str_replace('</body>', $block . "\n</body>", $html);
+    }
+
+    /**
+     * Save the application's URL to config/config.php.
+     *
+     * @return bool
+     */
+    private function write_base_url(): bool {
+        $path = APPPATH . 'config/config.php';
+        $contents = is_file($path) ? (string) file_get_contents($path) : '';
+
+        if ($contents === '') {
+            return false;
+        }
+
+        $pattern = "/define\\(\\s*'BASE_URL'\\s*,\\s*'[^']*'\\s*\\)\\s*;/";
+
+        if (preg_match($pattern, $contents) !== 1) {
+            return false;
+        }
+
+        $value = str_replace(['\\', "'"], ['\\\\', "\\'"], $this->base_url);
+
+        $contents = (string) preg_replace_callback($pattern, function () use ($value) {
+            return "define('BASE_URL', '" . $value . "');";
+        }, $contents, 1);
+
+        return $this->write_file($path, $contents);
+    }
+
+    /**
+     * Save the database settings to config/database.php.
+     *
+     * @return bool
+     */
+    private function write_database_config(): bool {
+        return $this->write_file(APPPATH . 'config/database.php', $this->get_database_config_code());
+    }
+
+    /**
+     * Write a file by writing a temporary file alongside it and renaming it.
+     *
+     * @param string $path
+     * @param string $contents
+     * @return bool
+     */
+    private function write_file(string $path, string $contents): bool {
+        $temp = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
+
+        if (@file_put_contents($temp, $contents) === false) {
+            return false;
+        }
+
+        if (@rename($temp, $path) === false) {
+            @unlink($temp);
+            return false;
+        }
+
+        if (function_exists('opcache_invalidate') === true) {
+            @opcache_invalidate($path, true);
+        }
+
+        return true;
+    }
+
+    /**
+     * Look at the database without changing it.
+     *
+     * @param array<string, string> $credentials
+     * @return array<string, bool>
+     */
+    private function inspect_database(array $credentials): array {
+        $result = ['connected' => false, 'exists' => false, 'installed' => false];
+        $dsn = 'mysql:host=' . $credentials['host'] . ';port=' . $credentials['port'];
+
+        try {
+            $pdo = new PDO($dsn, $credentials['user'], $credentials['password'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_TIMEOUT => 5
+            ]);
+
+            $result['connected'] = true;
+
+            $statement = $pdo->prepare(
+                'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = :database'
+            );
+            $statement->execute([':database' => $credentials['database']]);
+            $result['exists'] = ($statement->fetch() !== false);
+
+            if ($result['exists'] === true) {
+                $result['installed'] = $this->has_administrator_rows($pdo, $credentials['database']);
+            }
+        } catch (Throwable $e) {
+            $result['connected'] = false;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Does this database already hold an installation?
+     *
+     * Creating the administrator account truncates trongate_administrators and
+     * trongate_users, so a database that already has an administrator must not
+     * be treated as empty.
+     *
+     * @param PDO $pdo
+     * @param string $database
+     * @return bool
+     */
+    private function has_administrator_rows(PDO $pdo, string $database): bool {
+        try {
+            $statement = $pdo->query('SELECT COUNT(*) AS total FROM `' . $database . '`.trongate_administrators');
+            $row = $statement->fetch();
+        } catch (Throwable $e) {
+            // No such table: nothing has been installed here.
+            return false;
+        }
+
+        return ($row !== false && (int) $row['total'] > 0);
+    }
+
+    /**
+     * Create the database.
+     *
+     * @param array<string, string> $credentials
+     * @return true|string TRUE on success, a message on failure.
+     */
+    private function create_database(array $credentials): bool|string {
+        $dsn = 'mysql:host=' . $credentials['host'] . ';port=' . $credentials['port'];
+
+        try {
+            $pdo = new PDO($dsn, $credentials['user'], $credentials['password'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_TIMEOUT => 5
+            ]);
+
+            $pdo->exec('CREATE DATABASE `' . $credentials['database'] . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+        } catch (Throwable $e) {
+            return 'The database "' . $credentials['database'] . '" could not be created: ' . $e->getMessage();
+        }
+
+        return true;
+    }
+
+    /**
+     * Run the framework's SQL against the database.
+     *
+     * @param array<string, string> $credentials
+     * @return true|string TRUE on success, a message on failure.
+     */
+    private function run_setup_sql(array $credentials): bool|string {
+        $sql_path = __DIR__ . '/sql/setup.sql';
+
+        if (is_file($sql_path) === false) {
+            return 'The setup SQL file is missing from modules/setup/sql/.';
+        }
+
+        try {
+            $pdo = $this->connect_to_database($credentials);
+            $pdo->exec((string) file_get_contents($sql_path));
+        } catch (Throwable $e) {
+            return 'The framework tables could not be created: ' . $e->getMessage();
+        }
+
+        return true;
+    }
+
+    /**
+     * Connect to a named database with a set of credentials.
+     *
+     * @param array<string, string> $credentials
+     * @return PDO
+     *
+     * @throws PDOException If the connection fails.
+     */
+    private function connect_to_database(array $credentials): PDO {
+        $dsn = 'mysql:host=' . $credentials['host']
+            . ';port=' . $credentials['port']
+            . ';dbname=' . $credentials['database'];
+
+        return new PDO($dsn, $credentials['user'], $credentials['password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_TIMEOUT => 5
+        ]);
+    }
+
+    /**
+     * Can this request install the application without help?
+     *
+     * @return bool
+     */
+    private function can_install_automatically(): bool {
+        $probe = $this->get_install_probe();
+        return $probe['ok'] === true;
+    }
+
+    /**
+     * Why the automatic installation is not available, as a list of sentences.
+     *
+     * @return array<int, string>
+     */
+    private function get_probe_reasons(): array {
+        $probe = $this->get_install_probe();
+        return $probe['reasons'];
+    }
+
+    /**
+     * The permission command to display, or an empty string where none applies.
+     *
+     * @return string
+     */
+    private function get_probe_command(): string {
+        $probe = $this->get_install_probe();
+        return $probe['command'];
+    }
+
+    /**
+     * The operating system that PHP is running on, for display.
+     *
+     * @return string
+     */
+    private function get_probe_os(): string {
+        $probe = $this->get_install_probe();
+        return $probe['os'];
+    }
+
+    /**
+     * Is PHP running inside a container?
+     *
+     * @return bool
+     */
+    private function is_container(): bool {
+        $probe = $this->get_install_probe();
+        return $probe['container'] === true;
+    }
+
+    /**
+     * Is PHP running inside Windows Subsystem for Linux?
+     *
+     * @return bool
+     */
+    private function is_wsl(): bool {
+        $probe = $this->get_install_probe();
+        return $probe['wsl'] === true;
+    }
+
+    /**
+     * The database name that the automatic installation would use.
+     *
+     * @return string
+     */
+    private function get_probe_database_name(): string {
+        $probe = $this->get_install_probe();
+        return (string) $probe['database']['database'];
+    }
+
+    /**
+     * The host, port and user that the automatic installation would use.
+     *
+     * @return string
+     */
+    private function get_probe_database_server(): string {
+        $probe = $this->get_install_probe();
+        $database = $probe['database'];
+
+        return $database['host'] . ':' . $database['port'] . ' (user: ' . $database['user'] . ')';
+    }
+
+    /**
+     * Is this run of the wizard the automatic installation?
+     *
+     * @return bool
+     */
+    private function is_fast_mode(): bool {
+        return $this->fast_mode;
+    }
+
+    /**
+     * Has this module been removed as part of the automatic installation?
+     *
+     * @return bool
+     */
+    private function is_module_deleted(): bool {
+        return $this->module_deletion_expected;
     }
 
 }

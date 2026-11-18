@@ -102,6 +102,15 @@ p {
     font-weight: 600;
 }
 
+.step.done .step-number {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.step.done .step-title {
+    color: #047857;
+}
+
 /* Form fields */
 label {
     margin: 1.4em 0 0.4em 0;
@@ -213,6 +222,18 @@ form .form-field-validation-error:focus {
     color: #fff;
 }
 
+.btn-quiet {
+    background: #fff;
+    color: #667eea;
+    border: 1px solid #c7d2fe;
+    margin-top: 10px;
+}
+
+.btn-quiet:hover {
+    background: #f5f7ff;
+    color: #4c51bf;
+}
+
 /* Validation errors — borrowed from Trongate's trongate.css */
 .validation-errors {
     margin: 0.5em 0 1em 0;
@@ -288,6 +309,51 @@ form .form-field-validation-error:focus {
     font-size: 0.85rem;
     color: #64748b;
     font-style: italic;
+}
+
+/* Facts detected by the environment probe */
+.setup-facts {
+    margin: 0 0 12px 0;
+}
+
+.setup-facts dt {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-top: 10px;
+}
+
+.setup-facts dt:first-child {
+    margin-top: 0;
+}
+
+.setup-facts dd {
+    margin: 2px 0 0 0;
+    font-size: 0.9rem;
+    color: #334155;
+}
+
+.setup-reasons {
+    margin: 4px 0 0 0;
+    padding-left: 1.2em;
+}
+
+.setup-reasons li {
+    margin-bottom: 4px;
+}
+
+/* The read-only box that a terminal command is displayed in */
+.command-box {
+    width: 100%;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.85rem;
+    background: #0f172a;
+    color: #e2e8f0;
+    border: 1px solid #0f172a;
+    border-radius: 6px;
+    padding: 10px 12px;
+    resize: none;
 }
 
 #confetti-canvas {
