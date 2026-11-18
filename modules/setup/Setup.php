@@ -364,6 +364,9 @@ class Setup {
             case 'create_admin':
                 $this->create_admin();
                 break;
+            case 'start_again':
+                $this->start_again();
+                break;
             default:
                 $this->notice = 'Unrecognised request. Please try again.';
                 break;
@@ -478,6 +481,27 @@ class Setup {
         if ($this->fast_mode === true) {
             $this->module_deletion_pending = true;
         }
+    }
+
+    /**
+     * Stage 5: forget this installation's progress and return to stage one.
+     *
+     * The final stage is otherwise a dead end. Once the administrator has been
+     * created the page offers only the homepage and the removal of this folder,
+     * so if the administrator row is later missing from the database - deleted
+     * by hand, or the database itself changed - the wizard can report the fact
+     * but cannot offer any way back to the stages that would put it right.
+     *
+     * Starting again clears the wizard's own record of what was done, and
+     * nothing else: no file in config/, no table and no row is touched, and the
+     * stages that follow re-check the configuration before they are passed.
+     *
+     * @return void
+     */
+    private function start_again(): void {
+        $this->state = [];
+        $this->fast_mode = false;
+        $this->step = 1;
     }
 
     /**
