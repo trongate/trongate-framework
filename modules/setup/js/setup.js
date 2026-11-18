@@ -248,11 +248,68 @@ function setupShowCopied(button) {
 }
 
 // ──────────────────────────────────────────────
+// The silent permission check
+// ──────────────────────────────────────────────
+
+/**
+ * Watch for the permissions the wizard asked for, and carry on when they arrive.
+ *
+ * The developer is told to run one command in a terminal. Rather than asking
+ * them to come back and click a button to say so, the page asks quietly at
+ * intervals and reloads itself the moment it can see that the job is done.
+ *
+ * @param {HTMLElement} element The element that carries the endpoint address.
+ */
+function setupWatchForPermission(element) {
+    var url = element.getAttribute('data-setup-poll');
+
+    if (!url || !window.fetch) {
+        return;
+    }
+
+    var attempts = 0;
+
+    function check() {
+        attempts++;
+
+        // Roughly five minutes, then leave the page as it is: the button is
+        // always there for anyone who would rather say so themselves.
+        if (attempts > 120) {
+            return;
+        }
+
+        window.fetch(url, { credentials: 'same-origin', cache: 'no-store' })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                if (data.permissions === true) {
+                    window.location.reload();
+                    return;
+                }
+
+                setTimeout(check, 2500);
+            })
+            .catch(function () {
+                setTimeout(check, 5000);
+            });
+    }
+
+    setTimeout(check, 1500);
+}
+
+// ──────────────────────────────────────────────
 // Wiring
 // ──────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', function () {
     drawTicks();
+
+    var poller = document.querySelector('[data-setup-poll]');
+
+    if (poller) {
+        setupWatchForPermission(poller);
+    }
 
     var help_link = document.getElementById('setup-help-link');
 

@@ -145,6 +145,10 @@ class Setup {
         $this->base_url = $this->get_assumed_base_url();
         $this->load_state();
 
+        if ($this->is_status_request() === true) {
+            $this->draw_status();
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handle_post();
         }
@@ -188,6 +192,40 @@ class Setup {
         }
 
         echo $html;
+    }
+
+    /**
+     * Is this the page's silent permission check?
+     *
+     * The welcome stage polls this while it waits for a terminal command to be
+     * run, so that the developer is never asked to click a button to tell the
+     * page something the page can see for itself.
+     *
+     * @return bool
+     */
+    private function is_status_request(): bool {
+        return ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['setup_status']));
+    }
+
+    /**
+     * Answer the permission check and end the request.
+     *
+     * Only the filesystem is examined here and no database connection is made:
+     * the question being polled is whether PHP can now write the configuration
+     * files and remove this module, which is exactly what the terminal command
+     * changes.
+     *
+     * @return void
+     */
+    private function draw_status(): void {
+        $permissions = (
+            is_writable(APPPATH . 'config') === true
+            && $this->can_delete_module_folder() === true
+        );
+
+        header('Content-Type: application/json');
+        echo json_encode(['permissions' => $permissions]);
+        die();
     }
 
     /**
@@ -342,7 +380,9 @@ class Setup {
                 $this->start_wizard();
                 break;
             case 'fast_install':
-                $this->fast_install();
+                if ($this->store_posted_database() === true) {
+                    $this->fast_install();
+                }
                 break;
             case 'retry_probe':
                 $this->probe = null;
@@ -865,16 +905,49 @@ class Setup {
      * @return array<string, string>
      */
     private function get_database_defaults(): array {
+        $defaults = $this->get_configured_database();
+
+        if ($defaults['database'] === '') {
+            $defaults['database'] = $this->suggest_database_name();
+        }
+
+        if (isset($this->state['database']) && is_array($this->state['database'])) {
+            $defaults = array_merge($defaults, $this->state['database']);
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * The database settings that config/database.php already holds.
+     *
+     * The developer's own configuration is the only sensible place to look for
+     * the details of their database server, so it is read here rather than
+     * assumed. ignition.php loads that file and publishes the array as
+     * $GLOBALS['databases'] before the wizard can run, so nothing is re-read
+     * from disk on this request.
+     *
+     * @return array<string, string>
+     */
+    private function get_configured_database(): array {
         $defaults = [
             'host' => '127.0.0.1',
             'port' => '3306',
             'user' => 'root',
             'password' => '',
-            'database' => $this->suggest_database_name()
+            'database' => ''
         ];
 
-        if (isset($this->state['database']) && is_array($this->state['database'])) {
-            $defaults = array_merge($defaults, $this->state['database']);
+        $configured = $GLOBALS['databases']['default'] ?? [];
+
+        if (is_array($configured) === false) {
+            return $defaults;
+        }
+
+        foreach ($defaults as $key => $value) {
+            if (isset($configured[$key]) && is_scalar($configured[$key])) {
+                $defaults[$key] = (string) $configured[$key];
+            }
         }
 
         return $defaults;
@@ -1002,19 +1075,57 @@ class Setup {
     }
 
     /**
+     * Draw the probe's findings as quiet information, not as a failure.
+     *
+     * Nothing has gone wrong at this point: the wizard is simply describing
+     * what it found. The block is left out entirely when there is a message
+     * above it, so that nothing is said twice.
+     *
+     * @return string
+     */
+    private function draw_probe_reasons(): string {
+        $reasons = $this->get_probe_reasons();
+
+        if ($reasons === [] || $this->errors !== [] || $this->notice !== '') {
+            return '';
+        }
+
+        $html = '<ul class="setup-reasons muted">';
+
+        foreach ($reasons as $reason) {
+            $html .= '<li>' . out($reason) . '</li>';
+        }
+
+        $html .= '</ul>';
+
+        return $html;
+    }
+
+    /**
      * Draw the step indicator.
      *
      * @return string
      */
     private function draw_steps_indicator(): string {
+        $steps = $this->steps;
+        $current = $this->step;
+
+        // The automatic installation is one action and one form, so drawing the
+        // five stages of the step-by-step wizard in front of it would suggest
+        // work that the developer is never asked to do.
+        if ($this->fast_mode === true) {
+            $steps = [1 => 'Install', 2 => 'Your Account'];
+            $current = ($this->step >= 5) ? 3 : 2;
+        }
+
         $html = '<div class="steps">';
 
-        foreach ($this->steps as $number => $title) {
+        foreach ($steps as $number => $title) {
             $step_class = 'step';
 
-            if ($number === $this->step) {
+            if ($number === $current) {
                 $step_class .= ' active';
-            } elseif ($number < $this->step) {
+            } elseif ($number < $current) {
                 $step_class .= ' done';
             }
 
@@ -1107,6 +1218,35 @@ class Setup {
     }
 
     /**
+     * Adopt database details that were posted with the automatic installation.
+     *
+     * The first stage only offers these fields when the settings it found did
+     * not work, so they are usually absent. Where they are present they are
+     * taken as the developer's answer and the probe is thrown away, so that it
+     * is made again against what they typed rather than against what was found.
+     *
+     * @return bool TRUE when the installation should go ahead.
+     */
+    private function store_posted_database(): bool {
+        if (isset($_POST['host']) === false) {
+            return true;
+        }
+
+        $credentials = $this->get_posted_credentials();
+        $this->state['database'] = $credentials;
+        $this->probe = null;
+
+        $this->errors = $this->validate_credentials($credentials);
+
+        if ($this->errors !== []) {
+            $this->step = 1;
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Install the application without asking anything that can be detected.
      *
      * Saves BASE_URL, saves the database settings, creates the database, runs
@@ -1123,20 +1263,22 @@ class Setup {
         $probe = $this->get_install_probe();
 
         if ($probe['ok'] !== true) {
-            $this->notice = 'The automatic installation is not available on this request. '
-                . 'Please use the step-by-step wizard.';
+            // The reason the probe gives is more use than a general apology, so
+            // it becomes the message and the muted list steps aside for it.
+            $this->notice = (string) ($probe['reasons'][0]
+                ?? 'Something on this machine still needs attention before Trongate can install itself.');
             return;
         }
 
         if (BASE_URL === '****' && $this->write_base_url() !== true) {
-            $this->notice = 'The application URL could not be saved to config/config.php. '
-                . 'Please use the step-by-step wizard.';
+            $this->notice = 'Your application\'s address could not be saved to config/config.php. '
+                . 'The step-by-step setup writes it by hand instead.';
             return;
         }
 
         if ($this->write_database_config() !== true) {
             $this->notice = 'The database settings could not be saved to config/database.php. '
-                . 'Please use the step-by-step wizard.';
+                . 'The step-by-step setup writes them by hand instead.';
             return;
         }
 
@@ -1144,14 +1286,15 @@ class Setup {
         $inspection = $this->inspect_database($credentials);
 
         if ($inspection['connected'] !== true) {
-            $this->notice = 'The database server could not be reached with those settings. '
-                . 'Please use the step-by-step wizard.';
+            $this->notice = 'No database server answered at ' . $credentials['host'] . ':'
+                . $credentials['port'] . ' for the user "' . $credentials['user'] . '". '
+                . 'Check the details below.';
             return;
         }
 
         if ($inspection['installed'] === true) {
-            $this->notice = 'The database "' . $credentials['database'] . '" already contains a Trongate '
-                . 'installation, so it has not been changed. Please use the step-by-step wizard.';
+            $this->notice = 'The database "' . $credentials['database'] . '" already holds a Trongate '
+                . 'installation, so it has been left untouched. Choose another database name below.';
             return;
         }
 
@@ -1336,7 +1479,15 @@ class Setup {
             $sudo = 'sudo ';
         }
 
-        return $sudo . 'chmod -R 777 ' . $this->shell_quote(rtrim(APPPATH, '/'));
+        // Only the three folders the installation actually touches. The rest of
+        // the application is left exactly as it was found.
+        $targets = [];
+
+        foreach (['config', 'modules', 'engine'] as $folder) {
+            $targets[] = $this->shell_quote(rtrim(APPPATH . $folder, '/'));
+        }
+
+        return $sudo . 'chmod -R 777 ' . implode(' ', $targets);
     }
 
     /**
@@ -1791,6 +1942,55 @@ PHP;
     }
 
     /**
+     * The database name to offer in the fields on the first stage.
+     *
+     * Where the database that was found already holds an installation, an empty
+     * field is offered instead: repeating a name that has just been refused
+     * would only invite the same answer twice.
+     *
+     * @return string
+     */
+    private function get_offered_database_name(): string {
+        $probe = $this->get_install_probe();
+
+        if ($probe['database_installed'] === true) {
+            return '';
+        }
+
+        return (string) $probe['database']['database'];
+    }
+
+    /**
+     * The database host that the automatic installation would use.
+     *
+     * @return string
+     */
+    private function get_probe_database_host(): string {
+        $probe = $this->get_install_probe();
+        return (string) $probe['database']['host'];
+    }
+
+    /**
+     * The database port that the automatic installation would use.
+     *
+     * @return string
+     */
+    private function get_probe_database_port(): string {
+        $probe = $this->get_install_probe();
+        return (string) $probe['database']['port'];
+    }
+
+    /**
+     * The database user that the automatic installation would use.
+     *
+     * @return string
+     */
+    private function get_probe_database_user(): string {
+        $probe = $this->get_install_probe();
+        return (string) $probe['database']['user'];
+    }
+
+    /**
      * The host, port and user that the automatic installation would use.
      *
      * @return string
@@ -1809,6 +2009,24 @@ PHP;
      */
     private function is_fast_mode(): bool {
         return $this->fast_mode;
+    }
+
+    /**
+     * Did this request come from the machine that is running PHP?
+     *
+     * @return bool
+     */
+    private function is_local(): bool {
+        return $this->is_local_request();
+    }
+
+    /**
+     * The address that the page's silent permission check asks.
+     *
+     * @return string
+     */
+    private function get_status_url(): string {
+        return $this->get_wizard_url() . '?setup_status=1';
     }
 
     /**

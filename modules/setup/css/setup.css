@@ -250,6 +250,48 @@ form .form-field-validation-error:focus {
     padding-left: 0;
 }
 
+/* The one-line introduction under the page title */
+.lede {
+    text-align: center;
+    font-size: 1rem;
+    color: #475569;
+    margin-bottom: 24px;
+}
+
+/* A quiet, text-only alternative to a button */
+.btn-link {
+    display: block;
+    width: 100%;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    margin: 12px 0 0 0;
+    padding: 6px 0;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.btn-link:hover {
+    background: none;
+    color: #4c51bf;
+}
+
+/* The silent permission check that runs while a terminal command is run */
+.instructions .poll-status {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 0;
+}
+
+/* Muted reasons — information, not failure */
+.setup-reasons.muted {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+}
+
 /* Alert messages */
 .alert {
     padding: 12px 16px;
