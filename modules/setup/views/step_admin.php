@@ -3,7 +3,7 @@
 <?= $this->draw_steps_indicator() ?>
 <?= $this->draw_errors() ?>
 
-<form method="post" action="">
+<form method="post" action="<?= out($this->get_wizard_url()) ?>">
     <?= $this->draw_token_field() ?>
     <label for="username">Username</label>
     <input id="username" name="username" type="text" value="<?= out($this->get_admin_username()) ?>" placeholder="Enter username here" autocomplete="username" required="required">

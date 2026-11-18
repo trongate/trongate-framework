@@ -6,8 +6,11 @@
  * Trongate. It is invoked from Core::attempt_invoke_setup_wizard(), which runs
  * before routing exists. Consequently there are no modules, no validation
  * library, no CSRF tokens and no Trongate MX available here - everything is
- * plain PHP, drawn as a single page, with every form posting back to the
- * address that drew it.
+ * plain PHP, drawn as a single page, with every form posting back to /setup.
+ *
+ * Once config/config.php holds a real BASE_URL the application counts as
+ * installed as far as Core is concerned, so the remaining stages are reached
+ * by ordinary routing: index() is the entry point, and the forms post to /setup.
  *
  * The step-by-step path writes nothing to the filesystem: where a file has to
  * change (config/config.php, config/database.php) the wizard prints the code to
@@ -800,6 +803,28 @@ class Setup {
         $code .= "    ]\n];\n";
 
         return $code;
+    }
+
+    /**
+     * Entry point when the wizard is reached by ordinary routing, at /setup.
+     *
+     * @return void
+     */
+    public function index(): void {
+        $this->run();
+    }
+
+    /**
+     * The address that every form in the wizard posts back to.
+     *
+     * Before installation the wizard answers every URL, so this value only has
+     * to be right once config/config.php holds a real BASE_URL - after which
+     * the wizard is reached by routing and has to be posted back to by name.
+     *
+     * @return string
+     */
+    private function get_wizard_url(): string {
+        return rtrim($this->base_url, '/') . '/setup';
     }
 
     /**

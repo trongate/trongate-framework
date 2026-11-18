@@ -17,7 +17,7 @@
     <p class="note">The application URL and the database settings will be saved for you, the framework's tables will be created, and you will then be asked for an administrator account.</p>
 </div>
 
-<form method="post" action="">
+<form method="post" action="<?= out($this->get_wizard_url()) ?>">
     <?= $this->draw_token_field() ?>
     <button class="btn btn-primary" type="submit" name="action" value="fast_install">Install Automatically</button>
     <button class="btn btn-quiet" type="submit" name="action" value="begin">No, take me through the steps</button>
@@ -68,14 +68,14 @@
 <?php } ?>
 </div>
 
-<form method="post" action="">
+<form method="post" action="<?= out($this->get_wizard_url()) ?>">
     <?= $this->draw_token_field() ?>
     <button class="btn btn-primary" type="submit" name="action" value="retry_probe">Check Again</button>
 </form>
 <?php } ?>
 
 <?php $continue_class = ($this->get_probe_command() !== '') ? 'btn btn-quiet' : 'btn btn-primary'; ?>
-<form method="post" action="">
+<form method="post" action="<?= out($this->get_wizard_url()) ?>">
     <?= $this->draw_token_field() ?>
     <button class="<?= $continue_class ?>" type="submit" name="action" value="begin">Continue With Setup</button>
 </form>

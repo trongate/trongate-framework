@@ -71,7 +71,10 @@ class Core {
      */
     private function serve_controller(): void {
 
-        if (strtolower(ENV) === 'dev' && (BASE_URL === '****' || is_dir(APPPATH . 'modules/setup'))) {
+        // One constant comparison: no string function, no filesystem call. It is
+        // true only while config/config.php still holds the placeholder, so once
+        // the application is installed this costs a single test that cannot fail.
+        if (BASE_URL === '****') {
             $this->attempt_invoke_setup_wizard();
         }
 

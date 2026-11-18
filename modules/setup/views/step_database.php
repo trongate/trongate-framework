@@ -15,7 +15,7 @@
 <div class="alert alert-error">
     <p>Those details could not be used to connect to the database server on this request.</p>
 </div>
-<form method="post" action="">
+<form method="post" action="<?= out($this->get_wizard_url()) ?>">
     <?= $this->draw_token_field() ?>
     <button class="btn btn-primary" type="submit" name="action" value="restart_database">Re-enter the details</button>
 </form>
@@ -49,7 +49,7 @@
     <p><strong>3.</strong> Save the file, then click the button below.</p>
 </div>
 
-<form method="post" action="">
+<form method="post" action="<?= out($this->get_wizard_url()) ?>">
     <?= $this->draw_token_field() ?>
     <button class="btn btn-primary" type="submit" name="action" value="verify_database_file">Verify Configuration</button>
 </form>
@@ -61,7 +61,7 @@
 <?= $this->draw_steps_indicator() ?>
 <?= $this->draw_errors() ?>
 
-<form method="post" action="">
+<form method="post" action="<?= out($this->get_wizard_url()) ?>">
     <?= $this->draw_token_field() ?>
     <label for="host">Host</label>
     <input id="host" name="host" type="text" value="<?= out($defaults['host']) ?>" placeholder="e.g. 127.0.0.1" required="required">

@@ -38,7 +38,7 @@
     <p class="mt-2"><strong>4.</strong> Save the file, then click the button below.</p>
 </div>
 
-<form method="post" action="">
+<form method="post" action="<?= out($this->get_wizard_url()) ?>">
     <?= $this->draw_token_field() ?>
     <button class="btn btn-primary" type="submit" name="action" value="confirm_base_url">Continue</button>
 </form>
