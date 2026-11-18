@@ -297,11 +297,16 @@ class Setup {
     /**
      * Does the session state belong to an installation that is no longer here?
      *
-     * The administrator account is only ever created once config/config.php
-     * holds a real BASE_URL, so state that claims a finished installation while
-     * the placeholder is back in that file was written by an application that
-     * has since been replaced - a fresh download in a folder that was used
-     * before. Such state can never describe this installation.
+     * The database stage is only ever entered once config/config.php holds a
+     * real BASE_URL, and the administrator is only created once the database
+     * stage has been passed. So state that has moved beyond stage two while the
+     * placeholder is back in that file was written by an application that has
+     * since been replaced - a fresh download in a folder that was used before,
+     * or a setup that was abandoned and then started again from a clean copy.
+     * Such state can never describe this installation, and keeping it would
+     * carry an unfinished installation forward into a new one: the stages that
+     * were already passed would be skipped, and the automatic installation
+     * would still be using the previous application's database.
      *
      * @return bool
      */
@@ -310,7 +315,9 @@ class Setup {
             return false;
         }
 
-        return (empty($this->state['admin_created']) === false);
+        $step = (int) ($this->state['step'] ?? 1);
+
+        return ($step > 2 || empty($this->state['admin_created']) === false);
     }
 
     /**
