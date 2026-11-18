@@ -161,7 +161,7 @@ class Setup {
         }
 
         $this->state['step'] = $this->step;
-        $_SESSION['setup_wizard'] = $this->state;
+        $_SESSION['setup_wizard'][$this->get_state_key()] = $this->state;
 
         // The page has to be built before this module is deleted, because the
         // view files and the stylesheet are read from the folder being removed.
@@ -251,13 +251,36 @@ class Setup {
     }
 
     /**
+     * The session key under which this installation's state is filed.
+     *
+     * A PHP session is not private to one application. The session cookie is
+     * issued for the whole host (its default path is "/") and the default save
+     * path is shared, so every application on the machine reads and writes the
+     * same $_SESSION. Filing the state under a digest of the application's own
+     * directory makes it unique to this installation, so that a second
+     * installation cannot inherit the first one's progress.
+     *
+     * @return string
+     */
+    private function get_state_key(): string {
+        return md5(APPPATH);
+    }
+
+    /**
      * Load wizard state from the session.
      *
      * @return void
      */
     private function load_state(): void {
-        if (isset($_SESSION['setup_wizard']) && is_array($_SESSION['setup_wizard'])) {
-            $this->state = $_SESSION['setup_wizard'];
+        $key = $this->get_state_key();
+
+        if (isset($_SESSION['setup_wizard'][$key]) && is_array($_SESSION['setup_wizard'][$key])) {
+            $this->state = $_SESSION['setup_wizard'][$key];
+        }
+
+        if ($this->has_state_from_previous_installation() === true) {
+            // Discard the whole state: a fresh installation starts at stage one.
+            $this->state = [];
         }
 
         $this->fast_mode = ($this->state['fast_mode'] ?? false) === true;
@@ -269,6 +292,25 @@ class Setup {
         }
 
         $this->step = $step;
+    }
+
+    /**
+     * Does the session state belong to an installation that is no longer here?
+     *
+     * The administrator account is only ever created once config/config.php
+     * holds a real BASE_URL, so state that claims a finished installation while
+     * the placeholder is back in that file was written by an application that
+     * has since been replaced - a fresh download in a folder that was used
+     * before. Such state can never describe this installation.
+     *
+     * @return bool
+     */
+    private function has_state_from_previous_installation(): bool {
+        if (BASE_URL !== '****') {
+            return false;
+        }
+
+        return (empty($this->state['admin_created']) === false);
     }
 
     /**
