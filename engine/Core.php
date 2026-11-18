@@ -71,7 +71,7 @@ class Core {
      */
     private function serve_controller(): void {
 
-        if (BASE_URL === '****' && strtolower(ENV) === 'dev') {
+        if (strtolower(ENV) === 'dev' && (BASE_URL === '****' || is_dir(APPPATH . 'modules/setup'))) {
             $this->attempt_invoke_setup_wizard();
         }
 
@@ -112,8 +112,7 @@ class Core {
      * @return never
      */
     private function attempt_invoke_setup_wizard(): void {
-        http_response_code(503);
-        require '../modules/setup/Setup.php'; // wherever the HTML lives
+        require APPPATH . 'modules/setup/Setup.php';
         $setup = new Setup;
         $setup->run();
         die();
