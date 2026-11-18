@@ -1479,15 +1479,12 @@ class Setup {
             $sudo = 'sudo ';
         }
 
-        // Only the three folders the installation actually touches. The rest of
-        // the application is left exactly as it was found.
-        $targets = [];
-
-        foreach (['config', 'modules', 'engine'] as $folder) {
-            $targets[] = $this->shell_quote(rtrim(APPPATH . $folder, '/'));
-        }
-
-        return $sudo . 'chmod -R 777 ' . implode(' ', $targets);
+        // The whole application folder. The installation itself only writes to
+        // config, modules and engine, but Flo's code generators and the
+        // framework updater write across the installation, so one command that
+        // covers everything is more useful than one that leaves the developer
+        // running it again the moment a generator reaches a new folder.
+        return $sudo . 'chmod -R 777 ' . $this->shell_quote(rtrim(APPPATH, '/'));
     }
 
     /**
