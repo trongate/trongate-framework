@@ -1,5 +1,5 @@
 <h1 class="text-center">Set Your Base URL</h1>
-<p class="text-center mt-1">Your application's base URL has been detected. It needs to be saved in <code>config/config.php</code>, once.</p>
+<p class="text-center mt-1">Your application's base URL has been detected. Save it in <code>config/config.php</code> and the installation is complete.</p>
 <?= $this->draw_steps_indicator() ?>
 <?= $this->draw_errors() ?>
 
@@ -43,6 +43,6 @@
     <button class="btn btn-primary" type="submit" name="action" value="confirm_base_url">Continue</button>
 </form>
 
-<p class="note">If <code><?= out($this->get_base_url()) ?></code> is not your application's URL, set the correct value yourself in <code>config/config.php</code>.</p>
+<p class="note">This is the last thing the setup writes. Until the line above is saved, the application counts as not installed and this wizard keeps appearing at whatever address you open. If <code><?= out($this->get_base_url()) ?></code> is not your application's URL, set the correct value yourself in <code>config/config.php</code>.</p>
 
 <?= $this->draw_help_link() ?>

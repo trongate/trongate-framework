@@ -8,21 +8,29 @@
  * library, no CSRF tokens and no Trongate MX available here - everything is
  * plain PHP, drawn as a single page, with every form posting back to /setup.
  *
- * Once config/config.php holds a real BASE_URL the application counts as
- * installed as far as Core is concerned, so the remaining stages are reached
- * by ordinary routing: index() is the entry point, and the forms post to /setup.
+ * Until config/config.php holds a real BASE_URL the application counts as not
+ * installed as far as Core is concerned, so every stage but the last is served
+ * by the first-run check, at whatever address the developer opens. The URL is
+ * the last thing the wizard asks for, so the last post - the one that arrives
+ * with that file already saved - is the only one that is routed: index() is the
+ * entry point, and the form posts to /setup.
  *
  * The step-by-step path writes nothing to the filesystem: where a file has to
  * change (config/config.php, config/database.php) the wizard prints the code to
  * paste and then verifies the result with a live check on the next request.
  *
+ * The application's URL is the last thing that is written, by either path,
+ * because "BASE_URL is still '****'" is what Core reads as "not installed yet".
+ * Written earlier, a failure in a later stage would switch the first-run check
+ * off and leave an application that cannot be finished or reached.
+ *
  * The one exception is the automatic installation, offered on the first stage
  * when the environment permits it. It requires that PHP can write to config/
  * and delete this module, that the request came from the local machine, and
  * that the database server is reachable and does not already hold an
- * installation. When all of that holds the wizard saves the two config files,
- * creates the database, runs the framework's SQL and removes this module, so
- * that the developer only has to supply the administrator account.
+ * installation. When all of that holds the wizard saves the database settings,
+ * creates the database and runs the framework's SQL, asks for the administrator
+ * account, and only then writes the URL and removes this module.
  */
 class Setup {
 
@@ -33,9 +41,9 @@ class Setup {
      */
     private array $steps = [
         1 => 'Welcome',
-        2 => 'Base URL',
-        3 => 'Database',
-        4 => 'Admin',
+        2 => 'Database',
+        3 => 'Admin',
+        4 => 'Base URL',
         5 => 'Finalize'
     ];
 
@@ -235,11 +243,15 @@ class Setup {
      * @return void
      */
     private function apply_state_guards(): void {
-        if ($this->step >= 4 && empty($this->state['database_file_verified'])) {
+        if ($this->step >= 3 && empty($this->state['database_file_verified'])) {
+            $this->step = 2;
+        }
+
+        if ($this->step >= 4 && empty($this->state['admin_created'])) {
             $this->step = 3;
         }
 
-        if ($this->step >= 5 && empty($this->state['admin_created'])) {
+        if ($this->step >= 5 && empty($this->state['base_url_confirmed'])) {
             $this->step = 4;
         }
     }
@@ -316,7 +328,7 @@ class Setup {
             $this->state = $_SESSION['setup_wizard'][$key];
         }
 
-        if ($this->has_state_from_previous_installation() === true) {
+        if ($this->has_state_from_a_different_installation() === true) {
             // Discard the whole state: a fresh installation starts at stage one.
             $this->state = [];
         }
@@ -333,29 +345,32 @@ class Setup {
     }
 
     /**
-     * Does the session state belong to an installation that is no longer here?
+     * Does the session state belong to an application that is no longer here?
      *
-     * The database stage is only ever entered once config/config.php holds a
-     * real BASE_URL, and the administrator is only created once the database
-     * stage has been passed. So state that has moved beyond stage two while the
-     * placeholder is back in that file was written by an application that has
-     * since been replaced - a fresh download in a folder that was used before,
-     * or a setup that was abandoned and then started again from a clean copy.
-     * Such state can never describe this installation, and keeping it would
-     * carry an unfinished installation forward into a new one: the stages that
-     * were already passed would be skipped, and the automatic installation
-     * would still be using the previous application's database.
+     * The database stage is only ever passed once config/database.php names the
+     * database that was tested, so state that has got beyond that stage while
+     * the file names a different database - or names none at all - was written
+     * for an installation that has since been replaced: a fresh download in a
+     * folder that was used before, or a setup that was abandoned and then
+     * started again from a clean copy. Keeping it would carry an unfinished
+     * installation into a new one, skipping the stages that were already
+     * passed.
+     *
+     * The application's URL is deliberately not used for this test. It is the
+     * last thing either path writes, so it stays a true statement of "not
+     * installed yet" for the whole of the setup.
      *
      * @return bool
      */
-    private function has_state_from_previous_installation(): bool {
-        if (BASE_URL !== '****') {
+    private function has_state_from_a_different_installation(): bool {
+        if (empty($this->state['database_file_verified'])) {
             return false;
         }
 
-        $step = (int) ($this->state['step'] ?? 1);
+        $recorded = (string) ($this->state['database']['database'] ?? '');
+        $configured = (string) ($this->get_configured_database()['database'] ?? '');
 
-        return ($step > 2 || empty($this->state['admin_created']) === false);
+        return ($recorded === '' || $configured !== $recorded);
     }
 
     /**
@@ -396,7 +411,7 @@ class Setup {
                 break;
             case 'restart_database':
                 unset($this->state['database_tested'], $this->state['database_file_verified']);
-                $this->step = 3;
+                $this->step = 2;
                 break;
             case 'verify_database_file':
                 $this->verify_database_file();
@@ -414,27 +429,35 @@ class Setup {
     }
 
     /**
-     * Stage 2: the user has saved BASE_URL to config/config.php.
+     * Stage 4: the user has saved BASE_URL to config/config.php.
      *
-     * There is no form field here - the value is adopted silently - so the
-     * only way to know the user did the work is to look at the constant, which
-     * has been re-read from config.php at the start of this request.
+     * This is the last piece of work in the wizard. There is no form field here
+     * - the value is adopted silently - so the only way to know the user did the
+     * work is to look at the constant, which has been re-read from config.php at
+     * the start of this request.
      *
      * @return void
      */
     private function confirm_base_url(): void {
         if (BASE_URL === '****') {
-            $this->step = 2;
+            $this->step = 4;
             $this->errors['base_url'] = 'BASE_URL is still set to \'****\' in config/config.php. '
                 . 'Paste the line above into that file, save it, wait a moment, then click the button again.';
             return;
         }
 
-        $this->step = 3;
+        $this->state['base_url_confirmed'] = true;
+        $this->step = 5;
     }
 
     /**
-     * Stage 3a: test the posted database credentials.
+     * Stage 2a: test the posted database credentials.
+     *
+     * The database is refused when it already holds an installation, which is
+     * the same rule the automatic path applies. The check is made here rather
+     * than at the stage that creates the administrator, because creating one
+     * truncates trongate_administrators and trongate_users: by then the other
+     * installation's account would already be gone.
      *
      * @return void
      */
@@ -444,7 +467,7 @@ class Setup {
 
         if ($this->errors !== []) {
             $this->state['database'] = $credentials;
-            $this->step = 3;
+            $this->step = 2;
             return;
         }
 
@@ -453,17 +476,27 @@ class Setup {
         if ($result !== true) {
             $this->errors['database'] = $result;
             $this->state['database'] = $credentials;
-            $this->step = 3;
+            $this->step = 2;
+            return;
+        }
+
+        $inspection = $this->inspect_database($credentials);
+
+        if ($inspection['installed'] === true) {
+            $this->errors['database'] = 'The database "' . $credentials['database'] . '" already holds a '
+                . 'Trongate installation, so it has been left untouched. Choose another database name.';
+            $this->state['database'] = $credentials;
+            $this->step = 2;
             return;
         }
 
         $this->state['database'] = $credentials;
         $this->state['database_tested'] = true;
-        $this->step = 3;
+        $this->step = 2;
     }
 
     /**
-     * Stage 3b: the user says config/database.php has been saved.
+     * Stage 2b: the user says config/database.php has been saved.
      *
      * Verifies the saved file by connecting with it - the same connection the
      * application itself will make - rather than trusting the form post.
@@ -475,7 +508,7 @@ class Setup {
 
         if ($result !== true) {
             $this->errors['database_file'] = $result;
-            $this->step = 3;
+            $this->step = 2;
             return;
         }
 
@@ -483,11 +516,11 @@ class Setup {
         // the password is no longer needed.
         unset($this->state['database']['password']);
         $this->state['database_file_verified'] = true;
-        $this->step = 4;
+        $this->step = 3;
     }
 
     /**
-     * Stage 4: create the administrator account.
+     * Stage 3: create the administrator account.
      *
      * @return void
      */
@@ -501,7 +534,7 @@ class Setup {
 
         if ($this->errors !== []) {
             $this->state['admin'] = ['username' => $username, 'email' => $email];
-            $this->step = 4;
+            $this->step = 3;
             return;
         }
 
@@ -510,17 +543,47 @@ class Setup {
         if ($result !== true) {
             $this->errors['admin'] = $result;
             $this->state['admin'] = ['username' => $username, 'email' => $email];
-            $this->step = 4;
+            $this->step = 3;
             return;
         }
 
         $this->state['admin'] = ['username' => $username, 'email' => $email];
         $this->state['admin_created'] = true;
-        $this->step = 5;
 
         if ($this->fast_mode === true) {
-            $this->module_deletion_pending = true;
+            $this->finish_automatic_installation();
+            return;
         }
+
+        $this->step = 4;
+    }
+
+    /**
+     * Write the application's URL, now that the automatic installation has
+     * done everything else.
+     *
+     * The URL is written last on purpose. While config/config.php holds the
+     * placeholder the first-run check stays on, so the wizard keeps appearing at
+     * whatever address the developer opens, and a failure leaves a page that can
+     * be finished rather than an application that cannot be reached.
+     *
+     * @return void
+     */
+    private function finish_automatic_installation(): void {
+        if ($this->write_base_url() !== true) {
+            // The stage that asks for the line by hand is still available, so
+            // that stays open rather than leaving the installation unfinished.
+            $this->fast_mode = false;
+            $this->state['fast_mode'] = false;
+            $this->step = 4;
+            $this->notice = 'Your application\'s address could not be saved to config/config.php. '
+                . 'Paste the line below into that file, save it, then click Continue.';
+            return;
+        }
+
+        $this->state['base_url_confirmed'] = true;
+        $this->module_deletion_pending = true;
+        $this->step = 5;
     }
 
     /**
@@ -689,11 +752,21 @@ class Setup {
     }
 
     /**
-     * The database that config/database.php names.
+     * The database that the wizard is working with.
+     *
+     * The wizard's own record of the database it tested comes first, because the
+     * first half of the database stage is drawn before config/database.php has
+     * been written and the loaded copy of that file therefore names nothing.
      *
      * @return string
      */
     private function get_connected_database(): string {
+        $posted = (string) ($this->state['database']['database'] ?? '');
+
+        if ($posted !== '') {
+            return $posted;
+        }
+
         return (string) ($GLOBALS['databases']['default']['database'] ?? '');
     }
 
@@ -790,9 +863,9 @@ class Setup {
     private function get_view_name(): string {
         $names = [
             1 => 'welcome',
-            2 => 'base_url',
-            3 => 'database',
-            4 => 'admin',
+            2 => 'database',
+            3 => 'admin',
+            4 => 'base_url',
             5 => 'finalize'
         ];
 
@@ -846,6 +919,17 @@ class Setup {
 
         try {
             $pdo = $this->get_pdo_connection();
+
+            // The same rule the database stage applies. Checked again here,
+            // immediately before the truncation, because these two statements
+            // are the ones that would destroy another installation's account.
+            $database = (string) ($this->state['database']['database'] ?? $this->get_connected_database());
+
+            if ($this->has_administrator_rows($pdo, $database) === true) {
+                return 'The database "' . $database . '" already holds a Trongate installation, so its '
+                    . 'account has been left untouched. Choose another database name.';
+            }
+
             $pdo->exec((string) file_get_contents($sql_path));
 
             // Truncate so that the wizard can be safely re-run.
@@ -1249,10 +1333,12 @@ class Setup {
     /**
      * Install the application without asking anything that can be detected.
      *
-     * Saves BASE_URL, saves the database settings, creates the database, runs
-     * the framework's SQL, and then hands over to the administrator form. If
-     * any part of it fails the developer is returned to the first stage with a
-     * reason and the wizard's own stages remain available.
+     * Saves the database settings, creates the database, runs the framework's
+     * SQL, and then hands over to the administrator form. The application's URL
+     * is not written here: it is written once the administrator exists, so that
+     * a failure in between leaves the first-run check on. If any part of it
+     * fails the developer is returned to the first stage with a reason and the
+     * wizard's own stages remain available.
      *
      * @return void
      */
@@ -1270,18 +1356,6 @@ class Setup {
             return;
         }
 
-        if (BASE_URL === '****' && $this->write_base_url() !== true) {
-            $this->notice = 'Your application\'s address could not be saved to config/config.php. '
-                . 'The step-by-step setup writes it by hand instead.';
-            return;
-        }
-
-        if ($this->write_database_config() !== true) {
-            $this->notice = 'The database settings could not be saved to config/database.php. '
-                . 'The step-by-step setup writes them by hand instead.';
-            return;
-        }
-
         $credentials = $this->get_database_defaults();
         $inspection = $this->inspect_database($credentials);
 
@@ -1295,6 +1369,15 @@ class Setup {
         if ($inspection['installed'] === true) {
             $this->notice = 'The database "' . $credentials['database'] . '" already holds a Trongate '
                 . 'installation, so it has been left untouched. Choose another database name below.';
+            return;
+        }
+
+        // Written only now: a database that already holds an installation is
+        // refused above, and config/database.php is left pointing wherever the
+        // developer had it.
+        if ($this->write_database_config() !== true) {
+            $this->notice = 'The database settings could not be saved to config/database.php. '
+                . 'The step-by-step setup writes them by hand instead.';
             return;
         }
 
@@ -1319,7 +1402,7 @@ class Setup {
         $this->state['database_file_verified'] = true;
         $this->state['fast_mode'] = true;
         $this->fast_mode = true;
-        $this->step = 4;
+        $this->step = 3;
     }
 
     /**

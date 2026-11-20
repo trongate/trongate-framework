@@ -431,8 +431,8 @@ form .form-field-validation-error:focus {
     padding: 12px 14px;
     margin: 8px 0 1.4em 0;
     overflow-x: auto;
-    white-space: pre-wrap;
-    word-break: break-all;
+    white-space: pre;
+    word-break: normal;
     font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
     font-size: 0;
     color: #e2e8f0;
@@ -512,6 +512,26 @@ form .form-field-validation-error:focus {
 @media screen and (max-width: 550px) {
     .copy-btn {
         width: auto;
+    }
+
+    .setup-container {
+        padding: 24px 18px;
+    }
+
+    .steps {
+        gap: 2px;
+    }
+
+    .step {
+        min-width: 0;
+    }
+
+    .step-title {
+        font-size: 0.58rem;
+        letter-spacing: 0;
+        line-height: 1.25;
+        text-align: center;
+        overflow-wrap: break-word;
     }
 }
 
