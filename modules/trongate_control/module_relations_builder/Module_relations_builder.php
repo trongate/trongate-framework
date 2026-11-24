@@ -733,7 +733,10 @@ class Module_relations_builder extends Trongate {
      * the record is removed, and the release_{plural}_links() private
      * method that delegates to the module_relations runtime. The FK
      * marker uses the PARENT's own singular name — the FK column that
-     * lives on the CHILD table, pointing back at the parent.
+     * lives on the CHILD table, pointing back at the parent — and is
+     * qualified with the CHILD's plural, because one parent may have
+     * several one-to-many children and each needs its own hook in the
+     * same file (a bare FK marker would refuse the second relation).
      *
      * @param string $module       The parent module receiving injection.
      * @param string $child_module The child module (runtime alt_module).
@@ -755,7 +758,7 @@ class Module_relations_builder extends Trongate {
                     'fk' => $fk,
                     'plural' => $plural
                 ]),
-                'marker' => '// ' . $marker . 'delete hook',
+                'marker' => '// ' . $marker . 'delete hook (' . $plural . ')',
                 'fk' => $fk
             ],
             [
@@ -780,10 +783,13 @@ class Module_relations_builder extends Trongate {
      * a deleted record must not leave links behind).
      *
      * Two items: the release call injected into submit_delete() before
-     * the record is removed, and the release_junction_links() private
-     * method that delegates to the module_relations runtime. The marker
-     * is fixed — a junction relation has no FK column of its own (the
-     * release is symmetric across both sides).
+     * the record is removed, and the release_{alt_module}_junction_links()
+     * private method that delegates to the module_relations runtime. A
+     * junction relation has no FK column of its own (the release is
+     * symmetric across both sides), so the marker and the method name are
+     * both qualified with the OTHER module: one module may sit in several
+     * junction relations, and each partner needs its own hook and its own
+     * method in the same file.
      *
      * @param string $module     The module receiving injection.
      * @param string $alt_module The other module in the relation (runtime
@@ -792,14 +798,18 @@ class Module_relations_builder extends Trongate {
      */
     private function plan_junction_delete_hook(string $module, string $alt_module): array {
         $controller = 'modules/' . $module . '/' . ucfirst($module) . '.php';
+        $method = 'release_' . $alt_module . '_junction_links';
 
         return [
             [
                 'file' => $controller,
                 'anchor' => "\$this->model->delete_record(\$update_id);",
                 'insert' => 'before',
-                'block' => $this->render_code_block('junction_delete_hook', []),
-                'marker' => '// flo_relation: junction delete hook',
+                'block' => $this->render_code_block('junction_delete_hook', [
+                    'method' => $method,
+                    'alt_module' => $alt_module
+                ]),
+                'marker' => '// flo_relation: junction delete hook (' . $alt_module . ')',
                 'fk' => ''
             ],
             [
@@ -807,11 +817,12 @@ class Module_relations_builder extends Trongate {
                 'anchor' => self::END_OF_CLASS,
                 'insert' => 'before',
                 'block' => $this->render_code_block('release_junction_method', [
+                    'method' => $method,
                     'module' => $module,
                     'alt_module' => $alt_module,
                     'runtime_route' => $this->model->get_runtime_route()
                 ]),
-                'marker' => 'private function release_junction_links(',
+                'marker' => 'private function ' . $method . '(',
                 'fk' => ''
             ]
         ];

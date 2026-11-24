@@ -1,8 +1,8 @@
 <?php
 /**
- * Injection template: release_junction_links() private method (junction
- * delete hook — 1:1 bridge / many to many). Data: module, alt_module,
- * runtime_route.
+ * Injection template: the per-partner junction release method (junction
+ * delete hook — 1:1 bridge / many to many). Data: method, module,
+ * alt_module, runtime_route.
  */
 ?>
     /**
@@ -14,7 +14,7 @@
      * @param int $update_id The record being deleted.
      * @return void
      */
-    private function release_junction_links(int $update_id): void {
+    private function <?= $method ?>(int $update_id): void {
         Modules::run('<?= $runtime_route ?>/release_junction_links', [
             'calling_module' => '<?= $module ?>',
             'alt_module' => '<?= $alt_module ?>',
