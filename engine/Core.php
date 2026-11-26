@@ -148,10 +148,16 @@ class Core {
      * Controllers extending Trongate receive the module name via constructor parameter.
      * They must call parent::__construct($module_name) to initialize framework features.
      * 
+     * V2 AND METHOD ARGUMENTS:
+     * URL segments are no longer passed as method arguments, so a public method that
+     * requires arguments can never be reached from a URL. That case is detected from the
+     * method signature and rejected before the call is made, leaving any ArgumentCountError
+     * raised by the application itself to surface as the genuine error that it is.
+     * 
      * PERFORMANCE:
-     * Near-zero overhead - direct instantiation and method invocation. The try-catch
-     * adds no cost to the normal execution path; it only activates when a method
-     * requiring arguments is invoked directly via URL.
+     * Near-zero overhead - direct instantiation and method invocation, plus one
+     * required-parameter count on the ReflectionMethod that the visibility check has
+     * already built. No exception handling on the normal execution path.
      * 
      * @return void
      */
@@ -170,17 +176,25 @@ class Core {
                 return;
             }
 
-            try {
-                $controller_instance->{$this->current_method}();
-            } catch (\ArgumentCountError) {
+            // A public method that requires arguments can never be reached from a URL,
+            // because the dispatcher supplies none. This is decided here, from the method
+            // signature, rather than by catching \ArgumentCountError around the call: a
+            // catch at this level also swallows the ArgumentCountError raised by the
+            // application's own code (a model method called with too few arguments is the
+            // usual case) and reports it as direct URL access, which sends developers
+            // looking in the wrong place.
+            if ($method->getNumberOfRequiredParameters() > 0) {
                 if (defined('ENV') && strtolower(ENV) === 'dev') {
+                    $num_required = $method->getNumberOfRequiredParameters();
                     http_response_code(500);
-                    die('ArgumentCountError: Direct URL access not permitted or method called with wrong number of parameters. Check method signatures.');
+                    die('ArgumentCountError: ' . $this->current_module . '/' . $this->current_method . ' requires ' . $num_required . ' argument(s) and can never be reached by direct URL access. Use segment() to read values from the URL, or call this method from another controller.');
                 } else {
                     http_response_code(403);
                     die('403 Forbidden - Direct URL access not permitted');
                 }
             }
+
+            $controller_instance->{$this->current_method}();
         } else {
             $this->draw_error_page();
         }
